@@ -10,18 +10,29 @@ export const meta = () => {
 export async function loader({context}) {
   const {storefront} = context;
   const {collections} = await storefront.query(FEATURED_COLLECTION_QUERY);
+  const collections2 = await storefront.query(COLLECTIONS_QUERY);
+
   const featuredCollection = collections.nodes[0];
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
+  const hasilCollection =  collections2;
 
-  return defer({featuredCollection, recommendedProducts});
+  console.log(hasilCollection)
+
+ 
+
+  return defer({featuredCollection, recommendedProducts,hasilCollection});
 }
 
 export default function Homepage() {
   const data = useLoaderData();
+
+  // console.log('test adalah',data.hasilCollection.collections.nodes)
+
   return (
     <div className="home">
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />
+      <RenderCollection collections={data.hasilCollection.collections}/>
     </div>
   );
 }
@@ -43,6 +54,43 @@ function FeaturedCollection({collection}) {
     </Link>
   );
 }
+
+
+//HASIL SENDIRI
+function RenderCollection({collections}) {
+  // console.log('Ini adalah collections 1',collections)
+  if (!collections) return null;
+  return (
+    <section className="w-full gap-4">
+      <h2 className="whitespace-pre-wrap max-w-prose font-bold text-lead">
+        Kategori Produk
+      </h2>
+      <div className="grid-flow-row grid gap-2 gap-y-6 md:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-3">
+        {collections.nodes.map((collection) => {
+          return (
+            <Link to={`/collections/${collection.handle}`} key={collection.id}>
+              <div className="grid gap-4">
+                {collection?.image && (
+                  <Image
+                    alt={`Image of ${collection.title}`}
+                    data={collection.image}
+                    key={collection.id}
+                    sizes="(max-width: 32em) 100vw, 33vw"
+                    crop="center"
+                  />
+                )}
+                <h2 className="whitespace-pre-wrap max-w-prose font-medium text-copy">
+                  {collection.title}
+                </h2>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 
 function RecommendedProducts({products}) {
   return (
@@ -93,7 +141,7 @@ const FEATURED_COLLECTION_QUERY = `#graphql
   }
   query FeaturedCollection($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    collections(first: 1, sortKey: UPDATED_AT, reverse: true) {
+    collections(first: 4, sortKey: UPDATED_AT, reverse: true) {
       nodes {
         ...FeaturedCollection
       }
@@ -131,3 +179,46 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     }
   }
 `;
+
+
+const COLLECTIONS_QUERY = `#graphql
+  query FeaturedCollections {
+    collections(first: 4, query: "collection_type:smart") {
+      nodes {
+        id
+        title
+        handle
+        image {
+          altText
+          width
+          height
+          url
+        }
+      }
+    }
+  }
+`;
+
+
+// const COLLECTIONS_QUERY = `#graphql
+//   fragment FeaturedCollection on Collection {
+//     id
+//     title
+//     image {
+//       id
+//       url
+//       altText
+//       width
+//       height
+//     }
+//     handle
+//   }
+//   query FeaturedCollection($country: CountryCode, $language: LanguageCode)
+//     @inContext(country: $country, language: $language) {
+//     collections(first: 4, sortKey: UPDATED_AT, reverse: true) {
+//       nodes {
+//         ...FeaturedCollection
+//       }
+//     }
+//   }
+// `;
