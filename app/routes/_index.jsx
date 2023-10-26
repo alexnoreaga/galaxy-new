@@ -79,7 +79,7 @@ function RenderCollection({collections}) {
                     crop="center"
                   />
                 )}
-                <h4 className="whitespace-pre-wrap max-w-prose font-medium text-copy text-center">
+                <h4 className="whitespace-pre-wrap max-w-prose font-small text-copy text-center">
                   {collection.title}
                 </h4>
               </div>
