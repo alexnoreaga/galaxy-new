@@ -18,7 +18,7 @@ export default function Collections() {
   const {collections} = useLoaderData();
 
   return (
-    <div className="collections">
+    <div className="collections container mx-auto">
       <h1>Kategori Produk</h1>
       <Pagination connection={collections}>
         {({nodes, isLoading, PreviousLink, NextLink}) => (
@@ -39,7 +39,8 @@ export default function Collections() {
 
 function CollectionsGrid({collections}) {
   return (
-    <div className="collections-grid">
+    // < className="collections-grid">
+    <div className="grid-flow-row grid grid-cols-5 gap-2 gap-y-2 md:gap-2 lg:gap-4 grid-cols-4 sm:grid-cols-8">
       {collections.map((collection, index) => (
         <CollectionItem
           key={collection.id}
