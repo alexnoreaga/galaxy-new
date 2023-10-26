@@ -19,7 +19,7 @@ export default function Collections() {
 
   return (
     <div className="collections">
-      <h1>Collections</h1>
+      <h1>Kategori Produk</h1>
       <Pagination connection={collections}>
         {({nodes, isLoading, PreviousLink, NextLink}) => (
           <div>

@@ -22,6 +22,7 @@ export const loader = async ({request, context: {storefront}}) => {
 
 export default function Blogs() {
   const {blogs} = useLoaderData();
+  console.log('INi adalah blogs',blogs)
 
   return (
     <div className="blogs">
@@ -35,6 +36,7 @@ export default function Blogs() {
                   {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
                 </PreviousLink>
                 {nodes.map((blog) => {
+                  console.log('Ini adalah blog2',blog)
                   return (
                     <Link
                       className="blog"

@@ -7,6 +7,7 @@ import {CartForm} from '@shopify/hydrogen';
 
 
 
+
 export async function loader({params, context, request}) {
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
@@ -75,7 +76,6 @@ return json({
                 {product.vendor}
               </span>
             </div>
-            <h3>TODO Product Options</h3>
                 
             <ProductOptions
   options={product.options}
@@ -219,14 +219,16 @@ return json({
 `;
 
 
-
 const seo = ({data}) => ({
   title: data?.product?.title,
-  description: data?.product?.description.substr(0, 154),
+  description: data?.product?.description.substr(0, 160),
 });
 
 export const handle = {
   seo,
 };
+
+// console.log('Seo ada lah', seo)
+
 
 

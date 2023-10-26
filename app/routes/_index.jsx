@@ -16,7 +16,7 @@ export async function loader({context}) {
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
   const hasilCollection =  collections2;
 
-  console.log(hasilCollection)
+  // console.log(hasilCollection)
 
  
 
@@ -29,7 +29,7 @@ export default function Homepage() {
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
   return (
-    <div className="home">
+    <div className="home container mx-auto">
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />
       <RenderCollection collections={data.hasilCollection.collections}/>
@@ -62,14 +62,14 @@ function RenderCollection({collections}) {
   if (!collections) return null;
   return (
     <section className="w-full gap-4">
-      <h2 className="whitespace-pre-wrap max-w-prose font-bold text-lead">
-        Kategori Produk
+      <h2 className="whitespace-pre-wrap max-w-prose font-bold text-lead ">
+        Kategori Populer
       </h2>
-      <div className="grid-flow-row grid gap-2 gap-y-6 md:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-3">
+      <div className="grid-flow-row grid grid-cols-5 gap-2 gap-y-2 md:gap-2 lg:gap-4 grid-cols-4 sm:grid-cols-8 ">
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
-              <div className="grid gap-4">
+              <div className="grid gap-2">
                 {collection?.image && (
                   <Image
                     alt={`Image of ${collection.title}`}
@@ -79,14 +79,18 @@ function RenderCollection({collections}) {
                     crop="center"
                   />
                 )}
-                <h2 className="whitespace-pre-wrap max-w-prose font-medium text-copy">
+                <h4 className="whitespace-pre-wrap max-w-prose font-medium text-copy text-center">
                   {collection.title}
-                </h2>
+                </h4>
               </div>
             </Link>
           );
         })}
+        
       </div>
+      <Link to={`/collections/`}>
+          <h4 className="text-center">Lihat Selengkapnya</h4>
+        </Link>
     </section>
   );
 }
@@ -111,7 +115,7 @@ function RecommendedProducts({products}) {
                     aspectRatio="1/1"
                     sizes="(min-width: 45em) 20vw, 50vw"
                   />
-                  <h4>{product.title}</h4>
+                  <h4 className='font-medium'>{product.title}</h4>
                   <small>
                     <Money data={product.priceRange.minVariantPrice} />
                   </small>
@@ -172,7 +176,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
   query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
+    products(first: 6, sortKey: UPDATED_AT, reverse: true) {
       nodes {
         ...RecommendedProduct
       }
@@ -183,7 +187,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
 
 const COLLECTIONS_QUERY = `#graphql
   query FeaturedCollections {
-    collections(first: 4, query: "collection_type:smart") {
+    collections(first: 8, query: "collection_type:smart") {
       nodes {
         id
         title
