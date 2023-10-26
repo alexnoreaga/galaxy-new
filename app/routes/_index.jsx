@@ -103,7 +103,7 @@ function RecommendedProducts({products}) {
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
-            <div className="recommended-products-grid">
+            <div className="recommended-products-grid ">
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
@@ -115,10 +115,10 @@ function RecommendedProducts({products}) {
                     aspectRatio="1/1"
                     sizes="(min-width: 45em) 20vw, 50vw"
                   />
-                  <h4 className='font-medium'>{product.title}</h4>
-                  <small>
+                  <h4 className='font-small'>{product.title}</h4>
+                  <h4 className='font-bold'>
                     <Money data={product.priceRange.minVariantPrice} />
-                  </small>
+                  </h4>
                 </Link>
               ))}
             </div>
