@@ -50,7 +50,7 @@ function FeaturedCollection({collection}) {
           <Image data={image} sizes="100vw" />
         </div>
       )}
-      <h1>{collection.title}</h1>
+      {/* <h1>{collection.title}</h1> */}
     </Link>
   );
 }
@@ -89,7 +89,7 @@ function RenderCollection({collections}) {
         
       </div>
       <Link to={`/collections/`}>
-          <h4 className="text-center">Lihat Selengkapnya</h4>
+          <h4 className=" mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</h4>
         </Link>
     </section>
   );
@@ -99,7 +99,7 @@ function RenderCollection({collections}) {
 function RecommendedProducts({products}) {
   return (
     <div className="recommended-products">
-      <h2>Recommended Products</h2>
+      <h2 className='text-center'>Produk Best Seller</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
@@ -107,7 +107,7 @@ function RecommendedProducts({products}) {
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
-                  className="recommended-product"
+                  className="recommended-product "
                   to={`/products/${product.handle}`}
                 >
                   <Image

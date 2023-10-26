@@ -4,9 +4,10 @@ import {Suspense} from 'react';
 export function Header({header, isLoggedIn, cart}) {
   const {shop, menu} = header;
   return (
-    <header className="header">
+    <header className="header ">
       <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
-        <strong>{shop.name}</strong>
+        {/* <strong>{shop.name}</strong> */}
+        <img className='w-28' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web.jpg?v=1698320991" alt="Logo Galaxy Camera" />
       </NavLink>
       <HeaderMenu menu={menu} viewport="desktop" />
       <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
@@ -17,7 +18,7 @@ export function Header({header, isLoggedIn, cart}) {
 export function HeaderMenu({menu, viewport}) {
   const [root] = useMatches();
   const publicStoreDomain = root?.data?.publicStoreDomain;
-  const className = `header-menu-${viewport}`;
+  const className = `header-menu-${viewport} `;
 
   function closeAside(event) {
     if (viewport === 'mobile') {
