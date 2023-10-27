@@ -11,11 +11,15 @@ export async function loader({context, request}) {
     variables: paginationVariables,
   });
 
+  
+
   return json({collections});
 }
 
 export default function Collections() {
   const {collections} = useLoaderData();
+
+  // console.log('ini adalah collection',collections)
 
   return (
     <div className="collections container mx-auto">
@@ -39,7 +43,6 @@ export default function Collections() {
 
 function CollectionsGrid({collections}) {
   return (
-    // < className="collections-grid">
     <div className="grid-flow-row grid grid-cols-5 gap-2 gap-y-2 md:gap-2 lg:gap-4 grid-cols-4 sm:grid-cols-8">
       {collections.map((collection, index) => (
         <CollectionItem
@@ -78,6 +81,11 @@ const COLLECTIONS_QUERY = `#graphql
     id
     title
     handle
+    description
+    seo{
+      description
+      title
+    }
     image {
       id
       url
@@ -100,6 +108,7 @@ const COLLECTIONS_QUERY = `#graphql
       before: $startCursor,
       after: $endCursor
     ) {
+
       nodes {
         ...Collection
       }
@@ -112,3 +121,14 @@ const COLLECTIONS_QUERY = `#graphql
     }
   }
 `;
+
+
+const seo = ({data}) => ({
+  title: "Kategori Produk Galaxy Camera",
+  description: "Kategori Produk Pilihan Galaxy Camera",
+});
+
+export const handle = {
+  seo,
+};
+

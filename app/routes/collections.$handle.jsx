@@ -155,6 +155,10 @@ const COLLECTION_QUERY = `#graphql
       handle
       title
       description
+      seo {
+        description
+        title
+      }
       products(
         first: $first,
         last: $last,
@@ -174,3 +178,17 @@ const COLLECTION_QUERY = `#graphql
     }
   }
 `;
+
+const seo = ({data}) => ({
+  title: data?.collection?.seo.title
+  ?data?.collection?.seo.title
+  :data?.collection?.title,
+  titleTemplate: '%s - A custom Hydrogen storefront',
+  description: data?.collection?.seo.description
+  ? data.collection.seo.description.substr(0, 155)
+  : data?.collection?.description.substr(0, 155),
+});
+
+export const handle = {
+  seo,
+};

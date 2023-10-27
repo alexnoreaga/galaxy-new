@@ -58,7 +58,6 @@ function FeaturedCollection({collection}) {
 
 //HASIL SENDIRI
 function RenderCollection({collections}) {
-  // console.log('Ini adalah collections 1',collections)
   if (!collections) return null;
   return (
     <section className="w-full gap-4">
