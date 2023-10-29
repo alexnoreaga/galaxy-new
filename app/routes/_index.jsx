@@ -106,14 +106,17 @@ function RecommendedProducts({products}) {
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
-                  className="recommended-product "
+                  className="recommended-product hover:no-underline "
                   to={`/products/${product.handle}`}
                 >
+                
                   <Image
                     data={product.images.nodes[0]}
                     aspectRatio="1/1"
                     sizes="(min-width: 45em) 20vw, 50vw"
+                    className="hover:opacity-80"
                   />
+           
                   <h4 className='font-small'>{product.title}</h4>
                   <h4 className='font-bold'>
                     <Money data={product.priceRange.minVariantPrice} />

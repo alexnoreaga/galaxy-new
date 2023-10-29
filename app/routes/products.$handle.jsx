@@ -4,7 +4,8 @@ import {json} from '@shopify/remix-oxygen';
 import ProductOptions from '~/components/ProductOptions';
 import {Image, Money, ShopPayButton} from '@shopify/hydrogen-react';
 import {CartForm} from '@shopify/hydrogen';
-
+import { ProductGallery } from '~/components/ProductGallery';
+import React, { useState } from 'react';
 
 
 
@@ -53,24 +54,22 @@ return json({
   export default function ProductHandle() {
     const {shop, product, selectedVariant} = useLoaderData();
     
-    // console.log(product?product.title:"Loading disini")
-  
+    console.log('Ini adalah produk ke 1',product)
     return (
-      <section className="container mx-auto w-full gap-4 md:gap-8 grid px-6 md:px-8 lg:px-12">
-        <div className="grid items-start gap-6 lg:gap-20 md:grid-cols-2 lg:grid-cols-3">
+      <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-6 md:px-8 lg:px-12">
+        <div className="grid items-start gap-6 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
-            <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-[80vw] shadow rounded">
-            <Image
-  // className={`w-full h-full aspect-square object-cover`}
-    className={`w-full h-full aspect-square object-cover`}
-
+            <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-[80vw] ">
+            {/* <Image
+  className={`w-full h-full aspect-square object-cover`}
   data={product.selectedVariant?.image || product.featuredImage}
-/>
+/> */}
 
+        <ImageGallery productData={product} />
 
             </div>
           </div>
-          <div className="md:sticky md:mx-auto max-w-xl md:max-w-[24rem] grid gap-2 p-0 md:p-6 md:px-0 top-[6rem] lg:top-[8rem] xl:top-[10rem]">
+          <div className="md:sticky md:mx-auto max-w-xl md:max-w-[24rem] grid gap-2 p-0 md:p-2 md:px-0 top-[6rem] lg:top-[8rem] xl:top-[10rem]">
             <div className="grid gap-2">
               <h1 className="text-4xl font-bold leading-10 whitespace-normal">
                 {product.title}
@@ -136,7 +135,71 @@ return json({
     );
   }
   
+
+
+
+  const ImageGallery = ({ productData }) => {
+
+    const [selectedImage, setSelectedImage] = useState(productData.images.edges[0].node.src);
+    const [startIndex, setStartIndex] = useState(0);
+
+
+    const handleImageChange = (newImageSrc) => {
+      setSelectedImage(newImageSrc);
+    };
   
+    const nextImages = () => {
+      const nextStartIndex = startIndex + 4;
+      if (nextStartIndex < productData.images.edges.length) {
+        setStartIndex(nextStartIndex);
+        handleImageChange(productData.images.edges[nextStartIndex].node.src);
+      }
+    };
+  
+    const previousImages = () => {
+      const previousStartIndex = startIndex - 4;
+      if (previousStartIndex >= 0) {
+        setStartIndex(previousStartIndex);
+        handleImageChange(productData.images.edges[previousStartIndex].node.src);
+      }
+    };
+  
+    const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
+  
+    return (
+      <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
+        <div className="md:w-2/3 md:mx-auto">
+          <img src={selectedImage} alt="Product" className="w-full h-auto shadow rounded" />
+        </div>
+        <div className="md:w-1/1">
+          <div className="grid grid-cols-4 gap-2 p-2 justify-between justify-items-center">
+            {displayedImages.map((image) => (
+              <div
+                key={image.node.id}
+                onClick={() => handleImageChange(image.node.src)}
+                className={`border-inherit cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
+              >
+                <img src={image.node.src} alt="Product" className="w-full md:w-3/4 h-auto md:mx-auto" />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-4">
+            {startIndex > 0 && (
+              <button onClick={previousImages} className="text-blue-500 hover:text-blue-700">
+                Previous
+              </button>
+            )}
+            {startIndex + 4 < productData.images.edges.length && (
+              <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
+                Next
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 
 
 
@@ -147,7 +210,16 @@ return json({
         url
       }
     }
+
     product(handle: $handle) {
+      images(first:10){
+        edges{
+          node{
+            src
+          }
+        }
+      }
+
       id
       title
       handle

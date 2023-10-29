@@ -7,25 +7,17 @@ export default function ProductCard({product}) {
 
   return (
     <Link to={`/products/${product.handle}`}>
-      <div className="grid gap-6">
-        <div className="shadow-sm rounded relative">
-          {isDiscounted && (
-            <label className="subpixel-antialiased absolute top-0 right-0 m-4 text-right text-notice text-red-600 text-xs">
-              Sale
-            </label>
-          )}
-          <Image
-            data={product.variants.nodes[0].image}
-            alt={product.title}
-          />
+      <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+    <h2 class="sr-only">Products</h2>
+
+    <div class="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+      <a href="#" class="group">
+        <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-200 xl:aspect-h-8 xl:aspect-w-7">
+          <Image  data={product.variants.nodes[0].image} alt={product.title}/>
         </div>
-        <div className="grid gap-1">
-          <h3 className="max-w-prose text-copy w-full overflow-hidden whitespace-nowrap text-ellipsis ">
-            {product.title}
-          </h3>
-          <div className="flex gap-4">
-            <span className="max-w-prose whitespace-pre-wrap inherit text-copy flex gap-4">
-              <Money withoutTrailingZeros data={price} />
+        <h3 class="mt-4 text-sm text-gray-700"> {product.title}</h3>
+        <span class="mt-1 text-lg font-medium text-gray-900">
+        <Money withoutTrailingZeros data={price} />
               {isDiscounted && (
                 <Money
                   className="line-through opacity-50"
@@ -33,10 +25,12 @@ export default function ProductCard({product}) {
                   data={compareAtPrice}
                 />
               )}
-            </span>
-          </div>
-        </div>
-      </div>
+        </span>
+      </a>
+      
+  </div>
+  </div>
+
     </Link>
   );
 }
