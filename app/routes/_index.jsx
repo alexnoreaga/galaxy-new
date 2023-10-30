@@ -66,7 +66,7 @@ function RenderCollection({collections}) {
       <h2 className="whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
         Kategori Populer
       </h2>
-      <div className="grid-flow-row grid grid-cols-5 gap-2 gap-y-2 md:gap-2 lg:gap-4  sm:grid-cols-8 ">
+      <div className="grid-flow-row grid grid-cols-4 gap-4 gap-y-2 md:gap-2 lg:gap-4  sm:grid-cols-8 ">
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
@@ -80,7 +80,7 @@ function RenderCollection({collections}) {
                     crop="center"
                   />
                 )}
-                <p className="whitespace-pre-wrap max-w-prose text-copy text-center text-sm">
+                <p className="whitespace-normal max-w-prose text-copy text-center text-sm">
                   {collection.title}
                 </p>
               </div>
@@ -90,7 +90,7 @@ function RenderCollection({collections}) {
         
       </div>
       <Link to={`/collections/`}>
-          <p className=" mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
+          <p className="text-sm mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
         </Link>
     </section>
   );
