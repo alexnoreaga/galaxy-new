@@ -9,6 +9,7 @@ import {
   PredictiveSearchResults,
 } from '~/components/Search';
 import { BottomNavbar } from './BottomNavbar';
+import { BlackBar } from './BlackBar';
 
 
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
@@ -16,7 +17,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
   return (
     <>
-
+      <BlackBar/>
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside menu={header.menu} />

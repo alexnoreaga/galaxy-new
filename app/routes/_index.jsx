@@ -104,11 +104,11 @@ function RecommendedProducts({products}) {
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
-            <div className="recommended-products-grid ">
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-6">
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
-                  className="recommended-product hover:no-underline border shadow rounded-xl p-2"
+                  className="hover:no-underline border shadow rounded-xl p-2"
                   to={`/products/${product.handle}`}
                 >
                 
