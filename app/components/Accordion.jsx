@@ -9,7 +9,7 @@ export const Accordion = ({ title, content,icon }) => {
   
     return (
       <div className="accordion">
-        <div className="content-center mx-auto m-4 text-sm text-slate-500 accordion-title cursor-pointer flex justify-between items-center gap-2" onClick={toggleAccordion}>
+        <div className="content-center mx-auto my-4 text-sm text-slate-500 accordion-title cursor-pointer flex justify-between items-center gap-2" onClick={toggleAccordion}>
             <div className='flex flex-row gap-2 items-center'>
                 <div class>{icon}</div>
                 <div>{title}</div>

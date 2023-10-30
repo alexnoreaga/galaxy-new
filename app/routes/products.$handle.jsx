@@ -60,7 +60,7 @@ return json({
     console.log('Ini adalah produk ke 1',product)
     return (
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
-        <div className="grid items-start gap-6 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
             <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-full">
               <ImageGallery productData={product}/>
@@ -123,22 +123,53 @@ return json({
     </>
   )}
   </CartForm>
+  
+  {selectedVariant?.availableForSale
+  && <TombolWa/>}
+    
 
-    <TombolWa/>
+    <div className='divide-y mt-2'>
 
- 
-  <Accordion title="Pengiriman Gratis se-Indonesia" content="Untuk setiap pembelian di Galaxy Digital gratis ongkir hingga ke seluruh Indonesia" icon={(<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-  <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
+        <Accordion 
+        title="Gratis Ongkir se-Indonesia" 
+        content="Untuk setiap pembelian di Galaxy Digital gratis ongkir hingga ke seluruh Indonesia" 
+        icon={(
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+  <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
 </svg>
 
 
-)}/>
+        )}/>
+
+        <Accordion 
+        title="14 Hari Tukar Baru" 
+        content="Jaminan penukaran kembali jika barang yang diterima tidak sesuai / cacat produksi atau salah ukuran." 
+        icon={(
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
+        </svg>
+
+        )}/>
+
+      <Accordion 
+        title="Cicilan Tanpa Kartu Kredit ?" 
+        content="Galaxy tersedia juga kredit tanpa kartu kredit, tersedia leasing seperti : Homecredit, Kredivo, Aeon, Indodana, Akulaku & Shopee Paylater. Hubungi admin untuk info lebih lanjut" 
+        icon={(
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
+        </svg>
+
+        )}/>
+
+</div>
+
+
 
           </div>
         </div>
 
         <div
-  className="w-full prose border-t border-gray-200 pt-6 text-black text-md"
+  className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
   dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
       
       </section>
