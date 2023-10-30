@@ -2,7 +2,7 @@ import {useMatches, NavLink} from '@remix-run/react';
 
 export function Footer({menu}) {
   return (
-    <footer className="footer">
+    <footer className="footer ">
       <FooterMenu menu={menu} />
     </footer>
   );
