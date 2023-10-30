@@ -32,8 +32,9 @@ export default function Homepage() {
   return (
     <div className="home container mx-auto">
       <FeaturedCollection collection={data.featuredCollection} />
-      <RecommendedProducts products={data.recommendedProducts} />
+     
       <RenderCollection collections={data.hasilCollection.collections}/>
+      <RecommendedProducts products={data.recommendedProducts} />
     </div>
   );
 }
@@ -62,10 +63,10 @@ function RenderCollection({collections}) {
   if (!collections) return null;
   return (
     <section className="w-full gap-4">
-      <h2 className="whitespace-pre-wrap max-w-prose font-bold text-lead ">
+      <h2 className="whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
         Kategori Populer
       </h2>
-      <div className="grid-flow-row grid grid-cols-5 gap-2 gap-y-2 md:gap-2 lg:gap-4 grid-cols-4 sm:grid-cols-8 ">
+      <div className="grid-flow-row grid grid-cols-5 gap-2 gap-y-2 md:gap-2 lg:gap-4  sm:grid-cols-8 ">
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
@@ -79,9 +80,9 @@ function RenderCollection({collections}) {
                     crop="center"
                   />
                 )}
-                <h4 className="whitespace-pre-wrap max-w-prose font-small text-copy text-center">
+                <p className="whitespace-pre-wrap max-w-prose text-copy text-center text-sm">
                   {collection.title}
-                </h4>
+                </p>
               </div>
             </Link>
           );
@@ -89,7 +90,7 @@ function RenderCollection({collections}) {
         
       </div>
       <Link to={`/collections/`}>
-          <h4 className=" mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</h4>
+          <p className=" mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
         </Link>
     </section>
   );
