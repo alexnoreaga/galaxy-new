@@ -218,6 +218,8 @@ function InfoExtraTambahan(){
       </div>
 
 
+
+
     </>
   )
 }
@@ -225,16 +227,13 @@ function InfoExtraTambahan(){
 function TombolWa(){
   return(
     <>
-      <button
-        type="submit"
-        onClick={() => {
-          window.location.href = window.location.href + '#cart-aside';
-          console.log('hasil console log',window.location.href)
-        }}
-       className="border border-black rounded-sm w-full px-4 py-2 text-white bg-black uppercase hover:bg-white hover:text-black transition-colors duration-150"
-      >
-      WA ADMIN
-      </button>
+    
+
+        <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
+            <div>WA ADMIN</div>
+      </div>
+
+     
 
     </>
   )
