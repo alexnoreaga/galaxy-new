@@ -107,7 +107,7 @@ function RecommendedProducts({products}) {
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
-                  className="recommended-product hover:no-underline shadow-lg rounded-xl p-2"
+                  className="recommended-product hover:no-underline border shadow rounded-xl p-2"
                   to={`/products/${product.handle}`}
                 >
                 
