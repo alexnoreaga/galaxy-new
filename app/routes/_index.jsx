@@ -30,7 +30,7 @@ export default function Homepage() {
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
   return (
-    <div className="home container mx-auto">
+    <div className="home md:container md:mx-auto mx-auto">
       <FeaturedCollection collection={data.featuredCollection} />
      
       <RenderCollection collections={data.hasilCollection.collections}/>
@@ -63,7 +63,7 @@ function RenderCollection({collections}) {
   if (!collections) return null;
   return (
     <section className="w-full gap-4">
-      <h2 className="whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
+      <h2 className="text-slate-800 whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
         Kategori Populer
       </h2>
       <div className="grid-flow-row grid grid-cols-4 gap-4 gap-y-2 md:gap-2 lg:gap-4  sm:grid-cols-8 ">
@@ -80,7 +80,7 @@ function RenderCollection({collections}) {
                     crop="center"
                   />
                 )}
-                <p className="whitespace-normal max-w-prose text-copy text-center text-sm">
+                <p className="text-slate-800 whitespace-normal max-w-prose text-copy text-center text-sm">
                   {collection.title}
                 </p>
               </div>
@@ -90,7 +90,7 @@ function RenderCollection({collections}) {
         
       </div>
       <Link to={`/collections/`}>
-          <p className="text-sm mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
+          <p className="text-slate-800 text-sm mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
         </Link>
     </section>
   );
@@ -99,7 +99,7 @@ function RenderCollection({collections}) {
 
 function RecommendedProducts({products}) {
   return (
-    <div className="recommended-products">
+    <div className="recommended-products text-slate-800">
       <h2 className='text-center'>Produk Best Seller</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
@@ -119,10 +119,10 @@ function RecommendedProducts({products}) {
                     className="hover:opacity-80"
                   />
            
-                  <h4 className='font-small'>{product.title}</h4>
-                  <h4 className='font-bold'>
+                  <p className='text-sm mt-1 text-slate-800'>{product.title}</p>
+                  <p className='text-sm font-bold text-slate-800'>
                     <Money data={product.priceRange.minVariantPrice} />
-                  </h4>
+                  </p>
                 </Link>
               ))}
             </div>
