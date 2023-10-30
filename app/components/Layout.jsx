@@ -8,6 +8,7 @@ import {
   PredictiveSearchForm,
   PredictiveSearchResults,
 } from '~/components/Search';
+import { BottomNavbar } from './BottomNavbar';
 
 
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
@@ -15,7 +16,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
   return (
     <>
-      
+
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside menu={header.menu} />
@@ -26,7 +27,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
           {(footer) => <Footer menu={footer.menu} />}
         </Await>
       </Suspense>
-
+      {/* <BottomNavbar/> */}
     </>
   );
 }
