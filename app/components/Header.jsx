@@ -4,7 +4,7 @@ import {Suspense} from 'react';
 export function Header({header, isLoggedIn, cart}) {
   const {shop, menu} = header;
   return (
-    <header className="header border-b-1">
+    <header className="header bg-black border-b-1">
       <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
         {/* <strong>{shop.name}</strong> */}
         <img className='h-8 sm:h-8 md:h-10 lg:h-10' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web.jpg?v=1698320991" alt="Logo Galaxy Camera" />

@@ -9,9 +9,13 @@ import {
   PredictiveSearchResults,
 } from '~/components/Search';
 
+
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
+
+
   return (
     <>
+      
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside menu={header.menu} />
@@ -22,6 +26,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
           {(footer) => <Footer menu={footer.menu} />}
         </Await>
       </Suspense>
+
     </>
   );
 }

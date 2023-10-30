@@ -8,6 +8,7 @@ export const meta = () => {
 };
 
 export async function loader({context}) {
+  
   const {storefront} = context;
   const {collections} = await storefront.query(FEATURED_COLLECTION_QUERY);
   const collections2 = await storefront.query(COLLECTIONS_QUERY);

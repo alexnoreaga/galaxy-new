@@ -97,7 +97,8 @@ export default function App() {
   const nonce = useNonce();
   const data = useLoaderData();
 
-  console.log(data)
+
+  // console.log(data)
 
   return (
     <html lang="en">
@@ -105,6 +106,7 @@ export default function App() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="theme-color" content="#000000"></meta>
+
         <Seo />
         <Meta />
         <Links />
@@ -116,6 +118,7 @@ export default function App() {
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <LiveReload nonce={nonce} />
+
       </body>
     </html>
   );

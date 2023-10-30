@@ -6,6 +6,7 @@ import {Image, Money, ShopPayButton} from '@shopify/hydrogen-react';
 import {CartForm} from '@shopify/hydrogen';
 import { ProductGallery } from '~/components/ProductGallery';
 import React, { useState } from 'react';
+import ProductCard from '~/components/ProductCard';
 
 
 
@@ -53,20 +54,15 @@ return json({
 
   export default function ProductHandle() {
     const {shop, product, selectedVariant} = useLoaderData();
+    console.log(product.options[0].values.length)
     
     console.log('Ini adalah produk ke 1',product)
     return (
-      <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-6 md:px-8 lg:px-12">
+      <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
         <div className="grid items-start gap-6 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
-            <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-[80vw] ">
-            {/* <Image
-  className={`w-full h-full aspect-square object-cover`}
-  data={product.selectedVariant?.image || product.featuredImage}
-/> */}
-
-        <ImageGallery productData={product} />
-
+            <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-[80vw] w-full">
+              <ImageGallery productData={product}/>
             </div>
           </div>
           <div className="md:sticky md:mx-auto max-w-xl md:max-w-[24rem] grid gap-2 p-0 md:p-2 md:px-0 top-[6rem] lg:top-[8rem] xl:top-[10rem]">
@@ -74,20 +70,23 @@ return json({
               <h1 className="text-4xl font-bold leading-10 whitespace-normal">
                 {product.title}
               </h1>
-              <span className="max-w-prose whitespace-pre-wrap inherit text-copy opacity-50 font-medium">
+              {/* <span className="max-w-prose whitespace-pre-wrap inherit text-copy opacity-50 font-medium">
                 {product.vendor}
-              </span>
+              </span> */}
             </div>
                 
-            <ProductOptions
-  options={product.options}
-  selectedVariant={selectedVariant}
-/>
-<Money
-  withoutTrailingZeros
-  data={selectedVariant.price}
-  className="text-xl font-semibold mb-2"
-/>
+            {product.options[0].values.length > 1 && (
+              <ProductOptions
+                options={product.options}
+                selectedVariant={selectedVariant}
+              />
+              )}
+
+          <Money
+            withoutTrailingZeros
+            data={selectedVariant.price}
+            className="text-xl font-semibold mb-2"
+          />
 
 
 <CartForm
@@ -122,15 +121,13 @@ return json({
   )}
 </CartForm>
 
-   
-
-<div
-  className="prose border-t border-gray-200 pt-6 text-black text-md"
-  dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-/>
-
           </div>
         </div>
+
+        <div
+  className="w-full prose border-t border-gray-200 pt-6 text-black text-md"
+  dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
+      
       </section>
     );
   }
@@ -165,21 +162,23 @@ return json({
     };
   
     const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
+
+    // console.log('Ini displyaed images', displayedImages)
   
     return (
       <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
-        <div className="md:w-2/3 md:mx-auto">
+        <div className="md:w-4/5 mx-auto ">
           <img src={selectedImage} alt="Product" className="w-full h-auto shadow rounded" />
         </div>
-        <div className="md:w-1/1">
-          <div className="grid grid-cols-4 gap-2 p-2 justify-between justify-items-center">
+        <div className="md:w-5/5 ">
+          <div className="grid grid-cols-4 gap-4 md:mt-4">
             {displayedImages.map((image) => (
               <div
-                key={image.node.id}
+                key={image.node.src}
                 onClick={() => handleImageChange(image.node.src)}
-                className={`border-inherit cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
+                className={`border-2 border-inherit rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
               >
-                <img src={image.node.src} alt="Product" className="w-full md:w-3/4 h-auto md:mx-auto" />
+                <img src={image.node.src} alt="Product" className="w-full h-auto md:mx-auto p-1" />
               </div>
             ))}
           </div>
