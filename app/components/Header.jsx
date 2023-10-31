@@ -1,7 +1,11 @@
 import {Await, NavLink, useMatches} from '@remix-run/react';
 import {Suspense} from 'react';
 
+
+
 export function Header({header, isLoggedIn, cart}) {
+
+
   const {shop, menu} = header;
   return (
     <header className="header bg-black border-b-1">
@@ -70,6 +74,7 @@ export function HeaderMenu({menu, viewport}) {
 function HeaderCtas({isLoggedIn, cart}) {
   return (
     <nav className="header-ctas" role="navigation">
+      
       <HeaderMenuMobileToggle />
       <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
         {isLoggedIn ? 'Account' : 'Sign in'}

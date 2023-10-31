@@ -11,6 +11,7 @@ import {
 import { BottomNavbar } from './BottomNavbar';
 
 
+
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
 
@@ -26,7 +27,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
           {(footer) => <Footer menu={footer.menu} />}
         </Await>
       </Suspense>
-      {/* <BottomNavbar/> */}
+      <BottomNavbar/>
     </>
   );
 }

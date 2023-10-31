@@ -12,6 +12,7 @@ export async function loader({context, request}) {
   });
 
   
+  
 
   return json({collections});
 }

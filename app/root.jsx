@@ -118,7 +118,6 @@ export default function App() {
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <LiveReload nonce={nonce} />
-
       </body>
     </html>
   );
@@ -147,6 +146,7 @@ export function ErrorBoundary() {
         <Links />
       </head>
       <body>
+
         <Layout {...root.data}>
           <div className="route-error">
             <h1>Oops</h1>

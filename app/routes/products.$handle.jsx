@@ -63,6 +63,7 @@ return json({
         <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
             <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-full">
+              
               <ImageGallery productData={product}/>
             </div>
           </div>
