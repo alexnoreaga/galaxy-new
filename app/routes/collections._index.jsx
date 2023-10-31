@@ -4,7 +4,7 @@ import {Pagination, getPaginationVariables, Image} from '@shopify/hydrogen';
 
 export async function loader({context, request}) {
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 20,
+    pageBy: 5,
   });
 
   const {collections} = await context.storefront.query(COLLECTIONS_QUERY, {
@@ -26,13 +26,13 @@ export default function Collections() {
       <h1>Kategori Produk</h1>
       <Pagination connection={collections}>
         {({nodes, isLoading, PreviousLink, NextLink}) => (
-          <div>
+          <div className='text-center'>
             <PreviousLink>
-              {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
+              {isLoading ? 'Loading...' : <span className='m-4'>↑ Load previous</span>}
             </PreviousLink>
             <CollectionsGrid collections={nodes} />
             <NextLink>
-              {isLoading ? 'Loading...' : <span>Load more ↓</span>}
+              {isLoading ? 'Loading...' : <span className='m-4'>Load more ↓</span>}
             </NextLink>
           </div>
         )}
@@ -43,7 +43,7 @@ export default function Collections() {
 
 function CollectionsGrid({collections}) {
   return (
-    <div className="grid-flow-row grid grid-cols-5 gap-2 gap-y-2 md:gap-2 lg:gap-4 grid-cols-4 sm:grid-cols-8">
+    <div className="grid-flow-row grid lg:grid-cols-8 gap-2 gap-y-2 md:gap-2 lg:gap-4 sm:grid-cols-8">
       {collections.map((collection, index) => (
         <CollectionItem
           key={collection.id}
@@ -56,6 +56,7 @@ function CollectionsGrid({collections}) {
 }
 
 function CollectionItem({collection, index}) {
+  console.log(collection.image)
   return (
     <Link
       className="collection-item"
@@ -63,16 +64,23 @@ function CollectionItem({collection, index}) {
       to={`/collections/${collection.handle}`}
       prefetch="intent"
     >
-      {collection?.image && (
-        <Image
-          alt={collection.image.altText || collection.title}
-          aspectRatio="1/1"
-          data={collection.image}
-          loading={index < 3 ? 'eager' : undefined}
-        />
-      )}
-      <h5>{collection.title}</h5>
+      <div className='flex flex-row border-b md:border-b-0 items-center'>
+        <div className='cursor-pointer ml-2 gap-5 flex sm:flex-row md:flex-col items-center md:gap-2'>
+          {collection?.image && (
+            <img src={collection.image.url} alt={collection.image.altText || collection.title} className="w-1/6 md:w-full lg:w-full h-auto p-1 rounded-lg" />
+
+          )}
+          <p className='text-sm'>{collection.title}</p>
+          </div>
+        <div className='block md:hidden mr-2 md:mr-0'>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+
+        </div>
+        </div>
     </Link>
+
   );
 }
 

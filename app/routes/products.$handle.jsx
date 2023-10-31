@@ -12,6 +12,7 @@ import { Accordion } from '~/components/Accordion';
 
 
 export async function loader({params, context, request}) {
+
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
     const selectedOptions = [];
@@ -55,9 +56,8 @@ return json({
 
   export default function ProductHandle() {
     const {shop, product, selectedVariant} = useLoaderData();
-    console.log(product.options[0].values.length)
-    
-    console.log('Ini adalah produk ke 1',product)
+    // console.log(product.options[0].values.length)
+    // console.log('Ini adalah produk ke 1',product)
     return (
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
         <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
