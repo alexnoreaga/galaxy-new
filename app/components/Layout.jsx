@@ -14,6 +14,7 @@ import { BottomNavbar } from './BottomNavbar';
 
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
+  // const urlSekarang = window.location.href
 
   return (
     <>
@@ -28,6 +29,11 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
         </Await>
       </Suspense>
       <BottomNavbar/>
+      {/* {urlSekarang.includes('product') ? (
+      'Render Tombol Wa'
+      ) : urlSekarang.includes('collections') ? (
+          <BottomNavbar/>
+      ) :  <BottomNavbar/>}  */}
     </>
   );
 }
