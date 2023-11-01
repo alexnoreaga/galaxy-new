@@ -9,12 +9,18 @@ import {
   PredictiveSearchResults,
 } from '~/components/Search';
 import { BottomNavbar } from './BottomNavbar';
+import { useHistory ,useLocation } from 'react-router-dom';
+import { TombolWa } from './TombolWa';
 
 
 
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
-  // const urlSekarang = window.location.href
+    const lokasi = useLocation()
+    const urlSekarang = lokasi.pathname
+    console.log(lokasi)
+    // console.log('link sekarang',urlSekarang)
+    
 
   return (
     <>
@@ -28,9 +34,10 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
           {(footer) => <Footer menu={footer.menu} />}
         </Await>
       </Suspense>
-      <BottomNavbar/>
+      {/* <TombolWa/> */}
+      {/* <BottomNavbar/> */}
       {/* {urlSekarang.includes('product') ? (
-      'Render Tombol Wa'
+      console.log('ping')
       ) : urlSekarang.includes('collections') ? (
           <BottomNavbar/>
       ) :  <BottomNavbar/>}  */}

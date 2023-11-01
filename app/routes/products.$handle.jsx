@@ -8,11 +8,13 @@ import { ProductGallery } from '~/components/ProductGallery';
 import React, { useState } from 'react';
 import ProductCard from '~/components/ProductCard';
 import { Accordion } from '~/components/Accordion';
+import { useHistory ,useLocation } from 'react-router-dom';
+
 
 
 
 export async function loader({params, context, request}) {
-
+    
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
     const selectedOptions = [];
@@ -58,6 +60,7 @@ return json({
     const {shop, product, selectedVariant} = useLoaderData();
     // console.log(product.options[0].values.length)
     // console.log('Ini adalah produk ke 1',product)
+
     return (
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
         <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -73,9 +76,6 @@ return json({
               <h1 className="text-4xl font-bold leading-10 whitespace-normal">
                 {product.title}
               </h1>
-              {/* <span className="max-w-prose whitespace-pre-wrap inherit text-copy opacity-50 font-medium">
-                {product.vendor}
-              </span> */}
             </div>
                 
             {product.options[0].values.length > 1 && (
@@ -369,13 +369,51 @@ function TombolWa(){
 `;
 
 
-const seo = ({data}) => ({
-  title: data?.product?.title,
-  description: data?.product?.description.substr(0, 155),
-});
+// const seo = ({data}) => ({
+//   title: data?.product?.title,
+//   description: data?.product?.description.substr(0, 155),
+// });
 
-export const handle = {
-  seo,
+// export const handle = {
+//   seo,
+// };
+
+
+export const meta = ({data}) => {
+  const lokasi = useLocation()
+  const urlSekarang = lokasi.pathname
+
+  return [
+    { title: data?.product?.title },
+    {
+      name: "description",
+      content: data?.product?.description.substr(0, 155),
+    },
+    {
+      property: "og:title",
+      content: data?.product?.title,
+    },
+    {
+      property: "og:description",
+      content: data?.product?.description.substr(0, 155),
+    },
+    {
+      property: "og:type",
+      content: "article",
+    },
+    {
+      property: "og:site_name",
+      content: "galaxy.co.id",
+    },
+    {
+      property: "og:image",
+      content: data?.product?.featuredImage.url,
+    },
+    {
+      property: "og:url",
+      content: 'https://galaxy.co.id'+urlSekarang,
+    },
+  ];
 };
 
 

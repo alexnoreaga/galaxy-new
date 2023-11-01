@@ -3,9 +3,10 @@ import {Await, useLoaderData, Link} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 
-export const meta = () => {
-  return [{title: 'Hydrogen | Home'}];
-};
+// export const meta = () => {
+//   return [{title: 'Hydrogen | Home'},
+//   {"og:title": "Syntapse Software"},];
+// };
 
 export async function loader({context}) {
   
@@ -230,3 +231,12 @@ const COLLECTIONS_QUERY = `#graphql
 //     }
 //   }
 // `;
+
+const seo = ({data}) => ({
+  title: 'Galaxy Camera Store : Toko Kamera Online Offline Terlengkap',
+  description: "Galaxy Camera menjual berbagai segala kebutuhan fotografi dan videografi dengan harga terbaik dan resmi",
+});
+
+export const handle = {
+  seo,
+};
