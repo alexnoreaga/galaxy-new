@@ -4,8 +4,20 @@ import {getPaginationVariables} from '@shopify/hydrogen';
 
 import {SearchForm, SearchResults, NoSearchResults} from '~/components/Search';
 
-export const meta = () => {
-  return [{title: `Hydrogen | Search`}];
+export const meta = ({location,data}) => {
+  console.log(data.searchResults.results.products.nodes[0].description)
+  const searchQuery = new URLSearchParams(
+    location.search
+  ).get("q");
+  return [{ title: `Jual ${searchQuery.toUpperCase()} Murah dan Terbaik` },
+  {
+    name: "description",
+    content: data?.searchResults?.results?.products?.nodes[0]?.description
+      ? data.searchResults.results.products.nodes[0].description.substr(0, 155)
+      : "Galaxy Camera menjual berbagai kebutuhan fotografi dan videografi. Tersedia berbagai metode pembayaran",
+  }
+  
+];
 };
 
 export async function loader({request, context}) {
@@ -66,6 +78,7 @@ const SEARCH_QUERY = `#graphql
     id
     publishedAt
     title
+    description
     trackingParameters
     vendor
     variants(first: 1) {

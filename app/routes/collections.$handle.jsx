@@ -7,12 +7,48 @@ import {
   Money,
 } from '@shopify/hydrogen';
 import {useVariantUrl} from '~/utils';
+import { useHistory ,useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
 
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data.collection.title} Collection`}];
+  // const currentDomain = "https://galaxy"
+
+  // useEffect(() => {
+  //   // Access window.location and perform client-side operations here
+  //   const currentDomain = window.location;
+  //   console.log('current domain ',currentDomain);
+  // }, []);
+
+
+  const collectionTitle = data?.collection?.seo.title
+    ?data?.collection?.seo.title
+    :data?.collection?.title;
+
+    const today = new Date();
+    const monthNames = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const indonesianMonth = monthNames[today.getMonth()];
+    const year = today.getFullYear();
+    const title = `${collectionTitle} - ${indonesianMonth} ${year}`;
+  
+
+  return [
+    {title},
+    {
+      name: "description",
+      content: data?.collection?.seo.description
+      ? data.collection.seo.description.substr(0, 155)
+      : data?.collection?.description.substr(0, 155),
+    },
+    // {tagName:'link',rel:'canonical',href:{currentDomain}}
+  ];
 };
 
 export async function loader({request, params, context}) {
+  
   const {handle} = params;
   const {storefront} = context;
   const paginationVariables = getPaginationVariables(request, {
@@ -32,6 +68,9 @@ export async function loader({request, params, context}) {
       status: 404,
     });
   }
+
+
+
   return json({collection});
 }
 
@@ -179,16 +218,38 @@ const COLLECTION_QUERY = `#graphql
   }
 `;
 
-const seo = ({data}) => ({
-  title: data?.collection?.seo.title
-  ?data?.collection?.seo.title
-  :data?.collection?.title,
-  titleTemplate: '%s - A custom Hydrogen storefront',
-  description: data?.collection?.seo.description
-  ? data.collection.seo.description.substr(0, 155)
-  : data?.collection?.description.substr(0, 155),
-});
+// const today = new Date();
+// const month = today.getMonth() + 1;
 
-export const handle = {
-  seo,
-};
+// const indonesianMonths = [
+//   'Januari',
+//   'Februari',
+//   'Maret',
+//   'April',
+//   'Mei',
+//   'Juni',
+//   'Juli',
+//   'Agustus',
+//   'September',
+//   'Oktober',
+//   'November',
+//   'Desember',
+// ];
+
+// const indonesianMonth = indonesianMonths[month - 1];
+// const year = today.getFullYear();
+
+
+// const seo = ({data}) => ({
+//   title: data?.collection?.seo.title
+//   ?data?.collection?.seo.title
+//   :data?.collection?.title,
+//   titleTemplate: '%s - ' + indonesianMonth + ' ' + year,
+//   description: data?.collection?.seo.description
+//   ? data.collection.seo.description.substr(0, 155)
+//   : data?.collection?.description.substr(0, 155),
+// });
+
+// export const handle = {
+//   seo,
+// };

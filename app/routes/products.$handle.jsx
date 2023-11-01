@@ -382,6 +382,8 @@ function TombolWa(){
 export const meta = ({data}) => {
   const lokasi = useLocation()
   const urlSekarang = lokasi.pathname
+  const today = new Date();
+
 
   return [
     { title: data?.product?.title },
@@ -391,6 +393,10 @@ export const meta = ({data}) => {
     },
     {
       property: "og:title",
+      content: data?.product?.title,
+    },
+    {
+      name: "keywords",
       content: data?.product?.title,
     },
     {
@@ -413,6 +419,28 @@ export const meta = ({data}) => {
       property: "og:url",
       content: 'https://galaxy.co.id'+urlSekarang,
     },
+    {
+      name: "mobile-web-app-capable",
+      content: "yes",
+    },
+    {
+      name: "apple-touch-fullscreen",
+      content: "yes",
+    },
+    {
+    name: "apple-mobile-web-app-title",
+    content: "Galaxy Camera",
+  },
+  {
+    name: "apple-mobile-web-app-capable",
+    content: "yes",
+  },
+  {
+    name: "apple-mobile-web-app-status-bar-style",
+    content: "default",
+  },
+
+
   ];
 };
 
