@@ -4,7 +4,7 @@ import {useLoaderData, Link} from '@remix-run/react';
 export const BottomNavbar = () => {
   return (
     <>
-<div className="sm:block md:hidden fixed bottom-0 left-0 z-50 w-full h-16 backdrop-blur-md bg-white/75  border-gray-100 dark:bg-gray-700 dark:border-gray-600">
+<div className="sm:block md:hidden fixed bottom-0 left-0 z-50 w-full h-16 backdrop-blur-xl bg-white/75  border-gray-100 dark:bg-gray-700 dark:border-gray-600">
     <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
             <Link
                 className="m-auto"

@@ -129,7 +129,7 @@ function RecommendedProducts({products}) {
                   ) }
                   <div className='text-sm font-bold text-slate-800'>
                     <Money 
-                    className={`text-sm font-semibold mb-2 ${product.compareAtPriceRange?.minVariantPrice?.amount != 0 && 'text-red-600'}`}
+                    className='text-sm font-semibold mb-2 '
                     data={product.priceRange.minVariantPrice} />
                   </div>
                 </Link>
