@@ -5,11 +5,11 @@ import {getPaginationVariables} from '@shopify/hydrogen';
 import {SearchForm, SearchResults, NoSearchResults} from '~/components/Search';
 
 export const meta = ({location,data}) => {
-  console.log(data.searchResults.results.products.nodes[0].description)
+  // console.log(data.searchResults.results.products.nodes[0].description)
   const searchQuery = new URLSearchParams(
     location.search
   ).get("q");
-  return [{ title: `Jual ${searchQuery.toUpperCase()} Murah dan Terbaik` },
+  return [{ title: searchQuery ? `Jual ${searchQuery.toUpperCase()} Murah dan Terbaik` : 'Cari Produk' },
   {
     name: "description",
     content: data?.searchResults?.results?.products?.nodes[0]?.description

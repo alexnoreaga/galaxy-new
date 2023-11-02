@@ -120,10 +120,18 @@ function RecommendedProducts({products}) {
                     className="hover:opacity-80"
                   />
            
-                  <p className='text-sm mt-1 text-slate-800'>{product.title}</p>
-                  <p className='text-sm font-bold text-slate-800'>
-                    <Money data={product.priceRange.minVariantPrice} />
-                  </p>
+                  <div className='text-sm my-1 text-slate-800'>{product.title}</div>
+                  
+                  {product.compareAtPriceRange?.minVariantPrice?.amount != 0 &&(
+                  <div className='text-sm  line-through text-slate-400'>
+                    <Money data={product.compareAtPriceRange?.minVariantPrice} />
+                  </div>
+                  ) }
+                  <div className='text-sm font-bold text-slate-800'>
+                    <Money 
+                    className={`text-sm font-semibold mb-2 ${product.compareAtPriceRange?.minVariantPrice?.amount != 0 && 'text-red-600'}`}
+                    data={product.priceRange.minVariantPrice} />
+                  </div>
                 </Link>
               ))}
             </div>
@@ -165,6 +173,12 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     handle
     priceRange {
       minVariantPrice {
+        amount
+        currencyCode
+      }
+    }
+    compareAtPriceRange{
+      minVariantPrice{
         amount
         currencyCode
       }

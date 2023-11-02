@@ -31,6 +31,7 @@ export async function loader({params, context, request}) {
         },
       });
       
+      
     // if (!product?.id) {
     //   throw new Response(null, {status: 404});
     // }
@@ -60,6 +61,7 @@ return json({
     const {shop, product, selectedVariant} = useLoaderData();
     // console.log(product.options[0].values.length)
     // console.log('Ini adalah produk ke 1',product)
+    console.log('ini merupakan product ',selectedVariant)
 
     return (
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
@@ -84,11 +86,27 @@ return json({
                 selectedVariant={selectedVariant}
               />
               )}
-
+          
+          
+  
+          {selectedVariant?.compareAtPrice?.amount && (
+            <div>
+              <Money
+                withoutTrailingZeros
+                data={{
+                  amount: selectedVariant.compareAtPrice.amount,
+                  currencyCode: selectedVariant.price.currencyCode,
+                }}
+                className="text-xl line-through text-slate-400"
+              />
+            </div>
+          )}
+        
+        
           <Money
             withoutTrailingZeros
             data={selectedVariant.price}
-            className="text-xl font-semibold mb-2"
+            className={`text-xl font-semibold mb-2 ${selectedVariant?.compareAtPrice?.amount ? 'text-red-600' : ''}`}
           />
            <InfoExtraTambahan/>
 
@@ -269,6 +287,7 @@ function TombolWa(){
 
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
             <div className='drop-shadow-sm'>ORDER VIA WHATSAPP</div>
+
       </div>
 
      
