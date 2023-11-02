@@ -40,6 +40,7 @@ export default function Homepage() {
   );
 }
 
+// Banner Besar
 function FeaturedCollection({collection}) {
   if (!collection) return null;
   const image = collection?.image;
@@ -53,13 +54,49 @@ function FeaturedCollection({collection}) {
           <Image data={image} sizes="100vw" />
         </div>
       )}
-      {/* <h1>{collection.title}</h1> */}
     </Link>
   );
 }
 
 
 //HASIL SENDIRI
+// function RenderCollection({collections}) {
+//   if (!collections) return null;
+//   return (
+//     <section className="w-full gap-4">
+//       <h2 className="text-slate-800 whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
+//         Kategori Populer
+//       </h2>
+//       <div className="grid-flow-row grid grid-cols-4 gap-4 gap-y-2 md:gap-2 lg:gap-4  sm:grid-cols-8 ">
+//         {collections.nodes.map((collection) => {
+//           return (
+//             <Link to={`/collections/${collection.handle}`} key={collection.id}>
+//               <div className="grid gap-2">
+//                 {collection?.image && (
+//                   <Image
+//                     alt={`Image of ${collection.title}`}
+//                     data={collection.image}
+//                     key={collection.id}
+//                     sizes="(max-width: 32em) 100vw, 33vw"
+//                     crop="center"
+//                   />
+//                 )}
+//                 <p className="text-slate-800 whitespace-normal max-w-prose text-copy text-center text-sm">
+//                   {collection.title}
+//                 </p>
+//               </div>
+//             </Link>
+//           );
+//         })}
+        
+//       </div>
+//       <Link to={`/collections/`}>
+//           <p className="text-slate-800 text-sm mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
+//         </Link>
+//     </section>
+//   );
+// }
+
 function RenderCollection({collections}) {
   if (!collections) return null;
   return (
@@ -67,19 +104,22 @@ function RenderCollection({collections}) {
       <h2 className="text-slate-800 whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
         Kategori Populer
       </h2>
-      <div className="grid-flow-row grid grid-cols-4 gap-4 gap-y-2 md:gap-2 lg:gap-4  sm:grid-cols-8 ">
+      <div className="grid-flow-row grid grid-cols-2 gap-0  md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
-              <div className="grid gap-2">
+              <div className="flex items-center flex-row md:grid gap-2 border md:border-none p-2 ">
                 {collection?.image && (
+                  <div className='w-1/3 md:w-full '>
                   <Image
                     alt={`Image of ${collection.title}`}
                     data={collection.image}
                     key={collection.id}
                     sizes="(max-width: 32em) 100vw, 33vw"
                     crop="center"
+
                   />
+                  </div>
                 )}
                 <p className="text-slate-800 whitespace-normal max-w-prose text-copy text-center text-sm">
                   {collection.title}
@@ -105,7 +145,7 @@ function RecommendedProducts({products}) {
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-6">
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6">
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
@@ -129,7 +169,7 @@ function RecommendedProducts({products}) {
                   ) }
                   <div className='text-sm font-bold text-slate-800'>
                     <Money 
-                    className={`text-sm font-semibold mb-2 ${product.compareAtPriceRange?.minVariantPrice?.amount != 0 && 'text-red-600'}`}
+                    className='text-sm font-semibold mb-2 '
                     data={product.priceRange.minVariantPrice} />
                   </div>
                 </Link>

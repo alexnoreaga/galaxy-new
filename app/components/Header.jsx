@@ -8,7 +8,7 @@ export function Header({header, isLoggedIn, cart}) {
 
   const {shop, menu} = header;
   return (
-    <header className="header bg-black border-b-1">
+    <header className="header bg-black !bg-white/90">
       <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
         {/* <strong>{shop.name}</strong> */}
         <img className='h-8 sm:h-8 md:h-10 lg:h-10' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678" alt="Logo Galaxy Camera" />
