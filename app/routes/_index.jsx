@@ -117,7 +117,7 @@ function RenderCollection({collections}) {
                     key={collection.id}
                     sizes="(max-width: 32em) 100vw, 33vw"
                     crop="center"
-                    
+
                   />
                   </div>
                 )}
