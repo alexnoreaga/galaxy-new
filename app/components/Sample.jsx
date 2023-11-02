@@ -1,65 +1,47 @@
-import React, { useState } from 'react';
+import React from 'react'
 
+export const Sample = () => {
+  return (
+    <div>
+      {/* // function RenderCollection({collections}) { */}
+{/* //   if (!collections) return null;
+//   return (
+//     <section className="w-full gap-4">
+//       <h2 className="text-slate-800 whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
+//         Kategori Populer
+//       </h2>
+//       <div className="grid-flow-row grid grid-cols-2 gap-0  md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
+//         {collections.nodes.map((collection) => {
+//           return (
+//             <Link to={`/collections/${collection.handle}`} key={collection.id}>
+//               <div className="flex items-center flex-row md:grid gap-2 border md:border-none p-2 ">
+//                 {collection?.image && (
+//                   <div className='w-1/3 md:w-full '>
+//                   <Image
+//                     alt={`Image of ${collection.title}`}
+//                     data={collection.image}
+//                     key={collection.id}
+//                     sizes="(max-width: 32em) 100vw, 33vw"
+//                     crop="center"
 
-
-const ImageGallery = ({ productData }) => {
-    const [selectedImage, setSelectedImage] = useState(productData.images.edges[0].node.src);
-    const [startIndex, setStartIndex] = useState(0);
-  
-    const handleImageChange = (newImageSrc) => {
-      setSelectedImage(newImageSrc);
-    };
-  
-    const nextImages = () => {
-      const nextStartIndex = startIndex + 4;
-      if (nextStartIndex < productData.images.edges.length) {
-        setStartIndex(nextStartIndex);
-        handleImageChange(productData.images.edges[nextStartIndex].node.src);
-      }
-    };
-  
-    const previousImages = () => {
-      const previousStartIndex = startIndex - 4;
-      if (previousStartIndex >= 0) {
-        setStartIndex(previousStartIndex);
-        handleImageChange(productData.images.edges[previousStartIndex].node.src);
-      }
-    };
-  
-    const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
-  
-    return (
-      <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-        <div className="md:w-2/3">
-          <img src={selectedImage} alt="Product" className="w-full h-auto" />
-        </div>
-        <div className="md:w-1/3">
-          <div className="grid grid-cols-4 gap-2">
-            {displayedImages.map((image) => (
-              <div
-                key={image.node.id}
-                onClick={() => handleImageChange(image.node.src)}
-                className={`cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
-              >
-                <img src={image.node.src} alt="Product" className="w-full h-auto" />
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-4">
-            {startIndex > 0 && (
-              <button onClick={previousImages} className="text-blue-500 hover:text-blue-700">
-                Previous
-              </button>
-            )}
-            {startIndex + 4 < productData.images.edges.length && (
-              <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
-                Next
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-export default ImageGallery;
+//                   />
+//                   </div>
+//                 )}
+//                 <p className="text-slate-800 whitespace-normal max-w-prose text-copy text-center text-sm">
+//                   {collection.title}
+//                 </p>
+//               </div>
+//             </Link>
+//           );
+//         })}
+        
+//       </div>
+//       <Link to={`/collections/`}>
+//           <p className="text-slate-800 text-sm mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
+//         </Link>
+//     </section>
+//   );
+// } */}
+    </div>
+  )
+}
