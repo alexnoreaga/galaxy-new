@@ -148,7 +148,7 @@ function RecommendedProducts({products}) {
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6">
+            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6">
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
@@ -168,21 +168,21 @@ function RecommendedProducts({products}) {
            
                   <div className='text-sm my-1 text-slate-800'>{product.title}</div>
                   
-                  {product.compareAtPriceRange?.minVariantPrice?.amount != 0 &&(
+                  {product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount &&(
                   <div className='text-sm  line-through text-slate-400'>
                     <Money data={product.compareAtPriceRange?.minVariantPrice} />
                   </div>
                   ) }
                   <div className='text-sm font-bold text-slate-800'>
                     <Money 
-                    className='text-sm font-semibold mb-2 '
+                    className={`text-sm font-semibold mb-2 ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}
                     data={product.priceRange.minVariantPrice} />
                   </div>
                   <div className='flex'>
                   <span className='rounded-md bg-rose-100 text-xs font-bold text-rose-800 p-1 px-2'>
                     Cashback 5%  
                   </span>
-                  <span className='rounded-md ml-2 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
+                  <span className='rounded-md ml-1 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
                     Free Item  
                   </span>
                   </div>

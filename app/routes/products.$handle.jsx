@@ -106,7 +106,7 @@ return json({
           <Money
             withoutTrailingZeros
             data={selectedVariant.price}
-            className={`text-xl font-semibold mb-2 ${selectedVariant?.compareAtPrice?.amount ? 'text-red-600' : ''}`}
+            className={`text-xl font-semibold mb-2 ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
           />
            <InfoExtraTambahan/>
 
