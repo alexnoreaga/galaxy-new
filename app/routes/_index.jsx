@@ -178,11 +178,11 @@ function RecommendedProducts({products}) {
                     className={`text-sm font-semibold mb-2 ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}
                     data={product.priceRange.minVariantPrice} />
                   </div>
-                  <div className='flex'>
+                  <div className='flex flex-col md:flex-row gap-2'>
                   <span className='rounded-md bg-rose-100 text-xs font-bold text-rose-800 p-1 px-2'>
                     Cashback 5%  
                   </span>
-                  <span className='rounded-md ml-1 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
+                  <span className='rounded-md bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
                     Free Item  
                   </span>
                   </div>
