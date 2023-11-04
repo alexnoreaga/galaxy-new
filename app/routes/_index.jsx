@@ -6,7 +6,7 @@ import {Image, Money} from '@shopify/hydrogen';
 //   return [{title: 'Hydrogen | Home'},
 //   {"og:title": "Syntapse Software"},];
 // };
-import { Tooltip, Button } from "flowbite-react";
+
 
 export async function loader({context}) {
   
@@ -17,6 +17,7 @@ export async function loader({context}) {
   const featuredCollection = collections.nodes[0];
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
   const hasilCollection =  collections2;
+
 
 
   return defer({featuredCollection, recommendedProducts,hasilCollection});
@@ -32,6 +33,7 @@ export default function Homepage() {
       <FeaturedCollection collection={data.featuredCollection} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
+    
     </div>
   );
 }
@@ -137,6 +139,8 @@ function RenderCollection({collections}) {
 
 
 function RecommendedProducts({products}) {
+
+
   
   return (
     <div className="recommended-products text-slate-800">
@@ -159,7 +163,7 @@ function RecommendedProducts({products}) {
                     sizes="(min-width: 45em) 20vw, 50vw"
                     className="hover:opacity-80"
                   />
-                  <h3 class="absolute p-1.5 rounded-full bg-gradient-to-r from-red-500 to-red-700 text-xs font-bold text-white top-1 right-1">5%</h3>
+                  {/* <h3 class="absolute p-1.5 rounded-full bg-gradient-to-r from-red-500 to-red-700 text-xs font-bold text-white top-1 right-1">5%</h3> */}
                   </div>
            
                   <div className='text-sm my-1 text-slate-800'>{product.title}</div>
@@ -174,6 +178,13 @@ function RecommendedProducts({products}) {
                     className='text-sm font-semibold mb-2 '
                     data={product.priceRange.minVariantPrice} />
                   </div>
+                  <span className='rounded-md bg-red-100 text-xs font-bold text-red-800 p-1 px-2'>
+                    Cashback 5%  
+                  </span>
+                  
+                 
+
+
                 </Link>
               ))}
             </div>
