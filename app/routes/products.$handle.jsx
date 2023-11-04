@@ -62,6 +62,7 @@ return json({
 
     console.log(product)
     return (
+      <>
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
         <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
@@ -70,7 +71,9 @@ return json({
               <ImageGallery productData={product}/>
             </div>
           </div>
-          <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[24rem] grid gap-2 p-2 md:p-2 md:px-4 top-[6rem] lg:top-[rem] xl:top-[10rem]">
+          <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[24rem] grid gap-2 p-2 md:p-2 md:px-2 top-[6rem] lg:top-[rem] xl:top-[10rem]">
+
+
 
             <div className="grid gap-2">
               <h1 className="text-4xl font-bold leading-10 whitespace-normal">
@@ -78,36 +81,51 @@ return json({
               </h1>
             </div>
 
+            <div className='flex flex-row gap-1 items-center text-slate-700 text-sm'>
+            <div>Garansi Resmi 1 Tahun</div>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-sky-400">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+              </svg>
+          </div>
 
-                
-            {product.options[0].values.length > 1 && (
-              <ProductOptions
-                options={product.options}
-                selectedVariant={selectedVariant}
-              />
+ 
+
+
+            <div className="bg-slate-100 p-2 rounded-md text-sm text-slate-700">
+              Free : Memory 32GB & Cleaning Kit
+            </div>
+
+
+             
+                {product.options[0].values.length > 1 && (
+                  <ProductOptions
+                    options={product.options}
+                    selectedVariant={selectedVariant}
+                  />
+                  )}
+              
+              
+                  <div className='flex flex-row gap-2'>
+              {selectedVariant?.compareAtPrice?.amount != selectedVariant.price.amount && (
+                <div>
+                  <Money
+                    withoutTrailingZeros
+                    data={{
+                      amount: selectedVariant.compareAtPrice.amount,
+                      currencyCode: selectedVariant.price.currencyCode,
+                    }}
+                    className="text-xl line-through text-slate-400"
+                  />
+                </div>
               )}
-          
-          
-  
-          {selectedVariant?.compareAtPrice?.amount && (
-            <div>
+            
+            
               <Money
                 withoutTrailingZeros
-                data={{
-                  amount: selectedVariant.compareAtPrice.amount,
-                  currencyCode: selectedVariant.price.currencyCode,
-                }}
-                className="text-xl line-through text-slate-400"
+                data={selectedVariant.price}
+                className={`text-xl font-semibold mb-2 ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
               />
-            </div>
-          )}
-        
-        
-          <Money
-            withoutTrailingZeros
-            data={selectedVariant.price}
-            className={`text-xl font-semibold mb-2 ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
-          />
+          </div>   
            <InfoExtraTambahan/>
 
 
@@ -187,12 +205,21 @@ return json({
           </div>
         </div>
 
-        <div
-  className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
-  dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
+        <div className='grid grid-cols-2 justify-between'>
+      
+      <div className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
+        dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
+
+      <div>Isi Dalam Box</div>
+      
+  </div>
+        
 
       
       </section>
+
+      </>
+
     );
   }
   
