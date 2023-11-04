@@ -2,11 +2,11 @@ import {defer} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
-
 // export const meta = () => {
 //   return [{title: 'Hydrogen | Home'},
 //   {"og:title": "Syntapse Software"},];
 // };
+import { Tooltip, Button } from "flowbite-react";
 
 export async function loader({context}) {
   
@@ -18,9 +18,6 @@ export async function loader({context}) {
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
   const hasilCollection =  collections2;
 
-  // console.log(hasilCollection)
-
- 
 
   return defer({featuredCollection, recommendedProducts,hasilCollection});
 }
@@ -33,7 +30,6 @@ export default function Homepage() {
   return (
     <div className="home md:container md:mx-auto mx-auto">
       <FeaturedCollection collection={data.featuredCollection} />
-     
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
     </div>
@@ -57,6 +53,8 @@ function FeaturedCollection({collection}) {
     </Link>
   );
 }
+
+
 
 
 //HASIL SENDIRI
@@ -108,7 +106,7 @@ function RenderCollection({collections}) {
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
-              <div className="flex items-center flex-row md:grid gap-2 border md:border-none p-2 ">
+              <div className="flex items-center flex-row md:grid gap-2 border box-border md:border-none p-2 ">
                 {collection?.image && (
                   <div className='w-1/3 md:w-full '>
                   <Image
@@ -139,6 +137,7 @@ function RenderCollection({collections}) {
 
 
 function RecommendedProducts({products}) {
+  
   return (
     <div className="recommended-products text-slate-800">
       <h2 className='text-center'>Produk Best Seller</h2>
@@ -152,13 +151,16 @@ function RecommendedProducts({products}) {
                   className="hover:no-underline border shadow rounded-xl p-2"
                   to={`/products/${product.handle}`}
                 >
-                
+
+                  <div className='relative'>
                   <Image
                     data={product.images.nodes[0]}
                     aspectRatio="1/1"
                     sizes="(min-width: 45em) 20vw, 50vw"
                     className="hover:opacity-80"
                   />
+                  <h3 class="absolute p-1.5 rounded-full bg-gradient-to-r from-red-500 to-red-700 text-xs font-bold text-white top-1 right-1">5%</h3>
+                  </div>
            
                   <div className='text-sm my-1 text-slate-800'>{product.title}</div>
                   

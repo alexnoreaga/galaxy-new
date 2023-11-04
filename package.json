@@ -18,6 +18,8 @@
     "@shopify/cli-hydrogen": "^5.4.3",
     "@shopify/hydrogen": "^2023.7.11",
     "@shopify/remix-oxygen": "^1.1.7",
+    "flowbite": "^2.0.0",
+    "flowbite-react": "^0.6.4",
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
     "isbot": "^3.6.6",

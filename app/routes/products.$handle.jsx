@@ -12,9 +12,9 @@ import { useHistory ,useLocation } from 'react-router-dom';
 
 
 
-
 export async function loader({params, context, request}) {
     
+
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
     const selectedOptions = [];
@@ -59,10 +59,8 @@ return json({
 
   export default function ProductHandle() {
     const {shop, product, selectedVariant} = useLoaderData();
-    // console.log(product.options[0].values.length)
-    // console.log('Ini adalah produk ke 1',product)
-    console.log('ini merupakan product ',selectedVariant)
 
+    console.log(product)
     return (
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
         <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -79,6 +77,8 @@ return json({
                 {product.title}
               </h1>
             </div>
+
+
                 
             {product.options[0].values.length > 1 && (
               <ProductOptions
@@ -190,6 +190,7 @@ return json({
         <div
   className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
   dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
+
       
       </section>
     );
@@ -297,6 +298,7 @@ function TombolWa(){
 }
 
 
+
   const PRODUCT_QUERY = `#graphql
   query product($handle: String!, $selectedOptions: [SelectedOptionInput!]!) {
     shop {
@@ -313,12 +315,13 @@ function TombolWa(){
           }
         }
       }
-
+ 
       id
       title
       handle
       vendor
       description
+      
       descriptionHtml
       featuredImage {
         id
