@@ -179,10 +179,10 @@ function RecommendedProducts({products}) {
                     data={product.priceRange.minVariantPrice} />
                   </div>
                   <div className='flex'>
-                  <span className='rounded-md bg-red-100 text-xs font-bold text-red-800 p-1 px-2'>
+                  <span className='rounded-md bg-rose-100 text-xs font-bold text-rose-800 p-1 px-2'>
                     Cashback 5%  
                   </span>
-                  <span className='rounded-md ml-2 bg-green-100 text-xs font-bold text-green-800 p-1 px-2'>
+                  <span className='rounded-md ml-2 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
                     Free Item  
                   </span>
                   </div>
