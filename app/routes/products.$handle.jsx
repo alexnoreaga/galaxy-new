@@ -71,32 +71,37 @@ return json({
               <ImageGallery productData={product}/>
             </div>
           </div>
-          <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[24rem] grid gap-2 p-2 md:p-2 md:px-2 top-[6rem] lg:top-[rem] xl:top-[10rem]">
+          <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 top-[6rem] lg:top-[rem] xl:top-[10rem]">
 
 
 
-            <div className="grid gap-2">
+            <div className="grid gap-2 w-full ">
               <h1 className="text-4xl font-bold leading-10 whitespace-normal">
                 {product.title}
               </h1>
             </div>
 
-            <div className='flex flex-row gap-1 items-center text-slate-700 text-sm'>
+            {/* <div className='flex flex-row gap-1 items-center text-slate-700 text-sm'>
             <div>Garansi Resmi 1 Tahun</div>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-sky-400">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
               </svg>
-          </div>
+          </div> */}
 
  
 
 
-            <div className="bg-slate-100 p-2 rounded-md text-sm text-slate-700">
-              Free : Memory 32GB & Cleaning Kit
+            <div className="rounded-md text-sm">
+              <div className='text-white text-sm bg-rose-700 w-10 text-center rounded mb-1'>
+                Free
+              </div>
+              <div>
+                Memory 32GB & Cleaning Kit
+              </div>
             </div>
 
 
-             
+
                 {product.options[0].values.length > 1 && (
                   <ProductOptions
                     options={product.options}
