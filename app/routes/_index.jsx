@@ -29,7 +29,7 @@ export default function Homepage() {
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
   return (
-    <div className="home md:container md:mx-auto mx-auto">
+    <div className="relative container mx-auto">
       <FeaturedCollection collection={data.featuredCollection} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
