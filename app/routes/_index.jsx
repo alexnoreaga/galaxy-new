@@ -29,7 +29,7 @@ export default function Homepage() {
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
   return (
-    <div className="relative container mx-auto">
+    <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <FeaturedCollection collection={data.featuredCollection} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
