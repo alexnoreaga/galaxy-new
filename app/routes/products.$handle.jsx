@@ -210,15 +210,26 @@ return json({
           </div>
         </div>
 
-        <div className='grid grid-cols-2 justify-between'>
-      
-      <div className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
-        dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
+        <div className='flex gap-2  flex-wrap'>
+          <div className='border px-2 cursor-pointer rounded-md text-lg font-bold text-black-700'>
+            Deskripsi
+          </div>
 
-      <div>Isi Dalam Box</div>
-      
-  </div>
+          <div className='border px-2 cursor-pointer rounded-md text-lg font-bold text-black-700'>
+            Spesifikasi
+          </div>
+
+          <div className='border px-2 cursor-pointer rounded-md text-lg font-bold text-black-700'>
+            Isi Dalam Box
+          </div>
+
+
+        </div>
+
         
+        
+            <div className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
+              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
 
       
       </section>
