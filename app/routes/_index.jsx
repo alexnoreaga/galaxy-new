@@ -148,7 +148,7 @@ function RecommendedProducts({products}) {
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
-            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6">
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6">
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
@@ -179,10 +179,10 @@ function RecommendedProducts({products}) {
                     data={product.priceRange.minVariantPrice} />
                   </div>
                   <div className='flex flex-col md:flex-row gap-2'>
-                  <span className='rounded-md bg-rose-100 text-xs font-bold text-rose-800 p-1 px-2'>
+                  <span className='rounded-md m-auto ml-0 bg-rose-100 text-xs font-bold text-rose-800 p-1 px-2'>
                     Cashback 5%  
                   </span>
-                  <span className='rounded-md bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
+                  <span className='rounded-md m-auto ml-0 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
                     Free Item  
                   </span>
                   </div>

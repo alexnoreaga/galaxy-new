@@ -101,17 +101,20 @@ return json({
             </div>
 
 
+            
 
-                {product.options[0].values.length > 1 && (
+                <div className='text-sm'>
+                  {product.options[0].values.length > 1 && (
                   <ProductOptions
                     options={product.options}
                     selectedVariant={selectedVariant}
                   />
                   )}
+                  </div>
               
               
                   <div className='flex flex-row gap-2'>
-              {selectedVariant?.compareAtPrice?.amount != selectedVariant.price.amount && (
+              {selectedVariant?.compareAtPrice?.amount > selectedVariant.price.amount && (
                 <div>
                   <Money
                     withoutTrailingZeros
@@ -131,7 +134,6 @@ return json({
                 className={`text-xl font-semibold mb-2 ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
               />
           </div>   
-           <InfoExtraTambahan/>
 
 
 <CartForm
@@ -307,22 +309,7 @@ return json({
   };
 
 
-function InfoExtraTambahan(){
-  return(
-    <>
-      <div className='flex flex-row gap-2 items-center'>
-        
-      
-      <p className='text-sm text-slate-500'>Harga Sudah Termasuk PPN</p>
 
-      </div>
-
-
-
-
-    </>
-  )
-}
 
 function TombolWa(){
   return(
