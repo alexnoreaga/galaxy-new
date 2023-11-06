@@ -11,9 +11,7 @@ import { Accordion } from '~/components/Accordion';
 import { useHistory ,useLocation } from 'react-router-dom';
 
 
-
 export async function loader({params, context, request}) {
-    
 
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
@@ -60,7 +58,7 @@ return json({
   export default function ProductHandle() {
     const {shop, product, selectedVariant} = useLoaderData();
 
-    console.log(product)
+    console.log(product,shop)
     return (
       <>
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
@@ -169,13 +167,13 @@ return json({
   </CartForm>
   
   {selectedVariant?.availableForSale
-  && <TombolWa/>}
+  && <TombolWa product={product}/>}
     
 
     <div className='divide-y mt-2'>
 
         <Accordion 
-        title="Gratis Ongkir se-Indonesia" 
+        title="Belanja Lewat Marketplace ?" 
         content="Untuk setiap pembelian di Galaxy Digital gratis ongkir hingga ke seluruh Indonesia" 
         icon={(
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -311,13 +309,28 @@ return json({
 
 
 
-function TombolWa(){
+function TombolWa({product}){
+  // const infoChat = `Hi admin Galaxy saya berminat tentang produk ${namaProduk}. Boleh dibantu untuk info lebih lanjut`
+  const namaProduk = product.title
+  const urlProduk = product.handle
+  // const urlProduk = window.location.href
+//   function componentWillMount() {
+//     if (typeof window !== 'undefined') {
+//         console.log('window.innerHeight', window.location.href);
+//         namaProduk =  window.location.href
+//     }
+// }
+
+// componentWillMount()
+
+// console.log('Berikut merupakan nama produk ',namaProduk)
+
   return(
     <>
     
 
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
-            <div className='drop-shadow-sm'>ORDER VIA WHATSAPP</div>
+            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${urlProduk}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
 
       </div>
 
@@ -435,6 +448,8 @@ export const meta = ({data}) => {
   const lokasi = useLocation()
   const urlSekarang = lokasi.pathname
   const today = new Date();
+
+  console.log('url sekarang',urlSekarang)
 
 
   return [

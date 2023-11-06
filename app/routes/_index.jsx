@@ -152,7 +152,7 @@ function RecommendedProducts({products}) {
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
-                  className="hover:no-underline border shadow rounded-xl p-2"
+                  className="hover:no-underline border shadow rounded-lg p-2"
                   to={`/products/${product.handle}`}
                 >
 
@@ -173,13 +173,15 @@ function RecommendedProducts({products}) {
                     <Money data={product.compareAtPriceRange?.minVariantPrice} />
                   </div>
                   ) }
-                  <div className='text-sm font-bold text-slate-800'>
+                  <div className='text-xs font-bold text-slate-800 flex flex-row items-center gap-1 mb-2 mt-2'>
+                  {product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount &&(
+                    <div className='bg-rose-700 p-0.5 ml-0 text-white text-xs rounded-full '>5%</div> ) }
                     <Money 
-                    className={`text-sm font-semibold mb-2 ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}
+                    className={`text-sm font-semibold ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}
                     data={product.priceRange.minVariantPrice} />
                   </div>
                   <div className='flex flex-col md:flex-row gap-2'>
-                  <span className='rounded-md m-auto ml-0 bg-rose-100 text-xs font-bold text-rose-800 p-1 px-2'>
+                  <span className='rounded-md m-auto ml-0 bg-emerald-100 text-xs font-bold text-emerald-800 p-1 px-2'>
                     Cashback 5%  
                   </span>
                   <span className='rounded-md m-auto ml-0 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
