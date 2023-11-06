@@ -2,6 +2,7 @@ import {defer} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
+import {HitunganPersen} from '~/components/HitunganPersen';
 // export const meta = () => {
 //   return [{title: 'Hydrogen | Home'},
 //   {"og:title": "Syntapse Software"},];
@@ -138,7 +139,11 @@ function RenderCollection({collections}) {
 }
 
 
+
+
 function RecommendedProducts({products}) {
+
+  
 
 
   
@@ -171,11 +176,14 @@ function RecommendedProducts({products}) {
                   {product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount &&(
                   <div className='text-sm  line-through text-slate-400'>
                     <Money data={product.compareAtPriceRange?.minVariantPrice} />
+                    {/* <div>{(product.compareAtPriceRange.minVariantPrice.amount - product.priceRange.minVariantPrice.amount)/product.compareAtPriceRange.minVariantPrice.amount * 100}</div> */}
+                    
                   </div>
                   ) }
                   <div className='text-xs font-bold text-slate-800 flex flex-row items-center gap-1 mb-2 mt-2'>
                   {product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount &&(
-                    <div className='bg-rose-700 p-0.5 ml-0 text-white text-xs rounded-full '>5%</div> ) }
+                    <div className='bg-rose-700 p-0.5 ml-0 text-white text-xs rounded'><HitunganPersen product={product}/></div> ) }
+                    
                     <Money 
                     className={`text-sm font-semibold ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}
                     data={product.priceRange.minVariantPrice} />
@@ -202,6 +210,8 @@ function RecommendedProducts({products}) {
     </div>
   );
 }
+
+
 
 const FEATURED_COLLECTION_QUERY = `#graphql
   fragment FeaturedCollection on Collection {

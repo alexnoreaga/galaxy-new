@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import ProductCard from '~/components/ProductCard';
 import { Accordion } from '~/components/Accordion';
 import { useHistory ,useLocation } from 'react-router-dom';
+import { HitunganPersen } from '~/components/HitunganPersen';
 
 
 export async function loader({params, context, request}) {
@@ -111,9 +112,10 @@ return json({
                   </div>
               
               
-                  <div className='flex flex-row gap-2'>
+                  <div className='flex flex-row gap-2 items-center mb-2'>
               {selectedVariant?.compareAtPrice?.amount > selectedVariant.price.amount && (
-                <div>
+                <div className='flex flex-row gap-2'>
+                <div className='bg-rose-700 p-1 ml-0 m-auto font-bold text-white text-xs rounded-full '></div>
                   <Money
                     withoutTrailingZeros
                     data={{
@@ -129,7 +131,7 @@ return json({
               <Money
                 withoutTrailingZeros
                 data={selectedVariant.price}
-                className={`text-xl font-semibold mb-2 ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
+                className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
               />
           </div>   
 
