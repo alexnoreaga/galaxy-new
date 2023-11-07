@@ -59,7 +59,7 @@ return json({
   export default function ProductHandle() {
     const {shop, product, selectedVariant} = useLoaderData();
 
-    console.log(product,shop)
+    console.log(product.metafields)
     return (
       <>
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
@@ -89,15 +89,15 @@ return json({
 
  
 
-
+          {product.metafields[1] && (
             <div className="rounded-md text-sm">
-              <div className='text-white text-sm bg-rose-700 w-10 text-center rounded mb-1'>
-                Free
+              <div className='text-rose-700 text-sm border-solid font-bold border-rose-700 border w-10 text-center rounded mb-1'>
+                FREE
               </div>
               <div>
-                Memory 32GB & Cleaning Kit
+                {product.metafields[1]?.value.split('\n').map(str => <div className='text-sm'>- {str}</div>)}
               </div>
-            </div>
+            </div>)}
 
 
             
@@ -115,7 +115,7 @@ return json({
                   <div className='flex flex-row gap-2 items-center mb-2'>
               {selectedVariant?.compareAtPrice?.amount > selectedVariant.price.amount && (
                 <div className='flex flex-row gap-2'>
-                <div className='bg-rose-700 p-1 ml-0 m-auto font-bold text-white text-xs rounded-full '></div>
+                <div className='bg-rose-700 p-1 ml-0 m-auto font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
                   <Money
                     withoutTrailingZeros
                     data={{
@@ -167,10 +167,12 @@ return json({
     </>
   )}
   </CartForm>
+
   
   {selectedVariant?.availableForSale
   && <TombolWa product={product}/>}
     
+  
 
     <div className='divide-y mt-2'>
 
@@ -181,9 +183,10 @@ return json({
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
   <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
 </svg>
-
-
         )}/>
+
+        
+
 
         <Accordion 
         title="14 Hari Tukar Baru" 
@@ -229,7 +232,11 @@ return json({
         </div>
 
         
-        
+        <div className='flex flex-row items-center gap-2 '>
+          <div className='font-bold mr-3'>Garansi</div>
+          <div>: Resmi {product.metafields[0]?.value}</div>
+        </div>
+
             <div className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
 
@@ -366,7 +373,16 @@ function TombolWa({product}){
       handle
       vendor
       description
-      
+      metafields(identifiers:[
+        {namespace:"custom" key:"garansi"}
+        {namespace:"custom" key:"free"}
+        {namespace:"custom" key:"isi_dalam_box"}
+        {namespace:"custom" key:"periode_promo"}
+        {namespace:"custom" key:"periode_promo_akhir"}
+      ]){
+        key
+        value
+      }
       descriptionHtml
       featuredImage {
         id
