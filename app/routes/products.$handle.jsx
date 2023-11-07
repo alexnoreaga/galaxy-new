@@ -232,12 +232,19 @@ return json({
         </div>
 
         
-        <div className='flex flex-row items-center gap-2 '>
+        <div className='flex flex-row items-center gap-1 '>
           <div className='font-bold mr-3'>Garansi</div>
           <div>: Resmi {product.metafields[0]?.value}</div>
         </div>
 
-            <div className="w-full prose md:border-t md:border-gray-200 pt-6 text-black text-md"
+        {product.metafields[3]?.value &&
+        <div className='flex flex-row items-center gap-1 '>
+          <div className='font-bold mr-3'>Periode Promo</div>
+          <div>: {perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
+        </div>
+        }
+
+            <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
 
       
@@ -246,6 +253,15 @@ return json({
       </>
 
     );
+  }
+
+  function perubahTanggal(tanggalInput){
+    const inputDateString = tanggalInput;
+    const date = new Date(inputDateString);
+
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = date.toLocaleDateString('en-US', options);
+    return formattedDate
   }
   
 
