@@ -11,7 +11,7 @@ export const Accordion = ({ title, content,icon }) => {
       <div className="accordion">
         <div className="content-center mx-auto my-4 text-sm text-slate-500 accordion-title cursor-pointer flex justify-between items-center gap-2" onClick={toggleAccordion}>
             <div className='flex flex-row gap-2 items-center'>
-                <div class>{icon}</div>
+                <div>{icon}</div>
                 <div>{title}</div>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-slate-500">

@@ -10,13 +10,16 @@ import ProductCard from '~/components/ProductCard';
 import { Accordion } from '~/components/Accordion';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { HitunganPersen } from '~/components/HitunganPersen';
-
+import {InfoProduk} from '~/components/InfoProduk';
+import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 
 export async function loader({params, context, request}) {
 
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
     const selectedOptions = [];
+
+    
   
     // set selected options from the query string
     searchParams.forEach((value, name) => {
@@ -29,25 +32,48 @@ export async function loader({params, context, request}) {
           selectedOptions,
         },
       });
+
+      // Set a default variant so you always have an "orderable" product selected
+      const selectedVariant =
+      product.selectedVariant ?? product?.variants?.nodes[0];
+      
+      const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value
+
+      if (brandValue) {
+        
+        const metaobject = await context.storefront.query(METAOBJECT_QUERY, {
+          variables: {
+            id: brandValue,
+          },
+        });
+
+
+        return json({
+          shop,
+          product,
+          selectedVariant,
+          metaobject,
+        });
+
+      }else{
+        console.error('Brand value not found.');
+
+        return json({
+          shop,
+          product,
+          selectedVariant,
+        });
+
+
+      }
       
       
-    // if (!product?.id) {
-    //   throw new Response(null, {status: 404});
-    // }
-  
-    // return json({
-    //   product,
-    // });
+ 
 
-    // Set a default variant so you always have an "orderable" product selected
-const selectedVariant =
-product.selectedVariant ?? product?.variants?.nodes[0];
 
-return json({
-    shop,
-    product,
-    selectedVariant,
-  });
+
+
+
   
 
   }
@@ -57,9 +83,19 @@ return json({
 
 
   export default function ProductHandle() {
-    const {shop, product, selectedVariant} = useLoaderData();
+    const {shop, product, selectedVariant,metaobject} = useLoaderData();
 
-    console.log(product.metafields)
+    console.log(product)
+
+    // console.log('test',metaobject.metaobject.field.value)
+    // const brandValue = product.metafields.find((metafield) => metafield.key === 'brand')?.value;
+      
+      // console.log(brandValue)
+    // console.log(brandValue)
+
+    // console.log(brandValue)
+
+
     return (
       <>
       <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
@@ -95,7 +131,7 @@ return json({
                 FREE
               </div>
               <div>
-                {product.metafields[1]?.value.split('\n').map(str => <div className='text-sm'>- {str}</div>)}
+                {product.metafields[1]?.value.split('\n').map(str => <div className='text-sm' key={str}>{str}</div>)}
               </div>
             </div>)}
 
@@ -212,30 +248,43 @@ return json({
 
 
 
+
+
           </div>
+
+          
+
+          
         </div>
 
-        <div className='flex gap-2  flex-wrap'>
-          <div className='border px-2 cursor-pointer rounded-md text-lg font-bold text-black-700'>
-            Deskripsi
+
+
+        <div className='flex gap-2  flex-wrap justify-between'>
+
+          <div className='flex gap-2  flex-wrap m-auto ml-0 mt-0'>
+            <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
+              Deskripsi
+            </div>
+
+            <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
+              Spesifikasi
+            </div>
+
+            <div className='border px-2 cursor-pointer rounded-md font-bold text-black-700'>
+              Isi Dalam Box
+            </div>
           </div>
 
-          <div className='border px-2 cursor-pointer rounded-md text-lg font-bold text-black-700'>
-            Spesifikasi
-          </div>
-
-          <div className='border px-2 cursor-pointer rounded-md text-lg font-bold text-black-700'>
-            Isi Dalam Box
-          </div>
 
 
         </div>
 
-        
+        {product.metafields[0]?.value &&
         <div className='flex flex-row items-center gap-1 '>
           <div className='font-bold mr-3'>Garansi</div>
-          <div>: Resmi {product.metafields[0]?.value}</div>
+          <div>: Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
+      }
 
         {product.metafields[3]?.value &&
         <div className='flex flex-row items-center gap-1 '>
@@ -243,17 +292,40 @@ return json({
           <div>: {perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
-
+{/* 
             <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
-              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>
+              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/> */}
 
-      
+
+          
+        {/* <InfoProduk deskripsi={product.metafields[5]?.value}/> */}
+
+        {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
+
+                  {/* <div className='hidden lg:block w-3/6 mx-auto lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-2 md:p-2 lg:p-4 md:px-2 '>
+            <div className='border mt-2 border-solid font-bold w-1/3 ml-0 rounded-md m-auto text-center'>
+              Isi Dalam Box
+            </div>
+            <div className='mt-2'>
+            {product.metafields[2]?.value.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
+            </div>
+
+          </div> */}
+
+        
+
       </section>
 
       </>
 
     );
   }
+
+
+
+
+
+
 
   function perubahTanggal(tanggalInput){
     const inputDateString = tanggalInput;
@@ -375,6 +447,8 @@ function TombolWa({product}){
       }
     }
 
+
+
     product(handle: $handle) {
       images(first:10){
         edges{
@@ -395,6 +469,8 @@ function TombolWa({product}){
         {namespace:"custom" key:"isi_dalam_box"}
         {namespace:"custom" key:"periode_promo"}
         {namespace:"custom" key:"periode_promo_akhir"}
+        {namespace:"custom" key:"spesifikasi"}
+        {namespace:"custom" key:"brand"}
       ]){
         key
         value
@@ -444,6 +520,8 @@ function TombolWa({product}){
           handle
         }
       }
+
+
       variants(first: 1) {
         nodes {
           id
@@ -466,6 +544,17 @@ function TombolWa({product}){
     }
   }
 `;
+
+const METAOBJECT_QUERY = `#graphql
+  query metaobject($id: ID!) {
+    metaobject(id: $id) {
+      field(key: "brand") {
+        value
+      }
+    }
+  }
+`;
+
 
 
 // const seo = ({data}) => ({

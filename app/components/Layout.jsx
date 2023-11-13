@@ -13,8 +13,6 @@ import { useHistory ,useLocation } from 'react-router-dom';
 import { TombolWa } from './TombolWa';
 
 
-
-
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
     const lokasi = useLocation()
@@ -35,8 +33,9 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
           {(footer) => <Footer menu={footer.menu} />}
         </Await>
       </Suspense>
-      {/* <TombolWa/> */}
+      
       <BottomNavbar/>
+      {/* <TombolWa/> */}
       {/* {urlSekarang.includes('product') ? (
       console.log('ping')
       ) : urlSekarang.includes('collections') ? (

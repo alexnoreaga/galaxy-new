@@ -8,6 +8,8 @@ import {HitunganPersen} from '~/components/HitunganPersen';
 //   {"og:title": "Syntapse Software"},];
 // };
 
+import { Carousel } from '~/components/Carousel';
+
 
 export async function loader({context}) {
   
@@ -19,19 +21,24 @@ export async function loader({context}) {
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
   const hasilCollection =  collections2;
 
+  const banner = await storefront.query(BANNER_QUERY);
 
 
-  return defer({featuredCollection, recommendedProducts,hasilCollection});
+
+  return defer({featuredCollection, recommendedProducts,hasilCollection,banner});
 }
 
 export default function Homepage() {
   const data = useLoaderData();
 
+  // console.log(data.banner.metaobjects.nodes)
   // console.log('test adalah',data.hasilCollection.collections.nodes)
+
 
   return (
     <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <FeaturedCollection collection={data.featuredCollection} />
+      {/* <FeaturedCollection collection={data.featuredCollection} /> */}
+      <Carousel images={data.banner.metaobjects} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
     
@@ -291,6 +298,31 @@ const COLLECTIONS_QUERY = `#graphql
     }
   }
 `;
+
+
+const BANNER_QUERY = `#graphql
+query BannerQuery{
+  metaobjects(first:5 type:"banner"){
+	
+  nodes {
+    id
+    fields {
+      value
+      key
+      reference{
+      ... on MediaImage {
+          image {
+            url
+          }
+        }
+      }
+      
+    }
+  }
+}}
+
+
+`
 
 
 // const COLLECTIONS_QUERY = `#graphql
