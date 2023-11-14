@@ -85,7 +85,8 @@ export async function loader({params, context, request}) {
   export default function ProductHandle() {
     const {shop, product, selectedVariant,metaobject} = useLoaderData();
 
-    console.log(product)
+    console.log('metafields ',product)
+    console.log('metaobject',metaobject)
 
     // console.log('test',metaobject.metaobject.field.value)
     // const brandValue = product.metafields.find((metafield) => metafield.key === 'brand')?.value;
@@ -98,7 +99,7 @@ export async function loader({params, context, request}) {
 
     return (
       <>
-      <section className="lg:container mx-auto w-full gap-4 md:gap-8 grid px-0 md:px-8 lg:px-12">
+      <section className="lg:container mx-auto w-full gap-4 md:gap-4 grid px-0 md:px-8 lg:px-12">
         <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
             <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-full">
@@ -258,47 +259,48 @@ export async function loader({params, context, request}) {
         </div>
 
 
-
-        <div className='flex gap-2  flex-wrap justify-between'>
-
-          <div className='flex gap-2  flex-wrap m-auto ml-0 mt-0'>
-            <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
-              Deskripsi
-            </div>
-
-            <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
-              Spesifikasi
-            </div>
-
-            <div className='border px-2 cursor-pointer rounded-md font-bold text-black-700'>
-              Isi Dalam Box
-            </div>
-          </div>
-
-
-
+      
+    <div className='p-2'>
+        
+        {metaobject?.metaobject?.field?.value &&
+        <div className='flex flex-row gap-1 text-sm mb-1 m-1'>
+          <div className='font-bold mr-3 w-12'>Brand</div>
+          <div>{metaobject.metaobject.field?.value}</div>
         </div>
+        }
+
 
         {product.metafields[0]?.value &&
-        <div className='flex flex-row items-center gap-1 '>
-          <div className='font-bold mr-3'>Garansi</div>
-          <div>: Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
+        <div className='flex flex-row gap-1 text-sm mb-1 m-1'>
+          <div className='font-bold mr-3 w-12'>Garansi</div>
+          <div>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
       }
 
         {product.metafields[3]?.value &&
-        <div className='flex flex-row items-center gap-1 '>
-          <div className='font-bold mr-3'>Periode Promo</div>
-          <div>: {perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
+        <div className='flex flex-row gap-1 text-sm mb-1 m-1'>
+          <div className='font-bold mr-3 w-12'>Periode</div>
+          <div>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
+
+    </div>
 {/* 
             <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/> */}
 
 
+            {/* <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
+              dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/> */}
           
-        {/* <InfoProduk deskripsi={product.metafields[5]?.value}/> */}
+        <InfoProduk 
+        deskripsi={(<div className="w-full prose mt-2 md:border-gray-200 pt-2 text-black text-md"
+              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
+        
+        isibox={product.metafields[2]?.value}
+        specs={(<div className="w-full prose md:border-gray-200 pt-2 text-black text-md"
+              dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
+        />
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
 
@@ -311,6 +313,23 @@ export async function loader({params, context, request}) {
             </div>
 
           </div> */}
+
+
+{/* <div className='flex gap-2  flex-wrap justify-between'>
+    <div className='flex gap-2  flex-wrap m-auto ml-0 mt-0'>
+      <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
+        Deskripsi
+      </div>
+
+      <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
+        Spesifikasi
+      </div>
+
+      <div className='border px-2 cursor-pointer rounded-md font-bold text-black-700'>
+        Isi Dalam Box
+      </div>
+    </div>
+</div> */}
 
         
 

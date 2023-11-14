@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react';
 
-export const InfoProduk = ({deskripsi}) => {
+export const InfoProduk = ({deskripsi,specs,isibox}) => {
     const [selectedContent, setSelectedContent] = useState("description");
 
     const handleContentChange = (content) => {
@@ -10,28 +10,27 @@ export const InfoProduk = ({deskripsi}) => {
   
     return (
       <div>
-        <div>
-          <button onClick={() => handleContentChange("description")}>Description</button>
-          <button onClick={() => handleContentChange("box content")}>Box Content</button>
-          <button onClick={() => handleContentChange("specs")}>Specs</button>
+        <div className='mt-2 flex flex-row gap-2'>
+        
+          <button onClick={() => handleContentChange("description")} className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>Deskripsi</button>
+          <button onClick={() => handleContentChange("specs")} className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>Spesifikasi</button>
+          <button onClick={() => handleContentChange("box content")} className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>Isi Box</button>
+          
         </div>
-        <div>
+        <div className='mt-2'>
           {selectedContent === "description" && (
             <div>
-              <h2>Description</h2>
               <div>{deskripsi}</div>
             </div>
           )}
           {selectedContent === "box content" && (
             <div>
-              <h2>Box Content</h2>
-              {/* Add your box content here */}
+              {isibox.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
             </div>
           )}
           {selectedContent === "specs" && (
             <div>
-              <h2>Specs</h2>
-              {/* Add your specs content here */}
+              {specs}
             </div>
           )}
         </div>
