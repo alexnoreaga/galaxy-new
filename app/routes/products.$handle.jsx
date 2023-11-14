@@ -264,26 +264,28 @@ export async function loader({params, context, request}) {
     <div className='p-1 text-sm flex flex-wrap sm:gap-8'>
         
         {metaobject?.metaobject?.field?.value &&
-        <div className='flex flex-row gap-1 mb-1 text-gray-700'>
-          <div className='font-bold mr-3 '>Brand :</div>
-          <div>{metaobject.metaobject.field?.value}</div>
+        <div className='flex flex-row gap-1 mb-1 text-gray-700 border-l-2 pl-1 border-l-slate-200'>
+          <div className=' mr-3 '>Brand :</div>
+          <div className='font-bold'>{metaobject.metaobject.field?.value}</div>
         </div>
         }
 
 
         {product.metafields[0]?.value &&
-        <div className='flex flex-row gap-1 mb-1 text-gray-700'>
-          <div className='font-bold mr-3 '>Garansi :</div>
-          <div>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
+        <div className='flex flex-row gap-1 mb-1 text-gray-700 border-l-2 pl-1 border-l-slate-200'>
+          <div className=' mr-3 '>Garansi :</div>
+          <div className='font-bold'>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
       }
 
         {product.metafields[3]?.value &&
-        <div className='flex flex-row gap-1 mb-1 text-gray-700'>
-          <div className='font-bold mr-3 '>Periode :</div>
-          <div>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
+        <div className='flex flex-row gap-1 mb-1 text-gray-700 border-l-2 pl-1 border-l-slate-200'>
+          <div className=' mr-3 '>Periode :</div>
+          <div className='font-bold'>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
+
+
 
     </div>
 {/* 

@@ -10,11 +10,11 @@ export const InfoProduk = ({deskripsi,specs,isibox}) => {
   
     return (
       <div className=''>
-        <div className='flex flex-row gap-2 p-2 divide-x-2'>
+        <div className='flex flex-row gap-2 p-2 '>
         
-          <button onClick={() => handleContentChange("description")} className=' w-28 cursor-pointer   font-bold text-black-700'>DESKRIPSI</button>
-          <button onClick={() => handleContentChange("specs")} className=' w-28 cursor-pointer   font-bold text-black-700'>SPESIFIKASI</button>
-          <button onClick={() => handleContentChange("box content")} className=' w-28 cursor-pointer   font-bold text-black-700'>ISI BOX</button>
+          <button onClick={() => handleContentChange("description")} className={`w-28 py-1 cursor-pointer ${selectedContent == 'description' && ' rounded-md bg-slate-100 text-slate-500'}  font-bold text-black-700`}>DESKRIPSI</button>
+          <button onClick={() => handleContentChange("specs")} className={`w-28 py-1 cursor-pointer ${selectedContent == 'specs' && ' rounded-md bg-slate-100 text-slate-500'}  font-bold text-black-700`}>SPESIFIKASI</button>
+          <button onClick={() => handleContentChange("box content")} className={`block py-1 sm:hidden md:block lg:hidden w-28 cursor-pointer ${selectedContent == 'box content' && ' rounded-md bg-slate-100 text-slate-500'}  font-bold text-black-700`}>ISI BOX</button>
           
         </div>
         <div className='mt-2'>
