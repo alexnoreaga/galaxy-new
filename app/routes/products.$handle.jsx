@@ -307,7 +307,7 @@ export async function loader({params, context, request}) {
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
       
-
+      {product.metafields[2]?.value &&    
           <div className='hidden border lg:block mx-auto w-full h-96 lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-2 md:p-2 lg:p-4 md:px-2 '>
             <div className='bg-black mt-1 text-white border py-2 border-solid items-center font-bold rounded-md m-auto text-center'>
               Isi Dalam Box
@@ -316,7 +316,9 @@ export async function loader({params, context, request}) {
             {product.metafields[2]?.value.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
             </div>
 
-          </div>
+          </div>}
+
+
 
           </div>
 
