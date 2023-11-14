@@ -99,7 +99,7 @@ export async function loader({params, context, request}) {
 
     return (
       <>
-      <section className="lg:container mx-auto w-full gap-4 md:gap-4 grid px-0 md:px-8 lg:px-12">
+      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
         <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
             <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-full">
@@ -263,23 +263,23 @@ export async function loader({params, context, request}) {
     <div className='p-2'>
         
         {metaobject?.metaobject?.field?.value &&
-        <div className='flex flex-row gap-1 text-sm mb-1 m-1'>
-          <div className='font-bold mr-3 w-12'>Brand</div>
+        <div className='flex flex-row gap-1 mb-1 text-gray-700'>
+          <div className='font-bold mr-3 w-12 '>Brand</div>
           <div>{metaobject.metaobject.field?.value}</div>
         </div>
         }
 
 
         {product.metafields[0]?.value &&
-        <div className='flex flex-row gap-1 text-sm mb-1 m-1'>
-          <div className='font-bold mr-3 w-12'>Garansi</div>
+        <div className='flex flex-row gap-1 mb-1 text-gray-700'>
+          <div className='font-bold mr-3 w-12 '>Garansi</div>
           <div>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
       }
 
         {product.metafields[3]?.value &&
-        <div className='flex flex-row gap-1 text-sm mb-1 m-1'>
-          <div className='font-bold mr-3 w-12'>Periode</div>
+        <div className='flex flex-row gap-1 mb-1 text-gray-700'>
+          <div className='font-bold mr-3 w-12 '>Periode</div>
           <div>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
@@ -292,27 +292,38 @@ export async function loader({params, context, request}) {
 
             {/* <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/> */}
-          
+        <div>
+
+        <div className='sm:grid sm:grid-cols-2 md:grid md:grid-cols-2'>
         <InfoProduk 
-        deskripsi={(<div className="w-full prose mt-2 md:border-gray-200 pt-2 text-black text-md"
+        deskripsi={(<div className="w-full prose  md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
         
         isibox={product.metafields[2]?.value}
         specs={(<div className="w-full prose md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
+      
 
-        {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
-
-                  {/* <div className='hidden lg:block w-3/6 mx-auto lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-2 md:p-2 lg:p-4 md:px-2 '>
-            <div className='border mt-2 border-solid font-bold w-1/3 ml-0 rounded-md m-auto text-center'>
+          <div className='hidden border lg:block mx-auto w-full h-96 lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-2 md:p-2 lg:p-4 md:px-2 '>
+            <div className='bg-black mt-1 text-white border py-2 border-solid items-center font-bold rounded-md m-auto text-center'>
               Isi Dalam Box
             </div>
             <div className='mt-2'>
             {product.metafields[2]?.value.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
             </div>
 
-          </div> */}
+          </div>
+
+          </div>
+
+
+
+        </div>
+
+        {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
+
+           
 
 
 {/* <div className='flex gap-2  flex-wrap justify-between'>
