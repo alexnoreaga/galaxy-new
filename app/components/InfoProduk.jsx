@@ -10,11 +10,11 @@ export const InfoProduk = ({deskripsi,specs,isibox}) => {
   
     return (
       <div className=''>
-        <div className='flex flex-row gap-2 p-2'>
+        <div className='flex flex-row gap-2 p-2 divide-x-2'>
         
-          <button onClick={() => handleContentChange("description")} className='border w-28 cursor-pointer rounded-md  font-bold text-black-700'>Deskripsi</button>
-          <button onClick={() => handleContentChange("specs")} className='border w-28 cursor-pointer rounded-md  font-bold text-black-700'>Spesifikasi</button>
-          <button onClick={() => handleContentChange("box content")} className='border w-28 cursor-pointer rounded-md  font-bold text-black-700'>Isi Box</button>
+          <button onClick={() => handleContentChange("description")} className=' w-28 cursor-pointer   font-bold text-black-700'>DESKRIPSI</button>
+          <button onClick={() => handleContentChange("specs")} className=' w-28 cursor-pointer   font-bold text-black-700'>SPESIFIKASI</button>
+          <button onClick={() => handleContentChange("box content")} className=' w-28 cursor-pointer   font-bold text-black-700'>ISI BOX</button>
           
         </div>
         <div className='mt-2'>

@@ -107,7 +107,8 @@ export async function loader({params, context, request}) {
               <ImageGallery productData={product}/>
             </div>
           </div>
-          <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 top-[6rem] lg:top-[rem] xl:top-[10rem]">
+          {/* <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 top-[6rem] lg:top-[rem] xl:top-[10rem]"> */}
+          <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
 
 
 
@@ -260,11 +261,11 @@ export async function loader({params, context, request}) {
 
 
       
-    <div className='p-2'>
+    <div className='p-1 text-sm flex flex-wrap sm:gap-8'>
         
         {metaobject?.metaobject?.field?.value &&
         <div className='flex flex-row gap-1 mb-1 text-gray-700'>
-          <div className='font-bold mr-3 w-12 '>Brand</div>
+          <div className='font-bold mr-3 '>Brand :</div>
           <div>{metaobject.metaobject.field?.value}</div>
         </div>
         }
@@ -272,14 +273,14 @@ export async function loader({params, context, request}) {
 
         {product.metafields[0]?.value &&
         <div className='flex flex-row gap-1 mb-1 text-gray-700'>
-          <div className='font-bold mr-3 w-12 '>Garansi</div>
+          <div className='font-bold mr-3 '>Garansi :</div>
           <div>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
       }
 
         {product.metafields[3]?.value &&
         <div className='flex flex-row gap-1 mb-1 text-gray-700'>
-          <div className='font-bold mr-3 w-12 '>Periode</div>
+          <div className='font-bold mr-3 '>Periode :</div>
           <div>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
