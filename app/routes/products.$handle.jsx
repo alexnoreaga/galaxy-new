@@ -12,7 +12,7 @@ import { useHistory ,useLocation } from 'react-router-dom';
 import { HitunganPersen } from '~/components/HitunganPersen';
 import {InfoProduk} from '~/components/InfoProduk';
 import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
-import {LiveShopee} from '~/components/LiveSHopee';
+import {LiveShopee} from '~/components/LiveShopee';
 
 export async function loader({params, context, request}) {
 
