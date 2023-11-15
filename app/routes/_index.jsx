@@ -41,6 +41,7 @@ export default function Homepage() {
       <Carousel images={data.banner.metaobjects} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
+      <BannerKecil/>
     
     </div>
   );
@@ -61,6 +62,58 @@ function FeaturedCollection({collection}) {
         </div>
       )}
     </Link>
+  );
+}
+
+
+// function BannerKecil(){
+//   return(
+//     <div class="flex flex-nowrap overflow-x-auto">
+//   <div class="">
+//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
+//   </div>
+//   <div class="">
+//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
+//   </div>
+//   <div class="">
+//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" />
+//   </div>
+//   <div class="">
+//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
+//   </div>
+//   <div class="">
+//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
+//   </div>
+//   <div class="">
+//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
+//   </div>
+// </div>
+//   )
+// }
+
+function BannerKecil() {
+  return (
+    <div style={{ display: 'flex', overflowX: 'auto' }}>
+      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
+        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 1" className='w-80'/>
+      </div>
+      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
+        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 2" className='w-80'/>
+      </div>
+      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
+        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      </div>
+      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
+        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      </div>
+      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
+        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      </div>
+      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
+        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      </div>
+      {/* Add more image divs if needed */}
+    </div>
   );
 }
 

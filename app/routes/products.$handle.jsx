@@ -34,6 +34,21 @@ export async function loader({params, context, request}) {
         },
       });
 
+      const liveshopee = await context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
+        variables: {
+          type: "live_shopee", // Value for the 'type' variable
+          first: 4, // Value for the 'first' variable
+        },
+      });
+      // const {liveshopee} = await context.storefront.query(METAOBJECT_LIVE_SHOPEE);
+      // const liveshopee = await context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
+      //   variables: {
+      //     type: "live_shopee", // Value for the 'type' variable
+      //     first: 4, // Value for the 'first' variable
+      //   },
+      // });
+    
+
       // Set a default variant so you always have an "orderable" product selected
       const selectedVariant =
       product.selectedVariant ?? product?.variants?.nodes[0];
@@ -54,6 +69,7 @@ export async function loader({params, context, request}) {
           product,
           selectedVariant,
           metaobject,
+          liveshopee,
         });
 
       }else{
@@ -63,6 +79,7 @@ export async function loader({params, context, request}) {
           shop,
           product,
           selectedVariant,
+          liveshopee,
         });
 
 
@@ -84,10 +101,12 @@ export async function loader({params, context, request}) {
 
 
   export default function ProductHandle() {
-    const {shop, product, selectedVariant,metaobject} = useLoaderData();
+    const {shop, product, selectedVariant,metaobject,liveshopee} = useLoaderData();
 
     console.log('metafields ',product)
-    console.log('metaobject',metaobject)
+    console.log('liveshopee',liveshopee)
+
+    console.log(liveshopee.metaobjects?.edges[0]?.node?.fields[1].value)
 
     // console.log('test',metaobject.metaobject.field.value)
     // const brandValue = product.metafields.find((metafield) => metafield.key === 'brand')?.value;
@@ -218,7 +237,7 @@ export async function loader({params, context, request}) {
   {selectedVariant?.availableForSale
   && <TombolWa product={product}/>}
 
-  <LiveShopee />
+    {liveshopee.metaobjects?.edges[0]?.node?.fields[1].value == 'true' && <LiveShopee />}
 
   
     
@@ -503,6 +522,7 @@ function TombolWa({product}){
       }
     }
 
+    
 
 
     product(handle: $handle) {
@@ -607,9 +627,29 @@ const METAOBJECT_QUERY = `#graphql
       field(key: "brand") {
         value
       }
+      field(key: "brand") {
+        value
+      }
     }
   }
 `;
+
+
+
+
+const METAOBJECT_LIVE_SHOPEE = `#graphql
+query metaobjects($type: String!, $first: Int!) {
+  metaobjects(type: $type, first: $first) {
+    edges {
+      node {
+        id
+        fields {
+          value
+        }
+      }
+    }
+  }
+}`;
 
 
 
