@@ -12,6 +12,7 @@ import { useHistory ,useLocation } from 'react-router-dom';
 import { HitunganPersen } from '~/components/HitunganPersen';
 import {InfoProduk} from '~/components/InfoProduk';
 import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
+import {LiveShopee} from '~/components/LiveSHopee';
 
 export async function loader({params, context, request}) {
 
@@ -108,6 +109,7 @@ export async function loader({params, context, request}) {
             </div>
           </div>
           {/* <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 top-[6rem] lg:top-[rem] xl:top-[10rem]"> */}
+          <div>
           <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
 
 
@@ -196,11 +198,17 @@ export async function loader({params, context, request}) {
           !selectedVariant.availableForSale ??
           fetcher.state !== 'idle'
         }
-        className="border border-black rounded-sm w-full px-4 py-2 text-white bg-black uppercase hover:bg-white hover:text-black transition-colors duration-150"
+        className="border flex justify-center gap-1 items-center border-black rounded-sm w-full px-4 py-2 text-white bg-black uppercase hover:bg-white hover:text-black transition-colors duration-150"
       >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+
+          <span>
         {selectedVariant?.availableForSale
           ? 'Beli Langsung'
           : 'Sold out'}
+          </span>
       </button>
     </>
   )}
@@ -209,6 +217,10 @@ export async function loader({params, context, request}) {
   
   {selectedVariant?.availableForSale
   && <TombolWa product={product}/>}
+
+  <LiveShopee />
+
+  
     
   
 
@@ -253,6 +265,34 @@ export async function loader({params, context, request}) {
 
 
           </div>
+
+
+
+
+          {product.metafields[2]?.value &&    
+          <div className='hidden border lg:block mx-auto w-full mt-2 lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-1 md:p-2 lg:p-4 md:px-2 '>
+            <div className='bg-black flex gap-1  justify-center text-white border py-2 border-solid items-center font-bold rounded-md m-auto text-center'>
+              
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                </svg>
+                <div>Isi Dalam Box</div>
+
+            </div>
+            <div className='mt-2'>
+            {product.metafields[2]?.value.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
+            </div>
+
+          </div>}
+          
+
+
+
+
+          </div>
+
+
+
 
           
 
@@ -307,16 +347,7 @@ export async function loader({params, context, request}) {
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
       
-      {product.metafields[2]?.value &&    
-          <div className='hidden border lg:block mx-auto w-full h-96 lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-2 md:p-2 lg:p-4 md:px-2 '>
-            <div className='bg-black mt-1 text-white border py-2 border-solid items-center font-bold rounded-md m-auto text-center'>
-              Isi Dalam Box
-            </div>
-            <div className='mt-2'>
-            {product.metafields[2]?.value.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
-            </div>
 
-          </div>}
 
 
 
@@ -445,17 +476,7 @@ function TombolWa({product}){
   // const infoChat = `Hi admin Galaxy saya berminat tentang produk ${namaProduk}. Boleh dibantu untuk info lebih lanjut`
   const namaProduk = product.title
   const urlProduk = product.handle
-  // const urlProduk = window.location.href
-//   function componentWillMount() {
-//     if (typeof window !== 'undefined') {
-//         console.log('window.innerHeight', window.location.href);
-//         namaProduk =  window.location.href
-//     }
-// }
 
-// componentWillMount()
-
-// console.log('Berikut merupakan nama produk ',namaProduk)
 
   return(
     <>
