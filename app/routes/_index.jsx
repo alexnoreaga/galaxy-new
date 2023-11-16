@@ -236,11 +236,13 @@ function RenderCollection({collections}) {
   if (!collections) return null;
   return (
     <section className="w-full gap-4 ">
-    <div className='flex flex-row items-center justify-between m-1'>
+    <div className='flex flex-row items-center justify-between m-1 mb-2'>
         <div className="text-slate-800 text-lg mx-auto sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
           Kategori Populer
         </div>
+        <Link to={`/collections/`}>
         <div className='text-slate-500 hidden sm:block mx-1'>Lihat Selengkapnya</div>
+        </Link>
       </div>
       <div className="grid-flow-row grid grid-cols-2 gap-0 lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
         {collections.nodes.map((collection) => {
@@ -280,7 +282,7 @@ function RenderCollection({collections}) {
 
 function RecommendedProducts({products}) {
 
-  
+  // console.log('Produk rekomendasi',products)
 
 
   
@@ -311,7 +313,7 @@ function RecommendedProducts({products}) {
                   <div className='text-sm my-1 text-slate-800'>{product.title}</div>
                   
                   {product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount &&(
-                  <div className='text-sm  line-through text-slate-400'>
+                  <div className='text-sm  line-through text-slate-600'>
                     <Money data={product.compareAtPriceRange?.minVariantPrice} />
                     {/* <div>{(product.compareAtPriceRange.minVariantPrice.amount - product.priceRange.minVariantPrice.amount)/product.compareAtPriceRange.minVariantPrice.amount * 100}</div> */}
                     
@@ -378,6 +380,18 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     id
     title
     handle
+    metafields(identifiers:[
+      {namespace:"custom" key:"garansi"}
+      {namespace:"custom" key:"free"}
+      {namespace:"custom" key:"isi_dalam_box"}
+      {namespace:"custom" key:"periode_promo"}
+      {namespace:"custom" key:"periode_promo_akhir"}
+      {namespace:"custom" key:"spesifikasi"}
+      {namespace:"custom" key:"brand"}
+    ]){
+      key
+      value
+    }
     priceRange {
       minVariantPrice {
         amount

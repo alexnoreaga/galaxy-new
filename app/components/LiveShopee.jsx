@@ -1,12 +1,12 @@
 import React from 'react';
 
-export const LiveShopee = () => {
+export const LiveShopee = ({url}) => {
     return(
         <>
         
-        <a href="#" target="_blank" className='drop-shadow-sm text-white '>     
+        <a href={url} target="_blank" className='drop-shadow-sm text-white '>     
             <div className=' items-center bg-slate-100 rounded p-2 h-20 cursor-pointer font-semibold text-white text-center  flex flex-row gap-2'>
-                <div className='absolute flex items-center gap-2 left-14'>
+                <div className='absolute flex items-center gap-2 left-10 sm:left-14'>
                 <div className='animate-ping absolute left-2.5 w-9 h-9 inline-flex rounded-full  bg-gradient-to-r from-fuchsia-600 to-pink-600  opacity-75'></div>
                 {/* <div className='absolute w-14 h-full animate-ping inline-flex rounded-full  bg-gradient-to-r from-fuchsia-600 to-pink-600  opacity-75'> */}
                     {/* </div> */}

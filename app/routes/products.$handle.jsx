@@ -106,7 +106,7 @@ export async function loader({params, context, request}) {
     console.log('metafields ',product)
     console.log('liveshopee',liveshopee)
 
-    console.log(liveshopee.metaobjects?.edges[0]?.node?.fields[1].value)
+    console.log(liveshopee.metaobjects?.edges[0]?.node)
 
     // console.log('test',metaobject.metaobject.field.value)
     // const brandValue = product.metafields.find((metafield) => metafield.key === 'brand')?.value;
@@ -181,7 +181,7 @@ export async function loader({params, context, request}) {
                       amount: selectedVariant.compareAtPrice.amount,
                       currencyCode: selectedVariant.price.currencyCode,
                     }}
-                    className="text-xl line-through text-slate-400"
+                    className="text-xl line-through text-slate-600"
                   />
                 </div>
               )}
@@ -237,7 +237,7 @@ export async function loader({params, context, request}) {
   {selectedVariant?.availableForSale
   && <TombolWa product={product}/>}
 
-    {liveshopee.metaobjects?.edges[0]?.node?.fields[1].value == 'true' && <LiveShopee />}
+    {liveshopee.metaobjects?.edges[0]?.node?.fields[1].value == 'true' && <LiveShopee url={liveshopee.metaobjects?.edges[0]?.node?.fields[0].value}/>}
 
   
     
