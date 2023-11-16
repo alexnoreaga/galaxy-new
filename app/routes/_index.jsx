@@ -3,6 +3,7 @@ import {Await, useLoaderData, Link} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
+import {useRef} from "react";
 // export const meta = () => {
 //   return [{title: 'Hydrogen | Home'},
 //   {"og:title": "Syntapse Software"},];
@@ -91,28 +92,101 @@ function FeaturedCollection({collection}) {
 //   )
 // }
 
+// function BannerKecil() {
+//   return (
+//     <div className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth">
+//     <div className="flex-none mr-4 snap-center">
+//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 1" className='w-80'/>
+//     </div>
+//     <div className="flex-none mr-4 snap-center">
+//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 2" className='w-80'/>
+//     </div>
+//     <div className="flex-none mr-4 snap-center">
+//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+//     </div>
+//     <div className="flex-none mr-4 snap-center">
+//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+//     </div>
+//     <div className="flex-none mr-4 snap-center">
+//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+//     </div>
+//     <div className="flex-none mr-4 snap-center">
+//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+//     </div>
+//     {/* Add more image divs if needed */}
+//   </div>
+//   );
+// }
+
 function BannerKecil() {
+  const scrollRef = useRef(null);
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: -200,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: 200,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', overflowX: 'auto' }}>
-      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
-        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 1" className='w-80'/>
+    <div className='relative flex items-center'>
+    <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
+      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div>
-      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
-        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 2" className='w-80'/>
+      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div>
-      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
-        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div>
-      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
-        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div>
-      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
-        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div>
-      <div style={{ flex: '0 0 auto', marginRight: '10px' }}>
-        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
+      </div>
+      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div>
       {/* Add more image divs if needed */}
+      
+      
+
+      {/* <button onClick={scrollLeft} className="absolute left-0  bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-4">
+        Scroll Left
+      </button> */}
+      {/* <button onClick={scrollRight} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4">
+        Scroll Right
+      </button> */}
+      
+    </div>
+
+    <button className='absolute left-2 rounded-full p-1' onClick={scrollLeft}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
+            <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
+    </svg>
+    </button>
+
+    <button className='absolute right-2 rounded-full p-1' onClick={scrollRight}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
+  <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
+</svg>
+</button>
+   
     </div>
   );
 }
