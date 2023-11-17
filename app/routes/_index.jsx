@@ -328,12 +328,12 @@ function RecommendedProducts({products}) {
                     data={product.priceRange.minVariantPrice} />
                   </div>
                   <div className='flex flex-col md:flex-row gap-2'>
-                  <span className='rounded-md m-auto ml-0 bg-emerald-100 text-xs font-bold text-emerald-800 p-1 px-2'>
+                  {/* <span className='rounded-md m-auto ml-0 bg-emerald-100 text-xs font-bold text-emerald-800 p-1 px-2'>
                     Cashback 5%  
-                  </span>
-                  <span className='rounded-md m-auto ml-0 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
+                  </span> */}
+                  {product.metafields[2]?.value && <span className='rounded-md m-auto ml-0 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
                     Free Item  
-                  </span>
+                  </span>}
                   </div>
                   
                  

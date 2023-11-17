@@ -40,6 +40,13 @@ export async function loader({params, context, request}) {
           first: 4, // Value for the 'first' variable
         },
       });
+
+      const marketplace = await context.storefront.query(METAOBJECT_MARKETPLACE, {
+        variables: {
+          type: "marketplace", // Value for the 'type' variable
+          first: 10, // Value for the 'first' variable
+        },
+      });
       // const {liveshopee} = await context.storefront.query(METAOBJECT_LIVE_SHOPEE);
       // const liveshopee = await context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
       //   variables: {
@@ -70,6 +77,7 @@ export async function loader({params, context, request}) {
           selectedVariant,
           metaobject,
           liveshopee,
+          marketplace,
         });
 
       }else{
@@ -80,6 +88,7 @@ export async function loader({params, context, request}) {
           product,
           selectedVariant,
           liveshopee,
+          marketplace,
         });
 
 
@@ -101,10 +110,11 @@ export async function loader({params, context, request}) {
 
 
   export default function ProductHandle() {
-    const {shop, product, selectedVariant,metaobject,liveshopee} = useLoaderData();
+    const {shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
     console.log('metafields ',product)
     console.log('liveshopee',liveshopee)
+    console.log('marketplace',marketplace)
 
     console.log(liveshopee.metaobjects?.edges[0]?.node)
 
@@ -547,6 +557,11 @@ function TombolWa({product}){
         {namespace:"custom" key:"periode_promo_akhir"}
         {namespace:"custom" key:"spesifikasi"}
         {namespace:"custom" key:"brand"}
+        {namespace:"custom" key:"link_tokopedia"}
+        {namespace:"custom" key:"link_shopee"}
+        {namespace:"custom" key:"link_blibli"}
+        {namespace:"custom" key:"link_bukalapak"}
+        {namespace:"custom" key:"link_lazada"}
       ]){
         key
         value
@@ -651,6 +666,26 @@ query metaobjects($type: String!, $first: Int!) {
   }
 }`;
 
+const METAOBJECT_MARKETPLACE = `#graphql
+query metaobjects($type: String!, $first: Int!) {
+  metaobjects(type: $type, first: $first) {
+    edges {
+      node {
+        id
+        fields {
+          value
+          reference{
+            ... on MediaImage {
+           image {
+             url
+           }
+         }
+           }
+        }
+      }
+    }
+  }
+}`;
 
 
 // const seo = ({data}) => ({

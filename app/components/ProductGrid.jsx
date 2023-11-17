@@ -1,5 +1,5 @@
 import {Pagination} from '@shopify/hydrogen';
-import ProductCard from './ProductCard';
+import ProductCard from './ProductCardx';
 
 export default function ProductGrid({collection}) {
   return (
