@@ -243,6 +243,7 @@ export async function loader({params, context, request}) {
   )}
   </CartForm>
 
+
   
   {selectedVariant?.availableForSale
   && <TombolWa product={product}/>}
@@ -257,7 +258,7 @@ export async function loader({params, context, request}) {
 
         <Accordion 
         title="Belanja Lewat Marketplace ?" 
-        content="Untuk setiap pembelian di Galaxy Digital gratis ongkir hingga ke seluruh Indonesia" 
+        content={(<MarketPlace link={product.metafields}/>)}
         icon={(
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
   <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
@@ -328,6 +329,7 @@ export async function loader({params, context, request}) {
           
         </div>
 
+    
 
       
     <div className='p-1 text-sm flex flex-wrap sm:gap-8'>
@@ -418,7 +420,29 @@ export async function loader({params, context, request}) {
 
 
 
-
+function MarketPlace({link}){
+  
+  const {marketplace} = useLoaderData();
+  return(
+    <div className='flex flex-wrap gap-2'>
+      {marketplace.metaobjects?.edges.map((item)=>{
+        const linkS = item.node?.fields[1]?.value.toLowerCase()
+        const linkTokopediaObject = link.find(item => item && item.key === linkS);
+        {/* console.log('Hello workds',linkTokopediaObject?.value) */}
+        return(
+          <div key={item.node?.id} >
+            <a href={linkTokopediaObject?.value ? linkTokopediaObject.value : item.node?.fields[2]?.value} target="_blank">
+            <div>
+              <img src={item.node?.fields[0]?.reference?.image?.url} alt={item.node?.fields[1]?.value} className='border p-1 h-9 rounded-md'/>
+              {/* {linkTokopediaObject?.value ? linkTokopediaObject.value : item.node?.fields[2]?.value} */}
+            </div>
+            </a>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 
 
@@ -557,11 +581,11 @@ function TombolWa({product}){
         {namespace:"custom" key:"periode_promo_akhir"}
         {namespace:"custom" key:"spesifikasi"}
         {namespace:"custom" key:"brand"}
-        {namespace:"custom" key:"link_tokopedia"}
-        {namespace:"custom" key:"link_shopee"}
-        {namespace:"custom" key:"link_blibli"}
-        {namespace:"custom" key:"link_bukalapak"}
-        {namespace:"custom" key:"link_lazada"}
+        {namespace:"custom" key:"tokopedia"}
+        {namespace:"custom" key:"shopee"}
+        {namespace:"custom" key:"blibli"}
+        {namespace:"custom" key:"bukalapak"}
+        {namespace:"custom" key:"lazada"}
       ]){
         key
         value

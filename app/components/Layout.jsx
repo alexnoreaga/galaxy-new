@@ -12,7 +12,6 @@ import { BottomNavbar } from './BottomNavbar';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { TombolWa } from './TombolWa';
 
-
 export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
     const lokasi = useLocation()
@@ -23,10 +22,13 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
 
   return (
     <>
+    
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside menu={header.menu} />
+      
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
+
       <main>{children}</main>
       <Suspense>
         <Await resolve={footer}>
@@ -45,6 +47,8 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
   );
 }
 
+
+
 function CartAside({cart}) {
   return (
     <Aside id="cart-aside" heading="CART">
@@ -58,6 +62,14 @@ function CartAside({cart}) {
     </Aside>
   );
 }
+
+// function HelloWorld() {
+//   return (
+//     <div style={activeLinkStyle}>
+//       Loading Bar .......
+//     </div>
+//   );
+// }
 
 function SearchAside() {
   return (
@@ -93,3 +105,4 @@ function MobileMenuAside({menu}) {
     </Aside>
   );
 }
+
