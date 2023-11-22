@@ -3,6 +3,7 @@ import {Await, useLoaderData, Link} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
+import { BrandPopular } from '../components/BrandPopular';
 import {useRef} from "react";
 // export const meta = () => {
 //   return [{title: 'Hydrogen | Home'},
@@ -25,13 +26,38 @@ export async function loader({context}) {
   const banner = await storefront.query(BANNER_QUERY);
 
 
+  const brands = await storefront.query(GET_BRANDS)
+  const hasilLoop =  brands?.metaobjects?.nodes[0]?.fields[0]?.value
+  const dataArray = JSON.parse(hasilLoop);
 
-  return defer({featuredCollection, recommendedProducts,hasilCollection,banner});
+
+  const hasilCekPromises = dataArray.map((item) => {
+    return storefront.query(GET_BRAND_IMAGE, {
+      variables: {
+        id: item,
+      },
+    });
+  });
+  
+  const kumpulanBrand = await Promise.all(hasilCekPromises);
+
+
+
+
+
+  
+  return defer({kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
 }
+
+
+
+
+
 
 export default function Homepage() {
   const data = useLoaderData();
 
+  console.log('hello ', data.kumpulanBrand)
   // console.log(data.banner.metaobjects.nodes)
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
@@ -42,7 +68,8 @@ export default function Homepage() {
       <Carousel images={data.banner.metaobjects} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
-      <BannerKecil/>
+      <BannerKecil />
+      <BrandPopular brands={data.kumpulanBrand}/>
     
     </div>
   );
@@ -464,9 +491,60 @@ query BannerQuery{
     }
   }
 }}
-
-
 `
+
+const GET_BRANDS = `#graphql
+query BrandQuery{
+    metaobjects(first:5 type:"brand_popular"){
+      
+    nodes {
+      id
+      fields {
+        value
+        key
+           
+        
+      }
+    }
+  }}
+`
+
+const GET_BRAND_IMAGE = `#graphql
+query BrandImage($id: ID!){
+  metaobject(id:$id){
+  id
+  fields {
+    value
+    reference{
+      ... on MediaImage {
+          image {
+            url
+          }
+        }
+      }
+  }
+  
+}}
+`
+
+// const GET_BRAND_IMAGE = `
+//   query BrandImage($id: String!){
+//     metaobject(id: $id){
+//       id
+//       fields {
+//         value
+//         reference {
+//           ... on MediaImage {
+//             image {
+//               url
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// `;
+
 
 
 // const COLLECTIONS_QUERY = `#graphql
