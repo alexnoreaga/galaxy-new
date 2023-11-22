@@ -8,9 +8,9 @@ export const BrandPopular = ({brands}) => {
   return (
     <div className="my-6">
     <div className='flex flex-row items-center justify-between m-1 mb-2'>
-    <div className="text-slate-800 text-lg mx-auto sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">Brand Popular</div>
+    <div className="text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">Brand Popular</div>
     <Link to={`/brands/`}>
-            <div className='text-slate-500 hidden sm:block mx-1'>Lihat Selengkapnya</div>
+            <div className='text-slate-500 block mx-1 text-sm sm:text-lg'>Lihat Semua</div>
     </Link>
     </div>
     <div className="flex flex-wrap justify-center gap-x-2 p-2 items-center shadow-md rounded-lg">

@@ -221,54 +221,16 @@ function BannerKecil() {
 
 
 
-//HASIL SENDIRI
-// function RenderCollection({collections}) {
-//   if (!collections) return null;
-//   return (
-//     <section className="w-full gap-4">
-//       <h2 className="text-slate-800 whitespace-pre-wrap max-w-prose font-bold text-lead text-center w-full mx-auto">
-//         Kategori Populer
-//       </h2>
-//       <div className="grid-flow-row grid grid-cols-4 gap-4 gap-y-2 md:gap-2 lg:gap-4  sm:grid-cols-8 ">
-//         {collections.nodes.map((collection) => {
-//           return (
-//             <Link to={`/collections/${collection.handle}`} key={collection.id}>
-//               <div className="grid gap-2">
-//                 {collection?.image && (
-//                   <Image
-//                     alt={`Image of ${collection.title}`}
-//                     data={collection.image}
-//                     key={collection.id}
-//                     sizes="(max-width: 32em) 100vw, 33vw"
-//                     crop="center"
-//                   />
-//                 )}
-//                 <p className="text-slate-800 whitespace-normal max-w-prose text-copy text-center text-sm">
-//                   {collection.title}
-//                 </p>
-//               </div>
-//             </Link>
-//           );
-//         })}
-        
-//       </div>
-//       <Link to={`/collections/`}>
-//           <p className="text-slate-800 text-sm mx-auto mt-6 w-64 p-1.5 text-center rounded-md border border-slate-300 hover:border-slate-800 hover:no-underline ">Kategori Selengkapnya</p>
-//         </Link>
-//     </section>
-//   );
-// }
-
 function RenderCollection({collections}) {
   if (!collections) return null;
   return (
     <section className="w-full gap-4 ">
     <div className='flex flex-row items-center justify-between m-1 mb-2'>
-        <div className="text-slate-800 text-lg mx-auto sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+        <div className="text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
           Kategori Populer
         </div>
         <Link to={`/collections/`}>
-        <div className='text-slate-500 hidden sm:block mx-1'>Lihat Selengkapnya</div>
+        <div className='text-slate-500 block mx-1 text-sm sm:text-lg'>Lihat Selengkapnya</div>
         </Link>
       </div>
       <div className="grid-flow-row grid grid-cols-2 gap-0 lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
@@ -297,9 +259,9 @@ function RenderCollection({collections}) {
         })}
         
       </div>
-      <Link to={`/collections/`}>
+      {/* <Link to={`/collections/`}>
           <div className="block sm:hidden text-slate-800 text-sm mx-auto mt-2 w-48 p-1 text-center rounded-md bg-slate-100 hover:no-underline ">Kategori Selengkapnya</div>
-        </Link>
+        </Link> */}
     </section>
   );
 }
@@ -315,7 +277,7 @@ function RecommendedProducts({products}) {
   
   return (
     <div className="recommended-products text-slate-800">
-      <h2 className='text-center'>Produk Best Seller</h2>
+      <h2 className='text-sm sm:text-lg'>Produk Best Seller</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
