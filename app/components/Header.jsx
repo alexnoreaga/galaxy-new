@@ -6,11 +6,11 @@ import {Suspense} from 'react';
 export function Header({header, isLoggedIn, cart}) {
 
   const routes = [
-  { path: '/', label: 'Home' },
-  { path: '/collections', label: 'Contact' },
-  { path: '/contact', label: 'Contact' },
+  // { path: '/', label: 'Home' },
+  { path: '/collections', label: 'Collections' },
   { path: '/products', label: 'Product' },
-  { path: '/pages', label: 'Product' },
+  { path: '/pages', label: 'Pages' },
+  { path: '/policies', label: 'Policies' },
   // Add more routes as needed
 ];
 
@@ -24,7 +24,7 @@ export function Header({header, isLoggedIn, cart}) {
             prefetch="intent"
             to={route.path}
             style={activeLinkStyle2}
-            end
+            
           >
       {/* {route.label} */}
     <div className='fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50 z-50'>
