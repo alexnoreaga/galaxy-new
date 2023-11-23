@@ -230,7 +230,7 @@ function RenderCollection({collections}) {
           Kategori Populer
         </div>
         <Link to={`/collections/`}>
-        <div className='text-slate-500 block mx-1 text-sm sm:text-lg'>Lihat Selengkapnya</div>
+        <div className='text-slate-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
       <div className="grid-flow-row grid grid-cols-2 gap-0 lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
