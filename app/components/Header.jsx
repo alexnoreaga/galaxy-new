@@ -39,8 +39,8 @@ export function Header({header, isLoggedIn, cart}) {
       </NavLink>
   ))}
 </>
-    <div className='bg-neutral-950 mb-5 text-white'>
-          <div className='container relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1 tracking-wide'>Your Online Offline Photography Shopping</div>
+    <div className='bg-black text-white hidden sm:block'>
+          <div className='container relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1.5 tracking-wide'>Your Online Offline Photography Shopping</div>
     </div>
     <header className="header backdrop-blur-md shadow-md !bg-white/90 border-b-1">
       <div className='container flex items-center justify-between relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
