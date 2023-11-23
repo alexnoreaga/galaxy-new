@@ -11,6 +11,7 @@ export function Header({header, isLoggedIn, cart}) {
   { path: '/products', label: 'Product' },
   { path: '/pages', label: 'Pages' },
   { path: '/policies', label: 'Policies' },
+  { path: '/brands', label: 'Brands' },
   // Add more routes as needed
 ];
 
@@ -26,7 +27,6 @@ export function Header({header, isLoggedIn, cart}) {
             style={activeLinkStyle2}
             
           >
-      {/* {route.label} */}
     <div className='fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50 z-50'>
       <div role="status">
       <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-gray-900" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -39,8 +39,11 @@ export function Header({header, isLoggedIn, cart}) {
       </NavLink>
   ))}
 </>
+    <div className='bg-neutral-950 mb-5 text-white'>
+          <div className='container relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1 tracking-wide'>Your Online Offline Photography Shopping</div>
+    </div>
     <header className="header backdrop-blur-md shadow-md !bg-white/90 border-b-1">
-
+      <div className='container flex items-center justify-between relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
       <HeaderMenuMobileToggle />
       <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
         {/* <strong>{shop.name}</strong> */}
@@ -48,7 +51,11 @@ export function Header({header, isLoggedIn, cart}) {
       </NavLink>
       <HeaderMenu menu={menu} viewport="desktop" />
       <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+      </div>
+      
     </header>
+
+    
     </>
   );
 }
