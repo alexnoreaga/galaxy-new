@@ -1,5 +1,14 @@
 import {Await, NavLink, useMatches} from '@remix-run/react';
 import {Suspense} from 'react';
+import { IconName } from "react-icons/fa6";
+
+import { FaInstagram } from "react-icons/fa6";
+import { FaTiktok } from "react-icons/fa6";
+import { FaYoutube } from "react-icons/fa6";
+import { FaXTwitter } from "react-icons/fa6";
+import { FaWhatsapp } from "react-icons/fa6";
+import { FaFacebookF } from "react-icons/fa6";
+
 
 
 
@@ -40,7 +49,44 @@ export function Header({header, isLoggedIn, cart}) {
   ))}
 </>
     <div className='bg-black text-white hidden sm:block'>
-          <div className='container relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1.5 tracking-wide'>Your Online Offline Photography Shopping</div>
+          <div className='flex items-center justify-between container relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1.5 tracking-wide'>
+            
+            <div>Your Online Offline Photography Shopping</div>
+            <div className='flex gap-3 items-center'>
+              <a href="https://wa.me/6282111311131" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
+                <FaWhatsapp size="1.2em" />
+                <div>0821-1131-1131</div>
+              </a>
+              
+              <a href="https://instagram.com/galaxycamera99" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
+                <FaInstagram size="1.2em"/>
+              </a>
+
+              <a href="https://facebook.com/galaxycamera99" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
+              <FaFacebookF size="1.2em"/>
+              </a>
+
+              
+              <a href="https://www.tiktok.com/@galaxycameraid" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
+              <FaTiktok size="1.2em"/>
+              </a>
+
+              <a href="https://www.youtube.com/galaxycamera" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
+              <FaYoutube size="1.2em" />
+              </a>
+
+              <a href="https://www.x.com/galaxycamera99" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
+              <FaXTwitter size="1.2em" />
+              </a>
+
+            </div>
+
+
+
+
+
+
+          </div>
     </div>
     <header className="header backdrop-blur-md shadow-md !bg-white/90 border-b-1">
       <div className='container flex items-center justify-between relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>

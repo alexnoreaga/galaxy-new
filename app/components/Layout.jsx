@@ -37,7 +37,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
       </Suspense>
       
       <BottomNavbar/>
-      {/* <TombolWa/> */}
+      <TombolWa/>
       {/* {urlSekarang.includes('product') ? (
       console.log('ping')
       ) : urlSekarang.includes('collections') ? (
