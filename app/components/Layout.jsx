@@ -37,7 +37,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
       </Suspense>
       
       <BottomNavbar/>
-      <TombolWa/>
+      {/* <TombolWa/> */}
       {/* {urlSekarang.includes('product') ? (
       console.log('ping')
       ) : urlSekarang.includes('collections') ? (
@@ -83,12 +83,13 @@ function SearchAside() {
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}
-                placeholder="Search"
+                placeholder="Cari Produk"
                 ref={inputRef}
                 type="search"
+                autoFocus 
               />
               &nbsp;
-              <button type="submit">Search</button>
+              <button type="submit">Cari</button>
             </div>
           )}
         </PredictiveSearchForm>

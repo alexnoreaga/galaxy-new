@@ -4,9 +4,14 @@ import { FaLocationDot } from "react-icons/fa6";
 
 export function Footer({menu}) {
   return (
-    <footer className="footer ">
+    <footer className="footer py-5 pb-24">
+      <div className='flex-none sm:flex flex-cols justify-between px-3 sm:px-0 container mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
+      <FooterBaru/>
       <FooterMenu menu={menu} />
-      {/* <FooterBaru/> */}
+      {/* <FooterMenu menu={menu} /> */}
+      <FooterMenu menu={menu} />
+      
+      </div>
     </footer>
   );
 }
@@ -16,8 +21,9 @@ function FooterMenu({menu}) {
   const publicStoreDomain = root?.data?.publicStoreDomain;
   console.log('Ini merupakan publicStore ',menu)
   return (
-    <nav className="footer-menu" role="navigation">
-      <div className='container flex flex-col mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
+    <nav className="footer-menu mx-auto" role="navigation">
+      <div className='text-sm flex flex-col'>
+      <div className='text-white font-bold py-1'>INFORMATION</div>
       {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
         if (!item.url) return null;
         // if the url is internal, we strip the domain
@@ -49,10 +55,10 @@ function FooterMenu({menu}) {
 }
 
 
-function FooterBaru({menu}){
+function FooterBaru(){
   return(
-    <div className='relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
-      <div className='py-4'>
+    <div>
+      <div className='py-4 px-4 sm:px-0'>
         <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-final-bw.png?v=1701072365" alt="Logo Galaxy Camera Store" className='w-28'/>
         <div className="text-white flex flex-row items-center gap-2 text-sm">
           <FaLocationDot />
