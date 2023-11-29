@@ -16,7 +16,7 @@ export const BrandPopular = ({brands}) => {
     <div className="flex flex-wrap justify-center gap-x-2 p-2 items-center shadow-md rounded-lg">
         {brands.map((brand)=>{
             return(
-                <img className="cursor-pointer w-20 sm:w-28 h-auto hover:shadow-md hover:border rounded-lg p-2" src={brand.metaobject.fields[1].reference.image.url} alt={brand.metaobject.fields[0].value}/>
+                <img className="cursor-pointer w-20 sm:w-28 h-auto hover:shadow-md hover:border rounded-lg p-2" key={brand.metaobject.fields[0].value} src={brand.metaobject.fields[1].reference.image.url} alt={brand.metaobject.fields[0].value}/>
             )
         })}
     </div>

@@ -428,10 +428,14 @@ function FeaturedBlogs({ blogs }) {
         <div className='text-slate-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
-      <div className='flex flex-col sm:flex-row gap-4 '>
+      <div className='flex flex-col sm:flex-row gap-4 justify-between'>
         {blogs.articles.edges.slice(0, articlesToShow).map((blog) => {
           return (
-            <div className='w-80 mx-auto ' key={blog.node.title}>
+            <Link 
+            to={`/blogs/${blog.node.blog.handle}/${blog.node.handle}`}
+            key={blog.node.title}>
+
+            <div className='w-80 mx-auto' >
             <div className='h-60 w-80 rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
 
             <img className='h-60 p-1 w-auto m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
@@ -444,6 +448,7 @@ function FeaturedBlogs({ blogs }) {
             <div className='font-bold '>{blog.node.title}</div>
 
             </div>
+            </Link>
           );
         })}
       </div>
@@ -609,6 +614,9 @@ const GET_BLOGS = `#graphql
           articles (first:10) {
             edges {
               node {
+                blog {
+                  handle
+                }
                 id
                 handle
                 publishedAt
@@ -635,6 +643,9 @@ const GET_ARTIKEL = `#graphql
     articles(first:$first,reverse:$reverse) {
     edges {
       node {
+        blog {
+          handle
+        }
         id
         title
         handle
