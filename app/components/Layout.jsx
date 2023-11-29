@@ -12,7 +12,7 @@ import { BottomNavbar } from './BottomNavbar';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { TombolWa } from './TombolWa';
 
-export function Layout({cart, children = null, footer, header, isLoggedIn}) {
+export function Layout({cart, children = null, footer, header, isLoggedIn,footerSatu}) {
 
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
@@ -32,7 +32,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn}) {
       <main>{children}</main>
       <Suspense>
         <Await resolve={footer}>
-          {(footer) => <Footer menu={footer.menu} />}
+          {(footer) => <Footer menu={footer.menu} footerSatu = {footerSatu}/>}
         </Await>
       </Suspense>
       

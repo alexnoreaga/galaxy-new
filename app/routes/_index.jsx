@@ -5,6 +5,9 @@ import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
 import { BrandPopular } from '../components/BrandPopular';
 import {useRef} from "react";
+import { useLayoutEffect, useState } from 'react';
+import { FaCalendarDays } from "react-icons/fa6";
+
 // export const meta = () => {
 //   return [{title: 'Hydrogen | Home'},
 //   {"og:title": "Syntapse Software"},];
@@ -24,6 +27,13 @@ export async function loader({context}) {
   const hasilCollection =  collections2;
 
   const banner = await storefront.query(BANNER_QUERY);
+
+  const blogs = await storefront.query(GET_ARTIKEL,{
+    variables:{
+      first:3,
+      reverse:true,
+    },
+  });
 
 
   const brands = await storefront.query(GET_BRANDS)
@@ -46,7 +56,7 @@ export async function loader({context}) {
 
 
   
-  return defer({kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
+  return defer({blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
 }
 
 
@@ -57,7 +67,7 @@ export async function loader({context}) {
 export default function Homepage() {
   const data = useLoaderData();
 
-  console.log('hello ', data.kumpulanBrand)
+  console.log('hello ', data.kumpulanBrand, data.blogs)
   // console.log(data.banner.metaobjects.nodes)
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
@@ -70,6 +80,7 @@ export default function Homepage() {
       <RecommendedProducts products={data.recommendedProducts} />
       <BannerKecil />
       <BrandPopular brands={data.kumpulanBrand}/>
+      <FeaturedBlogs blogs={data.blogs}/>
     
     </div>
   );
@@ -269,6 +280,8 @@ function RenderCollection({collections}) {
 
 
 
+
+
 function RecommendedProducts({products}) {
 
   // console.log('Produk rekomendasi',products)
@@ -335,6 +348,105 @@ function RecommendedProducts({products}) {
         </Await>
       </Suspense>
       <br />
+    </div>
+  );
+}
+
+
+function FeaturedBlogs2({blogs}){
+  console.log('Ini adalah artikel ', blogs)
+  return(
+    <div>
+      <div className='flex flex-row items-center justify-between m-1 mb-2'>
+        <div className="text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+          Artikel dan Review
+        </div>
+        <Link to={`/blogs/`}>
+        <div className='text-slate-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+        </Link>
+      </div>
+      <div className='flex flex-col sm:flex-row gap-4 '>
+        {blogs.articles.edges.map((blog)=>{
+          return(
+            <div className='w-80 mx-auto'>
+              <div className='h-60 w-80 rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
+                <img className='h-60 p-1 w-auto m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
+              </div>
+              <div className='font-bold p-2'>{blog.node.title}</div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function FeaturedBlogs({ blogs }) {
+  console.log('Ini merupaakan featured Blog',blogs)
+
+  const [articlesToShow, setArticlesToShow] = useState(1); // State to manage the number of articles to display
+
+  useLayoutEffect(() => {
+    // Function to check screen size and set articles to display accordingly
+    const updateArticlesToShow = () => {
+      const screenSize = window.innerWidth;
+      if (screenSize <= 640) {
+        // For small screens (you can adjust this breakpoint as needed)
+        setArticlesToShow(1); // Show only one article
+      } else {
+        // For larger screens
+        setArticlesToShow(blogs.articles.edges.length); // Show all articles
+      }
+    };
+
+    // Initial check on component mount
+    updateArticlesToShow();
+
+    // Event listener for screen size changes
+    window.addEventListener('resize', updateArticlesToShow);
+
+    return () => {
+      // Cleanup: Remove the event listener on component unmount
+      window.removeEventListener('resize', updateArticlesToShow);
+    };
+  }, [blogs.articles.edges.length]);
+
+  function formatDate(dateString) {
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const formattedDate = new Date(dateString).toLocaleDateString('id-ID', options);
+    return formattedDate;
+  }
+
+
+  return (
+    <div>
+    <div className='flex flex-row items-center justify-between m-1 mb-2'>
+        <div className="text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+          Artikel dan Review
+        </div>
+        <Link to={`/blogs/`}>
+        <div className='text-slate-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+        </Link>
+      </div>
+      <div className='flex flex-col sm:flex-row gap-4 '>
+        {blogs.articles.edges.slice(0, articlesToShow).map((blog) => {
+          return (
+            <div className='w-80 mx-auto ' key={blog.node.title}>
+            <div className='h-60 w-80 rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
+
+            <img className='h-60 p-1 w-auto m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
+            </div>
+            
+            <div className='flex flex-row items-center text-neutral-500 gap-2 pt-2'>
+            <FaCalendarDays />
+            <div className='text-sm py-2'>{formatDate(blog.node.publishedAt)}</div>
+            </div>
+            <div className='font-bold '>{blog.node.title}</div>
+
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -489,23 +601,52 @@ query BrandImage($id: ID!){
 }}
 `
 
-// const GET_BRAND_IMAGE = `
-//   query BrandImage($id: String!){
-//     metaobject(id: $id){
-//       id
-//       fields {
-//         value
-//         reference {
-//           ... on MediaImage {
-//             image {
-//               url
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-// `;
+const GET_BLOGS = `#graphql
+  query BlogShow($first: Int!,$reverse:Boolean!){
+    blogs( first:$first,reverse:$reverse) {
+      edges {
+        node {
+          articles (first:10) {
+            edges {
+              node {
+                id
+                handle
+                publishedAt
+                title
+                content
+                seo {
+                  description
+                  title
+                }
+                image {
+                  url
+                }
+              }
+            }
+          }
+        }
+      }
+  }}
+`;
+
+
+const GET_ARTIKEL = `#graphql
+  query Artikel($first: Int!,$reverse:Boolean!){
+    articles(first:$first,reverse:$reverse) {
+    edges {
+      node {
+        id
+        title
+        handle
+        publishedAt
+        image {
+          id
+          url
+        }
+      }
+    }
+  }}
+`;
 
 
 

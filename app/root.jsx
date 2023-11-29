@@ -81,6 +81,12 @@ export async function loader({context}) {
     },
   });
 
+  const footerSatu = await storefront.query(GET_FOOTER_SATU, {
+    variables: {
+      handle: "contact",
+    },
+  });
+
   return defer(
     {
       cart: cartPromise,
@@ -88,6 +94,7 @@ export async function loader({context}) {
       header: await headerPromise,
       isLoggedIn,
       publicStoreDomain,
+      footerSatu
     },
     {headers},
   );
@@ -163,7 +170,6 @@ export function ErrorBoundary() {
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <LiveReload nonce={nonce} />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.1.1/flowbite.min.js"></script>
 
       </body>
     </html>
@@ -271,4 +277,18 @@ const FOOTER_QUERY = `#graphql
     }
   }
   ${MENU_FRAGMENT}
+`;
+
+
+const GET_FOOTER_SATU = `#graphql
+  query GetFooter($handle: String!) {
+    page(handle: $handle) {
+      title
+      body
+      seo {
+        description
+        title
+      }
+    }
+  }
 `;

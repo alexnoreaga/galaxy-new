@@ -1,5 +1,8 @@
 import {useMatches, NavLink} from '@remix-run/react';
 import { FaLocationDot } from "react-icons/fa6";
+import {useLoaderData} from '@remix-run/react';
+
+
 
 
 export function Footer({menu}) {
@@ -55,20 +58,16 @@ function FooterMenu({menu}) {
 }
 
 
-function FooterBaru(){
+function FooterBaru({footerSatu}){
+  const [root] = useMatches();
+// data.footerSatu.page.body
   return(
     <div>
       <div className='py-4 px-4 sm:px-0'>
-        <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-final-bw.png?v=1701072365" alt="Logo Galaxy Camera Store" className='w-28'/>
-        <div className="text-white flex flex-row items-center gap-2 text-sm">
-          <FaLocationDot />
-          <div>Ruko Mall Metropolis Townsquare, Blok Gm3 No.6, Kelapa Indah, Tangerang</div>
-        </div>
-        <div className="text-white flex flex-row items-center gap-2 text-sm">
-          <FaLocationDot />
-          <div>Mall Depok Townsquare, Lantai 2 Blok SS2 No.8, Beji, Depok</div>
-        </div>
-      </div>
+      <div className="w-full prose  md:border-gray-200 pt-2 text-white text-md"
+              dangerouslySetInnerHTML={{ __html: root?.data?.footerSatu?.page?.body }}/>
+    
+    </div>
     </div>
   )
 }
@@ -121,3 +120,5 @@ function activeLinkStyle({isActive, isPending}) {
     color: isPending ? 'grey' : 'white',
   };
 }
+
+
