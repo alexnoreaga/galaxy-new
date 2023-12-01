@@ -30,6 +30,8 @@ export async function loader({params, context, request}) {
 export default function BrandHandle() {
   const {brands} = useLoaderData();
 
+
+
   console.log('ini adalah collection',brands?.metaobjects?.edges)
 
   return (
@@ -40,10 +42,13 @@ export default function BrandHandle() {
         {brands?.metaobjects?.edges.map((brand)=>{
           
             return(
+              <Link key={brand.node.fields[0].value}
+              to={`/brands/${brand.node.fields[0].value}`}>
               <div>
                 <img className="cursor-pointer w-20 sm:w-28 h-auto hover:shadow-md hover:border rounded-lg p-2" src={brand.node.fields[1].reference.image.url} alt={brand.node.fields[0].value}/>
                 {/* <div>{brand.node.fields[1].reference.image.url}</div> */}
               </div>
+              </Link>
             )
         })}
     </div>
