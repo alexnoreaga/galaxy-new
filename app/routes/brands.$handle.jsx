@@ -9,45 +9,46 @@ import {
 import {useVariantUrl} from '~/utils';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import {defer} from '@shopify/remix-oxygen';
 
 
-export const meta = ({data}) => {
-  // const currentDomain = "https://galaxy"
+// export const meta = ({data}) => {
 
-  // useEffect(() => {
-  //   // Access window.location and perform client-side operations here
-  //   const currentDomain = window.location;
-  //   console.log('current domain ',currentDomain);
-  // }, []);
+//   const collectionTitle = data?.collection?.seo.title
+//     ?data?.collection?.seo.title
+//     :data?.collection?.title;
+
+//     const today = new Date();
+//     const monthNames = [
+//       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+//       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+//     ];
+//     const indonesianMonth = monthNames[today.getMonth()];
+//     const year = today.getFullYear();
+//     const title = `${collectionTitle} - ${indonesianMonth} ${year}`;
 
 
-  const collectionTitle = data?.collection?.seo.title
-    ?data?.collection?.seo.title
-    :data?.collection?.title;
-
-    const today = new Date();
-    const monthNames = [
-      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ];
-    const indonesianMonth = monthNames[today.getMonth()];
-    const year = today.getFullYear();
-    const title = `${collectionTitle} - ${indonesianMonth} ${year}`;
+  // const collectionTitle = data?.collection?.seo.title
+  //   ?data?.collection?.seo.title
+  //   :data?.collection?.title;
   
+  // const collectionTitle = data?.collection?.seo.title
+  //   ?data?.collection?.seo.title
+  //   :data?.collection?.title;
 
-  return [
-    {title},
-    {
-      name: "description",
-      content: data?.collection?.seo.description
-      ? data.collection.seo.description.substr(0, 155)
-      : data?.collection?.description.substr(0, 155),
-    },
-    // {tagName:'link',rel:'canonical',href:{currentDomain}}
-  ];
-};
+//   return [
+//     {title},
+//     {
+//       name: "description",
+//       content: data?.collection?.seo.description
+//       ? data.collection.seo.description.substr(0, 155)
+//       : data?.collection?.description.substr(0, 155),
+//     },
+//     // {tagName:'link',rel:'canonical',href:{currentDomain}}
+//   ];
+// };
 
-export async function loader({request, params, context}) {
+export async function loader({params, context, request}) {
   
   const {handle} = params;
   const {storefront} = context;
@@ -59,29 +60,36 @@ export async function loader({request, params, context}) {
     return redirect('/brands');
   }
 
-  const {collection} = await storefront.query(BRANDS_QUERY, {
-    variables: {handle, ...paginationVariables},
+  const data = await context.storefront.query(BRAND_QUERY, {
+    variables: {
+      first:10,
+      query:handle,
+      ...paginationVariables
+    },
   });
 
-  if (!collection) {
-    throw new Response(`Brands ${handle} not found`, {
+  if (!data) {
+    throw new Response(`Brands ${handle} tidak ditemukan`, {
       status: 404,
     });
   }
 
 
 
-  return json({collection});
+  return json({data});
+
 }
 
-export default function Collection() {
-  const {collection} = useLoaderData();
+export default function BrandHandle() {
+  const {data} = useLoaderData();
+
+  console.log('Hi ini adalah brand terbaru ',data)
 
   return (
     <div className="collection">
-      <h1>{collection.title}</h1>
-      <p className="collection-description">{collection.description}</p>
-      <Pagination connection={collection.products}>
+      {/* <div>Hello World {data}</div> */}
+      {/* <h1>{collection.title}</h1> */}
+      <Pagination connection={data.products}>
         {({nodes, isLoading, PreviousLink, NextLink}) => (
           <>
             <PreviousLink>
@@ -177,45 +185,25 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
   }
 `;
 
-// NOTE: https://shopify.dev/docs/api/storefront/2022-04/objects/collection
-const COLLECTION_QUERY = `#graphql
-  ${PRODUCT_ITEM_FRAGMENT}
-  query Collection(
-    $handle: String!
-    $country: CountryCode
-    $language: LanguageCode
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-  ) @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
-      id
-      handle
-      title
-      description
-      seo {
-        description
-        title
-      }
-      products(
-        first: $first,
-        last: $last,
-        before: $startCursor,
-        after: $endCursor
-      ) {
-        nodes {
-          ...ProductItem
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          endCursor
-          startCursor
-        }
-      }
+const BRAND_QUERY = `#graphql
+${PRODUCT_ITEM_FRAGMENT}
+query Brand($first:Int!
+  $query: String!
+  $startCursor: String 
+  $endCursor: String
+  ) {
+  products(first: $first, query: $query, before: $startCursor,after: $endCursor) {
+    pageInfo{
+      hasNextPage
+      hasPreviousPage
+      endCursor
+      startCursor
+    }
+    nodes {
+        ...ProductItem
     }
   }
+}
 `;
 
 // const today = new Date();

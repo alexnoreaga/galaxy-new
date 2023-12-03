@@ -77,6 +77,8 @@ export async function loader({request, params, context}) {
 export default function Collection() {
   const {collection} = useLoaderData();
 
+  console.log(' Collection Products ',collection.products)
+
   return (
     <div className="collection">
       <h1>{collection.title}</h1>

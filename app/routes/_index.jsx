@@ -14,6 +14,7 @@ import { FaCalendarDays } from "react-icons/fa6";
 // };
 
 import { Carousel } from '~/components/Carousel';
+import { Modal } from '~/components/Modal';
 
 
 export async function loader({context}) {
@@ -75,6 +76,7 @@ export default function Homepage() {
   return (
     <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       {/* <FeaturedCollection collection={data.featuredCollection} /> */}
+      {/* <Modal/> */}
       <Carousel images={data.banner.metaobjects} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
@@ -290,7 +292,7 @@ function RecommendedProducts({products}) {
   
   return (
     <div className="recommended-products text-slate-800">
-      <h2 className='text-sm sm:text-lg'>Produk Best Seller</h2>
+      <h2 className='text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead'>Produk Terbaru</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
@@ -333,8 +335,8 @@ function RecommendedProducts({products}) {
                   {/* <span className='rounded-md m-auto ml-0 bg-emerald-100 text-xs font-bold text-emerald-800 p-1 px-2'>
                     Cashback 5%  
                   </span> */}
-                  {product.metafields[2]?.value && <span className='rounded-md m-auto ml-0 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
-                    Free Item  
+                  {product.metafields[1]?.value.length > 0 && <span className='rounded-md m-auto ml-0 bg-sky-100 text-xs font-bold text-sky-800 p-1 px-2'>
+                    Free Item
                   </span>}
                   </div>
                   
@@ -436,7 +438,7 @@ function FeaturedBlogs({ blogs }) {
             key={blog.node.title}>
 
             <div className='mx-auto' >
-            <div className='h-60 w-80 rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
+            <div className='h-60 w-80 mx-auto rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
 
             <img className='object-contain h-60 w-80 p-1 m-auto ' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
             </div>
