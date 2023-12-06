@@ -130,7 +130,7 @@ export async function loader({params, context, request}) {
     return (
       <>
       <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
-        <div className="grid items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-none items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
             <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-full">
               
@@ -143,7 +143,7 @@ export async function loader({params, context, request}) {
 
 
 
-            <div className="grid gap-2 w-full ">
+            <div className="grid gap-2 w-full">
               <h1 className="text-4xl font-bold leading-10 whitespace-normal">
                 {product.title}
               </h1>

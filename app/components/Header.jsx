@@ -49,7 +49,7 @@ export function Header({header, isLoggedIn, cart}) {
   ))}
 </>
     <div className='bg-black text-white hidden sm:block'>
-          <div className='flex items-center justify-between container relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1.5 tracking-wide'>
+          <div className='flex items-center justify-between container relative mx-auto sm:max-w-screen-md md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1.5 tracking-wide'>
             
             <div>Your Online Offline Photography Shopping</div>
             <div className='flex gap-3 items-center'>
@@ -89,7 +89,7 @@ export function Header({header, isLoggedIn, cart}) {
           </div>
     </div>
     <header className="header backdrop-blur-md shadow-md !bg-white/90 border-b-1">
-      <div className='container flex items-center justify-between relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
+      <div className='container  flex items-center justify-between relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
       <HeaderMenuMobileToggle />
       <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
         {/* <strong>{shop.name}</strong> */}
