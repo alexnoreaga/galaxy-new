@@ -29,6 +29,9 @@ aside {
   right: calc(-1 * var(--aside-width));
   top: 0;
   transition: transform 200ms ease-in-out;
+    /* max-width: 1024px;
+  margin:auto */
+  
 }
 
 aside header {
@@ -38,6 +41,8 @@ aside header {
   height: var(--header-height);
   justify-content: space-between;
   padding: 0 20px;
+  /* max-width: 1024px;
+  margin:auto */
 
 }
 
@@ -63,6 +68,7 @@ aside header h2 {
 
 aside main {
   margin: 1rem;
+  
 }
 
 aside p {

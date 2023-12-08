@@ -62,7 +62,7 @@ export const BottomNavbar = () => {
         <Link
                 className="m-auto"
                 prefetch="intent"
-                to='/pages/contact'
+                to='/search'
                 >
             <button type="button" className="inline-flex flex-col items-center justify-center dark:hover:bg-gray-800 group">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">

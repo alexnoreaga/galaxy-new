@@ -11,6 +11,8 @@ import {
 import { BottomNavbar } from './BottomNavbar';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { TombolWa } from './TombolWa';
+import React, { useEffect, useRef } from 'react';
+
 
 export function Layout({cart, children = null, footer, header, isLoggedIn,footerSatu}) {
 
@@ -22,7 +24,6 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
   return (
     <>
-    
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside menu={header.menu} />
@@ -72,13 +73,14 @@ function CartAside({cart}) {
 // }
 
 function SearchAside() {
+
   return (
     <Aside id="search-aside" heading="SEARCH">
       <div className="predictive-search">
         <br />
         <PredictiveSearchForm>
           {({fetchResults, inputRef}) => (
-            <div>
+            <div >
               <input
                 name="q"
                 onChange={fetchResults}
@@ -86,7 +88,7 @@ function SearchAside() {
                 placeholder="Cari Produk"
                 ref={inputRef}
                 type="search"
-                autoFocus 
+
               />
               &nbsp;
               <button type="submit">Cari</button>

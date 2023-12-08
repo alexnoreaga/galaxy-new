@@ -19,11 +19,11 @@ export function Aside({children, heading, id = 'aside'}) {
         }}
       />
       <aside>
-        <header>
+        <header className="mx-auto container">
           <h3>{heading}</h3>
           <CloseAside />
         </header>
-        <main>{children}</main>
+        <main className="mx-auto container">{children}</main>
       </aside>
     </div>
   );

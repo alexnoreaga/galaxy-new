@@ -112,7 +112,7 @@ export async function loader({params, context, request}) {
   export default function ProductHandle() {
     const {shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
-    console.log('metafields ',product)
+    console.log('produk ',product)
     console.log('liveshopee',liveshopee)
     console.log('marketplace',marketplace)
 
@@ -196,13 +196,14 @@ export async function loader({params, context, request}) {
                 </div>
               )}
             
-            
               <Money
                 withoutTrailingZeros
                 data={selectedVariant.price}
                 className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
               />
-          </div>   
+          </div> 
+
+          <div>Cicilan Mulai dari</div>  
 
 
 <CartForm

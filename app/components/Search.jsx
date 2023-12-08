@@ -15,6 +15,7 @@ export function SearchForm({searchTerm}) {
 
   // focus the input when cmd+k is pressed
   useEffect(() => {
+    // inputRef.current?.focus()
     function handleKeyDown(event) {
       if (event.key === 'k' && event.metaKey) {
         event.preventDefault();
@@ -41,6 +42,7 @@ export function SearchForm({searchTerm}) {
         placeholder="Search…"
         ref={inputRef}
         type="search"
+        autoFocus
       />
       &nbsp;
       <button type="submit">Search</button>
