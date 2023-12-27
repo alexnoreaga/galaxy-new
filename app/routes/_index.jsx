@@ -28,6 +28,7 @@ export async function loader({context}) {
   const hasilCollection =  collections2;
 
   const banner = await storefront.query(BANNER_QUERY);
+  const bannerKecil = await storefront.query(BANNER_KECIL_QUERY);
 
   const blogs = await storefront.query(GET_ARTIKEL,{
     variables:{
@@ -57,7 +58,7 @@ export async function loader({context}) {
 
 
   
-  return defer({blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
+  return defer({bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
 }
 
 
@@ -68,7 +69,7 @@ export async function loader({context}) {
 export default function Homepage() {
   const data = useLoaderData();
 
-  console.log('hello ', data.kumpulanBrand, data.blogs)
+  console.log('hello ', data.bannerKecil.metaobjects.nodes)
   // console.log(data.banner.metaobjects.nodes)
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
@@ -80,7 +81,7 @@ export default function Homepage() {
       <Carousel images={data.banner.metaobjects} />
       <RenderCollection collections={data.hasilCollection.collections}/>
       <RecommendedProducts products={data.recommendedProducts} />
-      <BannerKecil />
+      <BannerKecil images={data.bannerKecil.metaobjects.nodes} />
       <BrandPopular brands={data.kumpulanBrand}/>
       <FeaturedBlogs blogs={data.blogs}/>
     
@@ -158,7 +159,7 @@ function FeaturedCollection({collection}) {
 //   );
 // }
 
-function BannerKecil() {
+function BannerKecil({images}) {
   const scrollRef = useRef(null);
 
   const scrollLeft = () => {
@@ -182,7 +183,7 @@ function BannerKecil() {
   return (
     <div className='relative flex items-center'>
     <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
-      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
+      {/* <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div>
       <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
@@ -202,7 +203,22 @@ function BannerKecil() {
       </div>
       <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div>
+      </div> */}
+
+      {images?.map((image)=>{
+        return(
+         
+          <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
+            <a href={image.fields[1].value} target="_blank">
+            <img src={image.fields[0].reference.image.url} alt="Banner 3" className='w-80'/>
+            </a>
+          </div>
+          
+        )
+      })}
+
+
+
       {/* Add more image divs if needed */}
       
       
@@ -555,6 +571,28 @@ const COLLECTIONS_QUERY = `#graphql
 const BANNER_QUERY = `#graphql
 query BannerQuery{
   metaobjects(first:5 type:"banner"){
+	
+  nodes {
+    id
+    fields {
+      value
+      key
+      reference{
+      ... on MediaImage {
+          image {
+            url
+          }
+        }
+      }
+      
+    }
+  }
+}}
+`
+
+const BANNER_KECIL_QUERY = `#graphql
+query BannerQuery{
+  metaobjects(first:5 type:"banner_kecil"){
 	
   nodes {
     id

@@ -1,4 +1,4 @@
-import {useLoaderData} from '@remix-run/react';
+import {useLoaderData,Link} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 // import {Image} from '@shopify/hydrogen-react';
 import ProductOptions from '~/components/ProductOptions';
@@ -336,23 +336,26 @@ export async function loader({params, context, request}) {
     <div className='p-1 text-sm flex flex-col md:flex-row sm:gap-8'>
         
         {metaobject?.metaobject?.field?.value &&
-        <div className='flex flex-row gap-1 mb-1 text-gray-700 pl-1'>
-          <div className=' mr-3 '>Brand :</div>
+        <div className='flex flex-row gap-1 mb-1 pl-1'>
+          <div className=' mr-3 '>Brand</div>
+          <Link 
+          to={`/brands/${metaobject.metaobject.field?.value}`}>
           <div className='font-bold'>{metaobject.metaobject.field?.value}</div>
+          </Link>
         </div>
         }
 
 
         {product.metafields[0]?.value &&
-        <div className='flex flex-row gap-1 mb-1 text-gray-700 pl-1'>
-          <div className=' mr-3 '>Garansi :</div>
+        <div className='flex flex-row gap-1 mb-1 pl-1'>
+          <div className=' mr-3 '>Garansi</div>
           <div className='font-bold'>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
       }
 
         {product.metafields[3]?.value &&
-        <div className='flex flex-row gap-1 mb-1 text-gray-700 pl-1'>
-          <div className=' mr-3 '>Periode :</div>
+        <div className='flex flex-row gap-1 mb-1 pl-1'>
+          <div className=' mr-3 '>Periode</div>
           <div className='font-bold'>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
