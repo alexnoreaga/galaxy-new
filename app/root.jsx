@@ -18,6 +18,7 @@ import resetStyles from './styles/reset.css';
 import appStyles from './styles/app.css';
 import {Layout} from '~/components/Layout';
 import tailwindCss from './styles/tailwind.css';
+import { useEffect } from 'react'; 
 
 // This is important to avoid re-fetching root queries on sub-navigations
 export const shouldRevalidate = ({formMethod, currentUrl, nextUrl}) => {
@@ -106,6 +107,24 @@ export default function App() {
 
 
   // console.log(data)
+
+  // DIBAWAH INI MERUPAKAN KODE TEMPORARY TANGGAL 23 JANUARI 2024
+   // Register the service worker when the component mounts
+  //  useEffect(() => {
+  //   if ('serviceWorker' in navigator) {
+  //     navigator.serviceWorker
+  //       .register('/service-worker.js')
+  //       .then((registration) => {
+  //         console.log('Service Worker registered with scope:', registration.scope);
+  //       })
+  //       .catch((error) => {
+  //         console.error('Service Worker registration failed:', error);
+  //       });
+  //   }
+  // }, []);
+
+    // DIBAWAH INI MERUPAKAN KODE TEMPORARY TANGGAL 23 JANUARI 2024
+
 
   return (
     <html lang="en">

@@ -5,7 +5,7 @@ import { FaWhatsapp } from "react-icons/fa6";
 export const TombolWa = () => {
   function getUrl(){
     console.log(window.location.href)
-    window.open('https://api.whatsapp.com/send?phone=123456789', '_blank');
+    window.open('https://api.whatsapp.com/send?phone=6282111311131', '_blank');
   }
 
 
