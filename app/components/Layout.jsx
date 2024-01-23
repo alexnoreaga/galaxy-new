@@ -18,7 +18,8 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
-    console.log(lokasi)
+    console.log(lokasi, 'lokasi sekarang')
+    // console.log(window.location.href)
     // console.log('link sekarang',urlSekarang)
     
 
@@ -37,13 +38,13 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
         </Await>
       </Suspense>
       
-      <BottomNavbar/>
+      {/* <BottomNavbar/> */}
       <TombolWa/>
-      {/* {urlSekarang.includes('product') ? (
-      console.log('ping')
+      {urlSekarang.includes('cart') ? (
+        <BottomNavbar/>
       ) : urlSekarang.includes('collections') ? (
           <BottomNavbar/>
-      ) :  <BottomNavbar/>}  */}
+      ) :  <BottomNavbar/>} 
     </>
   );
 }
@@ -76,7 +77,7 @@ function SearchAside() {
 
   return (
     <Aside id="search-aside" heading="SEARCH">
-      <div className="predictive-search">
+      <div className="predictive-search m-2">
         <br />
         <PredictiveSearchForm>
           {({fetchResults, inputRef}) => (

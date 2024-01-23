@@ -16,6 +16,10 @@ import {LiveShopee} from '~/components/LiveShopee';
 
 export async function loader({params, context, request}) {
 
+  const {session} = context;
+  const customerAccessToken = await session.get('customerAccessToken');
+
+
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
     const selectedOptions = [];
@@ -47,13 +51,6 @@ export async function loader({params, context, request}) {
           first: 10, // Value for the 'first' variable
         },
       });
-      // const {liveshopee} = await context.storefront.query(METAOBJECT_LIVE_SHOPEE);
-      // const liveshopee = await context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
-      //   variables: {
-      //     type: "live_shopee", // Value for the 'type' variable
-      //     first: 4, // Value for the 'first' variable
-      //   },
-      // });
     
 
       // Set a default variant so you always have an "orderable" product selected
@@ -78,6 +75,7 @@ export async function loader({params, context, request}) {
           metaobject,
           liveshopee,
           marketplace,
+          customerAccessToken,
         });
 
       }else{
@@ -89,6 +87,8 @@ export async function loader({params, context, request}) {
           selectedVariant,
           liveshopee,
           marketplace,
+          customerAccessToken,
+
         });
 
 
@@ -110,21 +110,15 @@ export async function loader({params, context, request}) {
 
 
   export default function ProductHandle() {
-    const {shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
+    const {customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
+    console.log(customerAccessToken)
     console.log('produk ',product)
     console.log('liveshopee',liveshopee)
     console.log('marketplace',marketplace)
 
     console.log(liveshopee.metaobjects?.edges[0]?.node)
 
-    // console.log('test',metaobject.metaobject.field.value)
-    // const brandValue = product.metafields.find((metafield) => metafield.key === 'brand')?.value;
-      
-      // console.log(brandValue)
-    // console.log(brandValue)
-
-    // console.log(brandValue)
 
 
     return (

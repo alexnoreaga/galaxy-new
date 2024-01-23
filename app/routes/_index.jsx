@@ -205,12 +205,12 @@ function BannerKecil({images}) {
       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
       </div> */}
 
-      {images?.map((image)=>{
+      {images?.map((image,index)=>{
         return(
          
           <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
             <a href={image.fields[1].value} target="_blank">
-            <img src={image.fields[0].reference.image.url} alt="Banner 3" className='w-80'/>
+            <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} className='w-80'/>
             </a>
           </div>
           
