@@ -17,7 +17,7 @@ import { Carousel } from '~/components/Carousel';
 import { Modal } from '~/components/Modal';
 
 
-export async function loader({context}) {
+export async function loader({context,request}) {
   
   const {storefront} = context;
   const {collections} = await storefront.query(FEATURED_COLLECTION_QUERY);
@@ -41,7 +41,7 @@ export async function loader({context}) {
   const brands = await storefront.query(GET_BRANDS)
   const hasilLoop =  brands?.metaobjects?.nodes[0]?.fields[0]?.value
   const dataArray = JSON.parse(hasilLoop);
-
+  const canonicalUrl = request.url
 
   const hasilCekPromises = dataArray.map((item) => {
     return storefront.query(GET_BRAND_IMAGE, {
@@ -58,7 +58,7 @@ export async function loader({context}) {
 
 
   
-  return defer({bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
+  return defer({canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
 }
 
 
@@ -724,11 +724,28 @@ const GET_ARTIKEL = `#graphql
 //   }
 // `;
 
-const seo = ({data}) => ({
-  title: 'Galaxy Camera Store : Toko Kamera Online Offline Terlengkap',
-  description: "Galaxy Camera menjual berbagai segala kebutuhan fotografi dan videografi dengan harga terbaik dan resmi",
-});
+// export const meta = ({data}) => (
+  
+//   return [{
+//   title: 'Galaxy Camera Store : Toko Kamera Online Offline Terlengkap',
+//   description: "Galaxy Camera menjual berbagai segala kebutuhan fotografi dan videografi dengan harga terbaik dan resmi",
+// }]);
 
-export const handle = {
-  seo,
+export const meta = ({data}) => {
+  
+
+  return [
+    {title: 'Galaxy Camera Store : Toko Kamera Online Offline Terlengkap dan Terpercaya'},
+    {name: "description",
+    content: "Toko Kamera Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll".substr(0, 155)},
+
+    { tagName:'link',
+      rel:'canonical',
+      href: data.canonicalUrl
+    },
+
+    {name: "keywords",
+    content:"Galaxycamera99, Galaxycamera, Galaxy Camera Store, toko kamera, toko kamera online, toko kamera tangerang, toko kamera depok, toko kamera jakarta, kredit kamera, Galaxy Camera",
+  }
+];
 };

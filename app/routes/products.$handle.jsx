@@ -51,6 +51,8 @@ export async function loader({params, context, request}) {
           first: 10, // Value for the 'first' variable
         },
       });
+
+      const canonicalUrl = request.url
     
 
       // Set a default variant so you always have an "orderable" product selected
@@ -76,6 +78,7 @@ export async function loader({params, context, request}) {
           liveshopee,
           marketplace,
           customerAccessToken,
+          canonicalUrl,
         });
 
       }else{
@@ -88,6 +91,7 @@ export async function loader({params, context, request}) {
           liveshopee,
           marketplace,
           customerAccessToken,
+          canonicalUrl,
 
         });
 
@@ -782,6 +786,11 @@ export const meta = ({data}) => {
     name: "apple-mobile-web-app-status-bar-style",
     content: "default",
   },
+
+  { tagName:'link',
+  rel:'canonical',
+  href: data.canonicalUrl
+},
 
 
   ];
