@@ -3,8 +3,17 @@ import {useLoaderData} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
 
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data.article.title} article`}];
+  console.log('ini adalah data ', data)
+  return [{title: `${data.article.title}`},
+
+{name: "description",
+content: data.article?.seo?.description.substr(0, 155)
+?  data.article?.seo?.description.substr(0, 155)
+: data.article?.content}];
 };
+
+
+
 
 export async function loader({params, context}) {
   const {blogHandle, articleHandle} = params;
@@ -30,6 +39,8 @@ export default function Article() {
   const {article} = useLoaderData();
   const {title, image, contentHtml, author} = article;
 
+  console.log('Artikel adalah, ', article)
+
   const publishedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
@@ -37,19 +48,31 @@ export default function Article() {
   }).format(new Date(article.publishedAt));
 
   return (
-    <div className="article">
+    <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <h1>
         {title}
-        <span>
-          {publishedDate} &middot; {author?.name}
-        </span>
       </h1>
+     
 
+     
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       {image && <Image data={image} sizes="90vw" loading="eager" />}
+      </div>
+
+      
+  
       <div
         dangerouslySetInnerHTML={{__html: contentHtml}}
-        className="article"
+        className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl prose"
       />
+
+<div className='text-sm text-gray-600 text-right mt-5 mb-10'>
+<span >
+          {publishedDate} &middot; {author?.name}
+        </span>
+        </div>
+   
     </div>
   );
 }
@@ -66,6 +89,7 @@ const ARTICLE_QUERY = `#graphql
       articleByHandle(handle: $articleHandle) {
         title
         contentHtml
+        content
         publishedAt
         author: authorV2 {
           name
