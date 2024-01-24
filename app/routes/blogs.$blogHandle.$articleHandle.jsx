@@ -1,21 +1,33 @@
 import {json} from '@shopify/remix-oxygen';
 import {useLoaderData} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
+import {useLocation } from 'react-router-dom';
+
 
 export const meta = ({data}) => {
-  console.log('ini adalah data ', data)
-  return [{title: `${data.article.title}`},
+  const lokasi = useLocation()
+  const urlSekarang = lokasi.pathname
 
-{name: "description",
-content: data.article?.seo?.description.substr(0, 155)
-?  data.article?.seo?.description.substr(0, 155)
-: data.article?.content}];
+  console.log('ini adalah data ', urlSekarang)
+  return [
+    {title: `${data.article.title}`},
+    {name: "description",
+    content: data.article?.seo?.description.substr(0, 155)
+    ?  data.article?.seo?.description.substr(0, 155)
+    : data.article?.content},
+
+    { tagName:'link',
+      rel:'canonical',
+      href: data.canonicalUrl
+    }
+
+];
 };
 
 
 
 
-export async function loader({params, context}) {
+export async function loader({request,params, context}) {
   const {blogHandle, articleHandle} = params;
 
   if (!articleHandle || !blogHandle) {
@@ -32,7 +44,9 @@ export async function loader({params, context}) {
 
   const article = blog.articleByHandle;
 
-  return json({article});
+  const canonicalUrl = request.url
+
+  return json({article,canonicalUrl});
 }
 
 export default function Article() {
