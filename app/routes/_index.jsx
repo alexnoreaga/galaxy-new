@@ -752,6 +752,50 @@ export const meta = ({data}) => {
 
     {name: "keywords",
     content:"Galaxycamera99, Galaxycamera, Galaxy Camera Store, toko kamera, toko kamera online, toko kamera tangerang, toko kamera depok, toko kamera jakarta, kredit kamera, Galaxy Camera",
-  }
+  },
+  {
+    "script:ld+json": {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "image": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678",
+      "url": "https://www.galaxy.co.id",
+      "sameAs": ["https://galaxycamera.id",
+      "https://twitter.com/galaxycamera99",
+      "https://www.facebook.com/galaxycamera99",
+      "https://www.instagram.com/galaxycamera99"],
+      "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678",
+      "name": "Galaxy Camera",
+      "description": "Galaxy Camera merupakan Toko Kamera Online Offline menjual berbagai peralatan forografi dan videografi terlengkap dan termurah.",
+      "email": "sales@galaxycamera.id",
+      "telephone": "+6282111311131",
+      "address": {
+        "streetAddress": "Ruko Mall Metropolis Townsquare, Blok Gm3 No.6, Kelapa Indah, Tangerang",
+        "postalCode": "15117",
+        "addressLocality": "TANGERANG",
+        "addressCountry": "ID"
+      },
+    }
+  },
+  {
+    "script:ld+json": {
+      "@context": "http://schema.org",
+      "@type": "Website",
+      "name": "Galaxy Camera",
+      "url": "https://galaxy.co.id",
+      "sameAs": [
+        "https://galaxycamera.id",
+        "https://twitter.com/galaxycamera99",
+        "https://www.facebook.com/galaxycamera99",
+        "https://www.instagram.com/galaxycamera99"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Ruko Mall Metropolis Townsquare, Blok Gm3 No.6, Kelapa Indah, Tangerang",
+        "addressRegion": "Tangerang Banten",
+        "postalCode": "15117",
+        "addressCountry": "INA"
+      }
+    }
+  },
 ];
 };
