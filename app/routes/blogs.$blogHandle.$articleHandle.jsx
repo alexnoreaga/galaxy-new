@@ -8,7 +8,7 @@ export const meta = ({data}) => {
   
 
   return [
-    // {title: `${data.article.title}`},
+    {title: `${data.article.title}`},
     {name: "title",
     content: `${data.article.title}`},
 

@@ -736,8 +736,14 @@ export const meta = ({data}) => {
 
   return [
     {title: 'Galaxy Camera Store : Toko Kamera Online Offline Terlengkap dan Terpercaya'},
-    {name: "description",
-    content: "Toko Kamera Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll".substr(0, 155)},
+    {
+      name: "title",
+    content: "Galaxy Camera Store : Toko Kamera Online Offline Terlengkap dan Terpercaya"
+  },
+    {
+      name: "description",
+    content: "Toko Kamera Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll".substr(0, 155)
+  },
 
     { tagName:'link',
       rel:'canonical',
