@@ -729,7 +729,7 @@ export const meta = ({data}) => {
   const urlSekarang = lokasi.pathname
   const today = new Date();
 
-  const title = data?.product?.title + 'Harga Murah & Terbaik'
+  const title = data?.product?.title + ' Harga Murah & Terbaik'
 
 
   return [
