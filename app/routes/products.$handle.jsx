@@ -638,12 +638,12 @@ function TombolWa({product}){
         }
       }
 
-
       variants(first: 1) {
         nodes {
           id
           title
           availableForSale
+          sku
           price {
             currencyCode
             amount
@@ -731,6 +731,10 @@ export const meta = ({data}) => {
 
   const title = data?.product?.title + ' Harga Murah & Terbaik'
 
+  console.log('data adalah ',data)
+
+// images.edges[0].node.src
+
 
   return [
     { title: title },
@@ -743,20 +747,40 @@ export const meta = ({data}) => {
       content: data?.product?.description.substr(0, 155),
     },
     {
-      property: "og:title",
-      content: data?.product?.title,
-    },
-    {
       name: "keywords",
       content: data?.product?.title,
     },
+    {
+      name: "og:image",
+      content: data?.product?.images.edges[0].node.src,
+    },
+
+    {
+      name: "og:image:width",
+      content: "500",
+    },
+
+    {
+      name: "og:image:height",
+      content: "500",
+    },
+
+
+
+
+
+    {
+      property: "og:title",
+      content: data?.product?.title,
+    },
+
     {
       property: "og:description",
       content: data?.product?.description.substr(0, 155),
     },
     {
       property: "og:type",
-      content: "article",
+      content: "product",
     },
     {
       property: "og:site_name",
@@ -764,7 +788,7 @@ export const meta = ({data}) => {
     },
     {
       property: "og:image",
-      content: data?.product?.featuredImage.url,
+      content: data?.product?.featuredImage?.url,
     },
     {
       property: "og:url",
@@ -794,6 +818,46 @@ export const meta = ({data}) => {
   { tagName:'link',
   rel:'canonical',
   href: data.canonicalUrl
+},
+
+{
+  "script:ld+json": {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": data?.product?.title,
+    "image": data?.product?.images.edges[0].node.src,
+    "description": data?.product?.description,
+    "sku": data?.selectedVariant?.sku,
+    "mpn": data?.selectedVariant?.sku,
+    "brand": {
+      "@type": "Brand",
+      "name": data?.metaobject?.metaobject?.field.value
+    },
+    "review": {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": 5,
+        "bestRating": 5
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Sistiana"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": 5,
+      "reviewCount": 1
+    },
+    "offers": {
+      "@type": "Offer",
+      "price":data?.selectedVariant?.price?.amount && parseInt(data?.selectedVariant?.price?.amount,10).toString(),
+      "url":data.canonicalUrl,
+      "availability":data?.selectedVariant?.availableForSale? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "priceCurrency": "IDR"
+    }
+  },
 },
 
 
