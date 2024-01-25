@@ -5,12 +5,13 @@ import {useLocation } from 'react-router-dom';
 
 
 export const meta = ({data}) => {
-  const lokasi = useLocation()
-  const urlSekarang = lokasi.pathname
+  
 
-  console.log('ini adalah data ', urlSekarang)
   return [
-    {title: `${data.article.title}`},
+    // {title: `${data.article.title}`},
+    {name: "title",
+    content: `${data.article.title}`},
+
     {name: "description",
     content: data.article?.seo?.description.substr(0, 155)
     ?  data.article?.seo?.description.substr(0, 155)
