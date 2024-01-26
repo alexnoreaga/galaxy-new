@@ -727,11 +727,18 @@ query metaobjects($type: String!, $first: Int!) {
 export const meta = ({data}) => {
   const lokasi = useLocation()
   const urlSekarang = lokasi.pathname
-  const today = new Date();
+  // const today = new Date();
 
   const title = data?.product?.title + ' Harga Murah & Terbaik'
 
-  console.log('data adalah ',data)
+  const today = new Date();
+
+  // Get the end of the current month
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  // Format the end date as "YYYY-MM-DD"
+  const endDateFormatted = endOfMonth.toISOString().split('T')[0];
+
 
 // images.edges[0].node.src
 
@@ -855,7 +862,9 @@ export const meta = ({data}) => {
       "price":data?.selectedVariant?.price?.amount && parseInt(data?.selectedVariant?.price?.amount,10).toString(),
       "url":data.canonicalUrl,
       "availability":data?.selectedVariant?.availableForSale? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "priceCurrency": "IDR"
+      "priceCurrency": "IDR",
+      "priceValidUntil": endDateFormatted, // Set the end date here
+
     }
   },
 },

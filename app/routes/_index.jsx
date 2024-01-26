@@ -700,30 +700,6 @@ const GET_ARTIKEL = `#graphql
 `;
 
 
-
-// const COLLECTIONS_QUERY = `#graphql
-//   fragment FeaturedCollection on Collection {
-//     id
-//     title
-//     image {
-//       id
-//       url
-//       altText
-//       width
-//       height
-//     }
-//     handle
-//   }
-//   query FeaturedCollection($country: CountryCode, $language: LanguageCode)
-//     @inContext(country: $country, language: $language) {
-//     collections(first: 4, sortKey: UPDATED_AT, reverse: true) {
-//       nodes {
-//         ...FeaturedCollection
-//       }
-//     }
-//   }
-// `;
-
 // export const meta = ({data}) => (
   
 //   return [{
@@ -732,6 +708,8 @@ const GET_ARTIKEL = `#graphql
 // }]);
 
 export const meta = ({data}) => {
+
+  console.log('Ini meta dari halaman depan ',data)
   
 
   return [
@@ -753,6 +731,19 @@ export const meta = ({data}) => {
     {name: "keywords",
     content:"Galaxycamera99, Galaxycamera, Galaxy Camera Store, toko kamera, toko kamera online, toko kamera tangerang, toko kamera depok, toko kamera jakarta, kredit kamera, Galaxy Camera",
   },
+
+  {
+    property: "og:type",
+    content: "website",
+  },
+
+  {
+    property: "og:url",
+    content: 'https://galaxy.co.id',
+  },
+
+
+
   {
     "script:ld+json": {
       "@context": "https://schema.org",
