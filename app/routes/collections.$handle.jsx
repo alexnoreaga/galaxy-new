@@ -69,8 +69,6 @@ export async function loader({request, params, context}) {
     });
   }
 
-
-
   return json({collection});
 }
 
@@ -205,6 +203,7 @@ const COLLECTION_QUERY = `#graphql
         last: $last,
         before: $startCursor,
         after: $endCursor
+        
       ) {
         nodes {
           ...ProductItem

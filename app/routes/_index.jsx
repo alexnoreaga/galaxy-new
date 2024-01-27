@@ -305,6 +305,8 @@ function RecommendedProducts({products}) {
   // console.log('Produk rekomendasi',products)
 
 
+
+
   
   return (
     <div className="recommended-products text-slate-800">
@@ -332,15 +334,13 @@ function RecommendedProducts({products}) {
            
                   <div className='text-sm my-1 text-slate-800'>{product.title}</div>
                   
-                  {product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount &&(
+                  {product.compareAtPriceRange?.minVariantPrice?.amount > product.priceRange.minVariantPrice.amount &&(
                   <div className='text-sm  line-through text-slate-600'>
-                    <Money data={product.compareAtPriceRange?.minVariantPrice} />
-                    {/* <div>{(product.compareAtPriceRange.minVariantPrice.amount - product.priceRange.minVariantPrice.amount)/product.compareAtPriceRange.minVariantPrice.amount * 100}</div> */}
-                    
+                    <Money data={product.compareAtPriceRange?.minVariantPrice} />                    
                   </div>
                   ) }
                   <div className='text-xs font-bold text-slate-800 flex flex-row items-center gap-1 mb-2 mt-2'>
-                  {product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount &&(
+                  {product.compareAtPriceRange?.minVariantPrice?.amount > product.priceRange.minVariantPrice.amount &&(
                     <div className='bg-rose-700 p-0.5 ml-0 text-white text-xs rounded'><HitunganPersen hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount} hargaSesudah={product.priceRange.minVariantPrice.amount}/></div> ) }
                     
                     <Money 
@@ -771,7 +771,7 @@ export const meta = ({data}) => {
       "https://www.facebook.com/galaxycamera99",
       "https://www.instagram.com/galaxycamera99"],
       "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678",
-      "name": "Galaxy Camera",
+      "name": "Galaxy Camera Store",
       "description": "Galaxy Camera merupakan Toko Kamera Online Offline menjual berbagai peralatan forografi dan videografi terlengkap dan termurah.",
       "email": "sales@galaxycamera.id",
       "telephone": "+6282111311131",
@@ -787,7 +787,7 @@ export const meta = ({data}) => {
     "script:ld+json": {
       "@context": "http://schema.org",
       "@type": "Website",
-      "name": "Galaxy Camera",
+      "name": "Galaxy Camera Store",
       "url": "https://galaxy.co.id",
       "sameAs": [
         "https://galaxycamera.id",
