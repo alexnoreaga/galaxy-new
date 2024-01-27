@@ -720,7 +720,7 @@ export const meta = ({data}) => {
   },
     {
       name: "description",
-    content: "Toko Kamera Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll".substr(0, 155)
+    content: "Toko Kamera Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll"
   },
 
     { tagName:'link',
@@ -728,7 +728,7 @@ export const meta = ({data}) => {
       href: data.canonicalUrl
     },
 
-    {name: "keywords",
+  {name: "keywords",
     content:"Galaxycamera99, Galaxycamera, Galaxy Camera Store, toko kamera, toko kamera online, toko kamera tangerang, toko kamera depok, toko kamera jakarta, kredit kamera, Galaxy Camera",
   },
 
@@ -738,10 +738,26 @@ export const meta = ({data}) => {
   },
 
   {
+    property: "og:title",
+    content: "Galaxy Camera Store : Toko Kamera Online Offline Terlengkap dan Terpercaya",
+  },
+
+  {
+    property: "og:description",
+    content: "Toko Kamera Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll"
+  },
+
+  {
     property: "og:url",
     content: 'https://galaxy.co.id',
   },
 
+  {
+    property: "og:image",
+    content: data?.banner?.metaobjects?.nodes[0]?.fields[0]?.reference?.image.url,
+  },
+
+  // banner.metaobjects.nodes[0].fields[0].reference.image.url
 
 
   {

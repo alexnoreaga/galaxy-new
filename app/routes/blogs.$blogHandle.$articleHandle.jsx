@@ -71,7 +71,7 @@ export default function Article() {
 
      
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      <div className="mb-8 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       {image && <Image data={image} sizes="90vw" loading="eager" />}
       </div>
 
