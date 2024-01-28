@@ -183,22 +183,24 @@ export async function loader({params, context, request}) {
               {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
                 <div className='flex flex-row gap-2'>
                 <div className='bg-rose-700 p-1 ml-0 m-auto font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
-                  <Money
+                  {/* <Money
                     withoutTrailingZeros
                     data={{
                       amount: selectedVariant.compareAtPrice.amount,
                       currencyCode: selectedVariant.price.currencyCode,
                     }}
                     className="text-xl line-through text-slate-600"
-                  />
+                  /> */}
+                  <div className="text-xl line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString()}</div>
                 </div>
               )}
             
-              <Money
+              {/* <Money
                 withoutTrailingZeros
                 data={selectedVariant.price}
                 className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
-              />
+              /> */}
+              <div className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString()}</div>
           </div> 
 
           <div>Cicilan Mulai dari</div>  
