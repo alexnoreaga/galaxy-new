@@ -305,8 +305,6 @@ function RecommendedProducts({products}) {
   // console.log('Produk rekomendasi',products)
 
 
-
-
   
   return (
     <div className="recommended-products text-slate-800">
@@ -333,19 +331,25 @@ function RecommendedProducts({products}) {
                   </div>
            
                   <div className='text-sm my-1 text-slate-800'>{product.title}</div>
+
+                  {/* <div>{parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount)}</div>
+                  <div>{product.priceRange.minVariantPrice.amount}</div> */}
                   
-                  {product.compareAtPriceRange?.minVariantPrice?.amount > product.priceRange.minVariantPrice.amount &&(
+                  {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
                   <div className='text-sm  line-through text-slate-600'>
-                    <Money data={product.compareAtPriceRange?.minVariantPrice} />                    
+                    {/* <Money data={product.compareAtPriceRange?.minVariantPrice} /> */}
+                    <div>Rp {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount).toLocaleString()}</div>                    
                   </div>
                   ) }
                   <div className='text-xs font-bold text-slate-800 flex flex-row items-center gap-1 mb-2 mt-2'>
-                  {product.compareAtPriceRange?.minVariantPrice?.amount > product.priceRange.minVariantPrice.amount &&(
+                  {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
                     <div className='bg-rose-700 p-0.5 ml-0 text-white text-xs rounded'><HitunganPersen hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount} hargaSesudah={product.priceRange.minVariantPrice.amount}/></div> ) }
                     
-                    <Money 
+                    {/* <Money 
                     className={`text-sm font-semibold ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}
-                    data={product.priceRange.minVariantPrice} />
+                    data={product.priceRange.minVariantPrice} /> */}
+                    <div className={`text-sm font-semibold ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}>Rp {parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString()}</div>
+
                   </div>
                   <div className='flex flex-col md:flex-row gap-2'>
                   {/* <span className='rounded-md m-auto ml-0 bg-emerald-100 text-xs font-bold text-emerald-800 p-1 px-2'>

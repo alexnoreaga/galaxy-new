@@ -180,7 +180,7 @@ export async function loader({params, context, request}) {
               
               
                   <div className='flex flex-row gap-2 items-center mb-2'>
-              {selectedVariant?.compareAtPrice?.amount > selectedVariant.price.amount && (
+              {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
                 <div className='flex flex-row gap-2'>
                 <div className='bg-rose-700 p-1 ml-0 m-auto font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
                   <Money
