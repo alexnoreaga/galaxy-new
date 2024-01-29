@@ -147,19 +147,19 @@ export async function loader({params, context, request}) {
 
 
             <div className="grid gap-2 w-full">
-              {/* <h1 className="text-4xl font-bold leading-10 whitespace-normal ">
-                {product.title}
-              </h1> */}
-              <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
+              <h1 className="text-4xl font-bold leading-10 whitespace-normal ">
                 {product.title}
               </h1>
+              {/* <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
+                {product.title}
+              </h1> */}
             </div>
 
 <div className='flex flex-row gap-1'>
             {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
-  <div className='w-28 p-1 items-center rounded-full border border-gray-200'>
+  <div className='w-26 p-1 items-center rounded-full border border-gray-200'>
     <div className='m-auto flex flex-row'>
-      <div className='text-sm m-auto text-gray-500'>Stock Ready</div>
+      <div className='text-sm m-auto text-gray-400'>Stock Ready</div>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="m-auto w-6 h-6 text-emerald-500">
         <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
       </svg>
@@ -170,7 +170,7 @@ export async function loader({params, context, request}) {
 {product.metafields[0]?.value && (
   <div className='w34 p-1 items-center rounded-full border border-gray-200'>
     <div className='m-auto flex flex-row'>
-      <div className='text-sm m-auto text-gray-500'>Garansi Resmi</div>
+      <div className='text-sm m-auto text-gray-400'>Garansi Resmi</div>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="m-auto w-6 h-6 text-emerald-500">
         <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
       </svg>
@@ -591,7 +591,7 @@ function TombolWa({product}){
 
   return(
     <>
-    
+        <div className='text-sm text-gray-500 mt-1'>Ingin harga best price dari kami? Yuk Negoin aja</div>
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
             <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${urlProduk}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
       </div>
