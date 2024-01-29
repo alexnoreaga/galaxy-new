@@ -12,6 +12,8 @@ import {
   
     const paramsWithDefaults = (() => {
       const defaultParams = new URLSearchParams(currentSearchParams);
+
+      console.log('Default Parahms adalah',navigation.location)
   
       if (!selectedVariant) {
         return defaultParams;
@@ -56,6 +58,9 @@ import {
                   const linkParams = new URLSearchParams(searchParams);
                   const isSelected = currentOptionVal === value;
                   linkParams.set(option.name, value);
+
+                  {/* console.log('Ini adalah linkParams',linkParams.toString()) */}
+
                   return (
                     <Link
                       key={value}

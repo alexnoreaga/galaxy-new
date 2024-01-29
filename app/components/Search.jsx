@@ -237,6 +237,7 @@ export function PredictiveSearchResults() {
   if (!totalResults) {
     return <NoPredictiveSearchResults searchTerm={searchTerm} />;
   }
+  
   return (
     <div className="predictive-search-results">
       <div>
@@ -299,9 +300,26 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
 }
 
 function SearchResultItem({goToSearchResult, item}) {
+
+
+  let url = item.url;
+  let path; // Declare path here
+
+  if (url.includes("products")) {
+    path = url.split('?')[0];
+
+    console.log('Yes ketemu')
+  } else {
+    console.log("URL does not contain 'product'.");
+    path = item.url;
+  }
+  
+
+
   return (
-    <li className="predictive-search-result-item" key={item.id}>
-      <Link onClick={goToSearchResult} to={item.url}>
+    <li className="predictive-search-result-item" key={path}>
+      <Link onClick={goToSearchResult} to={path}>
+      {/* <Link onClick={goToSearchResult} to={item.url}> */}
         {item.image?.url && (
           <Image
             alt={item.image.altText ?? ''}
