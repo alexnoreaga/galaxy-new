@@ -13,6 +13,7 @@ import { HitunganPersen } from '~/components/HitunganPersen';
 import {InfoProduk} from '~/components/InfoProduk';
 import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
+import { Modal } from '~/components/Modal';
 
 export async function loader({params, context, request}) {
 
@@ -123,6 +124,10 @@ export async function loader({params, context, request}) {
 
     console.log(liveshopee.metaobjects?.edges[0]?.node)
 
+    const [bukaModal, setBukaModal] = useState(false)
+
+    
+
 
 
     return (
@@ -177,6 +182,8 @@ export async function loader({params, context, request}) {
             </div>)}
 
 
+           
+
             
 
                 <div className='text-sm'>
@@ -213,7 +220,10 @@ export async function loader({params, context, request}) {
               <div className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString()}</div>
           </div> 
 
-          <div>Cicilan Mulai dari</div>  
+          <div>Cicilan Mulai dari</div>
+          <div onClick={()=>setBukaModal(true)} className="text-rose-700 font-semibold text-md cursor-pointer">Lihat Angsuran</div>  
+
+
 
 {!product?.metafields[12]?.value  &&(
 <CartForm
@@ -428,7 +438,8 @@ export async function loader({params, context, request}) {
     </div>
 </div> */}
 
-        
+      {bukaModal&&<Modal statusOpen={bukaModal} setBukaModal={setBukaModal}/>}
+
 
       </section>
 
