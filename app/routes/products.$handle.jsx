@@ -126,7 +126,21 @@ export async function loader({params, context, request}) {
 
     const [bukaModal, setBukaModal] = useState(false)
 
-    
+    const copyToClipboard = () => {
+      const textToCopy = `${product.title}\nHarga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}`;
+      // Create a temporary textarea to copy the text
+      const textArea = document.createElement('textarea');
+      textArea.value = textToCopy;
+      document.body.appendChild(textArea);
+      
+      // Select and copy the text
+      textArea.select();
+      document.execCommand('copy');
+      
+      // Remove the temporary textarea
+      document.body.removeChild(textArea);
+    };
+  
 
 
 
@@ -147,7 +161,7 @@ export async function loader({params, context, request}) {
 
 
             <div className="grid gap-2 w-full">
-              <h1 className="text-4xl font-bold leading-10 whitespace-normal ">
+              <h1 className="text-4xl font-bold leading-10 whitespace-normal " onClick={copyToClipboard}>
                 {product.title}
               </h1>
               {/* <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
