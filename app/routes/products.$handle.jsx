@@ -147,7 +147,10 @@ export async function loader({params, context, request}) {
 
 
             <div className="grid gap-2 w-full">
-              <h1 className="text-4xl font-bold leading-10 whitespace-normal">
+              {/* <h1 className="text-4xl font-bold leading-10 whitespace-normal ">
+                {product.title}
+              </h1> */}
+              <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-gray-500">
                 {product.title}
               </h1>
             </div>
