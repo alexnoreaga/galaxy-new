@@ -117,7 +117,7 @@ export async function loader({params, context, request}) {
     const {customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
     console.log(customerAccessToken)
-    console.log('produk ',product)
+    console.log('produk ',product?.metafields[12]?.value)
     console.log('liveshopee',liveshopee)
     console.log('marketplace',marketplace)
 
@@ -216,7 +216,7 @@ export async function loader({params, context, request}) {
 
           <div>Cicilan Mulai dari</div>  
 
-
+{!product?.metafields[12]?.value  &&(
 <CartForm
   route="/cart"
   inputs={{
@@ -254,11 +254,16 @@ export async function loader({params, context, request}) {
     </>
   )}
   </CartForm>
+  )
+}
 
 
   
   {selectedVariant?.availableForSale
   && <TombolWa product={product}/>}
+
+  {product?.metafields[12]?.value && <TombolWaDiscontinue product={product} />}
+
 
     {liveshopee.metaobjects?.edges[0]?.node?.fields[1].value == 'true' && <LiveShopee url={liveshopee.metaobjects?.edges[0]?.node?.fields[0].value}/>}
 
@@ -475,6 +480,8 @@ function MarketPlace({link}){
 
   const ImageGallery = ({ productData }) => {
 
+    console.log('Ini adalah hasil dari gambar ',productData)
+
     const [selectedImage, setSelectedImage] = useState(productData.images.edges[0].node.src);
     const [startIndex, setStartIndex] = useState(0);
 
@@ -507,8 +514,14 @@ function MarketPlace({link}){
       <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
         <div className="md:w-4/5 mx-auto ">
           <div className='relative'>
-          <img src={selectedImage} alt="Product" className="w-full h-auto shadow rounded" />
+          
+          <img src={selectedImage} alt="Product" className={`w-full h-auto shadow rounded ${productData?.metafields[12]?.value && 'opacity-50'}`} />
+          {productData?.metafields[12]?.value &&
+          <div class="p-2 rounded-lg m-auto absolute text-2xl font-bold bg-gray-950 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            DISCONTINUE</div>
+          }
           </div>
+       
         </div>
         <div className="md:w-5/5 ">
           <div className="grid grid-cols-4 gap-4 md:mt-4 w-5/5 mx-auto">
@@ -551,14 +564,29 @@ function TombolWa({product}){
   return(
     <>
     
-
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
             <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${urlProduk}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
-
       </div>
 
      
+    </>
+  )
+}
 
+function TombolWaDiscontinue({product}){
+  // const infoChat = `Hi admin Galaxy saya berminat tentang produk ${namaProduk}. Boleh dibantu untuk info lebih lanjut`
+  const namaProduk = product.title
+  const urlProduk = product.handle
+
+
+  return(
+    <>
+    
+        <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
+            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20pengganti%20"${namaProduk}"%20.%20Link%20Produk:%20" ${urlProduk}`} target="_blank" className='drop-shadow-sm text-white'>Chat Admin</a>
+      </div>
+
+     
     </>
   )
 }
@@ -603,6 +631,7 @@ function TombolWa({product}){
         {namespace:"custom" key:"blibli"}
         {namespace:"custom" key:"bukalapak"}
         {namespace:"custom" key:"lazada"}
+        {namespace:"custom" key:"produk_discontinue"}
       ]){
         key
         value
