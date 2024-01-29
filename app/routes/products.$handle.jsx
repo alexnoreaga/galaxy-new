@@ -147,6 +147,7 @@ export async function loader({params, context, request}) {
               </h1>
             </div>
 
+            {!product?.metafields[12]?.value && (
             {selectedVariant?.availableForSale && 
             <div className=' gap-1 w-32 p-1 items-center rounded-full border border-gray-300'>
               <div className='m-auto flex flex-row'>
@@ -156,7 +157,7 @@ export async function loader({params, context, request}) {
               </svg>
               </div>
             </div>
-            }
+            })}
 
             {/* <div className='flex flex-row gap-1 items-center text-slate-700 text-sm'>
             <div>Garansi Resmi 1 Tahun</div>
