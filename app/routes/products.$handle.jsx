@@ -150,7 +150,7 @@ export async function loader({params, context, request}) {
               {/* <h1 className="text-4xl font-bold leading-10 whitespace-normal ">
                 {product.title}
               </h1> */}
-              <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-gray-500">
+              <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
                 {product.title}
               </h1>
             </div>
