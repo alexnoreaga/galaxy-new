@@ -282,12 +282,14 @@ aside li {
 .predictive-search {
   height: calc(100vh - var(--header-height) - 40px);
   overflow-y: auto;
+  
 }
 
 .predictive-search-form {
   background: var(--color-light);
   position: sticky;
   top: 0;
+ 
 }
 
 .predictive-search-result {
