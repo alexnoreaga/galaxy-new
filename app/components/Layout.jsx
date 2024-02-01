@@ -32,7 +32,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
       <main>{children}</main>
-      <div className="h-80 mt-5 bg-red-500 flex items-center bg-fixed bg-[url('https://cdn.shopify.com/s/files/1/0672/3806/8470/files/Foto-toko.webp?v=1706796490')]">
+      <div className="h-80 mt-5 bg-gray-900 flex items-center bg-fixed md:bg-[url('https://cdn.shopify.com/s/files/1/0672/3806/8470/files/Foto-toko-tangerang-2.webp?v=1706799592')] bg-[url('https://cdn.shopify.com/s/files/1/0672/3806/8470/files/Foto-toko-tangerang-portrait.png?v=1706799750')]">
   <div className='p-5 mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
     <h1 className='mb-2 text-left sm:text-md md:text-xl lg:text-4xl text-white'>Kunjungi Toko Kami</h1>
     <p className="text-white text-sm sm:text-sm md:text-md lg:text-lg">Dapatkan Penawaran Harga Terbaik Khusus Pembelian di Store Langsung</p>
