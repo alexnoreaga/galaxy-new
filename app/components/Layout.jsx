@@ -33,13 +33,13 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
       <main>{children}</main>
       <div className="h-80 mt-5 bg-red-500 flex items-center bg-fixed bg-[url('https://cdn.shopify.com/s/files/1/0672/3806/8470/files/Foto-toko.webp?v=1706796490')]">
-  <div className='mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
+  <div className='p-5 mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
     <h1 className='mb-2 text-left sm:text-md md:text-xl lg:text-4xl text-white'>Kunjungi Toko Kami</h1>
-    <div className="text-white text-lg">Dapatkan Penawaran Harga Terbaik Khusus Pembelian di Store Langsung</div>
+    <div className="text-white sm:text-sm md:text-md lg:text-lg">Dapatkan Penawaran Harga Terbaik Khusus Pembelian di Store Langsung</div>
     <Link
       to={`/pages/contact`}
     >
-      <div className='text-white text-lg underline'>Liat Maps</div>
+      <div className='text-white underline sm:text-sm md:text-md lg:text-lg'>Lihat Maps</div>
     </Link>
     {/* <h1 className='text-center'>Kunjungi Toko Kami</h1> */}
 
