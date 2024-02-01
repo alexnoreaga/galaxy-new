@@ -35,11 +35,19 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       <div className="h-80 mt-5 bg-red-500 flex items-center bg-fixed bg-[url('https://cdn.shopify.com/s/files/1/0672/3806/8470/files/Foto-toko.webp?v=1706796490')]">
   <div className='p-5 mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
     <h1 className='mb-2 text-left sm:text-md md:text-xl lg:text-4xl text-white'>Kunjungi Toko Kami</h1>
-    <div className="text-white sm:text-sm md:text-md lg:text-lg">Dapatkan Penawaran Harga Terbaik Khusus Pembelian di Store Langsung</div>
+    <p className="text-white text-sm sm:text-sm md:text-md lg:text-lg">Dapatkan Penawaran Harga Terbaik Khusus Pembelian di Store Langsung</p>
     <Link
       to={`/pages/contact`}
+      className='no-underlined'
     >
-      <div className='text-white underline sm:text-sm md:text-md lg:text-lg'>Lihat Maps</div>
+    <div className="flex flex-row items-center border-white border w-44 h-12 rounded-full mt-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="m-auto mr-2 sm:w-6 sm:h-6 w-5 h-5 text-white">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+      </svg>
+
+      <p className='no-underline text-white ml-0 text-sm sm:text-sm md:text-md lg:text-lg m-auto'>Lihat Maps</p>
+      </div>
     </Link>
     {/* <h1 className='text-center'>Kunjungi Toko Kami</h1> */}
 
