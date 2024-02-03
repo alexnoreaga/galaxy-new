@@ -82,7 +82,7 @@ export default function Homepage() {
       {/* <Modal/> */}
       <Carousel images={data.banner.metaobjects} />
       <RenderCollection collections={data.hasilCollection.collections}/>
-      <YoutubeLink/>
+      {/* <YoutubeLink/> */}
       <RecommendedProducts products={data.recommendedProducts} />
       <BannerKecil images={data.bannerKecil.metaobjects.nodes} />
       <BrandPopular brands={data.kumpulanBrand}/>
