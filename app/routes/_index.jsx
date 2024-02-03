@@ -6,7 +6,8 @@ import {HitunganPersen} from '~/components/HitunganPersen';
 import { BrandPopular } from '../components/BrandPopular';
 import {useRef} from "react";
 import { useLayoutEffect, useState } from 'react';
-import { FaCalendarDays } from "react-icons/fa6";
+import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
+import {YoutubeLink} from '~/components/YoutubeLink';
 
 // export const meta = () => {
 //   return [{title: 'Hydrogen | Home'},
@@ -81,6 +82,7 @@ export default function Homepage() {
       {/* <Modal/> */}
       <Carousel images={data.banner.metaobjects} />
       <RenderCollection collections={data.hasilCollection.collections}/>
+      <YoutubeLink/>
       <RecommendedProducts products={data.recommendedProducts} />
       <BannerKecil images={data.bannerKecil.metaobjects.nodes} />
       <BrandPopular brands={data.kumpulanBrand}/>
