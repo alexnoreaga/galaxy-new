@@ -15,6 +15,7 @@ import { FaCalendarDays } from "react-icons/fa6";
 
 import { Carousel } from '~/components/Carousel';
 import { Modal } from '~/components/Modal';
+import { AboutSeo } from '~/components/AboutSeo';
 
 
 export async function loader({context,request}) {
@@ -84,6 +85,7 @@ export default function Homepage() {
       <BannerKecil images={data.bannerKecil.metaobjects.nodes} />
       <BrandPopular brands={data.kumpulanBrand}/>
       <FeaturedBlogs blogs={data.blogs}/>
+      <AboutSeo/>
     
     </div>
   );
