@@ -1,6 +1,10 @@
 import {useMatches, NavLink} from '@remix-run/react';
 import { FaLocationDot } from "react-icons/fa6";
 import {useLoaderData} from '@remix-run/react';
+import {FooterColumn1} from '~/components/FooterColumn1';
+import {FooterColumn2} from '~/components/FooterColumn2';
+
+
 
 
 
@@ -9,10 +13,12 @@ export function Footer({menu}) {
   return (
     <footer className="footer py-5 pb-24">
       <div className='flex-none sm:flex flex-cols justify-between px-3 sm:px-0 container mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
-      <FooterBaru/>
+      {/* <FooterBaru/> */}
+      <FooterColumn1/>
+      <FooterColumn2/>
+
       <FooterMenu menu={menu} />
       {/* <FooterMenu menu={menu} /> */}
-      <FooterMenu menu={menu} />
       
       </div>
     </footer>

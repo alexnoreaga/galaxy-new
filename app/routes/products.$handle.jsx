@@ -550,15 +550,15 @@ function MarketPlace({link}){
   
     const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
 
-    // console.log('Ini displyaed images', displayedImages)
+    console.log('Ini displyaed images', productData?.metafields[12]?.value)
   
     return (
       <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
         <div className="md:w-4/5 mx-auto ">
           <div className='relative'>
           
-          <img src={selectedImage} alt="Product" className={`w-full h-auto shadow rounded ${productData?.metafields[12]?.value && 'opacity-50'}`} />
-          {productData?.metafields[12]?.value &&
+          <img src={selectedImage} alt="Product" className={`w-full h-auto shadow rounded ${productData?.metafields[12]?.value == "true" && 'opacity-50'}`} />
+          {productData?.metafields[12]?.value == "true" &&
           <div class="p-2 rounded-lg m-auto absolute text-2xl font-bold bg-gray-950 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             PRODUK DISCONTINUE</div>
           }

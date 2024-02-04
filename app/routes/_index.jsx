@@ -77,16 +77,34 @@ export default function Homepage() {
 
 
   return (
-    <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+    <div>
       {/* <FeaturedCollection collection={data.featuredCollection} /> */}
       {/* <Modal/> */}
-      <Carousel images={data.banner.metaobjects} />
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+        <Carousel images={data.banner.metaobjects} />
+        </div>
+      
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <RenderCollection collections={data.hasilCollection.collections}/>
+      </div>
+
       {/* <YoutubeLink/> */}
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <RecommendedProducts products={data.recommendedProducts} />
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <BannerKecil images={data.bannerKecil.metaobjects.nodes} />
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <BrandPopular brands={data.kumpulanBrand}/>
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <FeaturedBlogs blogs={data.blogs}/>
+      </div>
+
       <AboutSeo/>
     
     </div>
