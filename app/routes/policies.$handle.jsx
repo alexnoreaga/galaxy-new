@@ -38,7 +38,7 @@ export default function Policy() {
   const {policy} = useLoaderData();
 
   return (
-    <div className="policy">
+    <div className='policy lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12'>
       <br />
       <br />
       <div>
