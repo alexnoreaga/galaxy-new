@@ -6,6 +6,7 @@ import {useLocation } from 'react-router-dom';
 
 export const meta = ({data}) => {
   
+  console.log('Ini adalah data Blog ',data)
 
   return [
     {title: `${data.article.title}`},
@@ -20,7 +21,32 @@ export const meta = ({data}) => {
     { tagName:'link',
       rel:'canonical',
       href: data.canonicalUrl
-    }
+    },
+    {
+      property: "og:title",
+      content: data?.article?.title,
+    },
+    {
+      name: "og:image",
+      content: data?.article?.image?.url,
+    },
+
+    {name: "og:description",
+    content: data.article?.seo?.description.substr(0, 155)
+    ?  data.article?.seo?.description.substr(0, 155)
+    : data.article?.content},
+    {
+      property: "og:type",
+      content: "article",
+    },
+    {
+      property: "og:site_name",
+      content: "galaxy.co.id",
+    },
+    {
+      property: "og:url",
+      content: data.canonicalUrl,
+    },
 
 ];
 };
