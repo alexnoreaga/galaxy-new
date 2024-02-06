@@ -12,6 +12,7 @@ import { BottomNavbar } from './BottomNavbar';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { TombolWa } from './TombolWa';
 import React, { useEffect, useRef } from 'react';
+import { Breadcrumbs } from './Breadcrumbs';
 
 
 export function Layout({cart, children = null, footer, header, isLoggedIn,footerSatu}) {
@@ -30,6 +31,8 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       <MobileMenuAside menu={header.menu} />
       
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
+
+      {/* <Breadcrumbs/> */}
 
       <main>{children}</main>
 

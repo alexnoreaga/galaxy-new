@@ -257,7 +257,7 @@ export async function loader({params, context, request}) {
                 data={selectedVariant.price}
                 className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
               /> */}
-              <div className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString()}</div>
+              <div className={`text-2xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString()}</div>
           </div> 
 
           <div>Cicilan Mulai dari</div>
@@ -478,7 +478,7 @@ export async function loader({params, context, request}) {
     </div>
 </div> */}
 
-      {bukaModal&&<Modal statusOpen={bukaModal} setBukaModal={setBukaModal}/>}
+      {bukaModal&&<Modal canonicalUrl={canonicalUrl} perubahTanggal={perubahTanggal} product={product} selectedVariant={selectedVariant} statusOpen={bukaModal} setBukaModal={setBukaModal}/>}
 
 
       </section>

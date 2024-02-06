@@ -1,9 +1,17 @@
 import React from 'react'
 
-export const Modal = ({statusOpen,setBukaModal}) => {
+export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statusOpen,setBukaModal}) => {
   const handleCloseModal = () => {
     setBukaModal(false);
   };
+
+  const textToCopy = `${product.title}${product?.selectedVariant?.title? ' - ' + product?.selectedVariant?.title :''}\n` +
+      `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
+      `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
+      `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
+      `Link : ${canonicalUrl}`;
+
+    
 
   return (
     <div>
@@ -27,6 +35,7 @@ export const Modal = ({statusOpen,setBukaModal}) => {
               <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">List Cicilan</h3>
               <div class="mt-2">
                 <p class="text-sm text-gray-500">Manfaatkan Cicilan Tanpa Kartu Kredit Promo DP Mulai dari 0%. Proses sekitar 15 menit ajukan segera hanya di Galaxy Camera Tangerang, Toko Buka setiap hari dari jam 10 sampai jam 9 malam</p>
+                <p>{textToCopy}</p>
               </div>
             </div>
           </div>
