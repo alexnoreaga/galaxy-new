@@ -75,7 +75,9 @@ export async function loader({request, params, context}) {
 export default function Collection() {
   const {collection} = useLoaderData();
 
-  console.log(' Collection Products ',collection.products)
+
+
+  console.log(' Collection Products ',collection)
 
   return (
     <div className="collection">
@@ -188,6 +190,7 @@ const COLLECTION_QUERY = `#graphql
     $last: Int
     $startCursor: String
     $endCursor: String
+    $reverse:Boolean=false
   ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
       id
@@ -202,7 +205,8 @@ const COLLECTION_QUERY = `#graphql
         first: $first,
         last: $last,
         before: $startCursor,
-        after: $endCursor
+        after: $endCursor,
+        reverse:$reverse
         
       ) {
         nodes {

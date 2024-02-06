@@ -115,19 +115,27 @@ export async function loader({params, context, request}) {
 
 
   export default function ProductHandle() {
-    const {customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
+    const {canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
-    console.log(customerAccessToken)
-    console.log('produk ',product?.metafields[12]?.value)
-    console.log('liveshopee',liveshopee)
-    console.log('marketplace',marketplace)
+    // console.log(customerAccessToken)
+    // console.log('produk ',product?.metafields[12]?.value)
+    // console.log('liveshopee',liveshopee)
+    // console.log('marketplace',marketplace)
 
-    console.log(liveshopee.metaobjects?.edges[0]?.node)
+    // console.log(liveshopee.metaobjects?.edges[0]?.node)
+
+    console.log('Garansissssssssssssssssssssssssss ',product)
 
     const [bukaModal, setBukaModal] = useState(false)
 
     const copyToClipboard = () => {
-      const textToCopy = `${product.title}\nHarga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}`;
+      const textToCopy = `${product.title}\n` +
+      `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
+      `${product?.metafields[0]?.value ? 'Garansi ' + product?.metafields[0]?.value + '\n':''}`+
+      `${product?.metafields[3]?.value ? 'Periode ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
+      `Link : ${canonicalUrl}`;
+
+      // perubahTanggal(product.metafields[3]?.value)
       // Create a temporary textarea to copy the text
       const textArea = document.createElement('textarea');
       textArea.value = textToCopy;
