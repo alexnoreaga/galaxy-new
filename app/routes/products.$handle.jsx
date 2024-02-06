@@ -131,7 +131,7 @@ export async function loader({params, context, request}) {
     const copyToClipboard = () => {
       const textToCopy = `${product.title}\n` +
       `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
-      `${product?.metafields[0]?.value ? 'Garansi ' + product?.metafields[0]?.value + '\n':''}`+
+      `${product?.metafields[0]?.value ? 'Garansi ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
       `${product?.metafields[3]?.value ? 'Periode ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
       `Link : ${canonicalUrl}`;
 
