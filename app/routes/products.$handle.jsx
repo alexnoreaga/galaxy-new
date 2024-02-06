@@ -129,10 +129,10 @@ export async function loader({params, context, request}) {
     const [bukaModal, setBukaModal] = useState(false)
 
     const copyToClipboard = () => {
-      const textToCopy = `${product.title}\n` +
+      const textToCopy = `${product.title}${product?.selectedVariant?.title? ' - ' + product?.selectedVariant?.title :''}\n` +
       `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
-      `${product?.metafields[0]?.value ? 'Garansi ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
-      `${product?.metafields[3]?.value ? 'Periode ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
+      `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
+      `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
       `Link : ${canonicalUrl}`;
 
       // perubahTanggal(product.metafields[3]?.value)
