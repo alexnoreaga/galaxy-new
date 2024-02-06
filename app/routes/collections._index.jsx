@@ -2,6 +2,12 @@ import {useLoaderData, Link} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 import {Pagination, getPaginationVariables, Image} from '@shopify/hydrogen';
 
+
+
+export const handle = {
+  breadcrumbType: 'collections',
+};
+
 export async function loader({context, request}) {
   const paginationVariables = getPaginationVariables(request, {
     pageBy: 15,
@@ -10,10 +16,6 @@ export async function loader({context, request}) {
   const {collections} = await context.storefront.query(COLLECTIONS_QUERY, {
     variables: paginationVariables,
   });
-
-  
-  
-
   return json({collections});
 }
 
@@ -132,12 +134,28 @@ const COLLECTIONS_QUERY = `#graphql
 `;
 
 
-const seo = ({data}) => ({
-  title: "Kategori Produk Galaxy Camera",
-  description: "Kategori Produk Pilihan Galaxy Camera",
-});
+// const seo = ({data}) => ({
+//   title: "Kategori Produk Galaxy Camera",
+//   description: "Kategori Produk Pilihan Galaxy Camera",
+// });
 
-export const handle = {
-  seo,
-};
+// export const handle = {
+//   seo,
+// };
 
+
+
+export const meta = ({data}) =>{
+  return[
+    {title: "Kategori Produk Galaxy Camera Store"},
+    {
+      name: "title",
+      content: "Kategori Produk Galaxy Camera Store",
+    },
+    {
+      name: "description",
+      content: "Kategori Produk Pilihan Galaxy Camera",
+    },
+      
+  ]
+}

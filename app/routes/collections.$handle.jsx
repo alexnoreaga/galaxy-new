@@ -10,6 +10,10 @@ import {useVariantUrl} from '~/utils';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
+export const handle = {
+  breadcrumbType: 'collection',
+};
+
 
 export const meta = ({data}) => {
   // const currentDomain = "https://galaxy"

@@ -194,6 +194,8 @@ export function ErrorBoundary() {
       </head>
       <body>
 
+
+
         <Layout {...root.data}>
           <div className="route-error">
             <h1>Oops</h1>

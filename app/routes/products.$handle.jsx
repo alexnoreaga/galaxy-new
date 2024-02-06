@@ -15,6 +15,10 @@ import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
 
+export const handle = {
+  breadcrumbType: 'product',
+};
+
 export async function loader({params, context, request}) {
 
   const {session} = context;
@@ -698,6 +702,15 @@ function TombolWaDiscontinue({product}){
         name,
         values
       }
+
+      collections(first:1){
+        nodes{
+          title
+          handle
+        }
+      }
+
+
       selectedVariant: variantBySelectedOptions(selectedOptions: $selectedOptions) {
         id
         availableForSale
