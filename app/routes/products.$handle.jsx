@@ -102,17 +102,147 @@ export async function loader({params, context, request}) {
 
 
       }
-      
-      
+
+
+  }
+
+  const bungaHCI = 3.2
+  const admKredivo = 2.6
+  const adminFee3BulanKredivo = 3
+  const adminKartuKredit6Bulan = 1.5
+  const adminKartuKredit12Bulan = 3.5
+
+  function mulaiDari(selectedVariant){
+    let newHargaFinal = Number(parseFloat(selectedVariant.price.amount))
+     // HITUNGAN KARTU KREDIT START HERE
+     let biayaAdmKartuKredit12Bln = (adminKartuKredit12Bulan * newHargaFinal) / 100
+     let cicilanKartuKredit12Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit12Bln) / 12)/10)*10)
+     return cicilanKartuKredit12Bulan
+  }
+
+  function cicilanKartuKredit(selectedVariant){
+    let newHargaFinal = Number(parseFloat(selectedVariant.price.amount))
+    // HITUNGAN KARTU KREDIT START HERE
+    let biayaAdmKartuKredit6Bln = (adminKartuKredit6Bulan * newHargaFinal) / 100
+    let biayaAdmKartuKredit12Bln = (adminKartuKredit12Bulan * newHargaFinal) / 100
+
+    let cicilanKartuKredit3Bulan = (Math.ceil(newHargaFinal / 3))
+    let cicilanKartuKredit6Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit6Bln) / 6)/10)*10)
+    let cicilanKartuKredit12Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit12Bln) / 12)/10)*10)
+
+    const hargaCash = `${product.title}${product?.selectedVariant?.title !== "Default Title" && product?.selectedVariant?.title !== undefined ? ' - ' + product?.selectedVariant?.title : ''}\n` +
+    `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
+    `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
+    `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
+    `${product?.metafields[1]?.value ? 'FREE : ' + product?.metafields[1].value + '\n' : ''}`+
+    `Link : ${canonicalUrl}`;
+
+
+    if(parseFloat(selectedVariant.price.amount)>=500000 && parseFloat(selectedVariant.price.amount)<1000000){
+      let listCicilan = `${hargaCash}
+
+Cicilan Kartu Kredit (Via Blibli)
+3x : ${cicilanKartuKredit3Bulan.toLocaleString()}
+6x : ${cicilanKartuKredit6Bulan.toLocaleString()}
+12x : ${cicilanKartuKredit12Bulan.toLocaleString()}
+  `
+    return listCicilan
+    
+    }else if (parseFloat(selectedVariant.price.amount)>=1000000){
+    
+        let listCicilan = `${hargaCash}
+
+Cicilan Kartu Kredit 0% (Via Blibli)
+3x : ${cicilanKartuKredit3Bulan.toLocaleString()}
+6x : ${cicilanKartuKredit6Bulan.toLocaleString()}
+12x : ${cicilanKartuKredit12Bulan.toLocaleString()}
+  `
+  return listCicilan
+    
+    }
+    return 'Produk tidak dapat dicicil'
+}
+
+
  
 
 
+  function listAngsuran(product,selectedVariant,canonicalUrl){
+    let newHargaFinal = Number(parseFloat(selectedVariant.price.amount))
+    let bungaKredivo = (admKredivo * newHargaFinal) / 100 
+    let adminFee3Bulan = (adminFee3BulanKredivo * newHargaFinal) / 100
+    let cicilanKredivo3Bulan = Math.ceil(((newHargaFinal + adminFee3Bulan) / 3) / 10) * 10;
+    let cicilanKredivo6Bulan = Math.ceil(((newHargaFinal / 6) + bungaKredivo) / 10) * 10;
+    let cicilanKredivo12Bulan = Math.ceil(((newHargaFinal / 12) + bungaKredivo) / 10) * 10;
+
+    let bungaHci = (bungaHCI * newHargaFinal) / 100;
+    let cicilanHci6Bulan = Math.ceil(((newHargaFinal / 6) + bungaHci) / 10) * 10;
+    let cicilanHci9Bulan = Math.ceil(((newHargaFinal / 9) + bungaHci) / 10) * 10;
+    let cicilanHci12Bulan = Math.ceil(((newHargaFinal / 12) + bungaHci) / 10) * 10;
+    let cicilanHci15Bulan = Math.ceil(((newHargaFinal / 15) + bungaHci) / 10) * 10;
+    let cicilanHci18Bulan = Math.ceil(((newHargaFinal / 18) + bungaHci) / 10) * 10;
+
+    // PROMO BUNGA RENDAH HOMECREDIT START HERE
+    let biayaSubsidi5Bulan = ((5 * newHargaFinal) / 100) + 199000;
+    let hargaProdukSetelahSubsidi = newHargaFinal + biayaSubsidi5Bulan
+    let cicilanPromoHci5Bulan = (Math.ceil(((hargaProdukSetelahSubsidi / 5))  / 10) * 10)+8000;
+
+    let biayaSubsidi8Bulan = ((6 * newHargaFinal) / 100) + 199000;
+    let hargaProduk8BulanSetelahSubsidi = newHargaFinal + biayaSubsidi8Bulan
+    let cicilanPromoHci8Bulan = (Math.ceil(((hargaProduk8BulanSetelahSubsidi / 8))  / 10) * 10)+8000;
+    // PROMO BUNGA RENDAH HOMECREDIT END HERE
+
+    
+      
+    const hargaCash = `${product.title}${product?.selectedVariant?.title !== "Default Title" && product?.selectedVariant?.title !== undefined ? ' - ' + product?.selectedVariant?.title : ''}\n` +
+      `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
+      `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
+      `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
+      `${product?.metafields[1]?.value ? 'FREE : ' + product?.metafields[1].value + '\n' : ''}`+
+      `Link : ${canonicalUrl}`;
 
 
+      if(parseFloat(selectedVariant.price.amount)>=500000 && parseFloat(selectedVariant.price.amount)<1000000){
+        let listCicilan = `${hargaCash}
+Cicilan Tanpa Kartu Kredit
+Estimasi Cicilan Kredivo
+DP : 0
+3X : ${cicilanKredivo3Bulan.toLocaleString()}
+6X : ${cicilanKredivo6Bulan.toLocaleString()}
+12X : ${cicilanKredivo12Bulan.toLocaleString()}
+`
+      return listCicilan
+      
+      }else if (parseFloat(selectedVariant.price.amount)>=1000000){
+      
+          let listCicilan = `${hargaCash}
 
-  
-
+Cicilan Tanpa Kartu Kredit
+Estimasi Cicilan Kredivo
+DP : 0
+3x : ${cicilanKredivo3Bulan.toLocaleString()}
+6x : ${cicilanKredivo6Bulan.toLocaleString()}
+12x : ${cicilanKredivo12Bulan.toLocaleString()}
+      
+Estimasi Cicilan Homecredit
+DP : 0
+6x : ${cicilanHci6Bulan.toLocaleString()}
+9x : ${cicilanHci9Bulan.toLocaleString()}
+12x : ${cicilanHci12Bulan.toLocaleString()}
+15x : ${cicilanHci15Bulan.toLocaleString()}
+18x : ${cicilanHci18Bulan.toLocaleString()}
+    
+Promo Bunga Rendah Homecredit (Gratis 1 Kali Cicilan)
+DP : 0
+6x : ${cicilanPromoHci5Bulan.toLocaleString()} (Cukup Bayar 5x)
+9x : ${cicilanPromoHci8Bulan.toLocaleString()} (Cukup Bayar 8x)
+`
+    return listCicilan
+      
+      }
+      return 'Produk tidak dapat dicicil'
   }
+  
   
 
 
@@ -132,15 +262,20 @@ export async function loader({params, context, request}) {
 
     const [bukaModal, setBukaModal] = useState(false)
 
-    const copyToClipboard = () => {
-      const textToCopy = `${product.title}${product?.selectedVariant?.title? ' - ' + product?.selectedVariant?.title :''}\n` +
+    const hargaCashCopy = `${product.title}${product?.selectedVariant?.title !== "Default Title" && product?.selectedVariant?.title !== undefined ? ' - ' + product?.selectedVariant?.title : ''}\n` +
       `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
       `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
       `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
+      `${product?.metafields[1]?.value ? 'FREE : ' + product?.metafields[1].value + '\n' : ''}`+
       `Link : ${canonicalUrl}`;
 
-      // perubahTanggal(product.metafields[3]?.value)
-      // Create a temporary textarea to copy the text
+
+    const copyToClipboard = (objekCopy) => {
+      
+
+
+      const textToCopy = objekCopy
+
       const textArea = document.createElement('textarea');
       textArea.value = textToCopy;
       document.body.appendChild(textArea);
@@ -166,14 +301,13 @@ export async function loader({params, context, request}) {
               <ImageGallery productData={product}/>
             </div>
           </div>
-          {/* <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 top-[6rem] lg:top-[rem] xl:top-[10rem]"> */}
           <div>
           <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
 
 
 
             <div className="grid gap-2 w-full">
-              <h1 className="text-4xl font-bold leading-10 whitespace-normal " onClick={copyToClipboard}>
+              <h1 className="text-4xl font-bold leading-10 whitespace-normal " onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title}
               </h1>
               {/* <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
@@ -261,11 +395,11 @@ export async function loader({params, context, request}) {
                 data={selectedVariant.price}
                 className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
               /> */}
-              <div className={`text-2xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString()}</div>
+              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={`text-2xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString()} </div>
           </div> 
 
-          <div>Cicilan Mulai dari</div>
-          <div onClick={()=>setBukaModal(true)} className="text-rose-700 font-semibold text-md cursor-pointer">Lihat Angsuran</div>  
+          <div className='text-sm text-gray-700'>Cicilan Mulai dari <span className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString()}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
+          {/* <div onClick={()=>setBukaModal(true)} className="text-rose-700 font-semibold text-sm cursor-pointer">Lihat Angsuran</div>   */}
 
 
 
