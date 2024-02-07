@@ -63,8 +63,8 @@ export async function loader({request, context}) {
 export default function SearchPage() {
   const {searchTerm, searchResults} = useLoaderData();
   return (
-    <div className="search">
-      <h1>Search</h1>
+    <div className="search relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      <h1>Cari Produk</h1>
       {/* <SearchForm searchTerm={searchTerm} /> */}
 
       {/* KODE BARU */}
@@ -82,7 +82,7 @@ export default function SearchPage() {
                 autoFocus
 
               />
-              <button type="submit">Cari</button>
+              <button type="submit" className=''>Cari</button>
             </div>
           )}
         </PredictiveSearchForm>
@@ -90,11 +90,11 @@ export default function SearchPage() {
           {/* KODE BARU */}
 
 
-      {!searchTerm || !searchResults.totalResults ? (
+      {/* {!searchTerm || !searchResults.totalResults ? (
         <NoSearchResults />
       ) : (
         <SearchResults results={searchResults.results} />
-      )}
+      )} */}
     </div>
   );
 }

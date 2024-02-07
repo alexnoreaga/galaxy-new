@@ -1,4 +1,4 @@
-import {Await, NavLink, useMatches} from '@remix-run/react';
+import {Await, NavLink, useMatches,Link} from '@remix-run/react';
 import {Suspense} from 'react';
 import { IconName } from "react-icons/fa6";
 
@@ -181,10 +181,24 @@ function HeaderMenuMobileToggle() {
   );
 }
 
+// function SearchToggle() {
+//   return <a href="#search-aside">Search</a>;
+// }
 function SearchToggle() {
-  return <a href="#search-aside">Search</a>;
-}
+  return (
+    <>
+       <Link 
+          to={`/search`}>
 
+          {/* <div>Cari Produk</div> */}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+</svg>
+
+          </Link>
+    </>
+  );
+}
 
 // function SearchToggle(){
 //   return(
