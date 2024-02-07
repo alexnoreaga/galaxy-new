@@ -60,7 +60,6 @@ if(isvalidBreadcrumbType){
     }
 
 
-    // return <div>{parsedBreadcrumbType.data}</div>
 
 }else{
     return null

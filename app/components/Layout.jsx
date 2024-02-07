@@ -119,7 +119,6 @@ function SearchAside() {
                 className='w-full'
 
               />
-              &nbsp;
               <button type="submit">Cari</button>
             </div>
           )}

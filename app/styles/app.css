@@ -294,6 +294,8 @@ aside li {
 
 .predictive-search-result {
   margin-bottom: 2rem;
+  background-color: #fff;
+
 }
 
 .predictive-search-result h5 {
@@ -302,11 +304,13 @@ aside li {
 
 .predictive-search-result-item {
   margin-bottom: 0.5rem;
+  
 }
 
 .predictive-search-result-item a {
   align-items: center;
   display: flex;
+  
 }
 
 .predictive-search-result-item a img {
@@ -316,6 +320,7 @@ aside li {
 
 .search-result {
   margin-bottom: 1.5rem;
+  
 }
 
 .search-results-item {

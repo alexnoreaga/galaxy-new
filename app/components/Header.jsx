@@ -8,7 +8,10 @@ import { FaYoutube } from "react-icons/fa6";
 import { FaXTwitter } from "react-icons/fa6";
 import { FaWhatsapp } from "react-icons/fa6";
 import { FaFacebookF } from "react-icons/fa6";
-
+import {
+  PredictiveSearchForm,
+  PredictiveSearchResults,
+} from '~/components/Search';
 
 
 
@@ -80,14 +83,10 @@ export function Header({header, isLoggedIn, cart}) {
               </a>
 
             </div>
-
-
-
-
-
-
           </div>
     </div>
+
+    
     <header className="header backdrop-blur-md shadow-md !bg-white/90 border-b-1">
       <div className='container  flex items-center justify-between relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
       <HeaderMenuMobileToggle />
@@ -164,10 +163,11 @@ function HeaderCtas({isLoggedIn, cart}) {
       
       {/* <HeaderMenuMobileToggle /> */}
       
+      <SearchToggle />
       <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
         {isLoggedIn ? 'Account' : 'Sign in'}
       </NavLink>
-      <SearchToggle />
+      
       <CartToggle cart={cart} />
     </nav>
   );
@@ -184,6 +184,33 @@ function HeaderMenuMobileToggle() {
 function SearchToggle() {
   return <a href="#search-aside">Search</a>;
 }
+
+
+// function SearchToggle(){
+//   return(
+//     <div>
+//       <PredictiveSearchForm>
+//           {({fetchResults, inputRef}) => (
+//             <>
+//               <input
+//                 name="q"
+//                 onChange={fetchResults}
+//                 onFocus={fetchResults}
+//                 placeholder="Cari Produk"
+//                 ref={inputRef}
+//                 type="search"
+//                 // className='w-full'
+//                 className='w-full'
+
+//               />
+//               {/* <button type="submit">Cari</button> */}
+//             </>
+//           )}
+//         </PredictiveSearchForm>
+//         <PredictiveSearchResults />
+//     </div>
+//   )
+// }
 
 function CartBadge({count}) {
   return <a href="#cart-aside">

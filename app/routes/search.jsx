@@ -3,6 +3,10 @@ import {useLoaderData} from '@remix-run/react';
 import {getPaginationVariables} from '@shopify/hydrogen';
 
 import {SearchForm, SearchResults, NoSearchResults} from '~/components/Search';
+import {
+  PredictiveSearchForm,
+  PredictiveSearchResults,
+} from '~/components/Search';
 
 export const meta = ({location,data}) => {
   // console.log(data.searchResults.results.products.nodes[0].description)
@@ -61,7 +65,31 @@ export default function SearchPage() {
   return (
     <div className="search">
       <h1>Search</h1>
-      <SearchForm searchTerm={searchTerm} />
+      {/* <SearchForm searchTerm={searchTerm} /> */}
+
+      {/* KODE BARU */}
+      <PredictiveSearchForm>
+          {({fetchResults, inputRef}) => (
+            <div >
+              <input
+                name="q"
+                onChange={fetchResults}
+                onFocus={fetchResults}
+                placeholder="Cari Produk"
+                ref={inputRef}
+                type="search"
+                className='w-full'
+                autoFocus
+
+              />
+              <button type="submit">Cari</button>
+            </div>
+          )}
+        </PredictiveSearchForm>
+        <PredictiveSearchResults />
+          {/* KODE BARU */}
+
+
       {!searchTerm || !searchResults.totalResults ? (
         <NoSearchResults />
       ) : (
