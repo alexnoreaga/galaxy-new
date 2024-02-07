@@ -37,7 +37,7 @@ export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statu
                 {/* <p class="text-sm text-gray-500">Manfaatkan Cicilan Tanpa Kartu Kredit Promo DP Mulai dari 0%. Proses sekitar 15 menit ajukan segera hanya di Galaxy Camera Tangerang, Toko Buka setiap hari dari jam 10 sampai jam 9 malam</p> */}
                 {/* <p>{textToCopy}</p> */}
                 <div className='overflow-x-auto'>
-  <table class=" border-collapse border border-slate-300 ">
+  <table class=" border-collapse border border-slate-300 text-sm ">
     <thead>
     <tr>
       <th className='border border-slate-300 p-2'>Leasing</th>
