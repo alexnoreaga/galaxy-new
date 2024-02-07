@@ -19,7 +19,7 @@ export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statu
 
   <div class="fixed inset-0 bg-gray-800 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
 
-  <div  class="fixed inset-0 z-10 w-screen overflow-y-auto">
+  <div  class="fixed inset-0 z-10 w-screen overflow-y-auto ">
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
 
       <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
@@ -34,8 +34,53 @@ export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statu
             <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
               <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">List Cicilan</h3>
               <div class="mt-2">
-                <p class="text-sm text-gray-500">Manfaatkan Cicilan Tanpa Kartu Kredit Promo DP Mulai dari 0%. Proses sekitar 15 menit ajukan segera hanya di Galaxy Camera Tangerang, Toko Buka setiap hari dari jam 10 sampai jam 9 malam</p>
-                <p>{textToCopy}</p>
+                {/* <p class="text-sm text-gray-500">Manfaatkan Cicilan Tanpa Kartu Kredit Promo DP Mulai dari 0%. Proses sekitar 15 menit ajukan segera hanya di Galaxy Camera Tangerang, Toko Buka setiap hari dari jam 10 sampai jam 9 malam</p> */}
+                {/* <p>{textToCopy}</p> */}
+                <div className='overflow-x-auto'>
+  <table class=" border-collapse border border-slate-300 ">
+    <thead>
+    <tr>
+      <th className='border border-slate-300 p-2'>Leasing</th>
+      <th className='border border-slate-300 p-2'>Dp</th>
+      <th className='border border-slate-300 p-2'>3x</th>
+      <th className='border border-slate-300 p-2'>6x</th>
+      <th className='border border-slate-300 p-2'>12x</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td className='border border-slate-300 p-2'>Kredivo</td>
+      <td className='border border-slate-300 p-2'>0</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+    </tr>
+    <tr>
+      <td className='border border-slate-300 p-2'>Homecredit</td>
+      <td className='border border-slate-300 p-2'>0</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+    </tr>
+    <tr>
+      <td className='border border-slate-300 p-2'>Kartu Kredit</td>
+      <td className='border border-slate-300 p-2'>0</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div className='bg-gray-100 mt-2 p-2 text-sm text-gray-800 rounded-md'>
+    <div>Tersedia juga leasing berikut :</div>
+    <div className='font-bold'>- Akulaku</div>
+    <div className='font-bold'>- Indodana</div>
+    <div className='font-bold'>- Shopee Paylater</div>
+    <div>Hubungi admin untuk info lebih lanjut.</div>
+</div>
+<div className='text-xs text-gray-500 p-2'>Cicilan diatas merupakan estimasi, dapat berubah sewaktu-waktu.</div>
+
               </div>
             </div>
           </div>
