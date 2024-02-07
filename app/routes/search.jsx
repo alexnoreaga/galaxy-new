@@ -90,11 +90,11 @@ export default function SearchPage() {
           {/* KODE BARU */}
 
 
-      {/* {!searchTerm || !searchResults.totalResults ? (
+      {!searchTerm || !searchResults.totalResults ? (
         <NoSearchResults />
       ) : (
         <SearchResults results={searchResults.results} />
-      )} */}
+      )}
     </div>
   );
 }

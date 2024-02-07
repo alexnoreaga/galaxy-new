@@ -95,6 +95,7 @@ export function SearchResults({results}) {
 }
 
 function SearchResultsProductsGrid({products}) {
+  console.log('Hasil Gambar ini',products)
   return (
     <div className="search-result">
       <h2>Products</h2>
@@ -103,7 +104,18 @@ function SearchResultsProductsGrid({products}) {
           const itemsMarkup = nodes.map((product) => (
             <div className="search-results-item" key={product.id}>
               <Link prefetch="intent" to={`/products/${product.handle}`}>
+                <div className='flex flex-row gap-2 m-1'>
+                {product?.variants?.nodes[0]?.image?.url &&(
+                    <Image
+                      alt={product.title ?? ''}
+                      src={product?.variants?.nodes[0]?.image?.url}
+                      width={50}
+                      height={50}
+                      className='shadow'
+                    />
+                )}
                 <span>{product.title}</span>
+                </div>
               </Link>
             </div>
           ));
@@ -169,7 +181,7 @@ function SearchResultArticleGrid({articles}) {
 }
 
 export function NoSearchResults() {
-  return <p>No results, try a different search.</p>;
+  return <p></p>;
 }
 
 /**
