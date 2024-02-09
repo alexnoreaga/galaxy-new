@@ -17,7 +17,7 @@ export const YoutubeLink = () => {
 
   return (
     <div>
-      {/* <ExternalVideo options={{ data: videoOptions }} /> */}
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/6rnSZ_h9BvE?si=GEmiD6gPw03Nql9z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
     </div>
   );
 };

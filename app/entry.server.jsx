@@ -22,7 +22,9 @@ export default async function handleRequest(
     ],
     frameSrc: [
         "'self'",
-        'https://www.google.com'
+        'https://www.google.com',
+        'https://www.youtube.com'
+
     ]
 });
 
