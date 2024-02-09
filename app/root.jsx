@@ -151,6 +151,7 @@ export default function App() {
 <meta name="msapplication-TileImage" content="/ms-icon-144x144.png"/>
 <meta name="theme-color" content="#ffffff"></meta>
 <link rel="manifest" href="/manifest.json" />
+{/* <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https: shopify.com myshopify.com cloudflare.com google.com googletagmanager.com google-analytics.com; object-src 'self' https: shopify.com myshopify.com cloudflare.com google.com;"></meta> */}
 
         <Seo />
         <Meta />
