@@ -3,7 +3,7 @@ import {Await, useLoaderData, Link} from '@remix-run/react';
 
 export const BrandPopular = ({brands}) => {
    
-    console.log('Ini adalah brands',brands)
+    // console.log('Ini adalah brands',brands)
 
   return (
     <div className="my-6">

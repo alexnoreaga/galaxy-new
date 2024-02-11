@@ -28,7 +28,7 @@ export function Footer({menu}) {
 function FooterMenu({menu}) {
   const [root] = useMatches();
   const publicStoreDomain = root?.data?.publicStoreDomain;
-  console.log('Ini merupakan publicStore ',menu)
+  // console.log('Ini merupakan publicStore ',menu)
   return (
     <nav className="footer-menu mx-auto" role="navigation">
       <div className='text-sm flex flex-col'>
