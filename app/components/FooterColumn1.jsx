@@ -1,5 +1,6 @@
 import React from 'react'
 import { FaWhatsapp } from "react-icons/fa6";
+import { FaEnvelope } from "react-icons/fa6";
 
 
 export const FooterColumn1 = () => {
@@ -37,6 +38,11 @@ export const FooterColumn1 = () => {
             <FaWhatsapp size="1.2em" />
             <div className='text-white text-sm font-bold'>0821-2233-5511</div>
         </a>
+
+        <div className='mb-2 flex items-center gap-1 text-white hover:no-underline'>
+            <FaEnvelope size="1.2em" />
+            <div className='text-white text-sm font-bold'>sales@galaxy.co.id</div>
+        </div>
 
 
     </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import {Link} from '@remix-run/react';
 
 export const FooterColumn2 = () => {
   return (
@@ -7,13 +8,21 @@ export const FooterColumn2 = () => {
         <div className='text-sm flex flex-col'>
             <div className='text-white font-bold py-1'>GALAXY.CO.ID</div>
             <div>
-                <a href="#" className='text-white text-sm py-1'>Tentang Kami</a>
+            <Link
+                to={`/`}>
+                <div className='text-white text-sm py-1'>Tentang Kami</div>
+            </Link>            </div>
+            <div>
+            <Link
+                to={`/pages/contact`}>
+                <div className='text-white text-sm py-1'>Store Location</div>
+            </Link>
             </div>
             <div>
-                <a href="#" className='text-white text-sm py-1'>Store Location</a>
-            </div>
-            <div>
-                <a href="#" className='text-white text-sm py-1'>Blog & Artikel</a>
+            <Link
+                to={`/blogs`}>
+                <div className='text-white text-sm py-1'>Blog & Artikel</div>
+            </Link>
             </div>
         </div>
         </nav>
