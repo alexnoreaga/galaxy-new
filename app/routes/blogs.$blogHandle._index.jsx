@@ -33,8 +33,8 @@ export default function Blog() {
   const {blog} = useLoaderData();
   const {articles} = blog;
 
-  console.log('Dibawah ini blog')
-  console.log(blog)
+  // console.log('Dibawah ini blog')
+  // console.log(blog)
 
   return (
     <div className="blog">

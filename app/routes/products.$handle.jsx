@@ -14,6 +14,8 @@ import {InfoProduk} from '~/components/InfoProduk';
 import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
+import {AnalyticsPageType} from '@shopify/hydrogen';
+
 
 export const handle = {
   breadcrumbType: 'product',
@@ -84,6 +86,10 @@ export async function loader({params, context, request}) {
           marketplace,
           customerAccessToken,
           canonicalUrl,
+          analytics: {
+            pageType: AnalyticsPageType.product,
+            products: [product],
+          }
         });
 
       }else{
@@ -97,6 +103,10 @@ export async function loader({params, context, request}) {
           marketplace,
           customerAccessToken,
           canonicalUrl,
+          analytics: {
+            pageType: AnalyticsPageType.product,
+            products: [product],
+          }
 
         });
 

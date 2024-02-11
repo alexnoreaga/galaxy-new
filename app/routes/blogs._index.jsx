@@ -22,7 +22,6 @@ export const loader = async ({request, context: {storefront}}) => {
 
 export default function Blogs() {
   const {blogs} = useLoaderData();
-  console.log('INi adalah blogs',blogs)
 
   return (
     <div className="blogs">

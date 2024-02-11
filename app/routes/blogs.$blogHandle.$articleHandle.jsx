@@ -6,7 +6,7 @@ import {useLocation } from 'react-router-dom';
 
 export const meta = ({data}) => {
   
-  console.log('Ini adalah data Blog ',data)
+  // console.log('Ini adalah data Blog ',data)
 
   return [
     {title: `${data.article.title}`},
@@ -80,7 +80,7 @@ export default function Article() {
   const {article} = useLoaderData();
   const {title, image, contentHtml, author} = article;
 
-  console.log('Artikel adalah, ', article)
+  // console.log('Artikel adalah, ', article)
 
   const publishedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',

@@ -395,7 +395,7 @@ function RecommendedProducts({products}) {
 
 
 function FeaturedBlogs2({blogs}){
-  console.log('Ini adalah artikel ', blogs)
+  // console.log('Ini adalah artikel ', blogs)
   return(
     <div>
       <div className='flex flex-row items-center justify-between m-1 mb-2'>
@@ -423,7 +423,7 @@ function FeaturedBlogs2({blogs}){
 }
 
 function FeaturedBlogs({ blogs }) {
-  console.log('Ini merupaakan featured Blog',blogs)
+  // console.log('Ini merupaakan featured Blog',blogs)
 
   const [articlesToShow, setArticlesToShow] = useState(1); // State to manage the number of articles to display
 
@@ -732,7 +732,7 @@ const GET_ARTIKEL = `#graphql
 
 export const meta = ({data}) => {
 
-  console.log('Ini meta dari halaman depan ',data)
+  // console.log('Ini meta dari halaman depan ',data)
   
 
   return [
