@@ -19,13 +19,6 @@ import appStyles from './styles/app.css';
 import {Layout} from '~/components/Layout';
 import tailwindCss from './styles/tailwind.css';
 import { useEffect } from 'react'; 
-import { json } from '@remix-run/data';
-import {
-  AnalyticsEventName,
-  getClientBrowserParameters,
-  sendShopifyAnalytics,
-  useShopifyCookies,
-} from '@shopify/hydrogen';
 
 
 // This is important to avoid re-fetching root queries on sub-navigations
@@ -59,6 +52,17 @@ export function links() {
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
   ];
 }
+
+// export async function loader() {
+//   return json({
+//     analytics: {
+//       // Hard-coded for demonstration purposes.
+//       // In production, retrieve this value from the Storefront API.
+//       shopId: 'gid://shopify/Shop/000000000',
+//     },
+//   });
+// }
+
 
 export async function loader({context}) {
   const {storefront, session, cart} = context;
@@ -104,57 +108,63 @@ export async function loader({context}) {
     },
   };
 
-  return {
-    ...defer(
-      {
-        cart: cartPromise,
-        footer: footerPromise,
-        header: await headerPromise,
-        isLoggedIn,
-        publicStoreDomain,
-        footerSatu
-      },
-      { headers },
-    ),
-    // Merge the analytics data with existing loader data
-    ...json(analyticsData),
-  };
+  return defer(
+    {
+      cart: cartPromise,
+      footer: footerPromise,
+      header: await headerPromise,
+      isLoggedIn,
+      publicStoreDomain,
+      footerSatu
+    },
+    {headers},
+      {analytics: {
+        // Hard-coded for demonstration purposes.
+        // In production, retrieve this value from the Storefront API.
+        shopId: "gid://shopify/Shop/67238068470",
+      }},
+  );
 }
-
 
 export default function App() {
   const nonce = useNonce();
   const data = useLoaderData();
 
-  const hasUserConsent = false;
-  useShopifyCookies({hasUserConsent});
+  // console.log('Ini adalah data 2023',data)
 
-  // The user's current location
-  const location = useLocation();
-  // The user's last location. Blank to start.
-  const lastLocationKey = useRef('');
-  // Analytics data returned by the custom hook
-  const pageAnalytics = usePageAnalytics({hasUserConsent});
+  // useEffect(() => {
+  //   // Google Tag Manager script
+  //   (function(w,d,s,l,i){
+  //     w[l]=w[l]||[];
+  //     w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+  //     var f=d.getElementsByTagName(s)[0],
+  //         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+  //     j.async=true;
+  //     j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+  //     f.parentNode.insertBefore(j,f);
+  //   })(window,document,'script','dataLayer','GTM-KR7LGXFF');
+  // }, []);
 
-  useEffect(() => {
-    // Only continue if the user's location changed.
-    if (lastLocationKey.current === location.key) return;
-    lastLocationKey.current = location.key;
 
-    // Analytics data, including browser information
-    const payload = {
-      ...getClientBrowserParameters(),
-      ...pageAnalytics,
-    };
+  // console.log(data)
 
-    // Send analytics payload to Shopify
-    sendShopifyAnalytics({
-      eventName: AnalyticsEventName.PAGE_VIEW,
-      payload,
-    });
+  // DIBAWAH INI MERUPAKAN KODE TEMPORARY TANGGAL 23 JANUARI 2024
+   // Register the service worker when the component mounts
+  //  useEffect(() => {
+  //   if ('serviceWorker' in navigator) {
+  //     navigator.serviceWorker
+  //       .register('/service-worker.js')
+  //       .then((registration) => {
+  //         console.log('Service Worker registered with scope:', registration.scope);
+  //       })
+  //       .catch((error) => {
+  //         console.error('Service Worker registration failed:', error);
+  //       });
+  //   }
+  // }, []);
 
-  }, [location]);
-  
+    // DIBAWAH INI MERUPAKAN KODE TEMPORARY TANGGAL 23 JANUARI 2024
+
 
   return (
     <html lang="en">
