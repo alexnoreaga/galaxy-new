@@ -457,7 +457,7 @@ DP : 0
 
   
   {selectedVariant?.availableForSale
-  && <TombolWa product={product}/>}
+  && <TombolWa product={product} canonicalUrl={canonicalUrl}/>}
 
   {product?.metafields[12]?.value && <TombolWaDiscontinue product={product} />}
 
@@ -753,7 +753,7 @@ function MarketPlace({link}){
 
 
 
-function TombolWa({product}){
+function TombolWa({product,canonicalUrl}){
   // const infoChat = `Hi admin Galaxy saya berminat tentang produk ${namaProduk}. Boleh dibantu untuk info lebih lanjut`
   const namaProduk = product.title
   const urlProduk = product.handle
@@ -763,7 +763,7 @@ function TombolWa({product}){
     <>
         <div className='text-sm text-gray-500 mt-1'>Ingin harga best price dari kami? Yuk Negoin aja</div>
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
-            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${urlProduk}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
+            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
       </div>
 
      
