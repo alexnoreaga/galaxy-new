@@ -258,7 +258,7 @@ DP : 0
 
     // console.log(liveshopee.metaobjects?.edges[0]?.node)
 
-    console.log('Garansissssssssssssssssssssssssss ',product)
+    // console.log('Garansissssssssssssssssssssssssss ',product)
 
     const [bukaModal, setBukaModal] = useState(false)
 

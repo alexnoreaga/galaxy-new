@@ -105,18 +105,18 @@ export default function App() {
   const nonce = useNonce();
   const data = useLoaderData();
 
-  useEffect(() => {
-    // Google Tag Manager script
-    (function(w,d,s,l,i){
-      w[l]=w[l]||[];
-      w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
-      var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
-      j.async=true;
-      j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-      f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-KR7LGXFF');
-  }, []);
+  // useEffect(() => {
+  //   // Google Tag Manager script
+  //   (function(w,d,s,l,i){
+  //     w[l]=w[l]||[];
+  //     w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+  //     var f=d.getElementsByTagName(s)[0],
+  //         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+  //     j.async=true;
+  //     j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+  //     f.parentNode.insertBefore(j,f);
+  //   })(window,document,'script','dataLayer','GTM-KR7LGXFF');
+  // }, []);
 
 
   // console.log(data)
@@ -142,7 +142,7 @@ export default function App() {
   return (
     <html lang="en">
       <head>
-      <script defer>
+      {/* <script defer>
           {`
             (function(w,d,s,l,i){
               w[l]=w[l]||[];
@@ -164,7 +164,7 @@ export default function App() {
       gtag('js', new Date());
       gtag('config', 'G-L77JNHKH0K');
     `}
-  </script>
+  </script> */}
         
 
         <meta charSet="utf-8" />
@@ -190,15 +190,16 @@ export default function App() {
 <meta name="theme-color" content="#ffffff"></meta>
 <link rel="manifest" href="/manifest.json" />
 {/* <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https: shopify.com myshopify.com cloudflare.com google.com googletagmanager.com google-analytics.com; object-src 'self' https: shopify.com myshopify.com cloudflare.com google.com;"></meta> */}
+{/* <meta http-equiv="Content-Security-Policy" content={`default-src 'self' https://cdn.shopify.com https://shopify.com 'nonce-${nonce}'; script-src 'self' https://www.googletagmanager.com;`} /> */}
 
         <Seo />
         <Meta />
         <Links />
       </head>
       <body>
-        <noscript>
+        {/* <noscript>
         <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KR7LGXFF" height="0" width="0" style={{display: 'none', visibility: 'hidden'}}></iframe>
-        </noscript>
+        </noscript> */}
 
         <Layout {...data}>
           <Outlet />

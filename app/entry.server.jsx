@@ -3,6 +3,7 @@ import isbot from 'isbot';
 import {renderToReadableStream} from 'react-dom/server';
 import {createContentSecurityPolicy} from '@shopify/hydrogen';
 
+
 export default async function handleRequest(
   request,
   responseStatusCode,
@@ -23,7 +24,10 @@ export default async function handleRequest(
     frameSrc: [
         "'self'",
         'https://www.google.com',
-        'https://www.youtube.com'
+        'https://www.youtube.com',
+        'https://www.googletagmanager.com',
+        'https://tagmanager.google.com',
+        'https://analytics.google.com/'
 
     ]
 });

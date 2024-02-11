@@ -81,7 +81,7 @@ export default function Collection() {
 
 
 
-  console.log(' Collection Products ',collection)
+  // console.log(' Collection Products ',collection)
 
   return (
     <div className="collection">

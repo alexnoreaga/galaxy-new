@@ -71,7 +71,7 @@ export async function loader({context,request}) {
 export default function Homepage() {
   const data = useLoaderData();
 
-  console.log('hello ', data.bannerKecil.metaobjects.nodes)
+  // console.log('hello ', data.bannerKecil.metaobjects.nodes)
   // console.log(data.banner.metaobjects.nodes)
   // console.log('test adalah',data.hasilCollection.collections.nodes)
 
