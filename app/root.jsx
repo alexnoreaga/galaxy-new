@@ -156,6 +156,17 @@ export default function App() {
           `}
         </script>
 
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-L77JNHKH0K"></script>
+  <script>
+    {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-L77JNHKH0K');
+    `}
+  </script>
+        
+
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="theme-color" content="#000000"></meta>
@@ -188,7 +199,7 @@ export default function App() {
         <noscript>
         <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KR7LGXFF" height="0" width="0" style={{display: 'none', visibility: 'hidden'}}></iframe>
         </noscript>
-        
+
         <Layout {...data}>
           <Outlet />
         </Layout>
