@@ -118,11 +118,7 @@ export async function loader({context}) {
       footerSatu
     },
     {headers},
-      {analytics: {
-        // Hard-coded for demonstration purposes.
-        // In production, retrieve this value from the Storefront API.
-        shopId: "gid://shopify/Shop/67238068470",
-      }},
+    {analyticsData},
   );
 }
 
@@ -130,20 +126,7 @@ export default function App() {
   const nonce = useNonce();
   const data = useLoaderData();
 
-  // console.log('Ini adalah data 2023',data)
 
-  // useEffect(() => {
-  //   // Google Tag Manager script
-  //   (function(w,d,s,l,i){
-  //     w[l]=w[l]||[];
-  //     w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
-  //     var f=d.getElementsByTagName(s)[0],
-  //         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
-  //     j.async=true;
-  //     j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-  //     f.parentNode.insertBefore(j,f);
-  //   })(window,document,'script','dataLayer','GTM-KR7LGXFF');
-  // }, []);
 
 
   // console.log(data)
@@ -169,29 +152,18 @@ export default function App() {
   return (
     <html lang="en">
       <head>
-      {/* <script defer>
-          {`
-            (function(w,d,s,l,i){
-              w[l]=w[l]||[];
-              w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
-              var f=d.getElementsByTagName(s)[0],
-                  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
-              j.async=true;
-              j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-              f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-KR7LGXFF');
-          `}
-        </script>
 
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-L77JNHKH0K"></script>
-  <script>
-    {`
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-L77JNHKH0K');
-    `}
-  </script> */}
+
+        <script nonce={nonce}
+dangerouslySetInnerHTML={{__html:`
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L77JNHKH0K');
+`}}></script>
+
+
+
         
 
         <meta charSet="utf-8" />
@@ -216,8 +188,6 @@ export default function App() {
 <meta name="msapplication-TileImage" content="/ms-icon-144x144.png"/>
 <meta name="theme-color" content="#ffffff"></meta>
 <link rel="manifest" href="/manifest.json" />
-{/* <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https: shopify.com myshopify.com cloudflare.com google.com googletagmanager.com google-analytics.com; object-src 'self' https: shopify.com myshopify.com cloudflare.com google.com;"></meta> */}
-{/* <meta http-equiv="Content-Security-Policy" content={`default-src 'self' https://cdn.shopify.com https://shopify.com 'nonce-${nonce}'; script-src 'self' https://www.googletagmanager.com;`} /> */}
 
         <Seo />
         <Meta />

@@ -29,7 +29,8 @@ export default async function handleRequest(
         'https://tagmanager.google.com',
         'https://analytics.google.com/'
 
-    ]
+    ],
+
 });
 
 
