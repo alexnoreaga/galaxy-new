@@ -88,7 +88,10 @@ export default function Homepage() {
       <RenderCollection collections={data.hasilCollection.collections}/>
       </div>
 
-      {/* <YoutubeLink/> */}
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      <YoutubeLink/>
+      </div>
+
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <RecommendedProducts products={data.recommendedProducts} />
       </div>
@@ -277,11 +280,11 @@ function RenderCollection({collections}) {
   return (
     <section className="w-full gap-4">
     <div className='flex flex-row items-center justify-between m-1 mb-2'>
-        <div className="text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+        <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
           Kategori Populer
         </div>
         <Link to={`/collections/`}>
-        <div className='text-slate-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+        <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
       <div className="grid-flow-row grid grid-cols-2 gap-0 lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
@@ -301,7 +304,7 @@ function RenderCollection({collections}) {
                   />
                   </div>
                 )}
-                <p className="text-slate-800 whitespace-normal max-w-prose text-copy text-center text-sm">
+                <p className="text-gray-800 whitespace-normal max-w-prose text-copy text-center text-sm">
                   {collection.title}
                 </p>
               </div>
@@ -311,7 +314,7 @@ function RenderCollection({collections}) {
         
       </div>
       {/* <Link to={`/collections/`}>
-          <div className="block sm:hidden text-slate-800 text-sm mx-auto mt-2 w-48 p-1 text-center rounded-md bg-slate-100 hover:no-underline ">Kategori Selengkapnya</div>
+          <div className="block sm:hidden text-gray-800 text-sm mx-auto mt-2 w-48 p-1 text-center rounded-md bg-gray-100 hover:no-underline ">Kategori Selengkapnya</div>
         </Link> */}
     </section>
   );
@@ -329,8 +332,8 @@ function RecommendedProducts({products}) {
 
   
   return (
-    <div className="recommended-products text-slate-800">
-      <h2 className='text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead'>Produk Terbaru</h2>
+    <div className="recommended-products text-gray-800">
+      <h2 className='text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead'>Produk Terbaru</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
@@ -352,18 +355,18 @@ function RecommendedProducts({products}) {
                   {/* <h3 class="absolute p-1.5 rounded-full bg-gradient-to-r from-red-500 to-red-700 text-xs font-bold text-white top-1 right-1">5%</h3> */}
                   </div>
            
-                  <div className='text-sm my-1 text-slate-800'>{product.title}</div>
+                  <div className='text-sm my-1 text-gray-800'>{product.title}</div>
 
                   {/* <div>{parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount)}</div>
                   <div>{product.priceRange.minVariantPrice.amount}</div> */}
                   
                   {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
-                  <div className='text-sm  line-through text-slate-600'>
+                  <div className='text-sm  line-through text-gray-600'>
                     {/* <Money data={product.compareAtPriceRange?.minVariantPrice} /> */}
                     <div>Rp{parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount).toLocaleString()}</div>                    
                   </div>
                   ) }
-                  <div className='text-xs font-bold text-slate-800 flex flex-row items-center gap-1 mb-2 mt-2'>
+                  <div className='text-xs font-bold text-gray-800 flex flex-row items-center gap-1 mb-2 mt-2'>
                   {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
                     <div className='bg-rose-700 p-0.5 ml-0 text-white text-xs rounded'><HitunganPersen hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount} hargaSesudah={product.priceRange.minVariantPrice.amount}/></div> ) }
                     
@@ -399,11 +402,11 @@ function FeaturedBlogs2({blogs}){
   return(
     <div>
       <div className='flex flex-row items-center justify-between m-1 mb-2'>
-        <div className="text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+        <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
           Artikel dan Review
         </div>
         <Link to={`/blogs/`}>
-        <div className='text-slate-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+        <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
       <div className='flex flex-col sm:flex-row gap-4 '>
@@ -462,11 +465,11 @@ function FeaturedBlogs({ blogs }) {
   return (
     <div>
     <div className='flex flex-row items-center justify-between m-1 mb-2'>
-        <div className="text-slate-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+        <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
           Artikel dan Review
         </div>
         <Link to={`/blogs/`}>
-        <div className='text-slate-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+        <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
       <div className='flex flex-col sm:flex-row gap-4 justify-between'>
