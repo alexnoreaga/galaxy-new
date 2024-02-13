@@ -20,7 +20,8 @@ export const BottomNavbar = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">Home</p>
             </button>
             </Link>
-        <a href="#search-aside" className="m-auto">
+
+        {/* <a href="#search-aside" className="m-auto">
             <button type="button" className="inline-flex flex-col items-center justify-center  dark:hover:bg-gray-800 group">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -28,7 +29,21 @@ export const BottomNavbar = () => {
 
                 <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">Cari</p>
             </button>
-        </a>
+        </a> */}
+
+        <Link
+                className="m-auto"
+                prefetch="intent"
+                to='/search'
+                >
+        <button type="button" className="inline-flex flex-col items-center justify-center  dark:hover:bg-gray-800 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+
+                <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">Cari</p>
+            </button>
+        </Link>
 
         <Link
                 className="m-auto"
@@ -47,7 +62,7 @@ export const BottomNavbar = () => {
         <Link
                 className="m-auto"
                 prefetch="intent"
-                to='/pages/contact'
+                to='/'
                 >
             <button type="button" className="inline-flex flex-col items-center justify-center  dark:hover:bg-gray-800 group">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">
@@ -62,7 +77,7 @@ export const BottomNavbar = () => {
         <Link
                 className="m-auto"
                 prefetch="intent"
-                to='/search'
+                to='/pages/contact'
                 >
             <button type="button" className="inline-flex flex-col items-center justify-center dark:hover:bg-gray-800 group">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">
