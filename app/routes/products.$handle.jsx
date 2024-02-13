@@ -980,15 +980,26 @@ export const meta = ({data}) => {
   const urlSekarang = lokasi.pathname
   // const today = new Date();
 
-  const title = data?.product?.title + ' Harga Murah & Terbaik'
+  
+
 
   const today = new Date();
+    const monthNames = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const indonesianMonth = monthNames[today.getMonth()];
+    const year = today.getFullYear();
 
   // Get the end of the current month
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
   // Format the end date as "YYYY-MM-DD"
   const endDateFormatted = endOfMonth.toISOString().split('T')[0];
+
+  const title = data?.product?.title + ' Harga Murah & Terbaru ' + indonesianMonth + ' ' +year
+
+  // console.log('Ini adalah title ',title)
 
 
 // images.edges[0].node.src
