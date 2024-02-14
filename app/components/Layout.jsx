@@ -32,9 +32,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
-      <div className="">
       <Breadcrumbs/>
-      </div>
 
       <main>{children}</main>
 

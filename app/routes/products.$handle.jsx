@@ -318,11 +318,18 @@ DP : 0
 
             <div className="grid gap-2 w-full">
               <h1 className="text-4xl font-bold leading-10 whitespace-normal " onClick={()=>copyToClipboard(hargaCashCopy)}>
-                {product.title}
+                {product.title} 
               </h1>
               {/* <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
                 {product.title}
               </h1> */}
+              {product?.metafields[12]?.value == "true" && <div className='bg-rose-700 flex flex-row items-center px-2 gap-2 text-center text-white text-base p-1 rounded-lg'>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+
+              <div>Produk Discontinue</div>
+              </div> }
             </div>
 
 <div className='flex flex-row gap-1'>
@@ -413,7 +420,7 @@ DP : 0
 
 
 
-{!product?.metafields[12]?.value  &&(
+{!product?.metafields[12]?.value &&(
 <CartForm
   route="/cart"
   inputs={{
@@ -456,10 +463,11 @@ DP : 0
 
 
   
-  {selectedVariant?.availableForSale
+{selectedVariant?.availableForSale 
+  && product?.metafields[12]?.value != "true" 
   && <TombolWa product={product} canonicalUrl={canonicalUrl}/>}
 
-  {product?.metafields[12]?.value && <TombolWaDiscontinue product={product} />}
+  {product?.metafields[12]?.value == "true" && <TombolWaDiscontinue product={product} />}
 
 
     {liveshopee.metaobjects?.edges[0]?.node?.fields[1].value == 'true' && <LiveShopee url={liveshopee.metaobjects?.edges[0]?.node?.fields[0].value}/>}
@@ -706,20 +714,15 @@ function MarketPlace({link}){
   
     const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
 
-    console.log('Ini displyaed images', productData?.metafields[12]?.value)
+    // console.log('Ini displyaed images', productData?.metafields[12]?.value)
   
     return (
       <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
         <div className="md:w-4/5 mx-auto ">
-          <div className='relative'>
           
-          <img src={selectedImage} alt="Product" className={`w-full h-auto shadow rounded ${productData?.metafields[12]?.value == "true" && 'opacity-50'}`} />
-          {productData?.metafields[12]?.value == "true" &&
-          <div class="p-2 rounded-lg m-auto absolute text-2xl font-bold bg-gray-950 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            PRODUK DISCONTINUE</div>
-          }
-          </div>
-       
+          <img src={selectedImage} alt="Product" className={`w-full h-auto shadow rounded`} />
+
+   
         </div>
         <div className="md:w-5/5 ">
           <div className="grid grid-cols-4 gap-4 md:mt-4 w-5/5 mx-auto">

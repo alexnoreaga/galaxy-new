@@ -9,7 +9,7 @@ export const FooterColumn2 = () => {
             <div className='text-white font-bold py-1'>GALAXY.CO.ID</div>
             <div>
             <Link
-                to={`/`}>
+                to={`/pages/tentang-kami`}>
                 <div className='text-white text-sm py-1'>Tentang Kami</div>
             </Link>            </div>
             <div>
