@@ -3,7 +3,7 @@ import {Link, useLoaderData} from '@remix-run/react';
 import {Image, Pagination, getPaginationVariables} from '@shopify/hydrogen';
 
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data.blog.title} blog`}];
+  return [{title: `Galaxy Camera Store | ${data.blog.title} blog`}];
 };
 
 export const loader = async ({request, params, context: {storefront}}) => {

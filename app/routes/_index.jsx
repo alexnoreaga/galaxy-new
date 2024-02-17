@@ -85,6 +85,7 @@ export default function Homepage() {
         </div>
       
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      {/* <div className="bg-red-700"> */}
       <RenderCollection collections={data.hasilCollection.collections}/>
       </div>
 

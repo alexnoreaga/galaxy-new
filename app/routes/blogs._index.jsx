@@ -3,8 +3,12 @@ import {Link, useLoaderData} from '@remix-run/react';
 import {Pagination, getPaginationVariables} from '@shopify/hydrogen';
 
 export const meta = () => {
-  return [{title: `Hydrogen | Blogs`}];
+  return [{title: `Berita dan Artikel Blog | Galaxy Camera Store`}];
 };
+
+// export const handle = {
+//   breadcrumb: () => <Link to="/blogs">Some Route</Link>,
+// };
 
 export const loader = async ({request, context: {storefront}}) => {
   const paginationVariables = getPaginationVariables(request, {

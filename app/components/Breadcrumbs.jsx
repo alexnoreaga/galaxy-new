@@ -15,6 +15,8 @@ const pages = [{href:'/',name:'Home'}]
 
 const isvalidBreadcrumbType = parsedBreadcrumbType.success
 
+console.log('Apakah berhasil disini ?',isvalidBreadcrumbType)
+
 if(isvalidBreadcrumbType){
     switch(parsedBreadcrumbType.data){
         case 'collections':
