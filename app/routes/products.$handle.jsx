@@ -152,7 +152,7 @@ export async function loader({params, context, request}) {
     let cicilanKartuKredit12Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit12Bln) / 12)/10)*10)
 
     const hargaCash = `${product.title}${product?.selectedVariant?.title !== "Default Title" && product?.selectedVariant?.title !== undefined ? ' - ' + product?.selectedVariant?.title : ''}\n` +
-    `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString()  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString() + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString() + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString()+ '\n'}` +
+    `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString("id-ID") + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString("id-ID") + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")+ '\n'}` +
     `${product?.metafields[1]?.value ? 'FREE : ' + product?.metafields[1].value + '\n' : ''}`+
     `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
     `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
@@ -163,9 +163,9 @@ export async function loader({params, context, request}) {
       let listCicilan = `${hargaCash}
 
 Cicilan Kartu Kredit (Via Blibli)
-3x : ${cicilanKartuKredit3Bulan.toLocaleString()}
-6x : ${cicilanKartuKredit6Bulan.toLocaleString()}
-12x : ${cicilanKartuKredit12Bulan.toLocaleString()}
+3x : ${cicilanKartuKredit3Bulan.toLocaleString("id-ID")}
+6x : ${cicilanKartuKredit6Bulan.toLocaleString("id-ID")}
+12x : ${cicilanKartuKredit12Bulan.toLocaleString("id-ID")}
   `
     return listCicilan
     
@@ -174,9 +174,9 @@ Cicilan Kartu Kredit (Via Blibli)
         let listCicilan = `${hargaCash}
 
 Cicilan Kartu Kredit 0% (Via Blibli)
-3x : ${cicilanKartuKredit3Bulan.toLocaleString()}
-6x : ${cicilanKartuKredit6Bulan.toLocaleString()}
-12x : ${cicilanKartuKredit12Bulan.toLocaleString()}
+3x : ${cicilanKartuKredit3Bulan.toLocaleString("id-ID")}
+6x : ${cicilanKartuKredit6Bulan.toLocaleString("id-ID")}
+12x : ${cicilanKartuKredit12Bulan.toLocaleString("id-ID")}
   `
   return listCicilan
     
@@ -216,7 +216,7 @@ Cicilan Kartu Kredit 0% (Via Blibli)
     
       
     const hargaCash = `${product.title}${product?.selectedVariant?.title !== "Default Title" && product?.selectedVariant?.title !== undefined ? ' - ' + product?.selectedVariant?.title : ''}\n` +
-    `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString()  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString() + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString() + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString()+ '\n'}` +
+    `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString("id-ID") + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString("id-ID") + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")+ '\n'}` +
     `${product?.metafields[1]?.value ? 'FREE : ' + product?.metafields[1].value + '\n' : ''}`+
     `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
     `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
@@ -228,9 +228,9 @@ Cicilan Kartu Kredit 0% (Via Blibli)
 Cicilan Tanpa Kartu Kredit
 Estimasi Cicilan Kredivo
 DP : 0
-3X : ${cicilanKredivo3Bulan.toLocaleString()}
-6X : ${cicilanKredivo6Bulan.toLocaleString()}
-12X : ${cicilanKredivo12Bulan.toLocaleString()}
+3X : ${cicilanKredivo3Bulan.toLocaleString("id-ID")}
+6X : ${cicilanKredivo6Bulan.toLocaleString("id-ID")}
+12X : ${cicilanKredivo12Bulan.toLocaleString("id-ID")}
 `
       return listCicilan
       
@@ -241,22 +241,22 @@ DP : 0
 Cicilan Tanpa Kartu Kredit
 Estimasi Cicilan Kredivo
 DP : 0
-3x : ${cicilanKredivo3Bulan.toLocaleString()}
-6x : ${cicilanKredivo6Bulan.toLocaleString()}
-12x : ${cicilanKredivo12Bulan.toLocaleString()}
+3x : ${cicilanKredivo3Bulan.toLocaleString("id-ID")}
+6x : ${cicilanKredivo6Bulan.toLocaleString("id-ID")}
+12x : ${cicilanKredivo12Bulan.toLocaleString("id-ID")}
       
 Estimasi Cicilan Homecredit
 DP : 0
-6x : ${cicilanHci6Bulan.toLocaleString()}
-9x : ${cicilanHci9Bulan.toLocaleString()}
-12x : ${cicilanHci12Bulan.toLocaleString()}
-15x : ${cicilanHci15Bulan.toLocaleString()}
-18x : ${cicilanHci18Bulan.toLocaleString()}
+6x : ${cicilanHci6Bulan.toLocaleString("id-ID")}
+9x : ${cicilanHci9Bulan.toLocaleString("id-ID")}
+12x : ${cicilanHci12Bulan.toLocaleString("id-ID")}
+15x : ${cicilanHci15Bulan.toLocaleString("id-ID")}
+18x : ${cicilanHci18Bulan.toLocaleString("id-ID")}
     
 Promo Bunga Rendah Homecredit (Gratis 1 Kali Cicilan)
 DP : 0
-6x : ${cicilanPromoHci5Bulan.toLocaleString()} (Cukup Bayar 5x)
-9x : ${cicilanPromoHci8Bulan.toLocaleString()} (Cukup Bayar 8x)
+6x : ${cicilanPromoHci5Bulan.toLocaleString("id-ID")} (Cukup Bayar 5x)
+9x : ${cicilanPromoHci8Bulan.toLocaleString("id-ID")} (Cukup Bayar 8x)
 `
     return listCicilan
       
@@ -287,7 +287,7 @@ DP : 0
     const [bukaModal, setBukaModal] = useState(false)
 
     const hargaCashCopy = `${product.title}${product?.selectedVariant?.title !== "Default Title" && product?.selectedVariant?.title !== undefined ? ' - ' + product?.selectedVariant?.title : ''}\n` +
-      `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString()  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString() + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString() + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString()+ '\n'}` +
+      `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString("id-ID") + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString("id-ID") + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")+ '\n'}` +
       `${product?.metafields[1]?.value ? 'FREE : ' + product?.metafields[1].value + '\n' : ''}`+
       `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
       `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
@@ -417,7 +417,7 @@ DP : 0
                     }}
                     className="text-xl line-through text-slate-600"
                   /> */}
-                  <div className="text-xl line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString()}</div>
+                  <div className="text-xl line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
                 </div>
               )}
             
@@ -426,10 +426,10 @@ DP : 0
                 data={selectedVariant.price}
                 className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
               /> */}
-              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={`text-2xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString()} </div>
+              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={`text-2xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
           </div> 
 
-          <div className='text-sm text-gray-700'>Cicilan Mulai dari <span className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString()}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
+          <div className='text-sm text-gray-700'>Cicilan Mulai dari <span className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
           {/* <div onClick={()=>setBukaModal(true)} className="text-rose-700 font-semibold text-sm cursor-pointer">Lihat Angsuran</div>   */}
 
 
