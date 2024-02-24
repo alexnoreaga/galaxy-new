@@ -52,6 +52,15 @@ export async function loader({params, context, request}) {
         },
       });
 
+      const admgalaxy = await context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
+        variables: {
+          type: "admin_galaxy", // Value for the 'type' variable
+          first: 10, // Value for the 'first' variable
+        },
+      });
+
+      
+
       const marketplace = await context.storefront.query(METAOBJECT_MARKETPLACE, {
         variables: {
           type: "marketplace", // Value for the 'type' variable
@@ -78,6 +87,7 @@ export async function loader({params, context, request}) {
 
 
         return json({
+          admgalaxy,
           shop,
           product,
           selectedVariant,
@@ -96,6 +106,7 @@ export async function loader({params, context, request}) {
         console.error('Brand value not found.');
 
         return json({
+          admgalaxy,
           shop,
           product,
           selectedVariant,
@@ -259,7 +270,7 @@ DP : 0
 
 
   export default function ProductHandle() {
-    const {canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
+    const {admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
     // console.log(customerAccessToken)
     // console.log('produk ',product?.metafields[12]?.value)
@@ -268,7 +279,7 @@ DP : 0
 
     // console.log(liveshopee.metaobjects?.edges[0]?.node)
 
-    // console.log('Garansissssssssssssssssssssssssss ',product)
+    // console.log('Garansissssssssssssssssssssssssss ',admgalaxy)
 
     const [bukaModal, setBukaModal] = useState(false)
 
@@ -686,7 +697,7 @@ function MarketPlace({link}){
 
   const ImageGallery = ({ productData }) => {
 
-    console.log('Ini adalah hasil dari gambar ',productData)
+    // console.log('Ini adalah hasil dari gambar ',productData)
 
     const [selectedImage, setSelectedImage] = useState(productData.images.edges[0].node.src);
     const [startIndex, setStartIndex] = useState(0);
@@ -720,7 +731,7 @@ function MarketPlace({link}){
       <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
         <div className="md:w-4/5 mx-auto ">
           
-          <img src={selectedImage} alt="Product" className={`w-full h-auto shadow rounded`} />
+          <img src={selectedImage} alt={productData?.title} className={`w-full h-auto shadow rounded`} />
 
    
         </div>

@@ -1,4 +1,4 @@
-import {Await,Link} from '@remix-run/react';
+import {Await,Link,useLoaderData} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Aside} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
@@ -13,15 +13,28 @@ import { useHistory ,useLocation } from 'react-router-dom';
 import { TombolWa } from './TombolWa';
 import React, { useEffect, useRef } from 'react';
 import { Breadcrumbs } from './Breadcrumbs';
+import { emailGo } from '../routes/account.profile';
+import {defer} from '@shopify/remix-oxygen';
 
 
-export function Layout({cart, children = null, footer, header, isLoggedIn,footerSatu}) {
 
+
+export function Layout({cart, children = null, footer, header, isLoggedIn,footerSatu,contex}) {
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
+
+
+
+
+    // const {email} = passingEmail()
+    // console.log('Ini adalah hasil email passing ',passingEmail())
+
     // console.log(lokasi, 'lokasi sekarang')
     // console.log(window.location.href)
     // console.log('link sekarang',urlSekarang)
+
+
+    // console.log('Email pass adalah',emailGo)
     
 
   return (
@@ -134,4 +147,5 @@ function MobileMenuAside({menu}) {
     </Aside>
   );
 }
+
 

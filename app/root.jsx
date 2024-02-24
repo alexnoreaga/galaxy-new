@@ -174,6 +174,14 @@ dangerouslySetInnerHTML={{__html:`
   gtag('config', 'G-CY1F8L58R5');
 `}}></script>
 
+{/* <script nonce={nonce}
+dangerouslySetInnerHTML={{__html:`
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L77JNHKH0K');
+`}}></script> */}
+
 
 
         

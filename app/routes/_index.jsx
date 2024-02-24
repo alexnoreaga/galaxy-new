@@ -1,5 +1,5 @@
 import {defer} from '@shopify/remix-oxygen';
-import {Await, useLoaderData, Link} from '@remix-run/react';
+import {Await, useLoaderData, Link,useOutletContext} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
@@ -17,9 +17,15 @@ import {YoutubeLink} from '~/components/YoutubeLink';
 import { Carousel } from '~/components/Carousel';
 import { Modal } from '~/components/Modal';
 import { AboutSeo } from '~/components/AboutSeo';
+import { TombolWa } from '~/components/TombolWa';
+import { TombolBalasCepat } from '~/components/TombolBalasCepat';
+import { ModalBalasCepat } from '~/components/ModalBalasCepat';
+
+
 
 
 export async function loader({context,request}) {
+  const customerAccessToken = await context.session.get('customerAccessToken');
   
   const {storefront} = context;
   const {collections} = await storefront.query(FEATURED_COLLECTION_QUERY);
@@ -32,10 +38,34 @@ export async function loader({context,request}) {
   const banner = await storefront.query(BANNER_QUERY);
   const bannerKecil = await storefront.query(BANNER_KECIL_QUERY);
 
+
+
+
+  const custEmail = await storefront.query(CUSTOMER_EMAIL_QUERY, {
+    variables: {
+      customertoken: customerAccessToken?.accessToken? customerAccessToken?.accessToken:'', // Value for the 'first' variable
+    }, 
+  });
+
+  const admgalaxy = await context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
+    variables: {
+      type: "admin_galaxy", // Value for the 'type' variable
+      first: 10, // Value for the 'first' variable
+    },
+  });
+
+
+
   const blogs = await storefront.query(GET_ARTIKEL,{
     variables:{
       first:3,
       reverse:true,
+    },
+  });
+
+  const balasCepat = await storefront.query(BALAS_CEPAT,{
+    variables:{
+      first:20,
     },
   });
 
@@ -60,7 +90,7 @@ export async function loader({context,request}) {
 
 
   
-  return defer({canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
+  return defer({admgalaxy,balasCepat,custEmail,customerAccessToken,canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
 }
 
 
@@ -71,15 +101,20 @@ export async function loader({context,request}) {
 export default function Homepage() {
   const data = useLoaderData();
 
-  // console.log('hello ', data.bannerKecil.metaobjects.nodes)
-  // console.log(data.banner.metaobjects.nodes)
-  // console.log('test adalah',data.hasilCollection.collections.nodes)
+  // const account = useActionData()
+  const [bukaModalBalasCepat, setBukaModalBalasCepat] = useState(false)
 
+  // console.log('Akses Email',data)
+
+  const foundAdmin = data?.admgalaxy?.metaobjects?.edges.find(admin => admin?.node?.fields[0]?.value === data?.custEmail?.customer?.email);
+
+  // console.log('Admin ketemu ?', foundAdmin)
 
   return (
     <div>
       {/* <FeaturedCollection collection={data.featuredCollection} /> */}
       {/* <Modal/> */}
+      {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={data?.balasCepat?.metaobjects?.nodes}/>}
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <Carousel images={data.banner.metaobjects} />
         </div>
@@ -110,6 +145,10 @@ export default function Homepage() {
       </div>
 
       <AboutSeo/>
+
+      {foundAdmin && <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} />}
+
+      {/* { data.admgalaxy.metaobjects.edges.find(admin => admin.node.fields[0].value == data.custEmail.customer)} */}
     
     </div>
   );
@@ -236,7 +275,7 @@ function BannerKecil({images}) {
          
           <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
             <a href={image.fields[1].value} target="_blank">
-            <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} className='w-80'/>
+            <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} className='w-80 rounded-md'/>
             </a>
           </div>
           
@@ -655,6 +694,22 @@ query BrandQuery{
   }}
 `
 
+const BALAS_CEPAT = `#graphql
+query BrandQuery($first:Int!){
+    metaobjects(first:$first type:"balas_cepat"){
+      
+    nodes {
+      id
+      fields {
+        value
+        key
+           
+        
+      }
+    }
+  }}
+`
+
 const GET_BRAND_IMAGE = `#graphql
 query BrandImage($id: ID!){
   metaobject(id:$id){
@@ -703,6 +758,20 @@ const GET_BLOGS = `#graphql
       }
   }}
 `;
+
+const METAOBJECT_ADMIN_GALAXY = `#graphql
+query metaobjects($type: String!, $first: Int!) {
+  metaobjects(type: $type, first: $first) {
+    edges {
+      node {
+        id
+        fields {
+          value
+        }
+      }
+    }
+  }
+}`;
 
 
 const GET_ARTIKEL = `#graphql
@@ -833,3 +902,11 @@ export const meta = ({data}) => {
   },
 ];
 };
+
+
+const CUSTOMER_EMAIL_QUERY = `#graphql
+query CustomerEmailQuery($customertoken: String!) {
+  customer(customerAccessToken: $customertoken) {
+    email
+  }
+}`;

@@ -6,6 +6,25 @@ import {
   useOutletContext,
 } from '@remix-run/react';
 
+// const [emailSekarang,setEmailSekarang] = useState('test')
+
+// export async function emailGo ({context}) {
+
+//   const customerAccessToken = await context.session.get('customerAccessToken');
+
+
+//   const custEmail = await context.storefront.query(CUSTOMER_EMAIL_QUERY, {
+//     variables: {
+//       customertoken: customerAccessToken, // Value for the 'first' variable
+//     }, 
+//   });
+
+//   return {custEmail}
+// }
+
+
+
+
 export const meta = () => {
   return [{title: 'Profile'}];
 };
@@ -99,6 +118,8 @@ export default function AccountProfile() {
   const {state} = useNavigation();
   const action = useActionData();
   const customer = action?.customer ?? account?.customer;
+
+  // console.log('Ini adalah customer ',customer.email)
 
   return (
     <div className="account-profile">
@@ -279,3 +300,10 @@ const CUSTOMER_UPDATE_MUTATION = `#graphql
     }
   }
 `;
+
+
+
+
+
+
+
