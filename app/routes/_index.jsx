@@ -50,7 +50,7 @@ export async function loader({context,request}) {
   const admgalaxy = await context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
     variables: {
       type: "admin_galaxy", // Value for the 'type' variable
-      first: 10, // Value for the 'first' variable
+      first: 20, // Value for the 'first' variable
     },
   });
 
@@ -65,7 +65,7 @@ export async function loader({context,request}) {
 
   const balasCepat = await storefront.query(BALAS_CEPAT,{
     variables:{
-      first:20,
+      first:100,
     },
   });
 
