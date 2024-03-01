@@ -1,8 +1,14 @@
 import {json} from '@shopify/remix-oxygen';
-import {useLoaderData} from '@remix-run/react';
+import {useLoaderData,useMatches,Link} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
 import {useLocation } from 'react-router-dom';
 
+
+export const handle = {
+
+
+  breadcrumb: () => <Link to="/blogs/artikel">Home</Link>,
+};
 
 export const meta = ({data}) => {
   
@@ -80,7 +86,11 @@ export default function Article() {
   const {article} = useLoaderData();
   const {title, image, contentHtml, author} = article;
 
-  // console.log('Artikel adalah, ', article)
+  const matches = useMatches();
+
+  
+
+  console.log('Artikel adalah, ', matches)
 
   const publishedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',

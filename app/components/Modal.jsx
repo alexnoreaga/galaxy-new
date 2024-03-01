@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statusOpen,setBukaModal}) => {
+export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statusOpen,setBukaModal,bungaHCI,admKredivo,adminFee3BulanKredivo,adminKartuKredit6Bulan,adminKartuKredit12Bulan}) => {
   const handleCloseModal = () => {
     setBukaModal(false);
   };
@@ -10,6 +10,30 @@ export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statu
       `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
       `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
       `Link : ${canonicalUrl}`;
+
+
+
+let newHargaFinal = Number(parseFloat(selectedVariant.price.amount))
+
+let bungaKredivo = (admKredivo * newHargaFinal) / 100 
+let adminFee3Bulan = (adminFee3BulanKredivo * newHargaFinal) / 100
+let cicilanKredivo3Bulan = Math.ceil(((newHargaFinal + adminFee3Bulan) / 3) / 10) * 10;
+let cicilanKredivo6Bulan = Math.ceil(((newHargaFinal / 6) + bungaKredivo) / 10) * 10;
+let cicilanKredivo12Bulan = Math.ceil(((newHargaFinal / 12) + bungaKredivo) / 10) * 10;
+
+let bungaHci = (bungaHCI * newHargaFinal) / 100;
+let cicilanHci6Bulan = Math.ceil(((newHargaFinal / 6) + bungaHci) / 10) * 10;
+let cicilanHci9Bulan = Math.ceil(((newHargaFinal / 9) + bungaHci) / 10) * 10;
+let cicilanHci12Bulan = Math.ceil(((newHargaFinal / 12) + bungaHci) / 10) * 10;
+   
+      // HITUNGAN KARTU KREDIT START HERE
+let biayaAdmKartuKredit6Bln = (adminKartuKredit6Bulan * newHargaFinal) / 100
+let biayaAdmKartuKredit12Bln = (adminKartuKredit12Bulan * newHargaFinal) / 100
+  
+let cicilanKartuKredit3Bulan = (Math.ceil(newHargaFinal / 3))
+let cicilanKartuKredit6Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit6Bln) / 6)/10)*10)
+let cicilanKartuKredit12Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit12Bln) / 12)/10)*10)
+     
 
     
 
@@ -51,23 +75,23 @@ export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statu
     <tr>
       <td className='border border-slate-300 p-2'>Kredivo</td>
       <td className='border border-slate-300 p-2'>0</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>{cicilanKredivo3Bulan.toLocaleString("id-ID")}</td>
+      <td className='border border-slate-300 p-2'>{cicilanKredivo6Bulan.toLocaleString("id-ID")}</td>
+      <td className='border border-slate-300 p-2'>{cicilanKredivo12Bulan.toLocaleString("id-ID")}</td>
     </tr>
     <tr>
       <td className='border border-slate-300 p-2'>Homecredit</td>
       <td className='border border-slate-300 p-2'>0</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>-</td>
+      <td className='border border-slate-300 p-2'>{cicilanHci6Bulan.toLocaleString("id-ID")}</td>
+      <td className='border border-slate-300 p-2'>{cicilanHci12Bulan.toLocaleString("id-ID")}</td>
     </tr>
     <tr>
       <td className='border border-slate-300 p-2'>Kartu Kredit</td>
       <td className='border border-slate-300 p-2'>0</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
-      <td className='border border-slate-300 p-2'>1XXX.XXX</td>
+      <td className='border border-slate-300 p-2'>{cicilanKartuKredit3Bulan.toLocaleString("id-ID")}</td>
+      <td className='border border-slate-300 p-2'>{cicilanKartuKredit6Bulan.toLocaleString("id-ID")}</td>
+      <td className='border border-slate-300 p-2'>{cicilanKartuKredit12Bulan.toLocaleString("id-ID")}</td>
     </tr>
   </tbody>
 </table>

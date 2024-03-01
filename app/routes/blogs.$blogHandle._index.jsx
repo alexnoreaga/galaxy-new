@@ -6,6 +6,12 @@ export const meta = ({data}) => {
   return [{title: `Galaxy Camera Store | ${data.blog.title} blog`}];
 };
 
+export const handle = {
+  breadcrumb: () => (
+    <Link to="/parent/child">Child Route</Link>
+  ),
+};
+
 export const loader = async ({request, params, context: {storefront}}) => {
   const paginationVariables = getPaginationVariables(request, {
     pageBy: 4,

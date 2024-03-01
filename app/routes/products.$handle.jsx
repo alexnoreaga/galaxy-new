@@ -141,7 +141,7 @@ export async function loader({params, context, request}) {
      return cicilanKartuKredit12Bulan
   }
 
-  function cicilanKartuKredit(selectedVariant){
+  function cicilanKartuKredit(selectedVariant,product,canonicalUrl){
     let newHargaFinal = Number(parseFloat(selectedVariant.price.amount))
     // HITUNGAN KARTU KREDIT START HERE
     let biayaAdmKartuKredit6Bln = (adminKartuKredit6Bulan * newHargaFinal) / 100
@@ -159,7 +159,7 @@ export async function loader({params, context, request}) {
     `Info Produk : ${canonicalUrl}`;
 
 
-    if(parseFloat(selectedVariant.price.amount)>=500000 && parseFloat(selectedVariant.price.amount)<1000000){
+    if(parseFloat(selectedVariant.price.amount)>=500000){
       let listCicilan = `${hargaCash}
 
 Cicilan Kartu Kredit (Via Blibli)
@@ -168,17 +168,6 @@ Cicilan Kartu Kredit (Via Blibli)
 12x : ${cicilanKartuKredit12Bulan.toLocaleString("id-ID")}
   `
     return listCicilan
-    
-    }else if (parseFloat(selectedVariant.price.amount)>=1000000){
-    
-        let listCicilan = `${hargaCash}
-
-Cicilan Kartu Kredit 0% (Via Blibli)
-3x : ${cicilanKartuKredit3Bulan.toLocaleString("id-ID")}
-6x : ${cicilanKartuKredit6Bulan.toLocaleString("id-ID")}
-12x : ${cicilanKartuKredit12Bulan.toLocaleString("id-ID")}
-  `
-  return listCicilan
     
     }
     return 'Produk tidak dapat dicicil'
@@ -279,8 +268,8 @@ DP : 0
 
     // console.log(liveshopee.metaobjects?.edges[0]?.node)
 
-    console.log('Garansisssssssssssssssssssssssssss ',product)
-    console.log('Selected Variant ',selectedVariant)
+    // console.log('Garansisssssssssssssssssssssssssss ',product)
+    // console.log('Selected Variant ',cicilanKartuKredit(selectedVariant,product,canonicalUrl))
 
 
 
@@ -429,7 +418,7 @@ DP : 0
               <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={`text-2xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
           </div> 
 
-          <div className='text-sm text-gray-700'>Cicilan Mulai dari <span className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
+          <div className='text-sm text-gray-700'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
           {/* <div onClick={()=>setBukaModal(true)} className="text-rose-700 font-semibold text-sm cursor-pointer">Lihat Angsuran</div>   */}
 
 
@@ -648,8 +637,20 @@ DP : 0
     </div>
 </div> */}
 
-      {bukaModal&&<Modal canonicalUrl={canonicalUrl} perubahTanggal={perubahTanggal} product={product} selectedVariant={selectedVariant} statusOpen={bukaModal} setBukaModal={setBukaModal}/>}
-
+      {bukaModal&&<Modal 
+      canonicalUrl={canonicalUrl} 
+      perubahTanggal={perubahTanggal} 
+      product={product} 
+      selectedVariant={selectedVariant} 
+      statusOpen={bukaModal} 
+      setBukaModal={setBukaModal}
+      bungaHCI={bungaHCI}
+      admKredivo={admKredivo}
+      adminFee3BulanKredivo={adminFee3BulanKredivo}
+      adminKartuKredit6Bulan={adminKartuKredit6Bulan}
+      adminKartuKredit12Bulan={adminKartuKredit12Bulan}
+      />}
+      
 
       </section>
 
@@ -780,7 +781,7 @@ function TombolWa({product,canonicalUrl}){
     <>
         <div className='text-sm text-gray-500 mt-1'>Ingin harga best price dari kami? Yuk Negoin aja</div>
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
-            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
+            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
       </div>
 
      

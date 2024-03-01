@@ -6,9 +6,9 @@ export const meta = () => {
   return [{title: `Berita dan Artikel Blog | Galaxy Camera Store`}];
 };
 
-// export const handle = {
-//   breadcrumb: () => <Link to="/blogs">Some Route</Link>,
-// };
+export const handle = {
+  breadcrumb: () => <Link to="/">Home</Link>,
+};
 
 export const loader = async ({request, context: {storefront}}) => {
   const paginationVariables = getPaginationVariables(request, {

@@ -125,6 +125,7 @@ export async function loader({context}) {
 export default function App() {
   const nonce = useNonce();
   const data = useLoaderData();
+  const matches = useMatches();
 
 
 
@@ -221,6 +222,19 @@ dangerouslySetInnerHTML={{__html:`
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 `}}></script> */}
+
+      <ol>
+            {matches
+              .filter(
+                (match) =>
+                  match.handle && match.handle.breadcrumb
+              )
+              .map((match, index) => (
+                <li key={index}>
+                  {match.handle.breadcrumb(match)}
+                </li>
+              ))}
+          </ol>
 
         <Layout {...data}>
           <Outlet />
