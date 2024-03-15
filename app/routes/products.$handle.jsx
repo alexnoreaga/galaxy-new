@@ -268,7 +268,7 @@ DP : 0
 
     // console.log(liveshopee.metaobjects?.edges[0]?.node)
 
-    // console.log('Garansisssssssssssssssssssssssssss ',product)
+    console.log('Garansisssssssssssssssssssssssssss ',product)
     // console.log('Selected Variant ',cicilanKartuKredit(selectedVariant,product,canonicalUrl))
 
 
@@ -318,11 +318,16 @@ DP : 0
           <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
 
 
-
+            <div className="">
             <div className="grid gap-2 w-full">
-              <h1 className="text-4xl font-bold leading-10 whitespace-normal " onClick={()=>copyToClipboard(hargaCashCopy)}>
+              {/* {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
+                  <div class="p-1 w-12 text-white rounded bg-gradient-to-r from-rose-500 to-rose-700 font-bold text-xs ">Promo</div>
+                  ) } */}
+
+              <h1 className="text-4xl font-bold leading-10 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
               </h1>
+              </div>
               {/* <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
                 {product.title}
               </h1> */}
@@ -595,7 +600,6 @@ DP : 0
             {/* <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/> */}
         <div>
-
         <div className='sm:grid sm:grid-cols-2 md:grid md:grid-cols-2'>
         <InfoProduk 
         deskripsi={(<div className="w-full prose  md:border-gray-200 pt-2 text-black text-md"
@@ -605,37 +609,19 @@ DP : 0
         specs={(<div className="w-full prose md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
-      
-
-
-
-
           </div>
-
-
-
         </div>
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
+        
+        <div className='font-bold mt-10 mb-5 border-t'>
+        <div className='my-5'>PRODUK SERUPA</div>
+        </div>
 
            
 
 
-{/* <div className='flex gap-2  flex-wrap justify-between'>
-    <div className='flex gap-2  flex-wrap m-auto ml-0 mt-0'>
-      <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
-        Deskripsi
-      </div>
 
-      <div className='border px-2 cursor-pointer rounded-md  font-bold text-black-700'>
-        Spesifikasi
-      </div>
-
-      <div className='border px-2 cursor-pointer rounded-md font-bold text-black-700'>
-        Isi Dalam Box
-      </div>
-    </div>
-</div> */}
 
       {bukaModal&&<Modal 
       canonicalUrl={canonicalUrl} 
@@ -735,19 +721,19 @@ function MarketPlace({link}){
       <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
         <div className="md:w-4/5 mx-auto ">
           
-          <img src={selectedImage} alt={productData?.title} className={`w-full h-auto shadow rounded`} />
+          <img src={selectedImage} alt={productData?.title} className={`w-full h-auto shadow rounded-lg`} />
 
    
         </div>
         <div className="md:w-5/5 ">
-          <div className="grid grid-cols-4 gap-4 md:mt-4 w-5/5 mx-auto">
+          <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-4/5 mx-auto">
             {displayedImages.map((image) => (
               <div
                 key={image.node.src}
                 onClick={() => handleImageChange(image.node.src)}
                 className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
               >
-                <img src={image.node.src} alt="Product" className="w-full h-auto md:mx-auto p-1 rounded-lg" />
+                <img src={image.node.src} alt="Product" className="w-full shadow h-auto md:mx-auto p-1 rounded-lg" />
               </div>
             ))}
           </div>
@@ -848,6 +834,7 @@ function TombolWaDiscontinue({product}){
         {namespace:"custom" key:"bukalapak"}
         {namespace:"custom" key:"lazada"}
         {namespace:"custom" key:"produk_discontinue"}
+        {namespace:"custom" key:"produk_serupa"}
       ]){
         key
         value

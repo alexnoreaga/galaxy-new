@@ -248,27 +248,6 @@ function BannerKecil({images}) {
   return (
     <div className='relative flex items-center'>
     <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
-      {/* <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
-      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div>
-      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
-      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div>
-      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
-      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div>
-      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
-      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div>
-      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
-      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div>
-      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
-      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div>
-      <div ref={scrollRef} className="relative flex-none mr-4 snap-center">
-      <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-      </div> */}
 
       {images?.map((image,index)=>{
         return(
@@ -282,19 +261,6 @@ function BannerKecil({images}) {
         )
       })}
 
-
-
-      {/* Add more image divs if needed */}
-      
-      
-
-      {/* <button onClick={scrollLeft} className="absolute left-0  bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-4">
-        Scroll Left
-      </button> */}
-      {/* <button onClick={scrollRight} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4">
-        Scroll Right
-      </button> */}
-      
     </div>
 
     <button className='absolute left-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollLeft}>
@@ -392,8 +358,11 @@ function RecommendedProducts({products}) {
                     sizes="(min-width: 45em) 20vw, 50vw"
                     className="hover:opacity-80"
                   />
-                  {/* <h3 class="absolute p-1.5 rounded-full bg-gradient-to-r from-red-500 to-red-700 text-xs font-bold text-white top-1 right-1">5%</h3> */}
-                  </div>
+
+                  {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
+                  <div class="absolute p-1 rounded bg-gradient-to-r from-rose-500 to-rose-700 font-bold text-xs text-white top-1 right-0">Promo</div>
+                  ) }
+                  </div>  
            
                   <div className='text-sm my-1 text-gray-800'>{product.title}</div>
 
