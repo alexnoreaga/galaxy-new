@@ -95,7 +95,7 @@ export function SearchResults({results}) {
 }
 
 function SearchResultsProductsGrid({products}) {
-  console.log('Hasil Gambar ini',products)
+  // console.log('Hasil Gambar ini',products)
   return (
     <div className="search-result">
       <h2>Products</h2>
@@ -163,13 +163,14 @@ function SearchResultPageGrid({pages}) {
 }
 
 function SearchResultArticleGrid({articles}) {
+  console.log('Artikel adalah ',articles)
   return (
     <div className="search-result">
       <h2>Articles</h2>
       <div>
         {articles?.nodes?.map((article) => (
           <div className="search-results-item" key={article.id}>
-            <Link prefetch="intent" to={`/blog/${article.handle}`}>
+            <Link prefetch="intent" to={`/blogs/${article.handle}`}>
               {article.title}
             </Link>
           </div>
@@ -249,6 +250,8 @@ export function PredictiveSearchResults() {
   if (!totalResults) {
     return <NoPredictiveSearchResults searchTerm={searchTerm} />;
   }
+
+  // console.log('Prediktif',results)
   
   return (
     <div className="predictive-search-results">
@@ -317,6 +320,9 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
     searchTerm.current
   }&type=${pluralToSingularSearchType(type)}`;
 
+
+  // console.log('searchTerm',searchTerm,type)
+
   return (
     <div className="predictive-search-result" key={type}>
       <Link prefetch="intent" to={categoryUrl} onClick={goToSearchResult}>
@@ -349,6 +355,8 @@ function SearchResultItem({goToSearchResult, item}) {
     console.log("URL does not contain 'product'.");
     path = item.url;
   }
+
+  console.log('Path',item)
   
 
 

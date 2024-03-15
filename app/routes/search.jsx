@@ -150,6 +150,9 @@ const SEARCH_QUERY = `#graphql
     id
     title
     trackingParameters
+    blog {
+      handle
+    }
   }
   query search(
     $country: CountryCode

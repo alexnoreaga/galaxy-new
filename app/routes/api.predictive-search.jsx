@@ -182,6 +182,8 @@ export function normalizePredictiveSearchResults(predictiveSearch, locale) {
   }
 
   if (predictiveSearch.articles.length) {
+
+
     results.push({
       type: 'articles',
       items: predictiveSearch.articles.map((article) => {
@@ -193,7 +195,7 @@ export function normalizePredictiveSearchResults(predictiveSearch, locale) {
           id: article.id,
           image: article.image,
           title: article.title,
-          url: `${localePrefix}/blog/${article.handle}${trackingParams}`,
+          url: `${localePrefix}/blogs/${article.blog.handle}/${article.handle}${trackingParams}`,
         };
       }),
     });
@@ -215,6 +217,10 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
       height
     }
     trackingParameters
+    blog {
+      handle
+    }
+    
   }
   fragment PredictiveCollection on Collection {
     __typename
