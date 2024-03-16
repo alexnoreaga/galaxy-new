@@ -254,7 +254,7 @@ function BannerKecil({images}) {
          
           <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
             <a href={image.fields[1].value} target="_blank">
-            <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} className='w-80 rounded-md'/>
+            <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} width={'320'} height={'120'} className='rounded-md'/>
             </a>
           </div>
           
@@ -263,13 +263,13 @@ function BannerKecil({images}) {
 
     </div>
 
-    <button className='absolute left-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollLeft}>
+    <button className='absolute left-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollLeft} aria-label="kiri">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
             <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
     </svg>
     </button>
 
-    <button className='absolute right-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollRight}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
+    <button className='absolute right-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollRight} aria-label="kanan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
   <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
 </svg>
 </button>
@@ -491,7 +491,7 @@ function FeaturedBlogs({ blogs }) {
             <div className='mx-auto' >
             <div className='h-60 w-80 mx-auto rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
 
-            <img className='object-contain h-60 w-80 p-1 m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
+            <img width={'320'} height={'240'} className='object-contain h-60 w-80 p-1 m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
             </div>
             
             <div className='flex flex-row items-center text-neutral-500 gap-2 pt-2'>
