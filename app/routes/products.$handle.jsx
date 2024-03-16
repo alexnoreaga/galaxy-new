@@ -5,7 +5,7 @@ import ProductOptions from '~/components/ProductOptions';
 import {Image, Money, ShopPayButton} from '@shopify/hydrogen-react';
 import {CartForm} from '@shopify/hydrogen';
 import { ProductGallery } from '~/components/ProductGallery';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ProductCard from '~/components/ProductCard';
 import { Accordion } from '~/components/Accordion';
 import { useHistory ,useLocation } from 'react-router-dom';
@@ -15,6 +15,9 @@ import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
 import {AnalyticsPageType} from '@shopify/hydrogen';
+import { ProdukRelated } from '~/components/ProdukRelated';
+import { ModalBalasCepat } from '~/components/ModalBalasCepat';
+import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 
 
 export const handle = {
@@ -52,10 +55,22 @@ export async function loader({params, context, request}) {
         },
       });
 
-      const admgalaxy = await context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
+      const custEmail = await context.storefront.query(CUSTOMER_EMAIL_QUERY, {
+        variables: {
+          customertoken: customerAccessToken?.accessToken? customerAccessToken?.accessToken:'', // Value for the 'first' variable
+        }, 
+      });
+    
+      const admgalaxy = await context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
         variables: {
           type: "admin_galaxy", // Value for the 'type' variable
-          first: 10, // Value for the 'first' variable
+          first: 20, // Value for the 'first' variable
+        },
+      });
+
+      const balasCepat = await context.storefront.query(BALAS_CEPAT,{
+        variables:{
+          first:100,
         },
       });
 
@@ -67,6 +82,19 @@ export async function loader({params, context, request}) {
           first: 10, // Value for the 'first' variable
         },
       });
+
+
+
+  
+
+   
+        const related = await context.storefront.query(PRODUK_RELATED, {
+        variables: {
+          productId: product?.id, // Value for the 'type' variable
+        },
+      });
+  
+
 
       const canonicalUrl = request.url
     
@@ -86,7 +114,13 @@ export async function loader({params, context, request}) {
         });
 
 
+
+
+
         return json({
+          balasCepat,
+          custEmail,
+          related,
           admgalaxy,
           shop,
           product,
@@ -106,6 +140,9 @@ export async function loader({params, context, request}) {
         console.error('Brand value not found.');
 
         return json({
+          balasCepat,
+          custEmail,
+          related,
           admgalaxy,
           shop,
           product,
@@ -259,16 +296,23 @@ DP : 0
 
 
   export default function ProductHandle() {
-    const {admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
+    const {balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
     // console.log(customerAccessToken)
     // console.log('produk ',product?.metafields[12]?.value)
     // console.log('liveshopee',liveshopee)
     // console.log('marketplace',marketplace)
 
+    const [bukaModalBalasCepat, setBukaModalBalasCepat] = useState(false)
+
+    const foundAdmin = admgalaxy?.metaobjects?.edges.find(admin => admin?.node?.fields[0]?.value === custEmail?.customer?.email);
+  // console.log('Admin ketemu ?', foundAdmin)
+
+
+
     // console.log(liveshopee.metaobjects?.edges[0]?.node)
 
-    console.log('Garansisssssssssssssssssssssssssss ',product)
+    // console.log('Garansisssssssssssssssssssssssssss ',related)
     // console.log('Selected Variant ',cicilanKartuKredit(selectedVariant,product,canonicalUrl))
 
 
@@ -306,6 +350,8 @@ DP : 0
 
     return (
       <>
+      {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={balasCepat?.metaobjects?.nodes}/>}
+
       <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
         <div className="grid grid-cols-none items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
@@ -614,9 +660,7 @@ DP : 0
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
         
-        <div className='font-bold mt-10 mb-5 border-t'>
-        <div className='my-5'>PRODUK SERUPA</div>
-        </div>
+
 
            
 
@@ -637,8 +681,19 @@ DP : 0
       adminKartuKredit12Bulan={adminKartuKredit12Bulan}
       />}
       
+      <div className='mt-5 pt-5 font-bold border-t'>PRODUK SERUPA</div>
 
       </section>
+
+     
+
+        <div className="mt-2 mb-5 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+
+        <ProdukRelated related={related}/>
+        </div>
+
+ 
+        {foundAdmin && <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} />}
 
       </>
 
@@ -688,9 +743,16 @@ function MarketPlace({link}){
   const ImageGallery = ({ productData }) => {
 
     // console.log('Ini adalah hasil dari gambar ',productData)
-
     const [selectedImage, setSelectedImage] = useState(productData.images.edges[0].node.src);
+
+    useEffect(()=>{
+      setSelectedImage(productData.images.edges[0].node.src)
+    },[productData.title])
+
+    
     const [startIndex, setStartIndex] = useState(0);
+
+    
 
 
     const handleImageChange = (newImageSrc) => {
@@ -968,6 +1030,69 @@ query metaobjects($type: String!, $first: Int!) {
     }
   }
 }`;
+
+
+const PRODUK_RELATED = `#graphql
+query productRecommendations($productId:ID!){
+productRecommendations(productId: $productId,intent: RELATED) {
+    id
+  	handle
+  	title
+  	compareAtPriceRange{
+      minVariantPrice{
+        amount
+      }
+    }
+  	priceRange{
+      minVariantPrice{
+        amount
+      }
+    }
+  	featuredImage {
+      url
+  	}
+  }
+}`;
+
+const METAOBJECT_ADMIN_GALAXY = `#graphql
+query metaobjects($type: String!, $first: Int!) {
+  metaobjects(type: $type, first: $first) {
+    edges {
+      node {
+        id
+        fields {
+          value
+        }
+      }
+    }
+  }
+}`;
+
+
+const CUSTOMER_EMAIL_QUERY = `#graphql
+query CustomerEmailQuery($customertoken: String!) {
+  customer(customerAccessToken: $customertoken) {
+    email
+  }
+}`;
+
+
+const BALAS_CEPAT = `#graphql
+query BrandQuery($first:Int!){
+    metaobjects(first:$first type:"balas_cepat"){
+      
+    nodes {
+      id
+      fields {
+        value
+        key
+           
+        
+      }
+    }
+  }}
+`
+
 
 
 // const seo = ({data}) => ({

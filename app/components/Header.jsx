@@ -53,9 +53,11 @@ export function Header({header, isLoggedIn, cart}) {
   ))}
 </>
     <div className='bg-black text-white hidden sm:block'>
-          <div className='flex items-center justify-between container relative mx-auto sm:max-w-screen-md md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs p-1.5 tracking-wide'>
-            
-            <div>Your Online Offline Photography Shopping</div>
+          <div className='flex items-center justify-between container relative mx-auto sm:max-w-screen-md md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs tracking-wide'>
+            <div className='flex flex-row items-center gap-2'>
+            <div className='bg-red-600 p-2'>Part of Galaxycamera.id</div>
+            <div className=''>Your Online Offline Photography Shopping</div>
+            </div>
             <div className='flex gap-3 items-center'>
               <a href="https://wa.me/6282111311131" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
                 <FaWhatsapp size="1.2em" />
@@ -150,7 +152,7 @@ export function HeaderMenu({menu, viewport}) {
             style={activeLinkStyle}
             to={url}
           >
-            {item.title}
+            <div className="text-sm">{item.title}</div>
           </NavLink>
         );
       })}
@@ -168,7 +170,7 @@ function HeaderCtas({isLoggedIn, cart}) {
       
       <SearchToggle />
       <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
-        {isLoggedIn ? 'Account' : 'Sign in'}
+        {isLoggedIn ? 'Account' : (<div className='text-sm'>Sign In</div>)}
       </NavLink>
       
       <CartToggle cart={cart} />

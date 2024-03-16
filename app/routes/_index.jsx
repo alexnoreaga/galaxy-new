@@ -491,7 +491,7 @@ function FeaturedBlogs({ blogs }) {
             <div className='mx-auto' >
             <div className='h-60 w-80 mx-auto rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
 
-            <img className='object-contain h-60 w-80 p-1 m-auto ' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
+            <img className='object-contain h-60 w-80 p-1 m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
             </div>
             
             <div className='flex flex-row items-center text-neutral-500 gap-2 pt-2'>
