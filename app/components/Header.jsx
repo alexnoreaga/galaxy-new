@@ -55,7 +55,7 @@ export function Header({header, isLoggedIn, cart}) {
     <div className='bg-black text-white hidden sm:block'>
           <div className='flex items-center justify-between container relative mx-auto sm:max-w-screen-md md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-xs tracking-wide'>
             <div className='flex flex-row items-center gap-2'>
-            <div className='bg-red-600 p-2'>Part of Galaxycamera.id</div>
+            <div className='bg-red-700 p-2'>Part of Galaxycamera.id</div>
             <div className=''>Your Online Offline Photography Shopping</div>
             </div>
             <div className='flex gap-3 items-center'>

@@ -354,6 +354,7 @@ function RecommendedProducts({products}) {
                   <div className='relative'>
                   <Image
                     data={product.images.nodes[0]}
+                    alt={product.featuredImage.altText || product.title}
                     aspectRatio="1/1"
                     sizes="(min-width: 45em) 20vw, 50vw"
                     className="hover:opacity-80"
@@ -378,10 +379,7 @@ function RecommendedProducts({products}) {
                   <div className='text-xs font-bold text-gray-800 flex flex-row items-center gap-1 mb-2 mt-2'>
                   {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
                     <div className='bg-rose-700 p-0.5 ml-0 text-white text-xs rounded'><HitunganPersen hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount} hargaSesudah={product.priceRange.minVariantPrice.amount}/></div> ) }
-                    
-                    {/* <Money 
-                    className={`text-sm font-semibold ${product.compareAtPriceRange?.minVariantPrice?.amount != product.priceRange.minVariantPrice.amount && 'text-rose-800'}`}
-                    data={product.priceRange.minVariantPrice} /> */}
+
                     <div className={`text-sm font-semibold ${parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) && 'text-rose-800'}`}>Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString("id-ID")}</div>
 
                   </div>
@@ -539,6 +537,13 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     id
     title
     handle
+    featuredImage {
+      id
+      altText
+      url
+      width
+      height
+    }
     metafields(identifiers:[
       {namespace:"custom" key:"garansi"}
       {namespace:"custom" key:"free"}
