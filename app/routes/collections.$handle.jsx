@@ -245,7 +245,7 @@ function ProductItem({product, loading}) {
   const variant = product.variants.nodes[0];
   const variantUrl = useVariantUrl(product.handle, variant.selectedOptions);
 
-  // console.log('Compareprice range ',product.availableForSale)
+  console.log(product.title,'Discontinue ',product?.metafields[12]?.value, 'Available',product)
 
 
   return (
@@ -264,16 +264,21 @@ function ProductItem({product, loading}) {
           data={product.featuredImage}
           loading={loading}
           sizes="(min-width: 45em) 20vw, 50vw"
-          className={`hover:opacity-80 ${!product.availableForSale && 'opacity-50'}`}
+          className={`hover:opacity-80 ${product.availableForSale == "false" || product?.metafields[12]?.value == "true" &&'opacity-50'} ${!product.availableForSale && product?.metafields[12]?.value !== "true" &&'opacity-50'}`}
         />
       )}
       {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
       <div className="absolute p-1 rounded bg-gradient-to-r from-rose-800 to-rose-700 font-bold text-xs text-white top-1 right-0">Promo</div>
         )}
 
-        {!product.availableForSale&&(<div className="text-center absolute p-1 rounded bg-gradient-to-r from-gray-800 to-gray-950 font-bold text-xs text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+
+        {!product.availableForSale && product?.metafields[12]?.value !== "true"&&(<div className="text-center absolute p-1 rounded bg-amber-400 font-bold text-xs text-black top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             Stock Kosong
         </div>)}
+
+        {product?.metafields[12]?.value == "true" && <div className="text-center absolute p-1 rounded bg-gradient-to-r from-gray-800 to-gray-950 font-bold text-xs text-white top-1 left-0">
+            Discontinue
+        </div>}
 
 
       </div>
@@ -335,6 +340,13 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       {namespace:"custom" key:"periode_promo_akhir"}
       {namespace:"custom" key:"spesifikasi"}
       {namespace:"custom" key:"brand"}
+      {namespace:"custom" key:"tokopedia"}
+      {namespace:"custom" key:"shopee"}
+      {namespace:"custom" key:"blibli"}
+      {namespace:"custom" key:"bukalapak"}
+      {namespace:"custom" key:"lazada"}
+      {namespace:"custom" key:"produk_discontinue"}
+      {namespace:"custom" key:"produk_serupa"}
     ]){
       key
       value

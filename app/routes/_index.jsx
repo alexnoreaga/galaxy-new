@@ -119,8 +119,9 @@ export default function Homepage() {
         <Carousel images={data.banner.metaobjects} />
         </div>
       
+      {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"> */}
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      {/* <div className="bg-red-700"> */}
+
       <RenderCollection collections={data.hasilCollection.collections}/>
       </div>
 
@@ -128,9 +129,12 @@ export default function Homepage() {
       <YoutubeLink/>
       </div> */}
 
+      {/* <div className="bg-white md:bg-gray-300 md:mb-5 md:-ml-5 md:-mr-5 md:my-4 md:py-5"> */}
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <RecommendedProducts products={data.recommendedProducts} />
       </div>
+      {/* </div> */}
+
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <BannerKecil images={data.bannerKecil.metaobjects.nodes} />
@@ -284,7 +288,7 @@ function BannerKecil({images}) {
 function RenderCollection({collections}) {
   if (!collections) return null;
   return (
-    <section className="w-full gap-4">
+    <section className="w-full gap-4 ">
     <div className='flex flex-row items-center justify-between m-1 mb-2'>
         <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
           Kategori Populer
@@ -293,7 +297,7 @@ function RenderCollection({collections}) {
         <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
-      <div className="grid-flow-row grid grid-cols-2 gap-0 lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
+      <div className="grid-flow-row grid grid-cols-2 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
@@ -347,7 +351,7 @@ function RecommendedProducts({products}) {
               {products.nodes.map((product) => (
                 <Link
                   key={product.id}
-                  className="hover:no-underline border shadow rounded-lg p-2"
+                  className="hover:no-underline border bg-white shadow rounded-lg p-2"
                   to={`/products/${product.handle}`}
                 >
 
