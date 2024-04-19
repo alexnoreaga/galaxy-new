@@ -366,9 +366,9 @@ DP : 0
 
             <div className="grid gap-2 w-full">
 
-              <h1 className="text-4xl font-bold leading-10 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              {/* <h1 className="text-4xl font-bold leading-10 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
-              </h1>
+              </h1> */}
               </div>
 
               {product?.metafields[12]?.value == "true" && <div className='bg-rose-700 flex flex-row items-center px-2 gap-2 text-center text-white text-base p-1 rounded-lg'>
