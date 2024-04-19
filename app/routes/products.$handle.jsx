@@ -758,7 +758,7 @@ function MarketPlace({link}){
    
         </div>
         <div className="md:w-5/5 ">
-          <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-4/5 mx-auto">
+          <div className="grid grid-cols-3 gap-4 md:mt-4 sm:w-5/5 md:w-4/5 mx-auto">
             {displayedImages.map((image) => (
               <div
                 key={image.node.src}
@@ -775,7 +775,7 @@ function MarketPlace({link}){
                 Previous
               </button>
             )}
-            {startIndex + 4 < productData.images.edges.length && (
+            {startIndex + 3 < productData.images.edges.length && (
               <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
                 Next
               </button>
