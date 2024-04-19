@@ -758,14 +758,14 @@ function MarketPlace({link}){
    
         </div>
         <div className="md:w-5/5 ">
-          <div className="grid grid-cols-3 gap-4 md:mt-4 sm:w-5/5 md:w-4/5 mx-auto">
+          <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-4/5 mx-auto">
             {displayedImages.map((image) => (
               <div
                 key={image.node.src}
                 onClick={() => handleImageChange(image.node.src)}
                 className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
               >
-                <img src={image.node.src} alt="Product" className="w-full shadow h-auto md:mx-auto p-1 rounded-lg" />
+                <img src={image.node.src} alt="Product" className="w-full max-w-sm shadow h-auto md:mx-auto p-1 rounded-lg" />
               </div>
             ))}
           </div>
@@ -775,7 +775,7 @@ function MarketPlace({link}){
                 Previous
               </button>
             )}
-            {startIndex + 3 < productData.images.edges.length && (
+            {startIndex + 4 < productData.images.edges.length && (
               <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
                 Next
               </button>
