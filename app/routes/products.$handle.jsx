@@ -353,9 +353,9 @@ DP : 0
       {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={balasCepat?.metaobjects?.nodes}/>}
 
       <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
-        <div className="grid grid-cols-none items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
-            <div className="md:col-span-2 snap-center card-image aspect-square md:w-full w-full">
+            <div className="md:col-span-2 snap-center card-image aspect-square md:w-full lg:w-full">
               
               <ImageGallery productData={product}/>
             </div>
@@ -364,19 +364,13 @@ DP : 0
           <div className="md:shadow-xl rounded-lg md:sticky md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
 
 
-            <div className="">
             <div className="grid gap-2 w-full">
-              {/* {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                  <div class="p-1 w-12 text-white rounded bg-gradient-to-r from-rose-500 to-rose-700 font-bold text-xs ">Promo</div>
-                  ) } */}
 
               <h1 className="text-4xl font-bold leading-10 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
               </h1>
               </div>
-              {/* <h1 className="md:leading-10 whitespace-normal font-bold text-transparent sm:text-2xl md:text-4xl bg-clip-text bg-gradient-to-r from-gray-950 to-rose-700">
-                {product.title}
-              </h1> */}
+
               {product?.metafields[12]?.value == "true" && <div className='bg-rose-700 flex flex-row items-center px-2 gap-2 text-center text-white text-base p-1 rounded-lg'>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
@@ -384,7 +378,6 @@ DP : 0
 
               <div>Produk Discontinue</div>
               </div> }
-            </div>
 
 <div className='flex flex-row gap-1'>
             {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
@@ -410,13 +403,6 @@ DP : 0
 )}
 </div>
 
-
-            {/* <div className='flex flex-row gap-1 items-center text-slate-700 text-sm'>
-            <div>Garansi Resmi 1 Tahun</div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-sky-400">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-              </svg>
-          </div> */}
 
  
 
@@ -445,32 +431,16 @@ DP : 0
                   </div>
               
               
-                  <div className='flex flex-row gap-2 items-center mb-2'>
               {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                <div className='flex flex-row gap-2'>
-                <div className='bg-rose-700 p-1 ml-0 m-auto font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
-                  {/* <Money
-                    withoutTrailingZeros
-                    data={{
-                      amount: selectedVariant.compareAtPrice.amount,
-                      currencyCode: selectedVariant.price.currencyCode,
-                    }}
-                    className="text-xl line-through text-slate-600"
-                  /> */}
-                  <div className="text-xl line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
+                <div className='flex flex-row items-center gap-2'>
+                <div className='bg-rose-700 p-1 ml-0 font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
+                  <div className="text-base line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
                 </div>
               )}
-            
-              {/* <Money
-                withoutTrailingZeros
-                data={selectedVariant.price}
-                className={`text-xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : ''}`}
-              /> */}
-              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={`text-2xl font-semibold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
-          </div> 
 
-          <div className='text-sm text-gray-700'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
-          {/* <div onClick={()=>setBukaModal(true)} className="text-rose-700 font-semibold text-sm cursor-pointer">Lihat Angsuran</div>   */}
+              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={` text-xl font-bold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
+
+          <div className='text-sm mt-2 text-gray-700'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
 
 
 

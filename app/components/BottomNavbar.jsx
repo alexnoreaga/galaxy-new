@@ -5,7 +5,7 @@ export const BottomNavbar = () => {
   return (
     <>
 <div className="sm:block md:hidden  fixed bottom-0 left-0 z-50 w-full h-16 backdrop-blur-md bg-white border-t border-gray-100 dark:bg-gray-700 dark:border-gray-600">
-    <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+    <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
             <Link
                 className="m-auto"
                 prefetch="intent"
@@ -59,7 +59,7 @@ export const BottomNavbar = () => {
                 </button>
         </Link>
 
-        {/* <Link
+        <Link
                 className="m-auto"
                 prefetch="intent"
                 to='/'
@@ -72,7 +72,7 @@ export const BottomNavbar = () => {
 
                 <p className="text-xs text-gray-800 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-500">Promo</p>
             </button>
-            </Link> */}
+            </Link>
 
         <Link
                 className="m-auto"
