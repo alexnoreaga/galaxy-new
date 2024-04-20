@@ -366,7 +366,7 @@ DP : 0
 
             <div className="grid gap-2 w-full">
 
-              <h1 className="text-4xl font-bold leading-10 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              <h1 className="text-4xl font-bold leading-10 mb-1 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
               </h1>
               </div>
@@ -379,7 +379,7 @@ DP : 0
               <div>Produk Discontinue</div>
               </div> }
 
-<div className='flex flex-row gap-1'>
+<div className='flex flex-row gap-1 mb-4'>
             {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
   <div className='w-26 p-1 items-center rounded-full border border-gray-200'>
     <div className='m-auto flex flex-row'>
@@ -407,8 +407,8 @@ DP : 0
  
 
           {product.metafields[1] && (
-            <div className="rounded-md text-sm">
-              <div className='text-rose-700 text-sm border-solid font-bold border-rose-700 border w-10 text-center rounded mb-1'>
+            <div className="rounded-md text-sm mb-1">
+              <div className='text-rose-700 text-sm border-solid font-bold border-rose-700 border w-10 text-center rounded'>
                 FREE
               </div>
               <div>
@@ -432,7 +432,7 @@ DP : 0
               
               
               {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                <div className='flex flex-row items-center gap-2'>
+                <div className='flex flex-row items-center gap-2 mb-0'>
                 <div className='bg-rose-700 p-1 ml-0 font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
                   <div className="text-base line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
                 </div>
@@ -440,7 +440,7 @@ DP : 0
 
               <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={` text-xl font-bold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
 
-          <div className='text-sm mt-2 text-gray-700'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
+          <div className='text-sm text-gray-700 mt-3'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
 
 
 
