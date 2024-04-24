@@ -787,14 +787,14 @@ export const meta = ({data}) => {
   
 
   return [
-    {title: 'Galaxy Camera Store : Toko Kamera Online Offline Terlengkap dan Terpercaya'},
+    {title: 'Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap dan Terpercaya'},
     {
       name: "title",
-    content: "Galaxy Camera Store : Toko Kamera Online Offline Terlengkap dan Terpercaya"
+    content: "Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap dan Terpercaya"
   },
     {
       name: "description",
-    content: "Toko Kamera Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll"
+    content: "Toko Kamera Tangerang Depok Jakarta Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll"
   },
 
     { tagName:'link',
@@ -813,7 +813,7 @@ export const meta = ({data}) => {
 
   {
     property: "og:title",
-    content: "Galaxy Camera Store : Toko Kamera Online Offline Terlengkap dan Terpercaya",
+    content: "Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap dan Terpercaya",
   },
 
   {
