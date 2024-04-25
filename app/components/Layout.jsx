@@ -11,7 +11,7 @@ import {
 import { BottomNavbar } from './BottomNavbar';
 import { useHistory ,useLocation } from 'react-router-dom';
 import { TombolWa } from './TombolWa';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Breadcrumbs } from './Breadcrumbs';
 import { emailGo } from '../routes/account.profile';
 import {defer} from '@shopify/remix-oxygen';
@@ -24,6 +24,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
 
+    const [muncul, setMuncul] = useState(true)
 
     const error = useRouteError();
 
@@ -44,7 +45,9 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
 
-      {error == undefined && <Breadcrumbs />}
+      {/* {error == undefined && <Breadcrumbs />} */}
+
+      {!muncul &&<Breadcrumbs />}
    
       {/* {!error?.message && <Breadcrumbs /> } */}
 
