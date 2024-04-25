@@ -27,6 +27,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
     const error = useRouteError();
 
+    console.log('Ini adalah error dibawah')
     console.log(error)
 
 
