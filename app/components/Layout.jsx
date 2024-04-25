@@ -43,7 +43,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
       {/* {error?'':<Breadcrumbs />} */}
    
-      <>{error?.message}</>
+      {!error?.message && <Breadcrumbs /> }
 
       <main>{children}</main>
 
