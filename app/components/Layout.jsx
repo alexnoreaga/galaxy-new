@@ -41,9 +41,9 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
 
-      {error?'':<Breadcrumbs />}
+      {/* {error?'':<Breadcrumbs />} */}
    
-
+      <>{error?.message}</>
 
       <main>{children}</main>
 
