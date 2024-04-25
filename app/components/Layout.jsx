@@ -24,15 +24,17 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
 
-    const [muncul, setMuncul] = useState(false)
+    const [muncul, setMuncul] = useState(true)
 
     const error = useRouteError();
 
+    console.log('error adalah ',error == undefined)
+
     useEffect(() => {
-      if (error == 'undefined') {
-          setMuncul(false);
-      } else {
+      if (error == undefined) {
           setMuncul(true);
+      } else {
+          setMuncul(false);
       }
   }, [error]);
 
