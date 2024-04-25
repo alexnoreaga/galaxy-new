@@ -26,16 +26,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
 
 
-    // const {email} = passingEmail()
-    // console.log('Ini adalah hasil email passing ',passingEmail())
 
-    // console.log(lokasi, 'lokasi sekarang')
-    // console.log(window.location.href)
-    // console.log('link sekarang',urlSekarang)
-
-
-    // console.log('Email pass adalah',emailGo)
-    
 
   return (
     <>
@@ -45,7 +36,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
-      {/* <Breadcrumbs/> */}
+      <Breadcrumbs/>
 
       <main>{children}</main>
 
