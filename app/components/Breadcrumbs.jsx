@@ -15,7 +15,7 @@ const pages = [{href:'/',name:'Home'}]
 
 const isvalidBreadcrumbType = parsedBreadcrumbType.success
 
-console.log('Apakah berhasil disini ?',isvalidBreadcrumbType)
+// console.log('Apakah berhasil disini ?',isvalidBreadcrumbType)
 
 if(isvalidBreadcrumbType){
     switch(parsedBreadcrumbType.data){
@@ -75,7 +75,8 @@ if(isvalidBreadcrumbType){
 //     <div>Breadcrumbs</div>
 //   )
 
-return <nav className="flex flex-wrap mt-5 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl " aria-label="Breadcrumb">
+return (
+<nav className="flex flex-wrap mt-5 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl " aria-label="Breadcrumb">
     <ol role="list" className="flex flex-wrap items-center space-x-4 ">
     {pages.map((page, idx) => {
         const currentPage= idx === pages.length - 1;
@@ -114,6 +115,7 @@ return <nav className="flex flex-wrap mt-5 relative mx-auto sm:max-w-screen-sm m
         })}
     </ol>
 </nav>
-}
+)}
+
 
 
