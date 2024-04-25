@@ -27,25 +27,6 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
     const error = useRouteError();
 
-    if (error) {
-        return (
-            <html>
-                <head>
-                    <title>Oh no!</title>
-                    {/* Add any necessary meta tags */}
-                    <Meta />
-                    {/* Add any necessary link tags */}
-                    <Links />
-                </head>
-                <body>
-                    {/* Add the UI you want your users to see */}
-                    {/* For example, you can display an error message */}
-                    <div>Error: {error.message}</div>
-                    <Scripts />
-                </body>
-            </html>
-        );
-    }
 
 
 
@@ -60,9 +41,9 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
-      <Suspense fallback={null}>
-                <Breadcrumbs />
-        </Suspense>
+
+      {!error && <Breadcrumbs />}
+   
 
 
       <main>{children}</main>
