@@ -24,7 +24,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
 
-    const [muncul, setMuncul] = useState(true)
+    const [muncul, setMuncul] = useState(null)
 
     const error = useRouteError();
 
