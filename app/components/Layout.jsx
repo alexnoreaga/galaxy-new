@@ -24,23 +24,25 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
 
-    const [muncul, setMuncul] = useState(null);
-    const [counter, setCounter] = useState(0);
+    // const [muncul, setMuncul] = useState(null);
+    // const [counter, setCounter] = useState(0);
     
-    const error = useRouteError();
+    // const error = useRouteError();
     
-    useEffect(() => {
-        if (error === undefined && counter == 0) {
-            setMuncul(true);
-        } else {
-            setMuncul(false);
-        }
-    }, [error]);
+    // useEffect(() => {
+    //     if (error === undefined && counter == 0) {
+    //         setMuncul(true);
+    //     } else {
+    //         setMuncul(false);
+    //     }
+    // }, [error]);
     
-    // Increment counter after the initial render
-    useEffect(() => {
-        setCounter((prevCounter) => prevCounter + 1);
-    }, []);
+    // // Increment counter after the initial render
+    // useEffect(() => {
+    //     setCounter((prevCounter) => prevCounter + 1);
+    // }, []);
+
+    console.log(<Breadcrumbs />)
 
 
 
@@ -56,7 +58,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
       {/* {error == undefined && <Breadcrumbs />} */}
 
-      {muncul &&<Breadcrumbs />}
+      <Breadcrumbs />
    
       {/* {!error?.message && <Breadcrumbs /> } */}
 
