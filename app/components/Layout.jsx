@@ -27,6 +27,8 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
 
     const error = useRouteError();
 
+    console.log(error)
+
 
 
 
@@ -41,9 +43,9 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
 
-      {/* {error?'':<Breadcrumbs />} */}
+      {!error&&<Breadcrumbs />}
    
-      {!error?.message && <Breadcrumbs /> }
+      {/* {!error?.message && <Breadcrumbs /> } */}
 
       <main>{children}</main>
 
