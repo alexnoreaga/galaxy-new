@@ -15,6 +15,7 @@ import React, { useEffect, useRef } from 'react';
 import { Breadcrumbs } from './Breadcrumbs';
 import { emailGo } from '../routes/account.profile';
 import {defer} from '@shopify/remix-oxygen';
+import { useRouteError } from '@remix-run/react';
 
 
 
@@ -22,6 +23,29 @@ import {defer} from '@shopify/remix-oxygen';
 export function Layout({cart, children = null, footer, header, isLoggedIn,footerSatu,contex}) {
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
+
+
+    const error = useRouteError();
+
+    if (error) {
+        return (
+            <html>
+                <head>
+                    <title>Oh no!</title>
+                    {/* Add any necessary meta tags */}
+                    <Meta />
+                    {/* Add any necessary link tags */}
+                    <Links />
+                </head>
+                <body>
+                    {/* Add the UI you want your users to see */}
+                    {/* For example, you can display an error message */}
+                    <div>Error: {error.message}</div>
+                    <Scripts />
+                </body>
+            </html>
+        );
+    }
 
 
 
