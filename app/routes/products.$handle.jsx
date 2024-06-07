@@ -751,7 +751,7 @@ function MarketPlace({link}){
   
     return (
       <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
-        <div className="mx-auto">
+        <div className="">
           
           <img src={selectedImage} alt={productData?.title} className={`max-w-sm md:max-w-lg w-full h-auto shadow rounded-lg`} />
 

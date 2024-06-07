@@ -42,7 +42,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
     //     setCounter((prevCounter) => prevCounter + 1);
     // }, []);
 
-    console.log(<Breadcrumbs />)
+    // console.log({<Breadcrumbs />}.$$typeof)
 
 
 
