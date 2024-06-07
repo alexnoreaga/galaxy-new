@@ -355,7 +355,7 @@ DP : 0
       <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
         <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
-            <div className="md:col-span-2 snap-center card-image aspect-square md:w-full lg:w-full">
+            <div className="md:col-span-2 md:w-full lg:w-full">
               
               <ImageGallery productData={product}/>
             </div>
@@ -750,22 +750,32 @@ function MarketPlace({link}){
     // console.log('Ini displyaed images', productData?.metafields[12]?.value)
   
     return (
-      <div className="flex flex-col space-y-4 md:space-y-0 md:space-x-4">
-        <div className="">
+      <div>
           
-          <img src={selectedImage} alt={productData?.title} className={`max-w-sm md:max-w-lg w-full h-auto shadow rounded-lg`} />
+          {/* <img src={selectedImage} alt={productData?.title} className={`w-full max-w-sm mx-auto h-auto shadow rounded-lg`} />
+
+    */}
+
+
+
+      <div className="flex flex-col space-y-4">
+
+        
+        <div className="mx-auto">
+          
+          <img src={selectedImage} alt={productData?.title} className={`w-full max-w-sm md:max-w-lg mx-auto h-auto shadow rounded-lg`} />
 
    
         </div>
-        <div className="md:w-5/5 ">
-          <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-4/5 mx-auto">
+        <div className="md:w-5/5 mx-auto">
+          <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-5/5 mx-auto">
             {displayedImages.map((image) => (
               <div
                 key={image.node.src}
                 onClick={() => handleImageChange(image.node.src)}
                 className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
               >
-                <img src={image.node.src} alt="Product" className="w-full max-w-sm shadow h-auto md:mx-auto p-1 rounded-lg" />
+                <img src={image.node.src} alt={productData?.title} className="w-full max-w-sm shadow h-auto md:mx-auto p-1 rounded-lg" />
               </div>
             ))}
           </div>
@@ -782,6 +792,22 @@ function MarketPlace({link}){
             )}
           </div>
         </div>
+
+{/* 
+        <div className="grid grid-cols-4 auto-cols-max gap-4 md:mt-4 sm:w-5/5 md:w-5/5 mx-auto">
+            {displayedImages.map((image) => (
+              <div
+                key={image.node.src}
+                onClick={() => handleImageChange(image.node.src)}
+                className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
+              >
+                <img src={image.node.src} alt={productData?.title} className="w-full max-w-sm shadow h-auto mx-auto p-1 rounded-lg" />
+              </div>
+            ))}
+          </div> */}
+
+
+      </div>
       </div>
     );
   };
