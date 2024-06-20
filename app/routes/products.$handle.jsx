@@ -1123,7 +1123,10 @@ export const meta = ({data}) => {
   // Format the end date as "YYYY-MM-DD"
   const endDateFormatted = endOfMonth.toISOString().split('T')[0];
 
-  const title = data?.product?.title + ' Harga Murah & Terbaru ' + indonesianMonth + ' ' +year
+  const title = data?.product?.title + ' Harga Murah ' + indonesianMonth + ' ' +year
+
+  const deskripsiBaru =  'Beli ' + data?.product?.title + ' Harga Murah ' + indonesianMonth + ' ' +year + ' Gratis Ongkir, Cicilan 0%.'
+
 
   // console.log('Ini adalah title ',title)
 
@@ -1139,7 +1142,7 @@ export const meta = ({data}) => {
     },
     {
       name: "description",
-      content: data?.product?.description.substr(0, 155),
+      content: deskripsiBaru.substring(0, 155),
     },
     {
       name: "keywords",
@@ -1166,12 +1169,12 @@ export const meta = ({data}) => {
 
     {
       property: "og:title",
-      content: data?.product?.title,
+      content: title,
     },
 
     {
       property: "og:description",
-      content: data?.product?.description.substr(0, 155),
+      content: deskripsiBaru.substring(0, 155),
     },
     {
       property: "og:type",
@@ -1189,6 +1192,33 @@ export const meta = ({data}) => {
       property: "og:url",
       content: 'https://galaxy.co.id'+urlSekarang,
     },
+
+    {
+      property: "twitter:card",
+      content: 'summary',
+    },
+
+    {
+      property: "twitter:site",
+      content: 'galaxycamera99',
+    },
+
+    {
+      property: "twitter:title",
+      content: title,
+    },
+
+    {
+      property: "twitter:description",
+      content: deskripsiBaru.substring(0, 155),
+    },
+
+    {
+      property: "twitter:image",
+      content: data?.product?.featuredImage?.url,
+    },
+
+
     {
       name: "mobile-web-app-capable",
       content: "yes",
