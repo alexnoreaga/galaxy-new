@@ -63,7 +63,7 @@ export async function loader({params, context, request}) {
   const data = await context.storefront.query(BRAND_QUERY, {
     variables: {
       first:10,
-      query:handle,
+      query:"vendor:"+handle,
       ...paginationVariables
     },
   });

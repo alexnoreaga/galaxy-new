@@ -1150,7 +1150,7 @@ export const meta = ({data}) => {
     },
     {
       name: "og:image",
-      content: data?.product?.images.edges[0].node.src,
+      content: data?.product?.images.edges[0].node.src, 
     },
 
     {
