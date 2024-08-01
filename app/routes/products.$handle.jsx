@@ -424,7 +424,7 @@ DP : 0
             </div>
           </div>
           <div>
-          <div className="md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
+          <div className="border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
 
 
             <div className="grid gap-2 w-full">

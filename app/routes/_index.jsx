@@ -129,7 +129,7 @@ export default function Homepage() {
       <YoutubeLink/>
       </div> */}
 
-      {/* <div className="bg-white md:bg-gray-300 md:mb-5 md:-ml-5 md:-mr-5 md:my-4 md:py-5"> */}
+      {/* <div className="bg-white md:bg-gray-100 md:mb-5 md:-ml-5 md:-mr-5 md:my-4 md:py-5"> */}
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <RecommendedProducts products={data.recommendedProducts} />
       </div>
