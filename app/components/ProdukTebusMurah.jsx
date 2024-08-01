@@ -1,9 +1,10 @@
 import { Link } from '@remix-run/react';
-import React from 'react'
 import {useRef} from "react";
 
 
-export const ProdukRelated = ({related}) => {
+export const ProdukTebusMurah = ({related}) => {
+
+    console.log('related disini ',related)
 
 const scrollRef = useRef(null);
 
@@ -28,21 +29,20 @@ const scrollRef = useRef(null);
 
   return (
     <div className=''>
-    
+    <div className='font-bold text-lg text-white mb-2'>Tebus Murah!</div>
     <div className='relative flex items-center'>
     <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
 
-        {related?.productRecommendations.map((relate)=>{
+        {related[1]?.map((relate,index)=>{
             return(
-              <div className="w-60 gap-1 p-1 border shadow-md rounded-md relative flex-none mr-4 snap-center" key={relate?.title}>
+              <div className="w-60 gap-1 p-1 border shadow-md bg-white rounded-md relative flex-none mr-4 snap-center" key={relate?.product?.title}>
               <Link  
-                to={`/products/${relate?.handle}`}>
+                to={`/products/${relate?.product?.handle}`}>
                 <div className="flex flex-row">
-                <img src={relate?.featuredImage?.url} className='h-28 w-28 rounded-md' alt={relate?.title}/>
+                <img src={relate?.product?.featuredImage.url} className='h-28 w-28 rounded-md' alt={relate?.product?.title}/>
                 <div className="flex flex-col">
-                    <div className='text-xs font-bold pt-1'>{relate?.title.length > 50 ? relate?.title.substring(0, 50) + '...' : relate.title}</div>
-                    <div className="text-rose-700 font-bold text-sm mt-2">Rp{parseFloat(relate?.priceRange?.minVariantPrice?.amount).toLocaleString("id-ID")}</div>
-                    
+                    <div className='text-xs font-bold pt-1'>{relate?.product?.title> 50 ? relate?.product?.title.substring(0, 50) + '...' : relate?.product?.title}</div>
+                    <div className="text-rose-700 font-bold text-sm mt-2">Rp{parseFloat(related[0][index].metaobject.fields[0].value).toLocaleString("id-ID")}</div>
                 </div>
                 </div>
                 </Link>

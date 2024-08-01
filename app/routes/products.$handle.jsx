@@ -16,6 +16,7 @@ import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
 import {AnalyticsPageType} from '@shopify/hydrogen';
 import { ProdukRelated } from '~/components/ProdukRelated';
+import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
 import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 
@@ -93,7 +94,64 @@ export async function loader({params, context, request}) {
           productId: product?.id, // Value for the 'type' variable
         },
       });
-  
+
+      // const tebusMurah = await context.storefront.query(TEBUS_MURAH, {
+      //   variables: {
+      //     productId: product?.id, // Value for the 'type' variable
+      //   },
+      // });
+
+      const tebusMurah = product?.metafields[14]?.value
+      let finalTebusMurah;
+
+      if (tebusMurah){
+
+        const dataArray = JSON.parse(tebusMurah);
+        const hasilCekPromises = dataArray.map((item) => {
+          return context.storefront.query(TEBUS_MURAH, {
+            variables: {
+              id: item,
+            },
+          });
+        });
+        
+        const kumpulanTebusMurah = await Promise.all(hasilCekPromises);
+        const tebusMurah2 =  kumpulanTebusMurah.map((item)=>{
+          return context.storefront.query(TEBUS_MURAH_2,{
+            variables:{
+              id:item.metaobject?.fields[1]?.value
+            }
+          })
+
+
+
+          
+        })
+
+        const hasilTebusMurah = await Promise.all(tebusMurah2);
+
+        finalTebusMurah = [kumpulanTebusMurah,hasilTebusMurah]
+
+      }else{
+        finalTebusMurah = []
+      }
+
+      
+
+
+
+
+
+
+
+        
+
+
+
+    
+    
+
+      
 
 
       const canonicalUrl = request.url
@@ -113,11 +171,8 @@ export async function loader({params, context, request}) {
           },
         });
 
-
-
-
-
         return json({
+          finalTebusMurah,
           balasCepat,
           custEmail,
           related,
@@ -140,6 +195,7 @@ export async function loader({params, context, request}) {
         console.error('Brand value not found.');
 
         return json({
+          finalTebusMurah,
           balasCepat,
           custEmail,
           related,
@@ -296,10 +352,17 @@ DP : 0
 
 
   export default function ProductHandle() {
-    const {balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
+    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
     // console.log(customerAccessToken)
-    // console.log('produk ',product?.metafields[12]?.value)
+    // console.log('produk ',finalTebusMurah)
+
+    // if (finalTebusMurah.length > 0){
+    //   console.log('Yes ada')
+    // }else{
+    //   console.log('Maaf tidak ada')
+    // }
+    
     // console.log('liveshopee',liveshopee)
     // console.log('marketplace',marketplace)
 
@@ -534,6 +597,10 @@ DP : 0
 
         )}/>
 
+
+
+        
+
 </div>
 
 
@@ -567,7 +634,13 @@ DP : 0
 
           </div>
 
-
+          
+          {finalTebusMurah.length>0 &&
+            <div className='w-full bg-red-700 p-5 pt-3 lg:col-span-2 rounded-md shadow-md mb-5'>
+          <ProdukTebusMurah related={finalTebusMurah}/>
+          </div>}
+          
+          
 
 
           
@@ -575,11 +648,13 @@ DP : 0
           
         </div>
 
-    
+
+
 
       
     <div className='p-1 text-sm flex flex-col md:flex-row sm:gap-8'>
-        
+
+
         {metaobject?.metaobject?.field?.value &&
         <div className='flex flex-row gap-1 mb-1 pl-1'>
           <div className=' mr-3 '>Brand</div>
@@ -608,6 +683,12 @@ DP : 0
 
 
     </div>
+
+
+ 
+
+
+
 {/* 
             <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/> */}
@@ -893,6 +974,7 @@ function TombolWaDiscontinue({product}){
         {namespace:"custom" key:"lazada"}
         {namespace:"custom" key:"produk_discontinue"}
         {namespace:"custom" key:"produk_serupa"}
+        {namespace:"custom" key:"tebus_murah"}
       ]){
         key
         value
@@ -988,6 +1070,40 @@ const METAOBJECT_QUERY = `#graphql
     }
   }
 `;
+
+const TEBUS_MURAH = `#graphql
+query metaobject($id:ID!){
+
+metaobject(id:$id) {
+  id
+  fields {
+    value
+  }
+}
+
+
+}`
+
+const TEBUS_MURAH_2 = `#graphql
+query product($id:ID!){
+
+product(id:$id) {
+    title
+
+    priceRange{
+      minVariantPrice{
+        amount
+      }
+    }
+
+  	featuredImage{
+      url
+    }
+    handle
+  }
+
+
+}`
 
 
 
