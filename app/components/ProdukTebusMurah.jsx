@@ -41,10 +41,8 @@ const scrollRef = useRef(null);
                 <div className="flex flex-row">
                 <img src={relate?.product?.featuredImage.url} className='h-28 w-28 rounded-md' alt={relate?.product?.title}/>
                 <div className="flex flex-col">
-                    <div className='text-xs font-bold pt-1'>{relate?.product.title.length> 40 ? relate?.product.title.substring(0, 40) + '...' : relate?.product.title}</div>
-                    <div className="text-gray-500 line-through text-sm mt-2">Rp{parseFloat(relate?.product?.priceRange.minVariantPrice.amount).toLocaleString("id-ID")}</div>
-                    <div className="text-rose-700 font-bold text-sm">Rp{parseFloat(related[0][index].metaobject.fields[0].value).toLocaleString("id-ID")}</div>
-
+                    <div className='text-xs font-bold pt-1'>{relate?.product?.title> 50 ? relate?.product?.title.substring(0, 50) + '...' : relate?.product?.title}</div>
+                    <div className="text-rose-700 font-bold text-sm mt-2">Rp{parseFloat(related[0][index].metaobject.fields[0].value).toLocaleString("id-ID")}</div>
                 </div>
                 </div>
                 </Link>
