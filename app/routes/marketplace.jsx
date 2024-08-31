@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
+import { Accordion } from '~/components/Accordion';
+
 
 export default function Marketplace() {
 
     const [modal, setModal] = useState({ price: '', basePrice: '' });
+
+    const feeA = 4.00
+    const feeB = 6.00
+    const feeC = 8.50
+    const fee2c5 = 2.50
+    const fee4 = 4.00
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -35,7 +43,7 @@ export default function Marketplace() {
         <h1>Marketplace Fee Checker</h1>
 
         <input
-            className="w-full mb-4"
+            className="w-full mb-4 rounded-lg"
             placeholder="Masukkan Harga Modal"
             name="price"
             value={formatValue(modal.price)}
@@ -43,7 +51,7 @@ export default function Marketplace() {
         />
 
         <input
-            className="w-full mb-4"
+            className="w-full mb-4 rounded-lg border"
             placeholder="Masukkan Base Price"
             name="basePrice"
             value={formatValue(modal.basePrice)}
@@ -51,6 +59,186 @@ export default function Marketplace() {
         />
 
         <h2>Cuan: {calculateDifference() !== 0 && 'Rp '}{calculateDifference().toLocaleString()}</h2>
+      
+        {/* <Accordion 
+        title="14 Hari Tukar Baru" 
+        content="Jaminan penukaran kembali jika barang yang diterima tidak sesuai / cacat produksi atau salah ukuran." 
+        icon={(
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
+        </svg>
+
+        )}/> */}
+
+        <div className='border rounded-md p-2'>
+
+          <div className='text-center'>
+          <div className="font-bold text-green-800">Tokopedia Official Store</div>
+
+          <div className='text-xs text-gray-500'>Biaya Jasa Transaksi 1.8% (Maksimal 50rb)</div>
+          <div className='text-xs text-gray-500'>Biaya Free Ongkir 4% (Maksimal 10rb)</div>
+          </div>
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-green-800'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{feeA}%</div>
+            <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Aksesoris Kamera</div>
+              <div className='text-xs'>Cleaning Tools Kamera, Silica Gel Kamera, Lainnya</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Cleaning Tools Kamera</div>
+              <div className='text-xs'>Dry Box Kamera</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Kamera Digital</div>
+              <div className='text-xs'>Action Camera, Kamera 360, Kamera DSLR, Kamera Mirrorless, Kamera Pocket</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Lensa & Aksesoris</div>
+              <div className='text-xs'>Lensa Kamera</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Perangkat Elektronik Lainnya</div>
+              <div className='text-xs'>Lainnya</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Video</div>
+              <div className='text-xs'>Camcorder</div>
+            </div>
+
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+
+          </div>
+
+
+
+
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-green-800'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{feeB}%</div>
+            <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Aksesoris Kamera</div>
+              <div className='text-xs'>Microphone Kamera</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Audio</div>
+              <div className='text-xs'>Amplifier, Earphone, Headphone, Sound System, Speaker, TWS, Voice Recorder</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Drone & Aksesoris</div>
+              <div className='text-xs'>Aksesoris Drone</div>
+            </div>
+
+
+
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+          </div>
+
+
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-green-800'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{feeC}%</div>
+            <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Aksesoris Kamera</div>
+              <div className='text-xs'>Baterai & Charger Kamera, Kabel Konektor Kamera, Monopod Kamera, Remote Wireless Kamera, Stabilizer Kamera, Tas Kamera, Tripod Kamera</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Audio</div>
+              <div className='text-xs'>Kabel & Konektor Audio</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Frame, Album & Roll Film</div>
+              <div className='text-xs'>Refill Kamera Instan, Roll Film</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Lighting & Studio</div>
+              <div className='text-xs'>Backdrop, Flash Diffuser, Flash Kamera, Flash Trigger, Hot Shoe Kamera, Reflektor, Ring Light, Softbox, Studio Lighting</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Tas & Case Kamera</div>
+              <div className='text-xs'>Case Kamera, Strap Kamera</div>
+            </div>
+
+
+
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+          </div>
+
+
+
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-green-800'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{fee2c5}%</div>
+            <div className='text-xs font-bold underline'>Kategori : Komputer & Laptop</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Memory Card</div>
+              <div className='text-xs'>Case Memory Card, Compact Flash, Memory Card Adapter, Memory Stick Micro M2, Memory Stick Pro Duo, Memory Stick Pro-HG Duo</div>
+            </div>
+
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+          </div>
+
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-green-800'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{fee4}%</div>
+            <div className='text-xs font-bold underline'>Kategori : Komputer & Laptop</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold'>Memory Card</div>
+              <div className='text-xs'>MicroSD Card, MiniSD Card, MMC, SD Card</div>
+            </div>
+
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+          </div>
+
+         
+
+
+
+
+
+        </div>
+
+      
+      
+      
       </div>
     );
 }
