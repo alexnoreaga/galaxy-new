@@ -63,12 +63,30 @@ export default function Marketplace() {
       return ((price - biayaAdmTokopedia) - (jasaToped+jasaTopedOngkir) - basePrice);
   }
 
+
+
+  const handleClear = () =>{
+
+    setModal((prev)=>(
+      { ...prev,
+        price : '',
+        basePrice : '',
+      }
+    )
+      
+    )
+  }
+
+
+
+
     return (
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-        <h1>Marketplace Fee Checker</h1>
+        <h1 className='mb-1 text-center'>Marketplace Fee Checker</h1>
+        <div className='text-xs text-gray-500 mb-3 text-center'>Last update : 1 September 2024</div>
 
         <input
-            className="w-full mb-4 rounded-lg"
+            className="w-full mb-2 rounded-lg"
             placeholder="Masukkan Harga Jual"
             name="price"
             value={formatValue(modal.price)}
@@ -76,14 +94,21 @@ export default function Marketplace() {
         />
 
         <input
-            className="w-full mb-4 rounded-lg border"
+            className="w-full mb-2 rounded-lg border"
             placeholder="Masukkan Harga Modal"
             name="basePrice"
             value={formatValue(modal.basePrice)}
             onChange={handleChange}
         />
 
-        <h2>Margin Offline : {calculateDifference() !== 0 && 'Rp '}{calculateDifference().toLocaleString()}</h2>
+        <div className='flex flex-wrap gap-2 justify-between items-center mb-4'>
+
+          <div className='flex flex-wrap gap-1 items-center'>
+            <div className='font-bold text-lg'>Margin Offline :</div>
+            <div className='font-bold text-lg text-red-700'> {calculateDifference() !== 0 && 'Rp '}{calculateDifference().toLocaleString()}</div>
+          </div>
+          <div className='bg-red-700 text-white p-2 rounded-md w-28 lg:w-48 text-center font-bold cursor-pointer' onClick={handleClear}>Reset</div>
+        </div>
       
         {/* <Accordion 
         title="14 Hari Tukar Baru" 
