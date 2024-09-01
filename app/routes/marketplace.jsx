@@ -133,7 +133,7 @@ export default function Marketplace() {
             
             <div className='flex items-center gap-2 text-green-800'>
             <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{feeA}%</div>
-            <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya</div>
+            <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya </div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
@@ -147,8 +147,23 @@ export default function Marketplace() {
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Drone & aksesoris</div>
+              <div className='text-xs'>Drone Kamera, Drone Remote Control</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Kamera Analog</div>
+              <div className='text-xs'>Disposable Camera, Kamera Film, Perangkat Kamera Instan</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
               <div className='text-xs font-bold mr-1'>Kamera Digital</div>
               <div className='text-xs'>Action Camera, Kamera 360, Kamera DSLR, Kamera Mirrorless, Kamera Pocket</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Kamera Pengintai</div>
+              <div className='text-xs'>DVR, Fake Camera, IP Camera, Kabel CCTV, Kamera CCTV, Spy Camera</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
@@ -166,6 +181,8 @@ export default function Marketplace() {
               <div className='text-xs'>Camcorder</div>
             </div>
 
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(feeA))- modal.basePrice)?.toLocaleString()}</div>
             <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeA)?.toLocaleString()}</div>
 
           </div>
@@ -198,7 +215,7 @@ export default function Marketplace() {
             </div>
 
 
-
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(feeB))- modal.basePrice)?.toLocaleString()}</div>
             <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeB)?.toLocaleString()}</div>
           </div>
 
@@ -238,7 +255,7 @@ export default function Marketplace() {
             </div>
 
 
-
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(feeC))- modal.basePrice)?.toLocaleString()}</div>
             <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeC)?.toLocaleString()}</div>
           </div>
 
@@ -258,6 +275,7 @@ export default function Marketplace() {
               <div className='text-xs'>Case Memory Card, Compact Flash, Memory Card Adapter, Memory Stick Micro M2, Memory Stick Pro Duo, Memory Stick Pro-HG Duo</div>
             </div>
 
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(fee2c5))- modal.basePrice)?.toLocaleString()}</div>
             <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee2c5)?.toLocaleString()}</div>
           </div>
 
@@ -275,6 +293,7 @@ export default function Marketplace() {
               <div className='text-xs'>MicroSD Card, MiniSD Card, MMC, SD Card</div>
             </div>
 
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(fee4))- modal.basePrice)?.toLocaleString()}</div>
             <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee4)?.toLocaleString()}</div>
           </div>
 
