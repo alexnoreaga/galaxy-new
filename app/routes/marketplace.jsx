@@ -6,11 +6,20 @@ export default function Marketplace() {
 
     const [modal, setModal] = useState({ price: '', basePrice: '' });
 
+    // BIAYA ADMIN KATEGORI TOKOPEDIA
     const feeA = 4.00
     const feeB = 6.00
     const feeC = 8.50
     const fee2c5 = 2.50
     const fee4 = 4.00
+
+    // Tokopedia - BIAYA JASA TRANSAKSI 1.8% Maksimal 50RB
+    const jasaTokopedia = 1.8
+
+    // Tokopedia - BIAYA FREE ONGKIR 4% Maksimal 10rb
+    const jasaOngkir = 1.8
+
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -38,13 +47,29 @@ export default function Marketplace() {
         return price - basePrice;
     }
 
+    const hitungTokopedia = (biayaAdm) => {
+
+      const price = parseFloat(modal.price) || 0;
+      const basePrice = parseFloat(modal.basePrice) || 0;
+
+      const biayaAdmTokopedia = (price * biayaAdm) / 100
+
+
+      const jasaToped = Math.min((price * jasaTokopedia) / 100, 50000);
+      // Apply the condition for jasaTopedOngkir
+      const jasaTopedOngkir = Math.min((price * jasaOngkir) / 100, 10000);
+
+
+      return ((price - biayaAdmTokopedia) - (jasaToped+jasaTopedOngkir) - basePrice);
+  }
+
     return (
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <h1>Marketplace Fee Checker</h1>
 
         <input
             className="w-full mb-4 rounded-lg"
-            placeholder="Masukkan Harga Modal"
+            placeholder="Masukkan Harga Jual"
             name="price"
             value={formatValue(modal.price)}
             onChange={handleChange}
@@ -52,13 +77,13 @@ export default function Marketplace() {
 
         <input
             className="w-full mb-4 rounded-lg border"
-            placeholder="Masukkan Base Price"
+            placeholder="Masukkan Harga Modal"
             name="basePrice"
             value={formatValue(modal.basePrice)}
             onChange={handleChange}
         />
 
-        <h2>Cuan: {calculateDifference() !== 0 && 'Rp '}{calculateDifference().toLocaleString()}</h2>
+        <h2>Margin Offline : {calculateDifference() !== 0 && 'Rp '}{calculateDifference().toLocaleString()}</h2>
       
         {/* <Accordion 
         title="14 Hari Tukar Baru" 
@@ -87,36 +112,36 @@ export default function Marketplace() {
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Aksesoris Kamera</div>
+              <div className='text-xs font-bold mr-1'>Aksesoris Kamera</div>
               <div className='text-xs'>Cleaning Tools Kamera, Silica Gel Kamera, Lainnya</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Cleaning Tools Kamera</div>
+              <div className='text-xs font-bold mr-1'>Cleaning Tools Kamera</div>
               <div className='text-xs'>Dry Box Kamera</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Kamera Digital</div>
+              <div className='text-xs font-bold mr-1'>Kamera Digital</div>
               <div className='text-xs'>Action Camera, Kamera 360, Kamera DSLR, Kamera Mirrorless, Kamera Pocket</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Lensa & Aksesoris</div>
+              <div className='text-xs font-bold mr-1'>Lensa & Aksesoris</div>
               <div className='text-xs'>Lensa Kamera</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Perangkat Elektronik Lainnya</div>
+              <div className='text-xs font-bold mr-1'>Perangkat Elektronik Lainnya</div>
               <div className='text-xs'>Lainnya</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Video</div>
+              <div className='text-xs font-bold mr-1'>Video</div>
               <div className='text-xs'>Camcorder</div>
             </div>
 
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeA)?.toLocaleString()}</div>
 
           </div>
 
@@ -133,23 +158,23 @@ export default function Marketplace() {
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Aksesoris Kamera</div>
+              <div className='text-xs font-bold mr-1'>Aksesoris Kamera</div>
               <div className='text-xs'>Microphone Kamera</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Audio</div>
+              <div className='text-xs font-bold mr-1'>Audio</div>
               <div className='text-xs'>Amplifier, Earphone, Headphone, Sound System, Speaker, TWS, Voice Recorder</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Drone & Aksesoris</div>
+              <div className='text-xs font-bold mr-1'>Drone & Aksesoris</div>
               <div className='text-xs'>Aksesoris Drone</div>
             </div>
 
 
 
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeB)?.toLocaleString()}</div>
           </div>
 
 
@@ -163,33 +188,33 @@ export default function Marketplace() {
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Aksesoris Kamera</div>
+              <div className='text-xs font-bold mr-1'>Aksesoris Kamera</div>
               <div className='text-xs'>Baterai & Charger Kamera, Kabel Konektor Kamera, Monopod Kamera, Remote Wireless Kamera, Stabilizer Kamera, Tas Kamera, Tripod Kamera</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Audio</div>
+              <div className='text-xs font-bold mr-1'>Audio</div>
               <div className='text-xs'>Kabel & Konektor Audio</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Frame, Album & Roll Film</div>
+              <div className='text-xs font-bold mr-1'>Frame, Album & Roll Film</div>
               <div className='text-xs'>Refill Kamera Instan, Roll Film</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Lighting & Studio</div>
+              <div className='text-xs font-bold mr-1'>Lighting & Studio</div>
               <div className='text-xs'>Backdrop, Flash Diffuser, Flash Kamera, Flash Trigger, Hot Shoe Kamera, Reflektor, Ring Light, Softbox, Studio Lighting</div>
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Tas & Case Kamera</div>
+              <div className='text-xs font-bold mr-1'>Tas & Case Kamera</div>
               <div className='text-xs'>Case Kamera, Strap Kamera</div>
             </div>
 
 
 
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeC)?.toLocaleString()}</div>
           </div>
 
 
@@ -204,11 +229,11 @@ export default function Marketplace() {
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Memory Card</div>
+              <div className='text-xs font-bold mr-1'>Memory Card</div>
               <div className='text-xs'>Case Memory Card, Compact Flash, Memory Card Adapter, Memory Stick Micro M2, Memory Stick Pro Duo, Memory Stick Pro-HG Duo</div>
             </div>
 
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee2c5)?.toLocaleString()}</div>
           </div>
 
 
@@ -221,11 +246,11 @@ export default function Marketplace() {
             </div>
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
-              <div className='text-xs font-bold'>Memory Card</div>
+              <div className='text-xs font-bold mr-1'>Memory Card</div>
               <div className='text-xs'>MicroSD Card, MiniSD Card, MMC, SD Card</div>
             </div>
 
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp 500.000</div>
+            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee4)?.toLocaleString()}</div>
           </div>
 
          
