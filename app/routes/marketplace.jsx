@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Accordion } from '~/components/Accordion';
+import { Link } from "@remix-run/react";
 
 
 export default function Marketplace() {
@@ -206,6 +207,17 @@ const hitungTiktokMall = (biayaAdm) => {
           </div>
           <div className='bg-red-700 text-white p-2 rounded-md w-28 lg:w-48 text-center font-bold cursor-pointer' onClick={handleClear}>Reset</div>
         </div>
+
+        <div className='mb-4 flex flex-wrap gap-2'>
+        <Link className='border border-green-600 text-green-600 p-1 rounded-md w-20 font-bold text-center text-sm' to='#tokopedia'>Tokopedia</Link>
+        <Link className='border border-orange-600 text-orange-600 p-1 rounded-md w-20 font-bold text-center text-sm' to='#shopee'>Shopee</Link>
+        <Link className='border border-blue-600 text-blue-600 p-1 rounded-md w-20 font-bold text-center text-sm' to='#blibli'>Blibli</Link>
+        <Link className='border border-red-600 text-red-600 p-1 rounded-md w-20 font-bold text-center text-sm' to='#akulaku'>Akulaku</Link>
+        <Link className='border border-pink-600 text-pink-600 p-1 rounded-md w-20 font-bold text-center text-sm' to='#bukalapak'>Bukalapak</Link>
+        <Link className='border border-gray-800 text-gray-800 p-1 rounded-md w-20 font-bold text-center text-sm' to='#tiktok'>Tiktok</Link>
+        <Link className='border border-slate-500 text-slate-500 p-1 rounded-md w-28 font-bold text-center text-sm' to='#tiktokmall'>Tiktok Mall</Link>
+
+        </div>
       
         {/* <Accordion 
         title="14 Hari Tukar Baru" 
@@ -220,7 +232,7 @@ const hitungTiktokMall = (biayaAdm) => {
         <div className='border rounded-lg p-2 border-green-600 shadow-lg'>
 
           <div className='text-center'>
-          <div className="font-bold text-green-600 text-xl">Tokopedia Official Store</div>
+          <div className="font-bold text-green-600 text-xl" id="tokopedia">Tokopedia Official Store</div>
 
           <div className='text-xs text-gray-500'>Biaya Jasa Transaksi 1.8% (Maksimal 50rb)</div>
           <div className='text-xs text-gray-500'>Biaya Free Ongkir 4% (Maksimal 10rb)</div>
@@ -403,7 +415,7 @@ const hitungTiktokMall = (biayaAdm) => {
         <div className='border border-orange-600 rounded-lg p-2 mt-4'>
 
           <div className='text-center'>
-          <div className="font-bold text-orange-600 text-xl">Shopee Star/Star+</div>
+          <div className="font-bold text-orange-600 text-xl" id="shopee">Shopee Star/Star+</div>
           <div className='text-xs text-gray-500'>Biaya Gratis Ongkir XTRA 4,0% (Maksimal 10rb)</div>
           </div>
 
@@ -523,7 +535,7 @@ const hitungTiktokMall = (biayaAdm) => {
         <div className='border border-blue-600 rounded-lg p-2 mt-4'>
 
           <div className='text-center'>
-          <div className="font-bold text-blue-600 text-xl">Blibli Official Store</div>
+          <div className="font-bold text-blue-600 text-xl" id="blibli">Blibli Official Store</div>
           <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
           <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div>
 
@@ -609,7 +621,7 @@ const hitungTiktokMall = (biayaAdm) => {
         <div className='border border-red-600 rounded-lg p-2 mt-4'>
 
           <div className='text-center'>
-          <div className="font-bold text-red-600 text-xl">Akulaku Merchant / Mall</div>
+          <div className="font-bold text-red-600 text-xl" id="akulaku">Akulaku Merchant / Mall</div>
           {/* <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
           <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div> */}
 
@@ -633,7 +645,7 @@ const hitungTiktokMall = (biayaAdm) => {
         <div className='border border-pink-700 rounded-lg p-2 mt-4'>
 
         <div className='text-center'>
-        <div className="font-bold text-pink-700 text-xl">Bukalapak</div>
+        <div className="font-bold text-pink-700 text-xl" id="bukalapak">Bukalapak</div>
         {/* <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
         <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div> */}
 
@@ -665,7 +677,7 @@ const hitungTiktokMall = (biayaAdm) => {
         <div className='border border-gray-800 rounded-lg p-2 mt-4'>
 
           <div className='text-center'>
-          <div className="font-bold text-gray-800 text-xl">Tiktok Shop Regular Marketplace</div>
+          <div className="font-bold text-gray-800 text-xl" id="tiktok">Tiktok Shop Regular Marketplace</div>
           {/* <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
           <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div> */}
 
@@ -735,7 +747,7 @@ const hitungTiktokMall = (biayaAdm) => {
         <div className='border border-slate-600 rounded-lg p-2 mt-4'>
 
           <div className='text-center'>
-          <div className="font-bold text-slate-600 text-xl">Tiktok Mall</div>
+          <div className="font-bold text-slate-600 text-xl" id="tiktokmall">Tiktok Mall</div>
           {/* <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
           <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div> */}
 
