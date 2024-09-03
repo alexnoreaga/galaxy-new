@@ -20,6 +20,30 @@ export default function Marketplace() {
     const jasaOngkir = 1.8
 
 
+    // BIAYA ADMIN KATEGORI SHOPEE
+    const shopeeA = 8.00
+    const shopeeB  = 7.50
+    const shopeeC = 5.75
+    const shopeeD = 4.25
+
+    const ongkirXtra = 4.0
+
+
+    // BIAYA ADMIN KATEGORI BLIBLI OFFICIAL STORE
+    const feeBlibli2c5 = 2.50
+    const feeBlibli4 = 4
+    const feeBlibli2c75 = 2.75
+    const jasaBlibli = 1.8
+    const jasaOngkirBlibli = 2
+
+
+    // BIAYA ADMIN AKULAKU
+    const feeAkulaku = 1.50
+
+    // BIAYA ADMIN BUKALAPAK
+    const feeBukalapak = 2.00
+
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -51,10 +75,7 @@ export default function Marketplace() {
 
       const price = parseFloat(modal.price) || 0;
       const basePrice = parseFloat(modal.basePrice) || 0;
-
       const biayaAdmTokopedia = (price * biayaAdm) / 100
-
-
       const jasaToped = Math.min((price * jasaTokopedia) / 100, 50000);
       // Apply the condition for jasaTopedOngkir
       const jasaTopedOngkir = Math.min((price * jasaOngkir) / 100, 10000);
@@ -62,6 +83,51 @@ export default function Marketplace() {
 
       return ((price - biayaAdmTokopedia) - (jasaToped+jasaTopedOngkir) - basePrice);
   }
+
+  const hitungShopee = (biayaAdm) => {
+
+    const price = parseFloat(modal.price) || 0;
+    const basePrice = parseFloat(modal.basePrice) || 0;
+    const biayaAdmShopee = (price * biayaAdm) / 100
+    // Apply the condition for jasaTopedOngkir
+    const ongkirXtraShopee = Math.min((price * ongkirXtra) / 100, 10000);
+
+
+    return ((price - biayaAdmShopee) - (ongkirXtraShopee) - basePrice);
+}
+
+const hitungBlibli = (biayaAdm) => {
+
+  const price = parseFloat(modal.price) || 0;
+  const basePrice = parseFloat(modal.basePrice) || 0;
+  const biayaAdmBlibli = (price * biayaAdm) / 100
+  const jasaBlibli2 = Math.min((price * jasaBlibli) / 100, 50000);
+  // Apply the condition for jasaTopedOngkir
+  const jasaOngkirBlibli2 = Math.min((price * jasaOngkirBlibli) / 100, 10000);
+
+
+  return ((price - biayaAdmBlibli) - (jasaBlibli2+jasaOngkirBlibli2) - basePrice);
+}
+
+
+const hitungAkulaku = (biayaAdm) => {
+
+  const price = parseFloat(modal.price) || 0;
+  const basePrice = parseFloat(modal.basePrice) || 0;
+  const biayaAdmAkulaku = (price * feeAkulaku) / 100
+
+  return ((price - biayaAdmAkulaku) - basePrice);
+}
+
+const hitungBukalapak = (biayaAdm) => {
+
+  const price = parseFloat(modal.price) || 0;
+  const basePrice = parseFloat(modal.basePrice) || 0;
+  const biayaAdmBukalapak = (price * feeBukalapak) / 100
+
+  return ((price - biayaAdmBukalapak) - basePrice);
+}
+
 
 
 
@@ -120,10 +186,10 @@ export default function Marketplace() {
 
         )}/> */}
 
-        <div className='border rounded-md p-2'>
+        <div className='border rounded-lg p-2 border-green-600'>
 
           <div className='text-center'>
-          <div className="font-bold text-green-800">Tokopedia Official Store</div>
+          <div className="font-bold text-green-600 text-xl">Tokopedia Official Store</div>
 
           <div className='text-xs text-gray-500'>Biaya Jasa Transaksi 1.8% (Maksimal 50rb)</div>
           <div className='text-xs text-gray-500'>Biaya Free Ongkir 4% (Maksimal 10rb)</div>
@@ -131,8 +197,8 @@ export default function Marketplace() {
 
           <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
             
-            <div className='flex items-center gap-2 text-green-800'>
-            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{feeA}%</div>
+            <div className='flex items-center gap-2 text-green-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-600 text-white'>{feeA}%</div>
             <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya </div>
             </div>
 
@@ -183,7 +249,7 @@ export default function Marketplace() {
 
 
             <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(feeA))- modal.basePrice)?.toLocaleString()}</div>
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeA)?.toLocaleString()}</div>
+            <div className='bg-green-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeA)?.toLocaleString()}</div>
 
           </div>
 
@@ -194,8 +260,8 @@ export default function Marketplace() {
 
           <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
             
-            <div className='flex items-center gap-2 text-green-800'>
-            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{feeB}%</div>
+            <div className='flex items-center gap-2 text-green-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-600 text-white'>{feeB}%</div>
             <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya</div>
             </div>
 
@@ -216,7 +282,7 @@ export default function Marketplace() {
 
 
             <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(feeB))- modal.basePrice)?.toLocaleString()}</div>
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeB)?.toLocaleString()}</div>
+            <div className='bg-green-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeB)?.toLocaleString()}</div>
           </div>
 
 
@@ -224,8 +290,8 @@ export default function Marketplace() {
 
           <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
             
-            <div className='flex items-center gap-2 text-green-800'>
-            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{feeC}%</div>
+            <div className='flex items-center gap-2 text-green-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-600 text-white'>{feeC}%</div>
             <div className='text-xs font-bold underline'>Kategori : Audio, Kamera & Elektronik Lainnya</div>
             </div>
 
@@ -256,7 +322,7 @@ export default function Marketplace() {
 
 
             <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(feeC))- modal.basePrice)?.toLocaleString()}</div>
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeC)?.toLocaleString()}</div>
+            <div className='bg-green-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(feeC)?.toLocaleString()}</div>
           </div>
 
 
@@ -265,8 +331,8 @@ export default function Marketplace() {
 
           <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
             
-            <div className='flex items-center gap-2 text-green-800'>
-            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{fee2c5}%</div>
+            <div className='flex items-center gap-2 text-green-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-600 text-white'>{fee2c5}%</div>
             <div className='text-xs font-bold underline'>Kategori : Komputer & Laptop</div>
             </div>
 
@@ -276,15 +342,15 @@ export default function Marketplace() {
             </div>
 
             <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(fee2c5))- modal.basePrice)?.toLocaleString()}</div>
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee2c5)?.toLocaleString()}</div>
+            <div className='bg-green-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee2c5)?.toLocaleString()}</div>
           </div>
 
 
 
           <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
             
-            <div className='flex items-center gap-2 text-green-800'>
-            <div className='text-lg font-bold p-1 rounded-lg bg-green-800 text-white'>{fee4}%</div>
+            <div className='flex items-center gap-2 text-green-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-green-600 text-white'>{fee4}%</div>
             <div className='text-xs font-bold underline'>Kategori : Komputer & Laptop</div>
             </div>
 
@@ -294,16 +360,270 @@ export default function Marketplace() {
             </div>
 
             <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(fee4))- modal.basePrice)?.toLocaleString()}</div>
-            <div className='bg-green-800 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee4)?.toLocaleString()}</div>
+            <div className='bg-green-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee4)?.toLocaleString()}</div>
           </div>
 
-         
+        </div>
 
 
+
+
+
+        <div className='border border-orange-600 rounded-lg p-2 mt-4'>
+
+          <div className='text-center'>
+          <div className="font-bold text-orange-600 text-xl">Shopee Star/Star+</div>
+          <div className='text-xs text-gray-500'>Biaya Gratis Ongkir XTRA 4,0% (Maksimal 10rb)</div>
+          </div>
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-orange-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-orange-600 text-white'>{shopeeA}%</div>
+            <div className='text-xs font-bold underline'>Kategori A</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Jam Tangan </div>
+              <div className='text-xs'>Jam Tangan Wanita, Jam Tangan Pria, Jam Tangan Couple, Aksesoris Jam Tangan, Jam Tangan lainnya.</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Audio </div>
+              <div className='text-xs'>Kabel & Konverter Audio & Video.</div>
+            </div>
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungShopee(shopeeA))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-orange-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungShopee(shopeeA)?.toLocaleString()}</div>
+
+          </div>
+
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-orange-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-orange-600 text-white'>{shopeeB}%</div>
+            <div className='text-xs font-bold underline'>Kategori B</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Audio</div>
+              <div className='text-xs'>MP3 & MP4 Player, CD, DVD, & Blu-ray Player, Radio & Pemutar Kaset, Amplifier & Mixer, Home Theater & Karaoke, Voice Recorder, Media Player lainnya, Mikrofon & Aksesoris, Speaker, AV Receiver, Perangkat Audio & Speaker lainnya, Audio lainnya.</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Kamera & Drone</div>
+              <div className='text-xs'>Kamera Keamanan, Perawatan Kamera, Kamera & Drone Lainnya, Gimbal & Stabilizer, Lighting & Perlengkapan Studio Foto, Roll Film & Kertas Foto, Printer Foto, Charger Baterai, Baterai & Battery Grip, Tripod, Monopod & Aksesoris, Aksesoris Kamera lainnya.</div>
+            </div>
+
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungShopee(shopeeB))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-orange-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungShopee(shopeeB)?.toLocaleString()}</div>
+
+          </div>
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-orange-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-orange-600 text-white'>{shopeeC}%</div>
+            <div className='text-xs font-bold underline'>Kategori C</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Audio</div>
+              <div className='text-xs'>Earphone, Headphone & Headset.</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Kamera & Drone</div>
+              <div className='text-xs'>Kamera, Lensa, Aksesoris Lensa, Drone, Aksesoris Drone, Flash, Aksesoris Flash, Tas & Casing Kamera.</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Komputer & Aksesoris</div>
+              <div className='text-xs'>Komponen Network, Software, Aksesoris Desktop & Laptop, Keyboard & Mouse, Komputer & Aksesoris Lainnya, Sound Card.</div>
+            </div>
+
+
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungShopee(shopeeC))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-orange-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungShopee(shopeeC)?.toLocaleString()}</div>
+
+          </div>
+
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-orange-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-orange-600 text-white'>{shopeeD}%</div>
+            <div className='text-xs font-bold underline'>Kategori D</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Komputer & Aksesoris</div>
+              <div className='text-xs'>Desktop, Monitor, Penyimpanan Data, Peralatan Kantor, Printer & Scanner, Laptop, Fan & Heatsink, Processor, Motherboard, VGA Card, Thermal Paste, Power Supply, Memory RAM, UPS & Stabilizer, Casing Komputer, Optical Drive, Komponen Desktop & Laptop Lainnya.</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Elektronik</div>
+              <div className='text-xs'>Pointer, Proyektor & Layar Proyektor, Proyektor & Aksesoris Lainnya.</div>
+            </div>
+
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungShopee(shopeeD))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-orange-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungShopee(shopeeD)?.toLocaleString()}</div>
+
+          </div>
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+        <div className='border border-blue-600 rounded-lg p-2 mt-4'>
+
+          <div className='text-center'>
+          <div className="font-bold text-blue-600 text-xl">Blibli Official Store</div>
+          <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
+          <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div>
+
+          </div>
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-blue-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-blue-600 text-white'>{feeBlibli2c5}%</div>
+            <div className='text-xs font-bold underline'></div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Handphone, Tablet & Wearable Gadget</div>
+              <div className='text-xs'>Activity Trackers & Pedemeters, Aksesoris Wearable, Smart Watch, Smartglasses, Wearable Apple, Wearable Lainnya</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Kamera </div>
+              <div className='text-xs'>Kamera, Kamera Video, Lensa Kamera</div>
+            </div>
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungBlibli(feeBlibli2c5))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-blue-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungBlibli(feeBlibli2c5)?.toLocaleString()}</div>
+
+          </div>
+
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-blue-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-blue-600 text-white'>{feeBlibli4}%</div>
+            <div className='text-xs font-bold underline'></div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Kamera</div>
+              <div className='text-xs'>Aksesoris Kamera, Baterai Kamera, Flash Kamera, Tas & Case</div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Wearable Gadget</div>
+              <div className='text-xs'>True Wireless</div>
+            </div>
+
+            
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Peralatan Elektronik &gt; Audio</div>
+              <div className='text-xs'>Semua kategori turunannya</div>
+            </div>
+
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungBlibli(feeBlibli4))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-blue-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungBlibli(feeBlibli4)?.toLocaleString()}</div>
+
+          </div>
+
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-blue-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-blue-600 text-white'>{feeBlibli2c75}%</div>
+            <div className='text-xs font-bold underline'></div>
+            </div>
+
+            <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
+              <div className='text-xs font-bold mr-1'>Komputer & Gaming  &gt; Media Penyimpanan</div>
+              <div className='text-xs'>Semua kategori turunannya</div>
+            </div>
+
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungBlibli(feeBlibli2c75))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-blue-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungBlibli(feeBlibli2c75)?.toLocaleString()}</div>
+
+          </div>
+
+        </div>
+
+
+
+
+        <div className='border border-red-600 rounded-lg p-2 mt-4'>
+
+          <div className='text-center'>
+          <div className="font-bold text-red-600 text-xl">Akulaku Merchant / Mall</div>
+          {/* <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
+          <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div> */}
+
+          </div>
+
+          <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+            
+            <div className='flex items-center gap-2 text-red-600'>
+            <div className='text-lg font-bold p-1 rounded-lg bg-red-600 text-white'>{feeAkulaku}%</div>
+            <div className='text-xs font-bold underline'></div>
+            </div>
+
+            <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungAkulaku(feeAkulaku))- modal.basePrice)?.toLocaleString()}</div>
+            <div className='bg-red-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungAkulaku(feeAkulaku)?.toLocaleString()}</div>
+
+          </div>
+
+        </div>
+
+
+        <div className='border border-pink-700 rounded-lg p-2 mt-4'>
+
+        <div className='text-center'>
+        <div className="font-bold text-pink-700 text-xl">Bukalapak</div>
+        {/* <div className='text-xs text-gray-500'>Biaya Layanan Official Store 1.8% (Maksimal 50rb)</div>
+        <div className='text-xs text-gray-500'>Biaya Layanan Pengiriman Official Store 2% (Maksimal 10rb)</div> */}
+
+        </div>
+
+        <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
+          
+          <div className='flex items-center gap-2 text-pink-700'>
+          <div className='text-lg font-bold p-1 rounded-lg bg-pink-700 text-white'>{feeBukalapak}%</div>
+          <div className='text-xs font-bold underline'></div>
+          </div>
+
+          <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungBukalapak(feeBukalapak))- modal.basePrice)?.toLocaleString()}</div>
+          <div className='bg-pink-700 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungBukalapak(feeBukalapak)?.toLocaleString()}</div>
+
+        </div>
 
 
 
         </div>
+
 
       
       
