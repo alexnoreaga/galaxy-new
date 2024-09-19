@@ -15,9 +15,9 @@ export const InfoProduk = ({deskripsi,specs,isibox}) => {
       <div className=''>
         <div className='flex flex-wrap gap-2 p-2 flex-auto'>
         
-          <button onClick={() => handleContentChange("description")} className={`text-center w-28 py-1 cursor-pointer ${selectedContent == 'description' && ' rounded-md shadow border'}  font-bold text-black-700`}>DESKRIPSI</button>
-          {specs.props.dangerouslySetInnerHTML?.__html &&<button onClick={() => handleContentChange("specs")} className={`w-28 py-1 cursor-pointer ${selectedContent == 'specs' && ' rounded-md shadow border'}  font-bold text-black-700`}>SPESIFIKASI</button>}
-          {isibox && <button onClick={() => handleContentChange("box content")} className={`block py-1 sm:hidden md:block lg:hidden w-28 cursor-pointer ${selectedContent == 'box content' && ' rounded-md shadow border'}  font-bold text-black-700`}>ISI BOX</button>}
+          <button onClick={() => handleContentChange("description")} className={`text-center w-28 py-1 text-slate-600 cursor-pointer ${selectedContent == 'description' && ' rounded-md shadow border'}  font-bold text-slate-600`}>DESKRIPSI</button>
+          {specs.props.dangerouslySetInnerHTML?.__html &&<button onClick={() => handleContentChange("specs")} className={`w-28 py-1 cursor-pointer ${selectedContent == 'specs' && ' rounded-md shadow border'}  font-bold text-slate-600`}>SPESIFIKASI</button>}
+          {isibox && <button onClick={() => handleContentChange("box content")} className={`block py-1 sm:hidden md:block lg:hidden w-28 cursor-pointer ${selectedContent == 'box content' && ' rounded-md shadow border'}  font-bold text-slate-600`}>ISI BOX</button>}
           
         </div>
         <div className='mt-2'>

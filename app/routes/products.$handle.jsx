@@ -660,7 +660,7 @@ DP : 0
           <div className=' mr-3 '>Brand</div>
           <Link 
           to={`/brands/${metaobject.metaobject.field?.value}`}>
-          <div className='font-bold'>{metaobject.metaobject.field?.value}</div>
+          <div className='font-bold text-slate-600'>{metaobject.metaobject.field?.value}</div>
           </Link>
         </div>
         }
@@ -669,14 +669,14 @@ DP : 0
         {product.metafields[0]?.value &&
         <div className='flex flex-row gap-1 mb-1 pl-1'>
           <div className=' mr-3 '>Garansi</div>
-          <div className='font-bold'>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
+          <div className='font-bold text-slate-600'>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
       }
 
         {product.metafields[3]?.value &&
         <div className='flex flex-row gap-1 mb-1 pl-1'>
           <div className=' mr-3 '>Periode</div>
-          <div className='font-bold'>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
+          <div className='font-bold text-slate-600'>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
 
