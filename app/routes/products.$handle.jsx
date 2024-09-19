@@ -429,7 +429,7 @@ DP : 0
 
             <div className="grid gap-2 w-full">
 
-              <h1 className="text-4xl font-bold leading-10 mb-1 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
               </h1>
               </div>
@@ -442,7 +442,7 @@ DP : 0
               <div>Produk Discontinue</div>
               </div> }
 
-<div className='flex flex-row gap-1 mb-4'>
+<div className='flex flex-row gap-1 sm:mb-2 md:4'>
             {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
   <div className='w-26 p-1 items-center rounded-full border border-gray-200'>
     <div className='m-auto flex flex-row'>
@@ -699,7 +699,7 @@ DP : 0
         <div>
         <div className='sm:grid sm:grid-cols-2 md:grid md:grid-cols-2'>
         <InfoProduk 
-        deskripsi={(<div className="w-full prose  md:border-gray-200 pt-2 text-black text-md"
+        deskripsi={(<div className="w-full prose  md:border-gray-200 pt-2 text-black text-md tracking-normal"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
         
         isibox={product.metafields[2]?.value}
