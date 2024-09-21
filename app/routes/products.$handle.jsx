@@ -30,6 +30,8 @@ export async function loader({params, context, request}) {
   const {session} = context;
   const customerAccessToken = await session.get('customerAccessToken');
 
+  
+
 
     const {handle} = params;
     const searchParams = new URL(request.url).searchParams;
@@ -376,7 +378,7 @@ DP : 0
     // console.log(liveshopee.metaobjects?.edges[0]?.node)
 
     // console.log('Garansisssssssssssssssssssssssssss ',related)
-    // console.log('Selected Variant ',cicilanKartuKredit(selectedVariant,product,canonicalUrl))
+    // console.log('Selected Variant ',selectedVariant?.image?.url)
 
 
 
@@ -411,6 +413,7 @@ DP : 0
 
 
 
+
     return (
       <>
       {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={balasCepat?.metaobjects?.nodes}/>}
@@ -420,7 +423,7 @@ DP : 0
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
             <div className="md:col-span-2 md:w-full lg:w-full">
               
-              <ImageGallery productData={product}/>
+              <ImageGallery productData={product} selectedVariant={selectedVariant?.image?.url}/>
             </div>
           </div>
           <div>
@@ -791,21 +794,108 @@ function MarketPlace({link}){
 
 
 
-  const ImageGallery = ({ productData }) => {
+  // const ImageGallery = ({ productData }) => {
 
-    // console.log('Ini adalah hasil dari gambar ',productData)
-    const [selectedImage, setSelectedImage] = useState(productData.images.edges[0].node.src);
+  //   // console.log('Ini adalah hasil dari gambar ',productData)
+  //   const [selectedImage, setSelectedImage] = useState(productData.images.edges[0].node.src);
 
-    useEffect(()=>{
-      setSelectedImage(productData.images.edges[0].node.src)
-    },[productData.title])
+  //   useEffect(()=>{
+  //     setSelectedImage(productData.images.edges[0].node.src)
+  //   },[productData.title])
 
     
+  //   const [startIndex, setStartIndex] = useState(0);
+
+    
+
+
+  //   const handleImageChange = (newImageSrc) => {
+  //     setSelectedImage(newImageSrc);
+  //   };
+  
+  //   const nextImages = () => {
+  //     const nextStartIndex = startIndex + 4;
+  //     if (nextStartIndex < productData.images.edges.length) {
+  //       setStartIndex(nextStartIndex);
+  //       handleImageChange(productData.images.edges[nextStartIndex].node.src);
+  //     }
+  //   };
+  
+  //   const previousImages = () => {
+  //     const previousStartIndex = startIndex - 4;
+  //     if (previousStartIndex >= 0) {
+  //       setStartIndex(previousStartIndex);
+  //       handleImageChange(productData.images.edges[previousStartIndex].node.src);
+  //     }
+  //   };
+  
+  //   const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
+
+  //   return (
+  //     <div>
+
+
+  //     <div className="flex flex-col space-y-4">
+
+        
+  //       <div className="mx-auto">
+          
+  //         <img src={selectedImage} alt={productData?.title} className={`w-full max-w-sm md:max-w-lg mx-auto h-auto shadow rounded-lg`} />
+
+   
+  //       </div>
+  //       <div className="md:w-5/5 mx-auto">
+  //         <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-5/5 mx-auto">
+  //           {displayedImages.map((image) => (
+  //             <div
+  //               key={image.node.src}
+  //               onClick={() => handleImageChange(image.node.src)}
+  //               className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
+  //             >
+  //               <img src={image.node.src} alt={productData?.title} className="w-full max-w-sm shadow h-auto md:mx-auto p-1 rounded-lg" />
+  //             </div>
+  //           ))}
+  //         </div>
+  //         <div className="flex justify-between mt-4">
+  //           {startIndex > 0 && (
+  //             <button onClick={previousImages} className="text-blue-500 hover:text-blue-700">
+  //               Previous
+  //             </button>
+  //           )}
+  //           {startIndex + 4 < productData.images.edges.length && (
+  //             <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
+  //               Next
+  //             </button>
+  //           )}
+  //         </div>
+  //       </div>
+
+
+  //     </div>
+  //     </div>
+  //   );
+  // };
+
+  const ImageGallery = ({ productData, selectedVariant }) => {
+    // State for the main image
+    // console.log('Selected image terbaru',selectedVariant)
+
+    const [selectedImage, setSelectedImage] = useState(
+      selectedVariant || productData.images.edges[0].node.src
+    );
+  
+    useEffect(() => {
+      // Update the selected image when the variant changes
+      if (selectedVariant) {
+        setSelectedImage(selectedVariant);
+      } else {
+        setSelectedImage(productData.images.edges[0].node.src); // fallback to default image
+      }
+    }, [selectedVariant, productData]);
+  
+    // The rest of your component code remains unchanged...
     const [startIndex, setStartIndex] = useState(0);
-
-    
-
-
+  
     const handleImageChange = (newImageSrc) => {
       setSelectedImage(newImageSrc);
     };
@@ -827,72 +917,53 @@ function MarketPlace({link}){
     };
   
     const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
-
-    // console.log('Ini displyaed images', productData?.metafields[12]?.value)
   
     return (
       <div>
-          
-          {/* <img src={selectedImage} alt={productData?.title} className={`w-full max-w-sm mx-auto h-auto shadow rounded-lg`} />
-
-    */}
-
-
-
-      <div className="flex flex-col space-y-4">
-
-        
-        <div className="mx-auto">
-          
-          <img src={selectedImage} alt={productData?.title} className={`w-full max-w-sm md:max-w-lg mx-auto h-auto shadow rounded-lg`} />
-
-   
-        </div>
-        <div className="md:w-5/5 mx-auto">
-          <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-5/5 mx-auto">
-            {displayedImages.map((image) => (
-              <div
-                key={image.node.src}
-                onClick={() => handleImageChange(image.node.src)}
-                className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
-              >
-                <img src={image.node.src} alt={productData?.title} className="w-full max-w-sm shadow h-auto md:mx-auto p-1 rounded-lg" />
-              </div>
-            ))}
+        <div className="flex flex-col space-y-4">
+          <div className="mx-auto">
+            <img
+              src={selectedImage}
+              alt={productData?.title}
+              className="w-full max-w-sm md:max-w-lg mx-auto h-auto shadow rounded-lg"
+            />
           </div>
-          <div className="flex justify-between mt-4">
-            {startIndex > 0 && (
-              <button onClick={previousImages} className="text-blue-500 hover:text-blue-700">
-                Previous
-              </button>
-            )}
-            {startIndex + 4 < productData.images.edges.length && (
-              <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
-                Next
-              </button>
-            )}
+          <div className="md:w-5/5 mx-auto">
+            <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-5/5 mx-auto">
+              {displayedImages.map((image) => (
+                <div
+                  key={image.node.src}
+                  onClick={() => handleImageChange(image.node.src)}
+                  className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${
+                    selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'
+                  }`}
+                >
+                  <img
+                    src={image.node.src}
+                    alt={productData?.title}
+                    className="w-full max-w-sm shadow h-auto md:mx-auto p-1 rounded-lg"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between mt-4">
+              {startIndex > 0 && (
+                <button onClick={previousImages} className="text-blue-500 hover:text-blue-700">
+                  Previous
+                </button>
+              )}
+              {startIndex + 4 < productData.images.edges.length && (
+                <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
+                  Next
+                </button>
+              )}
+            </div>
           </div>
         </div>
-
-{/* 
-        <div className="grid grid-cols-4 auto-cols-max gap-4 md:mt-4 sm:w-5/5 md:w-5/5 mx-auto">
-            {displayedImages.map((image) => (
-              <div
-                key={image.node.src}
-                onClick={() => handleImageChange(image.node.src)}
-                className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'}`}
-              >
-                <img src={image.node.src} alt={productData?.title} className="w-full max-w-sm shadow h-auto mx-auto p-1 rounded-lg" />
-              </div>
-            ))}
-          </div> */}
-
-
-      </div>
       </div>
     );
   };
-
+  
 
 
 
@@ -1038,6 +1109,9 @@ function TombolWaDiscontinue({product}){
         nodes {
           id
           title
+          image{
+          url
+          }
           availableForSale
           sku
           price {
