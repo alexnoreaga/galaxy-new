@@ -288,7 +288,7 @@ function NoPredictiveSearchResults({searchTerm}) {
   }
   return (
     <p>
-      No results found for <q>{searchTerm.current}</q>
+      Tidak ada hasil pencarian untuk <q className='font-medium text-rose-700'>{searchTerm.current}</q>
     </p>
   );
 }
@@ -324,13 +324,15 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
   }&type=${pluralToSingularSearchType(type)}`;
 
 
-  // console.log('searchTerm',searchTerm,type)
+  console.log('searchTerm',searchTerm,type)
 
   return (
     <div className="predictive-search-result" key={type}>
-      <Link prefetch="intent" to={categoryUrl} onClick={goToSearchResult}>
+      {/* <Link prefetch="intent" to={categoryUrl} onClick={goToSearchResult}>
         <h5>{isSuggestions ? 'Suggestions' : type}</h5>
-      </Link>
+      </Link> */}
+      
+      {!isSuggestions&&(
       <ul className='grid gap-3 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6'>
         {items.map((item) => (
           <SearchResultItem
@@ -340,6 +342,7 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
           />
         ))}
       </ul>
+    )}
     </div>
   );
 }

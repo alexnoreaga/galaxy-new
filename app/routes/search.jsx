@@ -70,7 +70,7 @@ export default function SearchPage() {
       {/* KODE BARU */}
       <PredictiveSearchForm>
           {({fetchResults, inputRef}) => (
-            <div >
+            <>
               <input
                 name="q"
                 onChange={fetchResults}
@@ -78,12 +78,12 @@ export default function SearchPage() {
                 placeholder="Cari Produk"
                 ref={inputRef}
                 type="search"
-                className='w-full'
+                className=' border-blue-500 rounded-md w-full'
                 autoFocus
 
               />
               <button type="submit" className=''>Cari</button>
-            </div>
+            </>
           )}
         </PredictiveSearchForm>
         <PredictiveSearchResults />
