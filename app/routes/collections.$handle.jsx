@@ -245,7 +245,7 @@ function ProductItem({product, loading}) {
   const variant = product.variants.nodes[0];
   const variantUrl = useVariantUrl(product.handle, variant.selectedOptions);
 
-  console.log(product.title,'Discontinue ',product?.metafields[12]?.value, 'Available',product)
+  // console.log(product.title,'Discontinue ',product?.metafields[12]?.value, 'Available',product)
 
 
   return (

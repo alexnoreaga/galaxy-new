@@ -99,12 +99,13 @@ function SearchResultsProductsGrid({products}) {
   return (
     <div className="search-result">
       <h2>Products</h2>
-      <Pagination connection={products}>
+      <Pagination connection={products} >
         {({nodes, isLoading, NextLink, PreviousLink}) => {
           const itemsMarkup = nodes.map((product) => (
             <div className="search-results-item" key={product.id}>
               <Link prefetch="intent" to={`/products/${product.handle}`}>
-                <div className='flex flex-row gap-2 m-1'>
+                <div className='flex flex-col gap-2 m-1 border rounded-md p-2'>
+                <div className='flex flex-row gap-2'>
                 {product?.variants?.nodes[0]?.image?.url &&(
                     <Image
                       alt={product.title ?? ''}
@@ -114,7 +115,9 @@ function SearchResultsProductsGrid({products}) {
                       className='shadow'
                     />
                 )}
-                <span>{product.title}</span>
+                <span className='text-sm'>{product.title}</span>
+                </div>
+                <span className='text-sm font-semibold'>Rp {parseFloat(product?.variants?.nodes[0]?.price?.amount).toLocaleString("id-ID")}</span>
                 </div>
               </Link>
             </div>
@@ -132,7 +135,7 @@ function SearchResultsProductsGrid({products}) {
               </div>
               <div>
                 <NextLink>
-                  {isLoading ? 'Loading...' : <span >Load more ↓</span>}
+                  {isLoading ? 'Loading...' : <span className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">Load More ↓</span>}
                 </NextLink>
               </div>
             </div>
@@ -269,8 +272,8 @@ export function PredictiveSearchResults() {
       {/* view all results /search?q=term */}
       {searchTerm.current && (
         <Link onClick={goToSearchResult} to={`/search?q=${searchTerm.current}`}>
-          <p>
-            View all results for <q>{searchTerm.current}</q>
+          <p className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            Lihat Semua Hasil Pencarian Kata Kunci <q className='text-rose-700'>{searchTerm.current}</q>
             &nbsp; →
           </p>
         </Link>
@@ -328,7 +331,7 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
       <Link prefetch="intent" to={categoryUrl} onClick={goToSearchResult}>
         <h5>{isSuggestions ? 'Suggestions' : type}</h5>
       </Link>
-      <ul>
+      <ul className='grid gap-3 grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6'>
         {items.map((item) => (
           <SearchResultItem
             goToSearchResult={goToSearchResult}
@@ -350,26 +353,28 @@ function SearchResultItem({goToSearchResult, item}) {
   if (url.includes("products")) {
     path = url.split('?')[0];
 
-    console.log('Yes ketemu')
+    // console.log('Yes ketemu')
   } else {
-    console.log("URL does not contain 'product'.");
+    // console.log("URL does not contain 'product'.");
     path = item.url;
   }
 
-  console.log('Path',item)
+  // console.log('Path',item)
   
 
 
   return (
-    <li className="predictive-search-result-item" key={path}>
-      <Link onClick={goToSearchResult} to={path}>
+    <li className="predictive-search-result-item border-b md:border-b-0" key={path}>
+      <Link onClick={goToSearchResult} to={path} className='flex flex-col hover:no-underline border shadow rounded-lg p-2'>
       {/* <Link onClick={goToSearchResult} to={item.url}> */}
         {item.image?.url && (
           <Image
             alt={item.image.altText ?? ''}
             src={item.image.url}
-            width={50}
-            height={50}
+            aspectRatio="1/1"
+            sizes="(min-width: 45em) 20vw, 50vw"
+            className="hover:opacity-80"
+
           />
         )}
         <div>
@@ -380,11 +385,11 @@ function SearchResultItem({goToSearchResult, item}) {
               }}
             />
           ) : (
-            <span>{item.title}</span>
+            <span className='text-sm leading-normal'>{item.title}</span>
           )}
           {item?.price && (
             <small>
-              <Money data={item.price} />
+              <Money data={item.price} className='mt-1 text-sm font-semibold text-rose-800' />
             </small>
           )}
         </div>
