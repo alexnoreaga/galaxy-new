@@ -302,7 +302,7 @@ function RenderCollection({collections}) {
         <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
-      <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
+      <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-9 ">
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
@@ -601,7 +601,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
 
 const COLLECTIONS_QUERY = `#graphql
   query FeaturedCollections {
-    collections(first: 8, query: "collection_type:smart") {
+    collections(first: 9, query: "collection_type:smart") {
       nodes {
         id
         title
