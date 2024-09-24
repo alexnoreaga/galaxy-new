@@ -432,7 +432,7 @@ DP : 0
 
             <div className="grid gap-2 w-full">
 
-              <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal mt-1 md:mt-5" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
               </h1>
               </div>
@@ -925,11 +925,11 @@ function MarketPlace({link}){
             <img
               src={selectedImage}
               alt={productData?.title}
-              className="w-full max-w-sm md:max-w-lg mx-auto h-auto shadow rounded-lg"
+              className="w-full max-w-sm md:max-w-lg mx-auto h-auto rounded-lg"
             />
           </div>
           <div className="md:w-5/5 mx-auto">
-            <div className="grid grid-cols-4 gap-4 md:mt-4 sm:w-5/5 md:w-5/5 mx-auto">
+            <div className="grid grid-cols-4 sm:gap-3 md:gap-4 md:mt-4 sm:w-5/5 md:w-3/5 mx-auto">
               {displayedImages.map((image) => (
                 <div
                   key={image.node.src}
@@ -941,7 +941,9 @@ function MarketPlace({link}){
                   <img
                     src={image.node.src}
                     alt={productData?.title}
-                    className="w-full max-w-sm shadow h-auto md:mx-auto p-1 rounded-lg"
+                    className={`w-full max-w-xs h-auto md:mx-auto p-1 rounded-lg ${
+                    selectedImage === image.node.src && 'border-2 border-red-700'
+                  }`}
                   />
                 </div>
               ))}
