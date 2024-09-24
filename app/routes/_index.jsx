@@ -297,24 +297,25 @@ function RenderCollection({collections}) {
         <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
         </Link>
       </div>
-      <div className="grid-flow-row grid grid-cols-2 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
+      <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-8 ">
         {collections.nodes.map((collection) => {
           return (
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
-              <div className="flex items-center flex-row md:grid gap-2 border box-border md:border-none p-2 ">
+              <div className="flex items-center flex-col md:grid gap-2  box-border md:border-none p-1 hover:bg-gray-100 hover:rounded-lg">
                 {collection?.image && (
-                  <div className='w-1/3 md:w-full '>
+                  <div className='w-4/5 md:w-full rounded-full  bg-gray-200 md:bg-transparent'>
                   <Image
                     alt={`Image of ${collection.title}`}
                     data={collection.image}
                     key={collection.id}
                     sizes="(max-width: 32em) 100vw, 33vw"
                     crop="center"
+                    className="p-1"
 
                   />
                   </div>
                 )}
-                <p className="text-gray-800 whitespace-normal max-w-prose text-copy text-center text-sm">
+                <p className="text-gray-800 whitespace-normal max-w-prose text-copy font-medium text-center text-sm">
                   {collection.title}
                 </p>
               </div>
