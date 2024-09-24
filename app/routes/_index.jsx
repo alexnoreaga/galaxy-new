@@ -115,6 +115,11 @@ export default function Homepage() {
       {/* <FeaturedCollection collection={data.featuredCollection} /> */}
       {/* <Modal/> */}
       {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={data?.balasCepat?.metaobjects?.nodes}/>}
+      
+      {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+        <input className='w-full border-gray-200 rounded-md' placeholder="Cari Produk" ></input>
+      </div> */}
+      
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <Carousel images={data.banner.metaobjects} />
         </div>
@@ -303,7 +308,7 @@ function RenderCollection({collections}) {
             <Link to={`/collections/${collection.handle}`} key={collection.id}>
               <div className="flex items-center flex-col md:grid gap-2  box-border md:border-none p-1 hover:bg-gray-100 hover:rounded-lg">
                 {collection?.image && (
-                  <div className='w-4/5 md:w-full rounded-full  bg-gray-200 md:bg-transparent'>
+                  <div className='w-3/5 md:w-full rounded-full  bg-gray-200 md:bg-transparent'>
                   <Image
                     alt={`Image of ${collection.title}`}
                     data={collection.image}
