@@ -957,9 +957,7 @@ function MarketPlace({link}){
                 <div
                   key={image.node.src}
                   onClick={() => handleImageChange(image.node.src)}
-                  className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75 ${
-                    selectedImage === image.node.src ? 'opacity-75' : 'opacity-100'
-                  }`}
+                  className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75`}
                 >
                   <img
                     src={image.node.src}
