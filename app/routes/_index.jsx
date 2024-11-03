@@ -4,6 +4,7 @@ import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
 import {KategoriHalDepan} from '~/components/KategoriHalDepan';
+import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 
 import { BrandPopular } from '../components/BrandPopular';
 import {useRef} from "react";
@@ -144,10 +145,23 @@ export default function Homepage() {
       </div> */}
 
       {/* <div className="bg-white md:bg-gray-100 md:mb-5 md:-ml-5 md:-mr-5 md:my-4 md:py-5"> */}
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <RecommendedProducts products={data.recommendedProducts} />
+      
+        <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+        <div className='hidden md:block'>
+        <RecommendedProducts products={data.recommendedProducts} />
+        </div>
+
+
+        <div className='block md:hidden'>
+       <ProductFeatureHalDepan products={data.recommendedProducts} />
       </div>
+
+        </div>
+
+
       {/* </div> */}
+
+      
 
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
@@ -375,7 +389,7 @@ function RecommendedProducts({products}) {
                     data={product.images.nodes[0]}
                     alt={product.featuredImage.altText || product.title}
                     aspectRatio="1/1"
-                    sizes="(min-width: 45em) 20vw, 50vw"
+                    sizes="(min-width: 40em) 20vw, 50vw"
                     className="hover:opacity-80"
                   />
 

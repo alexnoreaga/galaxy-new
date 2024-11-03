@@ -46,7 +46,7 @@ const scrollRef = useRef(null);
 
     
     <div className='relative flex items-center'>
-    <div className="flex overflow-x-auto snap-x items-center scroll-smooth scroll-auto" ref={scrollRef}>
+    <div className="flex overflow-x-auto snap-x items-center scroll-smooth" ref={scrollRef}>
 
         {related?.nodes.map((relate)=>{
             return(
