@@ -3,6 +3,8 @@ import {Await, useLoaderData, Link,useOutletContext} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
+import {KategoriHalDepan} from '~/components/KategoriHalDepan';
+
 import { BrandPopular } from '../components/BrandPopular';
 import {useRef} from "react";
 import { useLayoutEffect, useState } from 'react';
@@ -127,7 +129,14 @@ export default function Homepage() {
       {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"> */}
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 
+      <div className='hidden md:block'>
       <RenderCollection collections={data.hasilCollection.collections}/>
+      </div>
+
+      <div className='block md:hidden'>
+      <KategoriHalDepan related={data.hasilCollection.collections}/>
+      </div>
+
       </div>
 
       {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
