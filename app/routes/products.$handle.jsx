@@ -803,14 +803,14 @@ DP : 0
         <div className='md:hidden border-t gap-2 px-2 backdrop-blur-sm bg-white w-full h-16 fixed left-0 bottom-16 grid grid-cols-6 items-center justify-between'>
         
           <a className='col-span-1' href="tel:082111311131" target="_blank" >
-          <button className='w-full col-span-1 bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-11 flex items-center justify-center'>
+          <button className='w-full col-span-1 bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-10 flex items-center justify-center'>
           <FaPhone/>
           </button>
           </a>
         
 
           <a className='col-span-2' href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" >
-          <button className='flex justify-center gap-2 flex-row items-center col-span-2 font-semibold bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-11 w-full'>
+          <button className='flex justify-center gap-2 flex-row items-center col-span-2 font-semibold bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-10 w-full'>
             <FaComment />
             <>Nego</>
           </button>
@@ -839,7 +839,7 @@ DP : 0
                 !selectedVariant.availableForSale ??
                 fetcher.state !== 'idle'
               }
-            className='flex justify-center gap-2 flex-row items-center col-span-3 font-semibold bg-gray-900 text-center text-white p-1 px-2 rounded-lg h-11 w-full'>
+            className='flex justify-center gap-2 flex-row items-center col-span-3 font-semibold bg-gradient-to-b from-gray-500 to-gray-800 text-center text-white p-1 px-2 rounded-lg h-10 w-full'>
             <FaBagShopping />
             <span>
             {selectedVariant?.availableForSale
