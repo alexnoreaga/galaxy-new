@@ -839,7 +839,7 @@ DP : 0
                 !selectedVariant.availableForSale ??
                 fetcher.state !== 'idle'
               }
-            className='flex justify-center gap-2 flex-row items-center col-span-3 font-semibold bg-gradient-to-b from-gray-500 to-gray-800 text-center text-white p-1 px-2 rounded-lg h-10 w-full'>
+            className='flex justify-center gap-2 flex-row items-center col-span-3 font-semibold bg-gray-900 text-center text-white p-1 px-2 rounded-lg h-10 w-full'>
             <FaBagShopping />
             <span>
             {selectedVariant?.availableForSale
