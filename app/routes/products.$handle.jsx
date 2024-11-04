@@ -20,6 +20,11 @@ import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
 import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { FaSquareWhatsapp } from "react-icons/fa6";
+import { FaPhone } from "react-icons/fa6";
+import { FaComment } from "react-icons/fa6";
+import { FaBagShopping } from "react-icons/fa6";
+
+
 
 
 export const handle = {
@@ -474,8 +479,8 @@ DP : 0
  
 
           {product.metafields[1] && (
-            <div className="rounded-md text-sm mb-1">
-              <div className='text-rose-700 text-sm border-solid font-bold border-rose-700 border w-10 text-center rounded'>
+            <div className="rounded-md text-sm mb-1 bg-gray-100 p-2">
+              <div className='mb-2 px-2  text-white text-sm border-solid font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 border w-12 text-center rounded'>
                 FREE
               </div>
               <div>
@@ -507,56 +512,65 @@ DP : 0
 
               <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={` text-xl font-bold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
 
-          <div className='text-sm text-gray-700 mt-3'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
+              {/* CICILAN MULAI DARI START */}
 
+              <div className='hidden md:block'>
 
+          <div className='text-sm text-gray-700 mt-3 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
 
-{!product?.metafields[12]?.value &&(
-<CartForm
-  route="/cart"
-  inputs={{
-    lines: [
-      {
-        merchandiseId: selectedVariant.id,
-      },
-    ],
-  }}
-  action={CartForm.ACTIONS.LinesAdd}
->
-  {(fetcher) => (
-    <>
-      <button
-        type="submit"
-        onClick={() => {
-          window.location.href = window.location.href + '#cart-aside';
-        }}
-        disabled={
-          !selectedVariant.availableForSale ??
-          fetcher.state !== 'idle'
-        }
-        className="border flex justify-center gap-1 items-center border-black rounded-sm w-full px-4 py-2 text-white bg-black uppercase hover:bg-white hover:text-black transition-colors duration-150"
-      >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-          </svg>
+          {!product?.metafields[12]?.value &&(
+          <CartForm
+            route="/cart"
+            inputs={{
+              lines: [
+                {
+                  merchandiseId: selectedVariant.id,
+                },
+              ],
+            }}
+            action={CartForm.ACTIONS.LinesAdd}
+          >
+            {(fetcher) => (
+              <>
+                <button
+                  type="submit"
+                  onClick={() => {
+                    window.location.href = window.location.href + '#cart-aside';
+                  }}
+                  disabled={
+                    !selectedVariant.availableForSale ??
+                    fetcher.state !== 'idle'
+                  }
+                  className="border flex justify-center gap-1 items-center border-black rounded-sm w-full px-4 py-2 text-white bg-black uppercase hover:bg-white hover:text-black transition-colors duration-150"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
 
-          <span>
-        {selectedVariant?.availableForSale
-          ? 'Beli Langsung'
-          : 'Sold out'}
-          </span>
-      </button>
-    </>
-  )}
-  </CartForm>
-  )
-}
+                    <span>
+                  {selectedVariant?.availableForSale
+                    ? 'Beli Langsung'
+                    : 'Sold out'}
+                    </span>
+                </button>
+              </>
+            )}
+            </CartForm>
+            )
+          }
 
 
   
-{selectedVariant?.availableForSale 
-  && product?.metafields[12]?.value != "true" 
-  && <TombolWa product={product} canonicalUrl={canonicalUrl}/>}
+    {selectedVariant?.availableForSale 
+      && product?.metafields[12]?.value != "true" 
+      && <TombolWa product={product} canonicalUrl={canonicalUrl}/>}
+
+      </div>
+
+  {/* CICILAN MULAI DARI END */}
+
+
+
 
   {product?.metafields[12]?.value == "true" && <TombolWaDiscontinue product={product} />}
 
@@ -600,10 +614,6 @@ DP : 0
         </svg>
 
         )}/>
-
-
-
-        
 
 </div>
 
@@ -651,6 +661,10 @@ DP : 0
 
           
         </div>
+
+
+
+        
 
 
             <div className='p-2 flex flex-row items-center gap-3 border rounded-lg w-32'>
@@ -723,7 +737,10 @@ DP : 0
             {/* <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/> */}
         <div>
+        
         <div className='sm:grid sm:grid-cols-2 md:grid md:grid-cols-2'>
+
+        
         <InfoProduk 
         deskripsi={(<div className="w-full prose md:border-gray-200 pt-2 text-black tracking-normal"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
@@ -732,7 +749,12 @@ DP : 0
         specs={(<div className="w-full prose md:border-gray-200 pt-2 text-black "
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
+
           </div>
+
+
+
+          
         </div>
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
@@ -771,6 +793,66 @@ DP : 0
 
  
         {foundAdmin && <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} />}
+
+        {/* BOTTOM CHECKOUT START HERE */}
+
+        {selectedVariant?.availableForSale 
+          && product?.metafields[12]?.value != "true" 
+           && (
+        
+        <div className='md:hidden border-t gap-2 px-2 backdrop-blur-sm bg-white w-full h-16 fixed left-0 bottom-16 grid grid-cols-6 items-center justify-between'>
+        
+          <a className='col-span-1' href="tel:082111311131" target="_blank" >
+          <button className='w-full col-span-1 bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-9 flex items-center justify-center'>
+          <FaPhone/>
+          </button>
+          </a>
+        
+
+          <a className='col-span-2' href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" >
+          <button className='flex justify-center gap-2 flex-row items-center col-span-2 font-semibold bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-9 w-full'>
+            <FaComment />
+            <>Nego</>
+          </button>
+          </a>
+
+          <div className='col-span-3'>
+          <CartForm
+            route="/cart"
+            inputs={{
+              lines: [
+                {
+                  merchandiseId: selectedVariant.id,
+                },
+              ],
+            }}
+            action={CartForm.ACTIONS.LinesAdd}
+          >
+          {(fetcher) => (
+
+          <button 
+            type="submit"
+              onClick={() => {
+                window.location.href = window.location.href + '#cart-aside';
+              }}
+              disabled={
+                !selectedVariant.availableForSale ??
+                fetcher.state !== 'idle'
+              }
+            className='flex justify-center gap-2 flex-row items-center col-span-3 font-semibold bg-gray-900 text-center text-white p-1 px-2 rounded-lg h-9 w-full'>
+            <FaBagShopping />
+            <span>
+            {selectedVariant?.availableForSale
+              ? 'Beli Langsung'
+              : 'Sold out'}
+              </span>
+          </button>
+        )}
+        </CartForm>
+        </div>
+        </div>
+      )}
+          {/* BOTTOM CHECKOUT END HERE */}
 
       </>
 
@@ -998,7 +1080,7 @@ function TombolWa({product,canonicalUrl}){
 
   return(
     <>
-        <div className='text-sm text-gray-500 mt-1'>Ingin harga best price dari kami? Yuk Negoin aja</div>
+        <div className='text-sm text-gray-500 mt-3 mb-2'>Ingin harga best price dari kami? Yuk Negoin aja</div>
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
             <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" className='drop-shadow-sm text-white'>ORDER VIA WHATSAPP</a>
       </div>
