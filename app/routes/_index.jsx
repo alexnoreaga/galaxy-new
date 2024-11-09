@@ -258,7 +258,67 @@ function FeaturedCollection({collection}) {
 //   );
 // }
 
-function BannerKecil({images}) {
+
+
+
+
+// function BannerKecil({images}) {
+//   const scrollRef = useRef(null);
+
+//   const scrollLeft = () => {
+//     if (scrollRef.current) {
+//       scrollRef.current.scrollBy({
+//         left: -200,
+//         behavior: 'smooth',
+//       });
+//     }
+//   };
+
+//   const scrollRight = () => {
+//     if (scrollRef.current) {
+//       scrollRef.current.scrollBy({
+//         left: 200,
+//         behavior: 'smooth',
+//       });
+//     }
+//   };
+
+//   return (
+//     <div className='relative flex items-center'>
+//     <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
+
+//       {images?.map((image,index)=>{
+//         return(
+         
+//           <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
+//             <a href={image.fields[1].value} target="_blank">
+//             <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} width={'320'} height={'120'} className='rounded-md'/>
+//             </a>
+//           </div>
+          
+//         )
+//       })}
+
+//     </div>
+
+//     <button className='absolute left-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollLeft} aria-label="kiri">
+//       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
+//             <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
+//     </svg>
+//     </button>
+
+//     <button className='absolute right-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollRight} aria-label="kanan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
+//   <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
+// </svg>
+// </button>
+   
+//     </div>
+//   );
+// }
+
+
+
+function BannerKecil({ images }) {
   const scrollRef = useRef(null);
 
   const scrollLeft = () => {
@@ -280,88 +340,142 @@ function BannerKecil({images}) {
   };
 
   return (
-    <div className='relative flex items-center'>
-    <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
+    <Suspense fallback={<div>Loading banners...</div>}>
+      <Await resolve={images}>
+        {(resolvedImages) => (
+          <div className='relative flex items-center'>
+            <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
+              {resolvedImages?.map((image, index) => (
+                <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
+                  <a href={image.fields[1].value} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={image.fields[0].reference.image.url}
+                      alt={`Banner ${index}`}
+                      width={'320'}
+                      height={'120'}
+                      className='rounded-md'
+                    />
+                  </a>
+                </div>
+              ))}
+            </div>
 
-      {images?.map((image,index)=>{
-        return(
-         
-          <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
-            <a href={image.fields[1].value} target="_blank">
-            <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} width={'320'} height={'120'} className='rounded-md'/>
-            </a>
+            <button
+              className='absolute left-2 rounded-full p-1 bg-neutral-700/50'
+              onClick={scrollLeft}
+              aria-label="Scroll left"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
+                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            <button
+              className='absolute right-2 rounded-full p-1 bg-neutral-700/50'
+              onClick={scrollRight}
+              aria-label="Scroll right"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
+                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
+              </svg>
+            </button>
           </div>
-          
-        )
-      })}
-
-    </div>
-
-    <button className='absolute left-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollLeft} aria-label="kiri">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-            <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
-    </svg>
-    </button>
-
-    <button className='absolute right-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollRight} aria-label="kanan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-  <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
-</svg>
-</button>
-   
-    </div>
+        )}
+      </Await>
+    </Suspense>
   );
 }
 
 
 
 
-function RenderCollection({collections}) {
-  if (!collections) return null;
-  return (
-    <section className="w-full gap-4 ">
-    <div className='flex flex-row items-center justify-between m-1 mb-2'>
-        <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
-          Kategori Populer
-        </div>
-        <Link to={`/collections/`}>
-        <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
-        </Link>
-      </div>
-      <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-9 ">
-        {collections.nodes.map((collection) => {
-          return (
-            <Link to={`/collections/${collection.handle}`} key={collection.id}>
-              <div className="flex items-center flex-col md:grid gap-2  box-border md:border-none p-1 hover:bg-gray-100 hover:rounded-lg">
-                {collection?.image && (
-                  <div className='w-3/5 md:w-full rounded-full  bg-gray-200 md:bg-transparent'>
-                  <Image
-                    alt={`Image of ${collection.title}`}
-                    data={collection.image}
-                    key={collection.id}
-                    sizes="(max-width: 32em) 100vw, 33vw"
-                    crop="center"
-                    className="p-1"
+// function RenderCollection({collections}) {
+//   if (!collections) return null;
+//   return (
+//     <section className="w-full gap-4 ">
+//     <div className='flex flex-row items-center justify-between m-1 mb-2'>
+//         <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+//           Kategori Populer
+//         </div>
+//         <Link to={`/collections/`}>
+//         <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+//         </Link>
+//       </div>
+//       <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-9 ">
+//         {collections.nodes.map((collection) => {
+//           return (
+//             <Link to={`/collections/${collection.handle}`} key={collection.id}>
+//               <div className="flex items-center flex-col md:grid gap-2  box-border md:border-none p-1 hover:bg-gray-100 hover:rounded-lg">
+//                 {collection?.image && (
+//                   <div className='w-3/5 md:w-full rounded-full  bg-gray-200 md:bg-transparent'>
+//                   <Image
+//                     alt={`Image of ${collection.title}`}
+//                     data={collection.image}
+//                     key={collection.id}
+//                     sizes="(max-width: 32em) 100vw, 33vw"
+//                     crop="center"
+//                     className="p-1"
 
-                  />
-                  </div>
-                )}
-                <p className="text-gray-800 whitespace-normal max-w-prose text-copy font-medium text-center text-sm">
-                  {collection.title}
-                </p>
-              </div>
-            </Link>
-          );
-        })}
+//                   />
+//                   </div>
+//                 )}
+//                 <p className="text-gray-800 whitespace-normal max-w-prose text-copy font-medium text-center text-sm">
+//                   {collection.title}
+//                 </p>
+//               </div>
+//             </Link>
+//           );
+//         })}
         
-      </div>
-      {/* <Link to={`/collections/`}>
-          <div className="block sm:hidden text-gray-800 text-sm mx-auto mt-2 w-48 p-1 text-center rounded-md bg-gray-100 hover:no-underline ">Kategori Selengkapnya</div>
-        </Link> */}
-    </section>
+//       </div>
+
+//     </section>
+//   );
+// }
+
+
+function RenderCollection({ collections }) {
+  return (
+    <Suspense fallback={<div>Loading collections...</div>}>
+      <Await resolve={collections}>
+        {({ nodes }) => (
+          <section className="w-full gap-4 ">
+            <div className='flex flex-row items-center justify-between m-1 mb-2'>
+              <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+                Kategori Populer
+              </div>
+              <Link to={`/collections/`}>
+                <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+              </Link>
+            </div>
+            <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-9 ">
+              {nodes.map((collection) => (
+                <Link to={`/collections/${collection.handle}`} key={collection.id}>
+                  <div className="flex items-center flex-col md:grid gap-2 box-border md:border-none p-1 hover:bg-gray-100 hover:rounded-lg">
+                    {collection?.image && (
+                      <div className='w-3/5 md:w-full rounded-full bg-gray-200 md:bg-transparent'>
+                        <Image
+                          alt={`Image of ${collection.title}`}
+                          data={collection.image}
+                          sizes="(max-width: 32em) 100vw, 33vw"
+                          crop="center"
+                          className="p-1"
+                        />
+                      </div>
+                    )}
+                    <p className="text-gray-800 whitespace-normal max-w-prose text-copy font-medium text-center text-sm">
+                      {collection.title}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </Await>
+    </Suspense>
   );
 }
-
-
 
 
 
@@ -439,109 +553,74 @@ function RecommendedProducts({products}) {
 }
 
 
-function FeaturedBlogs2({blogs}){
-  // console.log('Ini adalah artikel ', blogs)
-  return(
-    <div>
-      <div className='flex flex-row items-center justify-between m-1 mb-2'>
-        <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
-          Artikel dan Review
-        </div>
-        <Link to={`/blogs/`}>
-        <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
-        </Link>
-      </div>
-      <div className='flex flex-col sm:flex-row gap-4 '>
-        {blogs.articles.edges.map((blog)=>{
-          return(
-            <div className='w-80 mx-auto'>
-              <div className='h-60 w-80 rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
-                <img className='h-60 p-1 w-auto m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
-              </div>
-              <div className='font-bold p-2'>{blog.node.title}</div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 function FeaturedBlogs({ blogs }) {
-  // console.log('Ini merupaakan featured Blog',blogs)
-
-  const [articlesToShow, setArticlesToShow] = useState(1); // State to manage the number of articles to display
+  const [articlesToShow, setArticlesToShow] = useState(1);
 
   useLayoutEffect(() => {
-    // Function to check screen size and set articles to display accordingly
     const updateArticlesToShow = () => {
       const screenSize = window.innerWidth;
       if (screenSize <= 640) {
-        // For small screens (you can adjust this breakpoint as needed)
-        setArticlesToShow(1); // Show only one article
+        setArticlesToShow(1);
       } else {
-        // For larger screens
-        setArticlesToShow(blogs.articles.edges.length); // Show all articles
+        setArticlesToShow(blogs.articles.edges.length);
       }
     };
 
-    // Initial check on component mount
     updateArticlesToShow();
-
-    // Event listener for screen size changes
     window.addEventListener('resize', updateArticlesToShow);
 
     return () => {
-      // Cleanup: Remove the event listener on component unmount
       window.removeEventListener('resize', updateArticlesToShow);
     };
   }, [blogs.articles.edges.length]);
 
   function formatDate(dateString) {
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
-    const formattedDate = new Date(dateString).toLocaleDateString('id-ID', options);
-    return formattedDate;
+    return new Date(dateString).toLocaleDateString('id-ID', options);
   }
 
-
   return (
-    <div>
-    <div className='flex flex-row items-center justify-between m-1 mb-2'>
-        <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
-          Artikel dan Review
-        </div>
-        <Link to={`/blogs/`}>
-        <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
-        </Link>
-      </div>
-      <div className='flex flex-col sm:flex-row gap-4 justify-between'>
-        {blogs.articles.edges.slice(0, articlesToShow).map((blog) => {
-          return (
-            <Link 
-            to={`/blogs/${blog.node.blog.handle}/${blog.node.handle}`}
-            key={blog.node.title}>
-
-            <div className='mx-auto' >
-            <div className='h-60 w-80 mx-auto rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
-
-            <img width={'320'} height={'240'} className='object-contain h-60 w-80 p-1 m-auto' key={blog.node.title} src={blog.node.image.url} alt={blog.node.title}></img>
+    <Suspense fallback={<div>Loading articles...</div>}>
+      <Await resolve={blogs}>
+        {(resolvedBlogs) => (
+          <div>
+            <div className='flex flex-row items-center justify-between m-1 mb-2'>
+              <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
+                Artikel dan Review
+              </div>
+              <Link to={`/blogs/`}>
+                <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+              </Link>
             </div>
-            
-            <div className='flex flex-row items-center text-neutral-500 gap-2 pt-2'>
-            <FaCalendarDays />
-            <div className='text-sm py-2'>{formatDate(blog.node.publishedAt)}</div>
+            <div className='flex flex-col sm:flex-row gap-4 justify-between'>
+              {resolvedBlogs.articles.edges.slice(0, articlesToShow).map((blog) => (
+                <Link to={`/blogs/${blog.node.blog.handle}/${blog.node.handle}`} key={blog.node.title}>
+                  <div className='mx-auto'>
+                    <div className='h-60 w-80 mx-auto rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
+                      <img
+                        width={'320'}
+                        height={'240'}
+                        className='object-contain h-60 w-80 p-1 m-auto'
+                        src={blog.node.image.url}
+                        alt={blog.node.title}
+                      />
+                    </div>
+                    <div className='flex flex-row items-center text-neutral-500 gap-2 pt-2'>
+                      <FaCalendarDays />
+                      <div className='text-sm py-2'>{formatDate(blog.node.publishedAt)}</div>
+                    </div>
+                    <div className='font-bold '>{blog.node.title}</div>
+                  </div>
+                </Link>
+              ))}
             </div>
-            <div className='font-bold '>{blog.node.title}</div>
-
-            </div>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+          </div>
+        )}
+      </Await>
+    </Suspense>
   );
 }
-
 
 
 const FEATURED_COLLECTION_QUERY = `#graphql
