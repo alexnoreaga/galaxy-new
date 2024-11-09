@@ -95,7 +95,7 @@ export function Header({header, isLoggedIn, cart}) {
       <HeaderMenuMobileToggle />
       <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
         {/* <strong>{shop.name}</strong> */}
-        <img className='h-8 sm:h-8 md:h-10 lg:h-10' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678" alt="Logo Galaxy Camera" />
+        <img className='h-8 sm:h-8 md:h-10 lg:h-10' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105" alt="Logo Galaxy Camera" />
       </NavLink>
       <HeaderMenu menu={menu} viewport="desktop" />
       <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />

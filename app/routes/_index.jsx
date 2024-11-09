@@ -140,11 +140,13 @@ export default function Homepage() {
 
       </div>
 
+      
+
       {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <YoutubeLink/>
       </div> */}
 
-      {/* <div className="bg-white md:bg-gray-100 md:mb-5 md:-ml-5 md:-mr-5 md:my-4 md:py-5"> */}
+      {/* <div className="bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% md:mb-5 md:-ml-5 md:-mr-5 md:my-4 md:py-5"> */}
       
         <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <div className='hidden md:block'>
