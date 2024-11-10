@@ -47,7 +47,7 @@ import {
           return (
             <div
               key={option.name}
-              className="flex flex-col flex-wrap mb-4 gap-y-2 last:mb-0"
+              className="flex flex-col flex-wrap mb-2 gap-y-1 last:mb-0"
             >
               <h3 className="whitespace-pre-wrap max-w-prose font-bold text-lead min-w-[4rem]">
                 {option.name}

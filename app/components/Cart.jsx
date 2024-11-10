@@ -84,7 +84,7 @@ function CartLineItem({layout, line}) {
         <ul>
           {selectedOptions.map((option) => (
             <li key={option.name}>
-              <small>
+              <small className='text-gray-500'>
                 {option.name}: {option.value}
               </small>
             </li>
@@ -100,9 +100,9 @@ function CartCheckoutActions({checkoutUrl}) {
   if (!checkoutUrl) return null;
 
   return (
-    <div className="mb-16">
-      <a href={checkoutUrl} target="_self">
-        <p>Continue to Checkout &rarr;</p>
+    <div className="mb-16 ">
+      <a href={checkoutUrl} target="_self" className='hover:underline'>
+        <p className='text-white bg-blue-600 py-3 m-auto text-center w-full font-semibold rounded-md no-underline hover:underline'>Continue to Checkout &rarr;</p>
       </a>
       <br />
     </div>
@@ -111,14 +111,14 @@ function CartCheckoutActions({checkoutUrl}) {
 
 export function CartSummary({cost, layout, children = null}) {
   const className =
-    layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside';
+    layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside bottom-10';
 
   return (
     <div aria-labelledby="cart-summary" className={className}>
-      <h4>Totals</h4>
+      <h4 className='text-sm'>Totals</h4>
       <dl className="cart-subtotal">
-        <dt>Subtotal</dt>
-        <dd>
+        <dt className='text-sm'>Subtotal </dt>
+        <dd className='font-bold ml-2 text-lg'>
           {cost?.subtotalAmount?.amount ? (
             <Money data={cost?.subtotalAmount} />
           ) : (
@@ -138,7 +138,7 @@ function CartLineRemoveButton({lineIds}) {
       action={CartForm.ACTIONS.LinesRemove}
       inputs={{lineIds}}
     >
-      <button type="submit">Remove</button>
+      <button type="submit" className='bg-rose-700 text-white px-2 text-sm rounded'>Hapus</button>
     </CartForm>
   );
 }
@@ -150,14 +150,15 @@ function CartLineQuantity({line}) {
   const nextQuantity = Number((quantity + 1).toFixed(0));
 
   return (
-    <div className="cart-line-quantiy">
-      <small>Quantity: {quantity} &nbsp;&nbsp;</small>
+    <div className="cart-line-quantiy items-center gap-1">
+      <small className='items-center font-semibold'>Jumlah : {quantity} &nbsp;&nbsp;</small>
       <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
         <button
           aria-label="Decrease quantity"
           disabled={quantity <= 1}
           name="decrease-quantity"
           value={prevQuantity}
+          className='border rounded-md px-1'
         >
           <span>&#8722; </span>
         </button>
@@ -168,6 +169,7 @@ function CartLineQuantity({line}) {
           aria-label="Increase quantity"
           name="increase-quantity"
           value={nextQuantity}
+          className='border rounded-md px-1'
         >
           <span>&#43;</span>
         </button>
@@ -191,7 +193,7 @@ function CartLinePrice({line, priceType = 'regular', ...passthroughProps}) {
   }
 
   return (
-    <div>
+    <div className='font-bold text-rose-700'>
       <Money withoutTrailingZeros {...passthroughProps} data={moneyV2} />
     </div>
   );
@@ -247,7 +249,7 @@ function CartDiscounts({discountCodes}) {
         <div>
           <input type="text" name="discountCode" placeholder="Discount code" />
           &nbsp;
-          <button type="submit">Apply</button>
+          <button type="submit" className='border rounded-md p-2'>Apply</button>
         </div>
       </UpdateDiscountForm>
     </div>
