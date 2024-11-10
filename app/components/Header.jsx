@@ -13,6 +13,7 @@ import {
   PredictiveSearchResults,
 } from '~/components/Search';
 import { useLocation } from "@remix-run/react";
+import { FaRegCircleUser } from "react-icons/fa6";
 
 
 
@@ -165,13 +166,21 @@ function HeaderCtas({isLoggedIn, cart}) {
 
   return (
     
-    <nav className="header-ctas" role="navigation">
+    <nav className="header-ctas gap-2" role="navigation">
       
       {/* <HeaderMenuMobileToggle /> */}
       
       <SearchToggle />
       <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
-        {isLoggedIn ? 'Account' : (<div className='text-sm'>Sign In</div>)}
+        {isLoggedIn ? 'Account' : (
+          <div>
+            <div className='block sm:hidden text-md'>
+              <FaRegCircleUser />
+            </div>
+
+          <div className='text-sm hidden sm:block'>Masuk</div>
+          </div>
+          )}
       </NavLink>
       
       <CartToggle cart={cart} />
@@ -199,23 +208,18 @@ function HeaderMenuMobileToggle() {
 // }
 function SearchToggle() {
   const location = useLocation();
+  console.log('Lokasi adalah ', location.pathname)
   return (
     <>
        <Link 
           to={`/search`}>
-          
-  
-          <svg aria-label="Cari" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            {location.pathname =='/search' ? (
+                 <svg aria-label="Cari" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-
-
-
-
-        
-
-
-
+            ) :(
+          <input placeholder='Cari Produk' className='md:w-full w-32 h-10 border-gray-300 rounded-md'></input>
+            ) }
           </Link>
     </>
   );

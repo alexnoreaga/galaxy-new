@@ -190,7 +190,7 @@ aside li {
 .header-ctas {
   align-items: center;
   display: flex;
-  grid-gap: 1rem;
+  grid-gap: 0.5rem;
   margin-left: auto;
 }
 

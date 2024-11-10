@@ -119,8 +119,9 @@ export default function Homepage() {
       {/* <Modal/> */}
       {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={data?.balasCepat?.metaobjects?.nodes}/>}
       
-      {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-        <input className='w-full border-gray-200 rounded-md' placeholder="Cari Produk" ></input>
+{/* 
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+        <input className='w-full border-gray-200 rounded-md mt-2' placeholder="Cari Produk" ></input>
       </div> */}
       
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
