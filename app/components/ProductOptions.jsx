@@ -67,8 +67,8 @@ import {
                       to={`${pathname}?${linkParams.toString()}`}
                       preventScrollReset
                       replace
-                      className={`leading-none py-1 border-b-[1.5px] cursor-pointer hover:no-underline transition-all duration-200 ${
-                        isSelected ? 'border-gray-500' : 'border-neutral-50'
+                      className={`leading-none py-1 border rounded-full px-2 cursor-pointer hover:no-underline transition-all duration-200 ${
+                        isSelected ? 'border-green-700/50 bg-green-50 text-green-700 font-semibold' : 'border-neutral-50 bg-gray-100 px-2 rounded-full text-gray-800'
                       }`}
                     >
                       {value}
