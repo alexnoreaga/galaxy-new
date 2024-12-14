@@ -1,4 +1,4 @@
-import React from 'react';
+import React , { useState } from 'react';
 import { ExternalVideo } from '@shopify/hydrogen';
 import {Link} from '@remix-run/react';
 
