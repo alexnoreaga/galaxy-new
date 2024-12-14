@@ -18,7 +18,6 @@
     "@shopify/cli-hydrogen": "^5.4.3",
     "@shopify/hydrogen": "^2023.7.11",
     "@shopify/remix-oxygen": "^1.1.7",
-    "caniuse-lite": "^1.0.30001553",
     "flowbite": "^2.1.1",
     "flowbite-react": "^0.6.4",
     "graphql": "^16.6.0",

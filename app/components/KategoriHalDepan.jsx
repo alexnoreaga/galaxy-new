@@ -25,8 +25,7 @@ const scrollRef = useRef(null);
     }
   };
 
-  console.log('Ini adalah')
-  console.log(related)
+
   if (!related) return null;
 
   return (
