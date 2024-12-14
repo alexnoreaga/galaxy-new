@@ -135,7 +135,6 @@ export default function Homepage() {
       <RenderCollection collections={data.hasilCollection.collections}/>
       </div>
 
-
       <div className='block md:hidden'>
       <KategoriHalDepan related={data.hasilCollection.collections}/>
       </div>
