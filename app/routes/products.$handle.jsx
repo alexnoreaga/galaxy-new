@@ -650,7 +650,7 @@ DP : 0
 
           
           {finalTebusMurah.length>0 &&
-            <div className='w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 pt-3 lg:col-span-2 rounded-md shadow-md mb-5'>
+            <div className='w-full bg-red-700 p-5 pt-3 lg:col-span-2 rounded-md shadow-md mb-5'>
           <ProdukTebusMurah related={finalTebusMurah}/>
           </div>}
           
