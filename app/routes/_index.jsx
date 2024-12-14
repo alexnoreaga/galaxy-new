@@ -208,30 +208,6 @@ function FeaturedCollection({collection}) {
 }
 
 
-// function BannerKecil(){
-//   return(
-//     <div class="flex flex-nowrap overflow-x-auto">
-//   <div class="">
-//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
-//   </div>
-//   <div class="">
-//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
-//   </div>
-//   <div class="">
-//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" />
-//   </div>
-//   <div class="">
-//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
-//   </div>
-//   <div class="">
-//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
-//   </div>
-//   <div class="">
-//     <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" />
-//   </div>
-// </div>
-//   )
-// }
 
 // function BannerKecil() {
 //   return (
@@ -511,7 +487,7 @@ function RecommendedProducts({products}) {
                   />
 
                   {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
-                  <div class="absolute p-1 rounded bg-gradient-to-r from-rose-500 to-rose-700 font-bold text-xs text-white top-1 right-0">Promo</div>
+                  <div className="absolute p-1 rounded bg-gradient-to-r from-rose-500 to-rose-700 font-bold text-xs text-white top-1 right-0">Promo</div>
                   ) }
                   </div>  
            
