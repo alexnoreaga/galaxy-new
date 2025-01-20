@@ -23,7 +23,8 @@ import { FaSquareWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa6";
 import { FaBagShopping } from "react-icons/fa6";
-
+import { FaShareFromSquare } from "react-icons/fa6";
+import { FaLink } from "react-icons/fa6";
 
 
 
@@ -667,10 +668,16 @@ DP : 0
         
 
 
-            <div className='p-2 flex flex-row items-center gap-3 border rounded-lg w-32'>
+            <div className='p-2 flex flex-row items-center gap-3 border rounded-lg w-36'>
               <div className='pl-1 text-sm text-slate-600'>Share</div>
 
               <div className='flex flex-row gap-3'>
+
+              <div className='text-slate-600 w-4 h-4 m-auto flex items-center justify-center cursor-pointer' onClick={()=>copyToClipboard(canonicalUrl)}>
+              <FaLink />
+              </div>
+
+
               <a href={`https://api.whatsapp.com/send?text=${canonicalUrl}`}  data-action="share/whatsapp/share" target="_blank"> 
               <div className='w-5 h-5 flex items-center justify-center'>
              
@@ -680,7 +687,7 @@ DP : 0
               </a>
             
             
-              <div className='w-4 h-4 m-auto flex items-center justify-center cursor-pointer' onClick={()=>copyToClipboard(canonicalUrl)}>
+              <div className='w-4 h-4 m-auto flex items-center justify-center cursor-pointer' onClick={()=>copyToClipboard(product.title)}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="#94a3b8" d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/></svg>
               </div>
 
