@@ -25,6 +25,9 @@ import { FaComment } from "react-icons/fa6";
 import { FaBagShopping } from "react-icons/fa6";
 import { FaShareFromSquare } from "react-icons/fa6";
 import { FaLink } from "react-icons/fa6";
+import {Await, useMatches} from '@remix-run/react';
+import {Suspense} from 'react';
+
 
 
 
@@ -363,6 +366,13 @@ DP : 0
   export default function ProductHandle() {
     const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace} = useLoaderData();
 
+    const [root] = useMatches();
+    const cart = root.data?.cart;
+  
+    // const { cart, applyDiscount } = useCart();
+
+    // console.log('cartttt',cart)
+
     // console.log(customerAccessToken)
     // console.log('produk ',finalTebusMurah)
 
@@ -442,6 +452,17 @@ DP : 0
               <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal mt-1 md:mt-5" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
               </h1>
+
+          {/* <Suspense fallback={<p>Loading cart ...</p>}>
+                  <Await errorElement={<div>An error occurred</div>} resolve={cart}>
+                    {(cart) => {
+                      console.log("Resolved cart:", cart);
+                      return <>Hello World</>;
+                    }}
+                  </Await>
+                </Suspense> */}
+
+
               </div>
 
               {product?.metafields[12]?.value == "true" && <div className='bg-rose-700 flex flex-row items-center px-2 gap-2 text-center text-white text-base p-1 rounded-lg'>

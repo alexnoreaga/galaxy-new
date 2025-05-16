@@ -91,7 +91,7 @@ export default function Marketplace() {
       const biayaAdmTokopedia = (price * biayaAdm) / 100
       const jasaToped = Math.min((price * jasaTokopedia) / 100, 50000);
       // Apply the condition for jasaTopedOngkir
-      const jasaTopedOngkir = Math.min((price * jasaOngkir) / 100, 10000);
+      const jasaTopedOngkir = Math.min((price * jasaOngkir) / 100, 20000);
 
 
       return ((price - biayaAdmTokopedia) - (jasaToped+jasaTopedOngkir) - basePrice);
@@ -234,8 +234,8 @@ const hitungTiktokMall = (biayaAdm) => {
           <div className='text-center'>
           <div className="font-bold text-green-600 text-xl" id="tokopedia">Tokopedia Official Store</div>
 
-          <div className='text-xs text-gray-500'>Biaya Jasa Transaksi 1.8% (Maksimal 50rb)</div>
-          <div className='text-xs text-gray-500'>Biaya Free Ongkir 4% (Maksimal 10rb)</div>
+          <div className='text-xs text-gray-500'>Biaya Jasa Layanan Mall 1.8% (Maksimal 50rb)</div>
+          <div className='text-xs text-gray-500'>Biaya Free Ongkir 4% (Maksimal 20rb)</div>
           </div>
 
           <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
@@ -381,7 +381,7 @@ const hitungTiktokMall = (biayaAdm) => {
 
             <div className='flex flex-wrap items-center mt-2 lg:gap-2'>
               <div className='text-xs font-bold mr-1'>Memory Card</div>
-              <div className='text-xs'>Case Memory Card, Compact Flash, Memory Card Adapter, Memory Stick Micro M2, Memory Stick Pro Duo, Memory Stick Pro-HG Duo</div>
+              <div className='text-xs'>MicroSD Card, MiniSD Card, MMC, SD Card, Case Memory Card, Compact Flash, Memory Card Adapter, Memory Stick Micro M2, Memory Stick Pro Duo, Memory Stick Pro-HG Duo</div>
             </div>
 
             <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(fee2c5))- modal.basePrice)?.toLocaleString()}</div>
@@ -389,7 +389,7 @@ const hitungTiktokMall = (biayaAdm) => {
           </div>
 
 
-
+{/* 
           <div className='p-2 bg-slate-100 mt-4 rounded-md shadow-md'>
             
             <div className='flex items-center gap-2 text-green-600'>
@@ -404,7 +404,7 @@ const hitungTiktokMall = (biayaAdm) => {
 
             <div className='bg-gray-200 text-gray-500 text-center font-bold rounded-md mt-2'>Potongan : Rp {((modal.price - hitungTokopedia(fee4))- modal.basePrice)?.toLocaleString()}</div>
             <div className='bg-green-600 text-white text-center font-bold rounded-md mt-2'>Margin : Rp {hitungTokopedia(fee4)?.toLocaleString()}</div>
-          </div>
+          </div> */}
 
         </div>
 

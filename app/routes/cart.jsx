@@ -84,6 +84,7 @@ export default function Cart() {
   const [root] = useMatches();
   const cart = root.data?.cart;
 
+
   return (
     <div className="cart">
       <h1>Cart</h1>

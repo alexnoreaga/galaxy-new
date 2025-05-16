@@ -29,6 +29,8 @@ export function Header({header, isLoggedIn, cart}) {
   // Add more routes as needed
 ];
 
+
+
   const {shop, menu} = header;
   return (
     <>
