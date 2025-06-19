@@ -532,7 +532,14 @@ DP : 0
                 </div>
               )}
 
+           
+
               <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={` text-xl font-bold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
+
+
+              {/* <div className='bg-emerald-50 text-emerald-900 p-2 rounded'>
+              <div>Kode Voucher : GLX100RB</div>
+              </div> */}
 
               {/* CICILAN MULAI DARI START */}
 
