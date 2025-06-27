@@ -7,3 +7,4 @@ export async function loader({request}) {
 export default function CatchAllPage() {
   return null;
 }
+
