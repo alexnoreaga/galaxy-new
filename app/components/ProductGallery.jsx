@@ -1,5 +1,5 @@
 import {Image} from '@shopify/hydrogen';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 /**
  * A client component that defines a media gallery for hosting images, 3D models, and videos of products
@@ -10,35 +10,42 @@ export function ProductGallery({media, className}) {
   }
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
   const touchStartXRef = useRef(null);
   const touchEndXRef = useRef(null);
   const containerRef = useRef(null);
 
   const goToNext = useCallback(() => {
+    setIsTransitioning(true);
     setCurrentImageIndex((prev) => (prev + 1) % media.length);
+    setTimeout(() => setIsTransitioning(false), 500);
   }, [media.length]);
 
   const goToPrev = useCallback(() => {
+    setIsTransitioning(true);
     setCurrentImageIndex((prev) => (prev - 1 + media.length) % media.length);
+    setTimeout(() => setIsTransitioning(false), 500);
   }, [media.length]);
 
   const handleTouchStart = (e) => {
     touchStartXRef.current = e.touches[0].clientX;
     touchEndXRef.current = null;
+    setSwipeOffset(0);
   };
 
   const handleTouchMove = (e) => {
-    touchEndXRef.current = e.touches[0].clientX;
+    if (touchStartXRef.current === null) return;
+    const currentX = e.touches[0].clientX;
+    const offset = currentX - touchStartXRef.current;
+    setSwipeOffset(offset * 0.3); // Reduce offset for smoother visual
+    touchEndXRef.current = currentX;
   };
 
   const handleTouchEnd = () => {
     if (touchStartXRef.current === null || touchEndXRef.current === null) return;
 
     const distance = touchStartXRef.current - touchEndXRef.current;
-    
-    console.log('Touch Start:', touchStartXRef.current);
-    console.log('Touch End:', touchEndXRef.current);
-    console.log('Distance:', distance);
 
     if (distance > 50) {
       console.log('Swiped LEFT - Next Image');
@@ -48,6 +55,7 @@ export function ProductGallery({media, className}) {
       goToPrev();
     }
 
+    setSwipeOffset(0);
     touchStartXRef.current = null;
     touchEndXRef.current = null;
   };
@@ -80,7 +88,16 @@ export function ProductGallery({media, className}) {
       onTouchEnd={handleTouchEnd}
       style={{ touchAction: 'pan-y' }}
     >
-      <div className="relative w-full aspect-square bg-gray-100 select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+      <div 
+        className={`relative w-full aspect-square bg-gray-100 select-none transition-all duration-500 ${
+          isTransitioning ? 'opacity-70 scale-95' : 'opacity-100 scale-100'
+        }`}
+        style={{ 
+          userSelect: 'none', 
+          WebkitUserSelect: 'none',
+          transform: `translateX(${swipeOffset}px) scale(${1 - Math.abs(swipeOffset) / 2000})`
+        }}
+      >
         {imageData ? (
           <Image
             loading="eager"
