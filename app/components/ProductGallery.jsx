@@ -1,5 +1,5 @@
 import {Image} from '@shopify/hydrogen';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
  * A client component that defines a media gallery for hosting images, 3D models, and videos of products
@@ -10,86 +10,144 @@ export function ProductGallery({media, className}) {
   }
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const touchStartRef = useRef(0);
-  const touchEndRef = useRef(0);
+  const touchStartXRef = useRef(null);
+  const touchEndXRef = useRef(null);
+  const containerRef = useRef(null);
+
+  const goToNext = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev + 1) % media.length);
+  }, [media.length]);
+
+  const goToPrev = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev - 1 + media.length) % media.length);
+  }, [media.length]);
 
   const handleTouchStart = (e) => {
-    touchStartRef.current = e.targetTouches[0].clientX;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchEndXRef.current = null;
   };
 
-  const handleTouchEnd = (e) => {
-    touchEndRef.current = e.changedTouches[0].clientX;
+  const handleTouchMove = (e) => {
+    touchEndXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartXRef.current === null || touchEndXRef.current === null) return;
+
+    const distance = touchStartXRef.current - touchEndXRef.current;
     
-    const touchStartVal = touchStartRef.current;
-    const touchEndVal = touchEndRef.current;
-    
-    if (!touchStartVal || !touchEndVal) return;
-    
-    const distance = touchStartVal - touchEndVal;
-    
-    // Swiped left - go to next image
-    if (distance > 40) {
-      setCurrentImageIndex((prev) => (prev + 1) % media.length);
-    } 
-    // Swiped right - go to previous image
-    else if (distance < -40) {
-      setCurrentImageIndex((prev) => (prev - 1 + media.length) % media.length);
+    console.log('Touch Start:', touchStartXRef.current);
+    console.log('Touch End:', touchEndXRef.current);
+    console.log('Distance:', distance);
+
+    if (distance > 50) {
+      console.log('Swiped LEFT - Next Image');
+      goToNext();
+    } else if (distance < -50) {
+      console.log('Swiped RIGHT - Previous Image');
+      goToPrev();
     }
+
+    touchStartXRef.current = null;
+    touchEndXRef.current = null;
   };
 
   const getImageData = (med) => {
-    if (med.__typename === 'MediaImage') {
+    if (med && med.__typename === 'MediaImage') {
       return {...med.image, altText: med.alt || 'Product image'};
     }
     return null;
   };
 
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Main image display for mobile */}
-      <div className="md:hidden relative bg-white dark:bg-contrast/10 rounded-lg overflow-hidden">
-        <div
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          className="relative w-full aspect-square touch-pan-y"
-        >
-          {getImageData(media[currentImageIndex]) && (
-            <Image
-              loading="eager"
-              data={getImageData(media[currentImageIndex])}
-              sizes="90vw"
-              className="object-cover w-full h-full select-none"
-            />
-          )}
-        </div>
+  const currentImage = media[currentImageIndex];
+  const imageData = getImageData(currentImage);
 
-        {/* Image counter */}
-        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
-          <div className="bg-black/50 text-white px-2 py-1 rounded text-xs">
-            {currentImageIndex + 1}/{media.length}
+  const ArrowLeft = () => (
+    <span className="text-2xl font-bold">‹</span>
+  );
+
+  const ArrowRight = () => (
+    <span className="text-2xl font-bold">›</span>
+  );
+
+  // Main image container
+  const MainImage = () => (
+    <div 
+      ref={containerRef}
+      className="relative bg-white dark:bg-contrast/10 rounded-lg overflow-hidden w-full select-none"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ touchAction: 'pan-y' }}
+    >
+      <div className="relative w-full aspect-square bg-gray-100 select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+        {imageData ? (
+          <Image
+            loading="eager"
+            data={imageData}
+            sizes="90vw"
+            className="w-full h-full object-cover select-none"
+            style={{ userSelect: 'none', pointerEvents: 'none', WebkitUserSelect: 'none' }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <span className="text-gray-400">No image</span>
           </div>
-        </div>
-
-        {/* Navigation arrows */}
-        {media.length > 1 && (
-          <>
-            <button
-              onClick={() => setCurrentImageIndex((prev) => (prev - 1 + media.length) % media.length)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
-            >
-              ←
-            </button>
-            <button
-              onClick={() => setCurrentImageIndex((prev) => (prev + 1) % media.length)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
-            >
-              →
-            </button>
-          </>
         )}
       </div>
 
-      {/* Desktop gallery */}
+      {/* Left Arrow Button */}
+      {media.length > 1 && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            goToPrev();
+          }}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-30 transition-colors active:bg-black flex items-center justify-center w-12 h-12 shadow-lg"
+          aria-label="Previous image"
+        >
+          <ArrowLeft />
+        </button>
+      )}
+
+      {/* Right Arrow Button */}
+      {media.length > 1 && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            goToNext();
+          }}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-30 transition-colors active:bg-black flex items-center justify-center w-12 h-12 shadow-lg"
+          aria-label="Next image"
+        >
+          <ArrowRight />
+        </button>
+      )}
+
+      {/* Image counter */}
+      <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
+        <div className="bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium">
+          {currentImageIndex + 1}/{media.length}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Mobile view */}
+      <div className="md:hidden">
+        <MainImage />
+      </div>
+
+      {/* Desktop main image with arrows */}
+      <div className="hidden md:block">
+        <MainImage />
+      </div>
+
+      {/* Desktop gallery grid */}
       <div
         className={`swimlane md:grid-flow-row hiddenScroll md:p-0 md:overflow-x-auto md:grid-cols-2 ${className}`}
       >
@@ -136,10 +194,13 @@ export function ProductGallery({media, className}) {
           <button
             key={i}
             onClick={() => setCurrentImageIndex(i)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              i === currentImageIndex ? 'bg-gray-800 w-6' : 'bg-gray-400'
+            className={`transition-all ${
+              i === currentImageIndex 
+                ? 'bg-gray-800 w-8 h-2 rounded-full' 
+                : 'bg-gray-400 w-2 h-2 rounded-full'
             }`}
             aria-label={`Go to image ${i + 1}`}
+            aria-current={i === currentImageIndex}
           />
         ))}
       </div>
