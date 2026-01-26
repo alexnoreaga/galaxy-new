@@ -1,5 +1,5 @@
 import {Await, NavLink, useMatches,Link} from '@remix-run/react';
-import {Suspense} from 'react';
+import {Suspense, useState} from 'react';
 import { IconName } from "react-icons/fa6";
 
 import { FaInstagram } from "react-icons/fa6";
@@ -106,6 +106,12 @@ export function Header({header, isLoggedIn, cart}) {
       
     </header>
 
+    {/* Mobile Search Bar - Full Width Below Header */}
+    <div className="sm:hidden w-full bg-white border-b relative">
+      <div className="px-4 py-2">
+        <SearchToggleMobile />
+      </div>
+    </div>
     
     </>
   );
@@ -172,7 +178,9 @@ function HeaderCtas({isLoggedIn, cart}) {
       
       {/* <HeaderMenuMobileToggle /> */}
       
-      <SearchToggle />
+      <div className="hidden sm:block">
+        <SearchToggle />
+      </div>
       <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
         {isLoggedIn ? 'Account' : (
           <div>
@@ -187,6 +195,75 @@ function HeaderCtas({isLoggedIn, cart}) {
       
       <CartToggle cart={cart} />
     </nav>
+  );
+}
+
+function SearchToggleMobile() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  return (
+    <>
+      <div 
+        onClick={() => setIsModalOpen(true)}
+        className='w-full'
+      >
+        <input 
+          placeholder='Cari Produk' 
+          readOnly
+          className='w-full h-10 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer'
+        />
+      </div>
+
+      {/* Search Modal */}
+      {isModalOpen && (
+        <>
+          {/* Dark overlay */}
+          <div 
+            className='fixed top-0 left-0 w-full h-full bg-black/50 z-40'
+            onClick={() => setIsModalOpen(false)}
+          />
+          
+          {/* Modal */}
+          <div className='fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center p-4'>
+            <div className='bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col shadow-2xl'>
+              {/* Header */}
+              <div className='flex items-center justify-between p-4 border-b'>
+                <h2 className='text-lg font-semibold'>Cari Produk</h2>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className='text-gray-500 hover:text-gray-700'
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Search Content */}
+              <div className='flex-1 overflow-y-auto p-4'>
+                <PredictiveSearchForm>
+                  {({fetchResults, inputRef}) => (
+                    <div className='w-full'>
+                      <input 
+                        ref={inputRef}
+                        name="q"
+                        onChange={fetchResults}
+                        onFocus={fetchResults}
+                        placeholder='Ketik nama produk...' 
+                        type="search"
+                        autoFocus
+                        className='w-full h-10 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4'
+                      />
+                      <div className='modal-search-results'>
+                        <PredictiveSearchResults />
+                      </div>
+                    </div>
+                  )}
+                </PredictiveSearchForm>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
