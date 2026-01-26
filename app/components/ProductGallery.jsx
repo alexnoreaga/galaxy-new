@@ -1,5 +1,5 @@
 import {Image} from '@shopify/hydrogen';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 /**
  * A client component that defines a media gallery for hosting images, 3D models, and videos of products
@@ -10,44 +10,39 @@ export function ProductGallery({media, className}) {
   }
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const galleryRef = useRef(null);
+  const touchStartRef = useRef(0);
+  const touchEndRef = useRef(0);
 
   const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
+    touchStartRef.current = e.targetTouches[0].clientX;
   };
 
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
+  const handleTouchEnd = (e) => {
+    touchEndRef.current = e.changedTouches[0].clientX;
+    
+    const touchStartVal = touchStartRef.current;
+    const touchEndVal = touchEndRef.current;
+    
+    if (!touchStartVal || !touchEndVal) return;
+    
+    const distance = touchStartVal - touchEndVal;
+    
+    // Swiped left - go to next image
+    if (distance > 40) {
       setCurrentImageIndex((prev) => (prev + 1) % media.length);
-    } else if (isRightSwipe) {
+    } 
+    // Swiped right - go to previous image
+    else if (distance < -40) {
       setCurrentImageIndex((prev) => (prev - 1 + media.length) % media.length);
     }
   };
 
-  // Scroll to current image on desktop
-  useEffect(() => {
-    if (galleryRef.current) {
-      const children = galleryRef.current.children;
-      if (children[currentImageIndex]) {
-        children[currentImageIndex].scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'center',
-        });
-      }
+  const getImageData = (med) => {
+    if (med.__typename === 'MediaImage') {
+      return {...med.image, altText: med.alt || 'Product image'};
     }
-  }, [currentImageIndex]);
+    return null;
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -55,21 +50,20 @@ export function ProductGallery({media, className}) {
       <div className="md:hidden relative bg-white dark:bg-contrast/10 rounded-lg overflow-hidden">
         <div
           onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="relative w-full aspect-square"
+          className="relative w-full aspect-square touch-pan-y"
         >
-          {media[currentImageIndex].__typename === 'MediaImage' && (
+          {getImageData(media[currentImageIndex]) && (
             <Image
               loading="eager"
-              data={{...media[currentImageIndex].image, altText: media[currentImageIndex].alt || 'Product image'}}
+              data={getImageData(media[currentImageIndex])}
               sizes="90vw"
-              className="object-cover w-full h-full"
+              className="object-cover w-full h-full select-none"
             />
           )}
         </div>
 
-        {/* Image counter and navigation */}
+        {/* Image counter */}
         <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
           <div className="bg-black/50 text-white px-2 py-1 rounded text-xs">
             {currentImageIndex + 1}/{media.length}
@@ -81,13 +75,13 @@ export function ProductGallery({media, className}) {
           <>
             <button
               onClick={() => setCurrentImageIndex((prev) => (prev - 1 + media.length) % media.length)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
             >
               ←
             </button>
             <button
               onClick={() => setCurrentImageIndex((prev) => (prev + 1) % media.length)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
             >
               →
             </button>
@@ -97,7 +91,6 @@ export function ProductGallery({media, className}) {
 
       {/* Desktop gallery */}
       <div
-        ref={galleryRef}
         className={`swimlane md:grid-flow-row hiddenScroll md:p-0 md:overflow-x-auto md:grid-cols-2 ${className}`}
       >
         {media.map((med, i) => {
@@ -105,10 +98,7 @@ export function ProductGallery({media, className}) {
           const isFourth = i === 3;
           const isFullWidth = i % 3 === 0;
 
-          const image =
-            med.__typename === 'MediaImage'
-              ? {...med.image, altText: med.alt || 'Product image'}
-              : null;
+          const image = getImageData(med);
 
           const style = [
             isFullWidth ? 'md:col-span-2' : 'md:col-span-1',
@@ -149,6 +139,7 @@ export function ProductGallery({media, className}) {
             className={`w-2 h-2 rounded-full transition-all ${
               i === currentImageIndex ? 'bg-gray-800 w-6' : 'bg-gray-400'
             }`}
+            aria-label={`Go to image ${i + 1}`}
           />
         ))}
       </div>
