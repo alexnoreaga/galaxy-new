@@ -62,9 +62,9 @@ export function Header({header, isLoggedIn, cart}) {
             <div className=''>Your Online Offline Photography Shopping</div>
             </div>
             <div className='flex gap-3 items-center'>
-              <a href="https://wa.me/6282111311131" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
+              <a href="https://wa.me/6282122335511" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>
                 <FaWhatsapp size="1.2em" />
-                <div>0821-1131-1131</div>
+                <div>0821-2233-5511</div>
               </a>
               
               <a href="https://instagram.com/galaxycamera99" target="_blank" className='flex items-center gap-1 text-white hover:no-underline'>

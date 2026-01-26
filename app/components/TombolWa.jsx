@@ -4,8 +4,8 @@ import { FaWhatsapp } from "react-icons/fa6";
 
 export const TombolWa = () => {
   function getUrl(){
-    console.log('posisi window saat ini ',window.location.href)
-    window.open('https://api.whatsapp.com/send?phone=6282111311131&text=Hi%20admin%20Galaxy.co.id%20saya%20berminat%20produk%20yang%20dilink%20ini%20'+window.location.href , '_blank');
+    // console.log('posisi window saat ini ',window.location.href)
+    window.open('https://api.whatsapp.com/send?phone=6282122335511&text=Hi%20admin%20Galaxy.co.id%20saya%20berminat%20produk%20yang%20dilink%20ini%20'+window.location.href , '_blank');
   }
 
 
