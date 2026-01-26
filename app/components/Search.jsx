@@ -364,11 +364,22 @@ function SearchResultItem({goToSearchResult, item}) {
 
   // console.log('Path',item)
   
+  const handleClick = (e) => {
+    goToSearchResult(e);
+  };
 
+  const handleTouchEnd = (e) => {
+    goToSearchResult(e);
+  };
 
   return (
     <li className="predictive-search-result-item border-b md:border-b-0" key={path}>
-      <Link onClick={goToSearchResult} to={path} className='flex flex-col hover:no-underline border shadow rounded-lg p-2'>
+      <Link 
+        onClick={handleClick} 
+        onTouchEnd={handleTouchEnd}
+        to={path} 
+        className='flex flex-col hover:no-underline border shadow rounded-lg p-2 cursor-pointer active:opacity-75'
+      >
       {/* <Link onClick={goToSearchResult} to={item.url}> */}
         {item.image?.url && (
           <Image
@@ -376,11 +387,11 @@ function SearchResultItem({goToSearchResult, item}) {
             src={item.image.url}
             aspectRatio="1/1"
             sizes="(min-width: 45em) 20vw, 50vw"
-            className="hover:opacity-80"
+            className="hover:opacity-80 pointer-events-none"
 
           />
         )}
-        <div>
+        <div className="pointer-events-none">
           {item.styledTitle ? (
             <div
               dangerouslySetInnerHTML={{
