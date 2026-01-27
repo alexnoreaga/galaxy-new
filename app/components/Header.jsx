@@ -303,7 +303,7 @@ function SearchToggle() {
           <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
             ) :(
-          <input placeholder='Cari Produk' className='md:w-full w-32 h-10 border-gray-300 rounded-md'></input>
+          <input placeholder='Cari Produk' className='w-40 sm:w-56 md:w-96 lg:w-[420px] h-10 border-gray-300 rounded-md transition-all duration-200'></input>
             ) }
           </Link>
     </>

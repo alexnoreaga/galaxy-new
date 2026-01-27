@@ -480,42 +480,43 @@ DP : 0
               <div>Produk Discontinue</div>
               </div> }
 
-<div className='flex flex-row gap-1 sm:mb-2 md:4'>
-            {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
-  <div className='w-26 p-1 items-center rounded-full border border-gray-200'>
-    <div className='m-auto flex flex-row'>
-      <div className='text-xs m-auto text-gray-400 pr-1'>Stock Ready</div>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="m-auto w-5 h-5 text-emerald-500">
-        <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+<div className='flex flex-row gap-2 sm:mb-2 md:4'>
+  {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
+    <div className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold shadow-sm gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>
+      Stock Ready
     </div>
-  </div>
-)}
-
-{product.metafields[0]?.value && (
-  <div className='w34 p-1 items-center rounded-full border border-gray-200'>
-    <div className='m-auto flex flex-row'>
-      <div className='text-xs m-auto text-gray-400 pr-1'>Garansi Resmi</div>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="m-auto w-5 h-5 text-emerald-500">
-        <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+  )}
+  {product.metafields[0]?.value && (
+    <div className="inline-flex items-center px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold shadow-sm gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
       </svg>
+      Garansi Resmi
     </div>
-  </div>
-)}
+  )}
 </div>
 
 
  
 
           {product.metafields[1] && (
-            <div className="rounded-md text-sm mb-1 bg-gray-100 p-2">
-              <div className='mb-2 px-2  text-white text-sm border-solid font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 border w-12 text-center rounded'>
-                FREE
+            <div className="rounded-lg text-sm mb-2 bg-gradient-to-br from-pink-100 via-indigo-50 to-white p-3 border border-pink-200 flex flex-col items-start shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-pink-500 via-indigo-500 to-sky-500 text-white shadow">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  FREE
+                </span>
               </div>
-              <div>
-                {product.metafields[1]?.value.split('\n').map(str => <div className='text-sm' key={str}>{str}</div>)}
+              <div className="pl-1 text-[13px] text-gray-700">
+                {product.metafields[1]?.value.split('\n').map(str => (
+                  <div key={str}>{str}</div>
+                ))}
               </div>
-            </div>)}
+            </div>
+          )}
 
 
            
