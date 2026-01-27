@@ -46,7 +46,7 @@ export const ProductFeatureHalDepan = ({products}) => {
                     {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
                       <div className='bg-rose-700 p-0.5 ml-0 text-white text-[10px] sm:text-xs rounded'><HitunganPersen hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount} hargaSesudah={product.priceRange.minVariantPrice.amount}/></div>
                     )}
-                    <div className={`text-xs sm:text-sm font-semibold ${parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) && 'text-rose-800'}`}>Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString("id-ID")}</div>
+                    <div className={`text-xs sm:text-sm font-semibold ${parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) ? 'text-rose-800' : 'text-sky-900'}`}>Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString("id-ID")}</div>
                   </div>
                   <div className='flex flex-col md:flex-row gap-1 sm:gap-2'>
                     {product.metafields[1]?.value.length > 0 && <span className='rounded-md m-auto ml-0 bg-sky-100 text-[10px] sm:text-xs font-bold text-sky-800 p-0.5 px-1 sm:p-1 sm:px-2'>
