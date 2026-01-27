@@ -97,52 +97,52 @@ export function SearchResults({results}) {
 function SearchResultsProductsGrid({products}) {
   // console.log('Hasil Gambar ini',products)
   return (
-    <div className="search-result">
-      <h2>Products</h2>
+    <div className="search-result py-8">
+      <h2 className='text-2xl font-bold mb-6'>Produk</h2>
       <Pagination connection={products} >
         {({nodes, isLoading, NextLink, PreviousLink}) => {
           const itemsMarkup = nodes.map((product) => (
             <div className="search-results-item" key={product.id}>
               <Link prefetch="intent" to={`/products/${product.handle}`}>
-                <div className='flex flex-col gap-2 m-1 border rounded-md p-2'>
-                <div className='flex flex-row gap-2'>
-                {product?.variants?.nodes[0]?.image?.url &&(
-                    <Image
-                      alt={product.title ?? ''}
-                      src={product?.variants?.nodes[0]?.image?.url}
-                      width={50}
-                      height={50}
-                      className='shadow'
-                    />
-                )}
-                <span className='text-sm'>{product.title}</span>
-                </div>
-                <span className='text-sm font-semibold'>Rp {parseFloat(product?.variants?.nodes[0]?.price?.amount).toLocaleString("id-ID")}</span>
+                <div className='flex flex-col gap-3 border border-gray-200 rounded-lg p-3 hover:shadow-lg hover:border-blue-300 transition-all duration-200 bg-white h-full'>
+                  <div className='w-full h-40 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden'>
+                    {product?.variants?.nodes[0]?.image?.url &&(
+                        <Image
+                          alt={product.title ?? ''}
+                          src={product?.variants?.nodes[0]?.image?.url}
+                          width={150}
+                          height={150}
+                          className='object-contain h-full w-full'
+                        />
+                    )}
+                  </div>
+                  <div className='flex flex-col gap-2 flex-grow'>
+                    <span className='text-xs font-medium text-gray-700 line-clamp-2 h-8'>{product.title}</span>
+                    <span className='text-base font-bold text-blue-600 mt-auto'>Rp {parseFloat(product?.variants?.nodes[0]?.price?.amount).toLocaleString("id-ID")}</span>
+                  </div>
                 </div>
               </Link>
             </div>
           ));
           return (
             <div>
-              <div>
+              <div className='flex justify-center mb-6'>
                 <PreviousLink>
-                  {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
+                  {isLoading ? 'Loading...' : <span className='text-sm font-semibold text-blue-600 hover:text-blue-800 cursor-pointer'>↑ Produk Sebelumnya</span>}
                 </PreviousLink>
               </div>
-              <div>
+              <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4'>
                 {itemsMarkup}
-                <br />
               </div>
-              <div>
+              <div className='flex justify-center mt-8'>
                 <NextLink>
-                  {isLoading ? 'Loading...' : <span className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">Load More ↓</span>}
+                  {isLoading ? 'Loading...' : <span className='font-bold text-center bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer text-sm'>Muat Lebih Banyak ↓</span>}
                 </NextLink>
               </div>
             </div>
           );
         }}
       </Pagination>
-      <br />
     </div>
   );
 }
@@ -257,7 +257,7 @@ export function PredictiveSearchResults() {
   // console.log('Prediktif',results)
   
   return (
-    <div className="predictive-search-results">
+    <div className="predictive-search-results p-4">
       <div>
         {results.map(({type, items}) => (
           <PredictiveSearchResult
@@ -272,9 +272,8 @@ export function PredictiveSearchResults() {
       {/* view all results /search?q=term */}
       {searchTerm.current && (
         <Link onClick={goToSearchResult} to={`/search?q=${searchTerm.current}`}>
-          <p className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-            Lihat Semua Hasil Pencarian Kata Kunci <q className='text-rose-700'>{searchTerm.current}</q>
-            &nbsp; →
+          <p className="mt-4 font-bold text-center bg-blue-600 text-white text-sm rounded-lg py-2 px-4 hover:bg-blue-700 transition-colors duration-200">
+            Lihat Semua Hasil "<span className='font-semibold'>{searchTerm.current}</span>" →
           </p>
         </Link>
       )}
@@ -333,7 +332,7 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
       </Link> */}
       
       {!isSuggestions&&(
-      <ul className='predictive-search-result-items'>
+      <ul className='predictive-search-result-items grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3'>
         {items.map((item) => (
           <SearchResultItem
             goToSearchResult={goToSearchResult}
@@ -373,38 +372,40 @@ function SearchResultItem({goToSearchResult, item}) {
   };
 
   return (
-    <li className="predictive-search-result-item border-b md:border-b-0" key={path}>
+    <li className="predictive-search-result-item" key={path}>
       <Link 
         onClick={handleClick} 
         onTouchEnd={handleTouchEnd}
         to={path} 
-        className='flex flex-col hover:no-underline border shadow rounded-lg p-2 cursor-pointer active:opacity-75'
+        className='flex flex-col hover:no-underline border border-gray-200 rounded-lg p-2 sm:p-3 cursor-pointer active:opacity-75 hover:shadow-md hover:border-blue-300 transition-all duration-200 bg-white h-full'
       >
       {/* <Link onClick={goToSearchResult} to={item.url}> */}
         {item.image?.url && (
-          <Image
-            alt={item.image.altText ?? ''}
-            src={item.image.url}
-            aspectRatio="1/1"
-            sizes="(min-width: 45em) 20vw, 50vw"
-            className="hover:opacity-80 pointer-events-none"
-
-          />
+          <div className='w-full h-32 sm:h-40 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden mb-2'>
+            <Image
+              alt={item.image.altText ?? ''}
+              src={item.image.url}
+              width={140}
+              height={140}
+              className="hover:opacity-80 pointer-events-none object-contain h-full w-full"
+            />
+          </div>
         )}
-        <div className="pointer-events-none">
+        <div className="pointer-events-none flex flex-col gap-1 sm:gap-2 flex-grow">
           {item.styledTitle ? (
             <div
               dangerouslySetInnerHTML={{
                 __html: item.styledTitle,
               }}
+              className='text-xs sm:text-sm font-medium text-gray-700 line-clamp-2'
             />
           ) : (
-            <span className='text-sm leading-normal'>{item.title}</span>
+            <span className='text-xs sm:text-sm font-medium text-gray-700 line-clamp-2'>{item.title}</span>
           )}
           {item?.price && (
-            <small>
-              <Money data={item.price} className='mt-1 text-sm font-semibold text-rose-800' />
-            </small>
+            <div className='mt-auto'>
+              <Money data={item.price} className='text-xs sm:text-sm font-bold text-blue-600' />
+            </div>
           )}
         </div>
       </Link>
