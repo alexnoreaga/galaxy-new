@@ -13,7 +13,7 @@ export const ProductFeatureHalDepan = ({products}) => {
 
   return (
     <div className="recommended-products text-gray-800">
-      <h2 className='text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead'>Produk Terbaru</h2>
+      <h2 className='text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight'>Produk Terbaru</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
           {({products}) => (
