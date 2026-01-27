@@ -31,7 +31,7 @@ const scrollRef = useRef(null);
   return (
 
     <div className="mb-2">
-      <div className="flex flex-row items-center justify-between px-1.5 py-1.5 sm:px-2 sm:py-2 mb-2 sm:mb-3 bg-white shadow-sm sm:border sm:border-gray-100">
+      <div className="flex flex-row items-center justify-between px-1.5 py-1.5 sm:px-2 sm:py-2 mb-2 sm:mb-3 bg-white ">
         <div className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Kategori Populer</div>
         <Link to="/collections/">
           <div className="text-blue-600 hover:text-blue-800 transition-colors duration-150 text-[11px] sm:text-sm font-normal sm:font-medium px-2 py-0.5 sm:px-3 sm:py-1 border border-blue-100 bg-blue-50 rounded-full shadow-sm cursor-pointer">Lihat Semua</div>
