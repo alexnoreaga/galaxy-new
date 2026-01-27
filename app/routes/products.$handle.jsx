@@ -451,12 +451,12 @@ DP : 0
             </div>
           </div>
           <div>
-          <div className="md:border-none md:shadow-2xl rounded-2xl md:mx-auto max-w-xl md:max-w-[26rem] grid gap-3 p-3 md:p-6 lg:p-8 md:px-4 bg-white md:sticky md:top-4">
+          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
 
 
-            <div className="grid gap-3 w-full">
+            <div className="grid gap-2 w-full">
 
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold md:leading-tight mb-2 whitespace-normal mt-0 text-gray-900 hover:text-blue-600 transition-colors cursor-pointer line-clamp-3" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal mt-1 md:mt-5" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title} 
               </h1>
 
@@ -472,32 +472,33 @@ DP : 0
 
               </div>
 
-              {product?.metafields[12]?.value == "true" && <div className='bg-gradient-to-r from-rose-600 to-rose-700 flex flex-row items-center px-3 sm:px-4 gap-2 text-center text-white text-xs sm:text-sm p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-lg'>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 sm:w-5 h-4 sm:h-5 flex-shrink-0">
+              {product?.metafields[12]?.value == "true" && <div className='bg-rose-700 flex flex-row items-center px-2 gap-2 text-center text-white text-base p-1 rounded-lg'>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                 </svg>
-              <div className='font-semibold text-sm'>Produk Discontinue</div>
+
+              <div>Produk Discontinue</div>
               </div> }
 
-<div className='flex flex-row gap-2 sm:mb-3 md:mb-4 flex-wrap'> 
+<div className='flex flex-row gap-1 sm:mb-2 md:4'>
             {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
-  <div className='px-2 sm:px-3 py-1 sm:py-2 items-center rounded-full border-2 border-emerald-300 bg-emerald-50'>
-    <div className='flex flex-row items-center gap-1 sm:gap-2'>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 sm:w-4 h-3 sm:h-4 text-emerald-600">
+  <div className='w-26 p-1 items-center rounded-full border border-gray-200'>
+    <div className='m-auto flex flex-row'>
+      <div className='text-xs m-auto text-gray-400 pr-1'>Stock Ready</div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="m-auto w-5 h-5 text-emerald-500">
         <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
       </svg>
-      <div className='text-xs sm:text-sm font-semibold text-emerald-700 leading-none'>Stock Ready</div>
     </div>
   </div>
 )}
 
 {product.metafields[0]?.value && (
-  <div className='px-2 sm:px-3 py-1 sm:py-2 items-center rounded-full border-2 border-blue-300 bg-blue-50'>
-    <div className='flex flex-row items-center gap-1 sm:gap-2'>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 sm:w-4 h-3 sm:h-4 text-blue-600">
+  <div className='w34 p-1 items-center rounded-full border border-gray-200'>
+    <div className='m-auto flex flex-row'>
+      <div className='text-xs m-auto text-gray-400 pr-1'>Garansi Resmi</div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="m-auto w-5 h-5 text-emerald-500">
         <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
       </svg>
-      <div className='text-xs sm:text-sm font-semibold text-blue-700 leading-none'>Garansi Resmi</div>
     </div>
   </div>
 )}
@@ -507,12 +508,12 @@ DP : 0
  
 
           {product.metafields[1] && (
-            <div className="rounded-xl text-xs sm:text-sm mb-2 bg-gradient-to-br from-purple-50 to-pink-50 p-3 sm:p-4 border-2 border-purple-200">
-              <div className='mb-2 inline-block px-3 sm:px-4 py-1 sm:py-2 text-white text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-600 via-purple-500 to-pink-600 rounded-full shadow-lg'>
-                🎁 FREE BONUS
+            <div className="rounded-md text-sm mb-1 bg-gray-100 p-2">
+              <div className='mb-2 px-2  text-white text-sm border-solid font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 border w-12 text-center rounded'>
+                FREE
               </div>
-              <div className='space-y-1 sm:space-y-2'>
-                {product.metafields[1]?.value.split('\n').map(str => <div className='text-xs sm:text-sm font-medium text-gray-700' key={str}>✓ {str}</div>)}
+              <div>
+                {product.metafields[1]?.value.split('\n').map(str => <div className='text-sm' key={str}>{str}</div>)}
               </div>
             </div>)}
 
@@ -521,7 +522,7 @@ DP : 0
 
             
 
-                <div className='text-xs sm:text-sm bg-gray-50 p-3 sm:p-4 rounded-xl'>
+                <div className='text-sm'>
                   {product.options[0].values.length > 1 && (
                   <ProductOptions
                     options={product.options}
@@ -532,15 +533,15 @@ DP : 0
               
               
               {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                <div className='flex flex-row items-center gap-2 sm:gap-3 mb-2 bg-red-50 p-2 sm:p-3 rounded-lg sm:rounded-lg'>
-                <div className='bg-gradient-to-r from-red-600 to-red-700 px-2 sm:px-3 py-1 ml-0 font-bold text-white text-xs sm:text-sm rounded-full'><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
-                  <div className="text-sm sm:text-lg line-through text-slate-500 font-semibold">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
+                <div className='flex flex-row items-center gap-2 mb-0'>
+                <div className='bg-rose-700 p-1 ml-0 font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
+                  <div className="text-base line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
                 </div>
               )}
 
            
 
-              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className='text-2xl sm:text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 transition-all cursor-pointer mb-2'>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
+              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={` text-xl font-bold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
 
 
               {/* DISCOUNT VOUCHER SECTION */}
@@ -548,10 +549,9 @@ DP : 0
 
               {/* CICILAN MULAI DARI START */}
 
-              <div className='hidden md:block bg-blue-50 p-3 sm:p-4 rounded-xl border-2 border-blue-200 mb-4'>
+              <div className='hidden md:block'>
 
-          <div className='text-xs sm:text-sm text-gray-700 mb-2'>💳 Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-blue-600 cursor-pointer hover:text-blue-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-blue-700 hover:text-blue-900 underline'>Lihat Detail</span></div>
-          </div>
+          <div className='text-sm text-gray-700 mt-3 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
 
           {!product?.metafields[12]?.value &&(
           <CartForm
@@ -576,20 +576,16 @@ DP : 0
                     !selectedVariant.availableForSale ??
                     fetcher.state !== 'idle'
                   }
-                  className="flex justify-center gap-2 items-center w-full px-4 sm:px-6 py-3 sm:py-4 text-white text-sm sm:text-base bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg sm:rounded-xl font-bold sm:text-lg hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95"
+                  className="border flex justify-center gap-1 items-center border-black rounded-sm w-full px-4 py-2 text-white bg-black uppercase hover:bg-white hover:text-black transition-colors duration-150"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 sm:w-5 h-4 sm:h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                     </svg>
-                    <span className='hidden sm:inline'>
+
+                    <span>
                   {selectedVariant?.availableForSale
-                    ? '🛒 Beli Sekarang'
-                    : '❌ Sold out'}
-                    </span>
-                    <span className='sm:hidden'>
-                  {selectedVariant?.availableForSale
-                    ? 'Beli'
-                    : 'Sold Out'}
+                    ? 'Beli Langsung'
+                    : 'Sold out'}
                     </span>
                 </button>
               </>
@@ -654,7 +650,11 @@ DP : 0
 
         )}/>
 
-    </div>
+</div>
+
+
+
+
 
           </div>
 
@@ -783,16 +783,19 @@ DP : 0
 
         
         <InfoProduk 
-        deskripsi={(<div className="w-full text-xs sm:text-sm md:text-base text-black tracking-normal leading-relaxed pt-2 md:border-gray-200"
+        deskripsi={(<div className="w-full prose md:border-gray-200 pt-2 text-black tracking-normal"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
         
         isibox={product.metafields[2]?.value}
-        specs={(<div className="w-full text-xs sm:text-sm md:text-base text-black leading-relaxed pt-2 md:border-gray-200"
+        specs={(<div className="w-full prose md:border-gray-200 pt-2 text-black "
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
 
-        </div>
+          </div>
 
+
+
+          
         </div>
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
