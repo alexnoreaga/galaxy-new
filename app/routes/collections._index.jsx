@@ -46,7 +46,7 @@ export default function Collections() {
 
 function CollectionsGrid({collections}) {
   return (
-    <div className="grid-flow-row grid lg:grid-cols-8 gap-2 gap-y-2 md:gap-2 lg:gap-4 sm:grid-cols-8">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-4 p-2 sm:p-4">
       {collections.map((collection, index) => (
         <CollectionItem
           key={collection.id}
@@ -59,31 +59,31 @@ function CollectionsGrid({collections}) {
 }
 
 function CollectionItem({collection, index}) {
-  // console.log(collection.image)
   return (
     <Link
-      className="collection-item"
+      className="group block focus:outline-none"
       key={collection.id}
       to={`/collections/${collection.handle}`}
       prefetch="intent"
     >
-      <div className='flex flex-row border-b md:border-b-0 items-center'>
-        <div className='cursor-pointer ml-2 gap-5 flex sm:flex-row md:flex-col items-center md:gap-2'>
-          {collection?.image && (
-            <img src={collection.image.url} alt={collection.image.altText || collection.title} className="w-1/6 md:w-full lg:w-full h-auto p-1 rounded-lg" />
-
-          )}
-          <p className='text-sm'>{collection.title}</p>
-          </div>
-        <div className='block md:hidden mr-2 md:mr-0'>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
+      <div className="flex flex-col items-center justify-center bg-white/80 sm:bg-white/60 sm:backdrop-blur-md border border-gray-100 rounded-2xl shadow-md hover:shadow-xl hover:border-blue-400 transition-all duration-200 p-2 sm:p-4 h-full min-h-[120px] sm:min-h-[180px] cursor-pointer">
+        {collection?.image && (
+          <img
+            src={collection.image.url}
+            alt={collection.image.altText || collection.title}
+            className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover rounded-xl mb-2 group-hover:scale-105 transition-transform duration-200 shadow-sm"
+          />
+        )}
+        <div className="text-xs sm:text-base font-medium text-gray-800 text-center group-hover:text-blue-700 transition-colors duration-200 line-clamp-2">
+          {collection.title}
+        </div>
+        <div className="block sm:hidden mt-1">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-blue-400">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
-
         </div>
-        </div>
+      </div>
     </Link>
-
   );
 }
 

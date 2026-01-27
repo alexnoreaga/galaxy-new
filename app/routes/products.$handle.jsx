@@ -492,7 +492,8 @@ DP : 0
   {product.metafields[0]?.value && (
     <div className="inline-flex items-center px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold shadow-sm gap-1">
       <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+        <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12l2 2 4-4" />
       </svg>
       Garansi Resmi
     </div>
@@ -844,14 +845,14 @@ DP : 0
         
         <div className='md:hidden border-t gap-2 px-2 backdrop-blur-sm bg-white w-full h-16 fixed left-0 bottom-16 grid grid-cols-6 items-center justify-between'>
         
-          <a className='col-span-1' href="tel:082122335511" target="_blank" >
+          <a className='col-span-1' href="tel:082111311131" target="_blank" >
           <button className='w-full col-span-1 bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-10 flex items-center justify-center'>
           <FaPhone/>
           </button>
           </a>
         
 
-          <a className='col-span-2' href={`https://wa.me/6282122335511?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" >
+          <a className='col-span-2' href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" >
           <button className='flex justify-center gap-2 flex-row items-center col-span-2 font-semibold bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-10 w-full'>
             <FaComment />
             <>Nego</>
@@ -1099,7 +1100,7 @@ function TombolWa({product,canonicalUrl}){
     <>
         <div className='text-sm text-gray-500 mt-3 mb-2'>Ingin harga best price dari kami? Yuk Negoin aja</div>
         <div className='gap-2 items-center border border-emerald-500 rounded-md p-2 cursor-pointer font-semibold text-center hover:font-bold'>
-            <a href={`https://wa.me/6282122335511?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" rel="noopener noreferrer" className='drop-shadow-sm text-emerald-700 '>ORDER VIA WHATSAPP</a>
+            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${namaProduk}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" rel="noopener noreferrer" className='drop-shadow-sm text-emerald-700 '>ORDER VIA WHATSAPP</a>
       </div>
 
      
@@ -1117,7 +1118,7 @@ function TombolWaDiscontinue({product}){
     <>
     
         <div className='gap-2 items-center bg-gradient-to-r from-green-200 to-emerald-800 rounded p-2 cursor-pointer font-semibold text-white text-center'>
-            <a href={`https://wa.me/6282122335511?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20pengganti%20"${namaProduk}"%20.%20Link%20Produk:%20" ${urlProduk}`} target="_blank" className='drop-shadow-sm text-white'>Chat Admin</a>
+            <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20bertanya%20tentang%20produk%20pengganti%20"${namaProduk}"%20.%20Link%20Produk:%20" ${urlProduk}`} target="_blank" className='drop-shadow-sm text-white'>Chat Admin</a>
       </div>
 
      
