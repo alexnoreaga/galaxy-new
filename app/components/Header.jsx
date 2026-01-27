@@ -200,6 +200,12 @@ function HeaderCtas({isLoggedIn, cart}) {
 
 function SearchToggleMobile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const location = useLocation();
+
+  // Hide the mobile search bar if on /search page
+  if (location.pathname === '/search') {
+    return null;
+  }
 
   return (
     <>

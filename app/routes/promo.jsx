@@ -158,7 +158,7 @@ export default function PromoPage() {
                   <div className='bg-white p-4 md:p-6 space-y-3 md:space-y-4'>
                     {/* Description */}
                     <div>
-                      <p className='text-sm md:text-base text-gray-700'>{voucher.description}</p>
+                      <p className='text-xs md:text-sm text-gray-700'>{voucher.description}</p>
                     </div>
 
                     {/* Details */}
