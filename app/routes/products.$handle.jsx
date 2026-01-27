@@ -795,11 +795,8 @@ DP : 0
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
 
-          </div>
+        </div>
 
-
-
-          
         </div>
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
