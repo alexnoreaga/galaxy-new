@@ -272,31 +272,29 @@ function RenderCollection({ collections }) {
     <Suspense fallback={<div>Loading collections...</div>}>
       <Await resolve={collections}>
         {({ nodes }) => (
-          <section className="w-full gap-4 ">
-            <div className='flex flex-row items-center justify-between m-1 mb-2'>
-              <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
-                Kategori Populer
-              </div>
+          <section className="w-full mb-8">
+            <div className='flex flex-row items-center justify-between mb-4 gap-2'>
+              <h2 className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Kategori Populer</h2>
               <Link to={`/collections/`}>
-                <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
+                <div className='text-blue-600 hover:text-blue-800 text-xs sm:text-sm lg:text-base font-medium leading-tight whitespace-nowrap'>Lihat Semua →</div>
               </Link>
             </div>
-            <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-9 ">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2 sm:gap-3 lg:gap-4">
               {nodes.map((collection) => (
                 <Link to={`/collections/${collection.handle}`} key={collection.id}>
-                  <div className="flex items-center flex-col md:grid gap-2 box-border md:border-none p-1 hover:bg-gray-100 hover:rounded-lg">
+                  <div className="group flex flex-col items-center justify-center p-2 sm:p-3 bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-blue-300 transition-all duration-300 hover:bg-blue-50 h-32 sm:h-40 lg:h-48">
                     {collection?.image && (
-                      <div className='w-3/5 md:w-full rounded-full bg-gray-200 md:bg-transparent'>
+                      <div className='w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform duration-300 flex-shrink-0'>
                         <Image
                           alt={`Image of ${collection.title}`}
                           data={collection.image}
-                          sizes="(max-width: 32em) 100vw, 33vw"
+                          sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
                           crop="center"
-                          className="p-1"
+                          className="w-full h-full object-cover"
                         />
                       </div>
                     )}
-                    <p className="text-gray-800 whitespace-normal max-w-prose text-copy font-medium text-center text-sm">
+                    <p className="text-gray-800 text-center text-xs sm:text-sm font-medium line-clamp-2 leading-tight">
                       {collection.title}
                     </p>
                   </div>
@@ -386,10 +384,10 @@ function RecommendedProducts({products}) {
 function MirrorlessProducts({products}) {
   return (
     <div className="mirrorless-products mb-8">
-      <div className='flex flex-row items-center justify-between mb-4'>
-        <h2 className='text-gray-900 text-lg sm:text-xl font-bold'>Kamera Mirrorless Terbaru</h2>
+      <div className='flex flex-row items-center justify-between mb-4 gap-2'>
+        <div className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Mirrorless Terbaru</div>
         <Link to="/collections/kamera-mirrorless">
-          <div className='text-blue-600 hover:text-blue-800 text-sm sm:text-base font-medium'>Lihat Semua →</div>
+          <div className='text-blue-600 hover:text-blue-800 text-xs sm:text-sm lg:text-base font-medium leading-tight whitespace-nowrap'>Lihat Semua →</div>
         </Link>
       </div>
       

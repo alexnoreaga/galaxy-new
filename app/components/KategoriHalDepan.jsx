@@ -30,11 +30,11 @@ const scrollRef = useRef(null);
 
   return (
 
-    <div className="mb-2">
-      <div className="flex flex-row items-center justify-between px-1.5 py-1.5 sm:px-2 sm:py-2 mb-2 sm:mb-3 bg-white ">
+    <div className="mirrorless-products mb-2 mt-1">
+      <div className='flex flex-row items-center justify-between mb-2 gap-'>
         <div className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Kategori Populer</div>
-        <Link to="/collections/">
-          <div className="text-blue-600 hover:text-blue-800 transition-colors duration-150 text-[11px] sm:text-sm font-normal sm:font-medium px-2 py-0.5 sm:px-3 sm:py-1 border border-blue-100 bg-blue-50 rounded-full shadow-sm cursor-pointer">Lihat Semua</div>
+        <Link to="/collections">
+          <div className='text-blue-600 hover:text-blue-800 text-xs sm:text-sm lg:text-base font-medium leading-tight whitespace-nowrap'>Lihat Semua →</div>
         </Link>
       </div>
 
@@ -46,7 +46,7 @@ const scrollRef = useRef(null);
         <div className="flex overflow-x-auto snap-x items-center scroll-smooth gap-2 pb-2" ref={scrollRef}>
           {related?.nodes.map((relate) => (
             <div
-              className="flex-shrink-0 w-20 h-24 sm:w-24 sm:h-28 md:w-28 md:h-32 p-1 bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all duration-200 mr-[2px] sm:mr-1 last:mr-0 cursor-pointer group flex flex-col items-center justify-between"
+              className="flex-shrink-0 w-20 h-24 sm:w-24 sm:h-28 md:w-28 md:h-32 p-1 bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-150 hover:border-blue-300 transition-all duration-300 mr-[2px] sm:mr-1 last:mr-0 cursor-pointer group flex flex-col items-center justify-between hover:bg-blue-50"
               key={relate?.id}
             >
               <Link to={`/collections/${relate?.handle}`}
