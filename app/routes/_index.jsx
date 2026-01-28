@@ -12,10 +12,6 @@ import { useLayoutEffect, useState } from 'react';
 import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
 import {YoutubeLink} from '~/components/YoutubeLink';
 
-// export const meta = () => {
-//   return [{title: 'Hydrogen | Home'},
-//   {"og:title": "Syntapse Software"},];
-// };
 
 import { Carousel } from '~/components/Carousel';
 import { Modal } from '~/components/Modal';
@@ -36,6 +32,7 @@ export async function loader({context,request}) {
 
   const featuredCollection = collections.nodes[0];
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
+  const mirrorlessProducts = storefront.query(MIRRORLESS_PRODUCTS_QUERY);
   const hasilCollection =  collections2;
 
   const banner = await storefront.query(BANNER_QUERY);
@@ -93,7 +90,7 @@ export async function loader({context,request}) {
 
 
   
-  return defer({admgalaxy,balasCepat,custEmail,customerAccessToken,canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,hasilCollection,banner});
+  return defer({admgalaxy,balasCepat,custEmail,customerAccessToken,canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,mirrorlessProducts,hasilCollection,banner});
 }
 
 
@@ -103,32 +100,23 @@ export async function loader({context,request}) {
 
 export default function Homepage() {
   const data = useLoaderData();
-
-  // const account = useActionData()
   const [bukaModalBalasCepat, setBukaModalBalasCepat] = useState(false)
 
-  // console.log('Akses Email',data)
 
   const foundAdmin = data?.admgalaxy?.metaobjects?.edges.find(admin => admin?.node?.fields[0]?.value === data?.custEmail?.customer?.email);
 
-  // console.log('Admin ketemu ?', foundAdmin)
 
   return (
     <div>
-      {/* <FeaturedCollection collection={data.featuredCollection} /> */}
-      {/* <Modal/> */}
+
       {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={data?.balasCepat?.metaobjects?.nodes}/>}
       
-{/* 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-        <input className='w-full border-gray-200 rounded-md mt-2' placeholder="Cari Produk" ></input>
-      </div> */}
+
       
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <Carousel images={data.banner.metaobjects} />
         </div>
       
-      {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"> */}
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 
       <div className='hidden md:block'>
@@ -143,13 +131,9 @@ export default function Homepage() {
 
       
 
-      {/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <YoutubeLink/>
-      </div> */}
 
-      {/* <div className="bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% md:mb-5 md:-ml-5 md:-mr-5 md:my-4 md:py-5"> */}
       
-        <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+{/* <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <div className='hidden md:block'>
         <RecommendedProducts products={data.recommendedProducts} />
         </div>
@@ -159,10 +143,11 @@ export default function Homepage() {
        <ProductFeatureHalDepan products={data.recommendedProducts} />
       </div>
 
-        </div>
+        </div> */}
 
-
-      {/* </div> */}
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+        <MirrorlessProducts products={data.mirrorlessProducts} />
+      </div>
 
       
 
@@ -183,7 +168,6 @@ export default function Homepage() {
 
       {foundAdmin && <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} />}
 
-      {/* { data.admgalaxy.metaobjects.edges.find(admin => admin.node.fields[0].value == data.custEmail.customer)} */}
     
     </div>
   );
@@ -208,90 +192,6 @@ function FeaturedCollection({collection}) {
 }
 
 
-
-// function BannerKecil() {
-//   return (
-//     <div className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth">
-//     <div className="flex-none mr-4 snap-center">
-//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 1" className='w-80'/>
-//     </div>
-//     <div className="flex-none mr-4 snap-center">
-//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=1699871301" alt="Banner 2" className='w-80'/>
-//     </div>
-//     <div className="flex-none mr-4 snap-center">
-//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-//     </div>
-//     <div className="flex-none mr-4 snap-center">
-//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-//     </div>
-//     <div className="flex-none mr-4 snap-center">
-//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-//     </div>
-//     <div className="flex-none mr-4 snap-center">
-//       <img src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/banner_1.jpg?v=16998713010" alt="Banner 3" className='w-80'/>
-//     </div>
-//     {/* Add more image divs if needed */}
-//   </div>
-//   );
-// }
-
-
-
-
-
-// function BannerKecil({images}) {
-//   const scrollRef = useRef(null);
-
-//   const scrollLeft = () => {
-//     if (scrollRef.current) {
-//       scrollRef.current.scrollBy({
-//         left: -200,
-//         behavior: 'smooth',
-//       });
-//     }
-//   };
-
-//   const scrollRight = () => {
-//     if (scrollRef.current) {
-//       scrollRef.current.scrollBy({
-//         left: 200,
-//         behavior: 'smooth',
-//       });
-//     }
-//   };
-
-//   return (
-//     <div className='relative flex items-center'>
-//     <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
-
-//       {images?.map((image,index)=>{
-//         return(
-         
-//           <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
-//             <a href={image.fields[1].value} target="_blank">
-//             <img src={image.fields[0].reference.image.url} alt={`Banner ${index}`} width={'320'} height={'120'} className='rounded-md'/>
-//             </a>
-//           </div>
-          
-//         )
-//       })}
-
-//     </div>
-
-//     <button className='absolute left-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollLeft} aria-label="kiri">
-//       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-//             <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
-//     </svg>
-//     </button>
-
-//     <button className='absolute right-2 rounded-full p-1 bg-neutral-700/50' onClick={scrollRight} aria-label="kanan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-//   <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
-// </svg>
-// </button>
-   
-//     </div>
-//   );
-// }
 
 
 
@@ -366,50 +266,6 @@ function BannerKecil({ images }) {
 
 
 
-// function RenderCollection({collections}) {
-//   if (!collections) return null;
-//   return (
-//     <section className="w-full gap-4 ">
-//     <div className='flex flex-row items-center justify-between m-1 mb-2'>
-//         <div className="text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead">
-//           Kategori Populer
-//         </div>
-//         <Link to={`/collections/`}>
-//         <div className='text-gray-500 block mx-1 text-sm sm:text-md'>Lihat Semua</div>
-//         </Link>
-//       </div>
-//       <div className="grid-flow-row grid grid-cols-3 gap-0 bg-white lg:rounded-xl lg:shadow-md  lg:p-2 md:gap-2 lg:gap-4 sm:grid-cols-4 md:grid-cols-9 ">
-//         {collections.nodes.map((collection) => {
-//           return (
-//             <Link to={`/collections/${collection.handle}`} key={collection.id}>
-//               <div className="flex items-center flex-col md:grid gap-2  box-border md:border-none p-1 hover:bg-gray-100 hover:rounded-lg">
-//                 {collection?.image && (
-//                   <div className='w-3/5 md:w-full rounded-full  bg-gray-200 md:bg-transparent'>
-//                   <Image
-//                     alt={`Image of ${collection.title}`}
-//                     data={collection.image}
-//                     key={collection.id}
-//                     sizes="(max-width: 32em) 100vw, 33vw"
-//                     crop="center"
-//                     className="p-1"
-
-//                   />
-//                   </div>
-//                 )}
-//                 <p className="text-gray-800 whitespace-normal max-w-prose text-copy font-medium text-center text-sm">
-//                   {collection.title}
-//                 </p>
-//               </div>
-//             </Link>
-//           );
-//         })}
-        
-//       </div>
-
-//     </section>
-//   );
-// }
-
 
 function RenderCollection({ collections }) {
   return (
@@ -459,12 +315,10 @@ function RenderCollection({ collections }) {
 
 function RecommendedProducts({products}) {
 
-  // console.log('Produk rekomendasi',products)
-
-
-  
+ 
   return (
     <div className="recommended-products text-gray-800">
+    
       <h2 className='text-gray-800 text-sm sm:text-lg sm:mx-1 px-1 whitespace-pre-wrap max-w-prose font-bold text-lead'>Produk Terbaru</h2>
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={products}>
@@ -492,9 +346,6 @@ function RecommendedProducts({products}) {
                   </div>  
            
                   <div className='text-sm my-1 text-gray-800'>{product.title}</div>
-
-                  {/* <div>{parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount)}</div>
-                  <div>{product.priceRange.minVariantPrice.amount}</div> */}
                   
                   {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
                   <div className='text-sm  line-through text-gray-600'>
@@ -525,10 +376,87 @@ function RecommendedProducts({products}) {
         </Await>
       </Suspense>
       <br />
+
     </div>
   );
 }
 
+
+
+function MirrorlessProducts({products}) {
+  return (
+    <div className="mirrorless-products mb-8">
+      <div className='flex flex-row items-center justify-between mb-4'>
+        <h2 className='text-gray-900 text-lg sm:text-xl font-bold'>Kamera Mirrorless Terbaru</h2>
+        <Link to="/collections/kamera-mirrorless">
+          <div className='text-blue-600 hover:text-blue-800 text-sm sm:text-base font-medium'>Lihat Semua →</div>
+        </Link>
+      </div>
+      
+      <Suspense fallback={<div className="text-center py-8">Loading products...</div>}>
+        <Await resolve={products}>
+          {(response) => {
+            const productsList = response?.collection?.products;
+            if (!productsList?.nodes?.length) {
+              return <div className="text-center py-8 text-gray-500">No products found</div>;
+            }
+            
+            return (
+              <div className="flex overflow-x-auto gap-3 pb-4 snap-x snap-mandatory scroll-smooth sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:gap-4 hide-scroll-bar">
+                {productsList.nodes.map((product) => (
+                  <Link
+                    key={product?.id}
+                    className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex-shrink-0 w-32 sm:w-auto snap-start"
+                    to={`/products/${product?.handle}`}
+                  >
+                    <div className='relative overflow-hidden bg-gray-50'>
+                      <Image
+                        data={product?.images?.nodes?.[0]}
+                        alt={product?.title || 'Product'}
+                        aspectRatio="1/1"
+                        sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 128px"
+                        className="group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) && (
+                        <div className="absolute top-1 right-1 bg-red-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold shadow-md">
+                          <HitunganPersen 
+                            hargaSebelum={product?.compareAtPriceRange?.minVariantPrice?.amount || 0} 
+                            hargaSesudah={product?.priceRange?.minVariantPrice?.amount || 0}
+                          />
+                        </div>
+                      )}
+                      {product?.metafields?.find(m => m?.key === 'free')?.value && (
+                        <div className="absolute top-1 left-1 bg-blue-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold shadow-md">
+                          Free
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className='p-2 sm:p-3'>
+                      <h3 className='text-xs sm:text-sm font-medium text-gray-800 mb-1 sm:mb-2 line-clamp-2 min-h-[32px] sm:min-h-[40px]'>
+                        {product?.title || 'Nama Produk'}
+                      </h3>
+                      
+                      {parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) && (
+                        <div className='text-[10px] sm:text-xs text-gray-400 line-through mb-0.5 sm:mb-1'>
+                          Rp{parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
+                        </div>
+                      )}
+                      
+                      <div className={`text-xs sm:text-base font-bold ${parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) ? 'text-red-600' : 'text-gray-900'}`}>
+                        Rp{parseFloat(product?.priceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            );
+          }}
+        </Await>
+      </Suspense>
+    </div>
+  );
+}
 
 
 function FeaturedBlogs({ blogs }) {
@@ -674,6 +602,65 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     products(first: 6, sortKey: UPDATED_AT, reverse: true) {
       nodes {
         ...RecommendedProduct
+      }
+    }
+  }
+`;
+
+
+const MIRRORLESS_PRODUCTS_QUERY = `#graphql
+  fragment MirrorlessProduct on Product {
+    id
+    title
+    handle
+    featuredImage {
+      id
+      altText
+      url
+      width
+      height
+    }
+    metafields(identifiers:[
+      {namespace:"custom", key:"garansi"},
+      {namespace:"custom", key:"free"},
+      {namespace:"custom", key:"isi_dalam_box"},
+      {namespace:"custom", key:"periode_promo"},
+      {namespace:"custom", key:"periode_promo_akhir"},
+      {namespace:"custom", key:"spesifikasi"},
+      {namespace:"custom", key:"brand"}
+    ]){
+      key
+      value
+    }
+    priceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+    }
+    compareAtPriceRange{
+      minVariantPrice{
+        amount
+        currencyCode
+      }
+    }
+    images(first: 1) {
+      nodes {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
+  }
+  query MirrorlessProducts ($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collection(handle: "kamera-mirrorless") {
+      products(first: 6, sortKey: BEST_SELLING) {
+        nodes {
+          ...MirrorlessProduct
+        }
       }
     }
   }
@@ -861,17 +848,9 @@ const GET_ARTIKEL = `#graphql
 `;
 
 
-// export const meta = ({data}) => (
-  
-//   return [{
-//   title: 'Galaxy Camera Store : Toko Kamera Online Offline Terlengkap',
-//   description: "Galaxy Camera menjual berbagai segala kebutuhan fotografi dan videografi dengan harga terbaik dan resmi",
-// }]);
+
 
 export const meta = ({data}) => {
-
-  // console.log('Ini meta dari halaman depan ',data)
-  
 
   return [
     {title: 'Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap dan Terpercaya'},

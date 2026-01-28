@@ -18,7 +18,7 @@ import resetStyles from './styles/reset.css';
 import appStyles from './styles/app.css';
 import {Layout} from '~/components/Layout';
 import tailwindCss from './styles/tailwind.css';
-import { useEffect } from 'react'; 
+import { useEffect, useState } from 'react'; 
 
 
 // This is important to avoid re-fetching root queries on sub-navigations
@@ -251,18 +251,19 @@ export function ErrorBoundary() {
   const error = useRouteError();
   const [root] = useMatches();
   const nonce = useNonce();
-  let errorMessage = 'Unknown error';
+  const [showDetails, setShowDetails] = useState(false);
+  let errorMessage = 'Terjadi kesalahan yang tidak terduga';
   let errorStatus = 500;
 
   if (isRouteErrorResponse(error)) {
-    errorMessage = error?.data?.message ?? error.data;
+    errorMessage = error?.data?.message ?? error.data ?? errorMessage;
     errorStatus = error.status;
   } else if (error instanceof Error) {
     errorMessage = error.message;
   }
 
   return (
-    <html lang="en">
+    <html lang="id">
       <head>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.1.1/flowbite.min.css"  rel="stylesheet" />
 
@@ -273,17 +274,116 @@ export function ErrorBoundary() {
       </head>
       <body>
 
-
-
         <Layout {...root.data}>
-          <div className="route-error">
-            <h1>Oops</h1>
-            <h2>{errorStatus}</h2>
-            {errorMessage && (
-              <fieldset>
-                <pre>{errorMessage}</pre>
-              </fieldset>
-            )}
+          <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 py-12 px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
+                {/* Animated Icon */}
+                <div className="mb-6 flex justify-center">
+                  <div className="relative">
+                    <div className="w-24 h-24 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center animate-pulse">
+                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                      <span className="text-xl">😔</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Error Status */}
+                <div className="mb-4 text-center">
+                  <span className="inline-block px-6 py-2 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                    Error {errorStatus}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center">
+                  Ada gangguan di rumah Galaxy 😢
+                </h1>
+
+                {/* Description */}
+                <p className="text-gray-600 text-lg mb-6 leading-relaxed text-center">
+                  Mohon tunggu, Galaxy Camera sedang melakukan penyesuaian exposure. Kami akan segera kembali online.
+                </p>
+
+                {/* Toggle Button for Error Details */}
+                {errorMessage && (
+                  <div className="mb-6">
+                    <button
+                      onClick={() => setShowDetails(!showDetails)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+                    >
+                      <span className="text-sm font-semibold text-gray-700 flex items-center">
+                        <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Detail Error
+                      </span>
+                      <svg 
+                        className={`w-5 h-5 text-gray-600 transform transition-transform duration-200 ${showDetails ? 'rotate-180' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Error Message Box - Expandable */}
+                    {showDetails && (
+                      <div className="mt-3 bg-red-50 border-l-4 border-red-500 rounded-lg p-4 animate-fadeIn">
+                        <div className="flex items-start">
+                          <svg className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                          <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-red-800 mb-2">Pesan Error:</h3>
+                            <p className="text-sm text-red-700 font-mono break-words bg-white p-3 rounded border border-red-200">
+                              {errorMessage}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+                  <a
+                    href="/"
+                    className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Kembali ke Beranda
+                  </a>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-700 font-semibold rounded-xl border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transform hover:scale-105 transition-all duration-200"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Muat Ulang Halaman
+                  </button>
+                </div>
+
+                {/* Help Text */}
+                <div className="pt-6 border-t border-gray-200 text-center">
+                  <p className="text-sm text-gray-500">
+                    Jika masalah terus berlanjut, silakan hubungi{' '}
+                    <a href="/pages/contact" className="text-blue-600 hover:text-blue-700 font-semibold underline">
+                      tim dukungan kami
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </Layout>
         <ScrollRestoration nonce={nonce} />
