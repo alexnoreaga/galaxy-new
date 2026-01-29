@@ -1006,12 +1006,12 @@ function VouchersSection({ vouchers }) {
           return (
             <div className='py-2 mb-6'>
               {/* Header Section */}
-              <div className='flex flex-row items-center justify-between mb-4 gap-2 px-3 sm:px-0'>
+              <div className='flex flex-row items-start sm:items-center justify-between mb-2 gap-2 px-3 sm:px-0'>
                 <div>
                   <h2 className="text-gray-900 text-base sm:text-lg font-bold tracking-tight">
                     🎁 Voucher Eksklusif
                   </h2>
-                  <p className='text-gray-500 text-[10px] sm:text-xs mt-0.5'>Dapatkan diskon spesial untuk pembelian hari ini</p>
+                  <p className='text-gray-500 text-[10px] sm:text-xs mt-0.5 hidden sm:block'>Dapatkan diskon spesial untuk pembelian hari ini</p>
                 </div>
                 <Link to="/promo">
                   <button className='px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white font-semibold text-[10px] sm:text-xs rounded-full hover:shadow-lg hover:from-orange-600 hover:to-rose-700 transition-all duration-300 whitespace-nowrap'>
