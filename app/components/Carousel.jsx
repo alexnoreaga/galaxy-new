@@ -57,19 +57,20 @@ export const Carousel = ({ images }) => {
       <Await resolve={images}>
         {(resolvedImages) => (
           <div 
-            className='relative flex items-center select-none overflow-hidden rounded-lg'
+            className='relative flex items-center select-none overflow-hidden rounded-2xl shadow-lg'
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{ touchAction: 'pan-y' }}
           >
+            {/* Navigation Buttons */}
             <button 
               aria-label="Slide Kiri" 
-              className='absolute left-2 rounded-full p-1 bg-neutral-700/50 hover:bg-neutral-700/80 z-10 transition-colors active:bg-neutral-900' 
+              className='absolute left-4 rounded-full p-2 bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30 z-10 transition-all duration-300 active:scale-95 group' 
               onClick={prevImage}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5 sm:w-7 sm:h-7 text-white group-hover:scale-110 transition-transform">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
               </svg>
             </button>
             
@@ -77,15 +78,15 @@ export const Carousel = ({ images }) => {
               href={resolvedImages.nodes[currentIndex].fields[1].value || '#'} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className={`m-auto w-full rounded-lg pointer-events-none transition-all duration-500 ${
-                isTransitioning ? 'opacity-70 scale-95' : 'opacity-100 scale-100'
+              className={`m-auto w-full rounded-2xl pointer-events-none transition-all duration-700 ease-out ${
+                isTransitioning ? 'opacity-60 scale-[0.98]' : 'opacity-100 scale-100'
               }`}
               style={{
                 transform: `translateX(${swipeOffset}px)`,
               }}
             >
               <img 
-                className='m-auto w-full rounded-lg select-none transition-all duration-500' 
+                className='m-auto w-full rounded-2xl select-none transition-all duration-700 ease-out' 
                 width={'1280'}
                 height={'543'}
                 src={resolvedImages.nodes[currentIndex].fields[0].reference.image.url} 
@@ -94,7 +95,7 @@ export const Carousel = ({ images }) => {
                   maxWidth: '100%', 
                   userSelect: 'none', 
                   WebkitUserSelect: 'none',
-                  transform: swipeOffset !== 0 ? `scale(${1 - Math.abs(swipeOffset) / 1000})` : 'scale(1)',
+                  transform: swipeOffset !== 0 ? `scale(${1 - Math.abs(swipeOffset) / 1200})` : 'scale(1)',
                 }} 
                 srcSet={`${resolvedImages.nodes[currentIndex].fields[0].reference.image.url} 1280w,
                          ${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}?w=640 640w,
@@ -104,23 +105,23 @@ export const Carousel = ({ images }) => {
             
             <button 
               aria-label="Slide Kanan" 
-              className='absolute right-2 rounded-full p-1 bg-neutral-700/50 hover:bg-neutral-700/80 z-10 transition-colors active:bg-neutral-900' 
+              className='absolute right-4 rounded-full p-2 bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30 z-10 transition-all duration-300 active:scale-95 group' 
               onClick={nextImage}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5 sm:w-7 sm:h-7 text-white group-hover:scale-110 transition-transform">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
               </svg>
             </button>
 
-            {/* Dot indicators */}
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 pointer-events-none">
+            {/* Modern Dot Indicators */}
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 pointer-events-none">
               {resolvedImages.nodes.map((_, index) => (
                 <div
                   key={index}
-                  className={`transition-all duration-500 ${
+                  className={`transition-all duration-500 ease-out ${
                     index === currentIndex
-                      ? 'bg-white w-8 h-2 rounded-full'
-                      : 'bg-white/50 w-2 h-2 rounded-full'
+                      ? 'bg-white w-10 h-2 rounded-full shadow-lg'
+                      : 'bg-white/40 backdrop-blur-sm w-2 h-2 rounded-full hover:bg-white/60'
                   }`}
                 />
               ))}

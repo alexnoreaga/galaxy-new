@@ -69,6 +69,11 @@ export async function loader({context,request}) {
     },
   });
 
+  const vouchers = await storefront.query(GET_VOUCHERS,{
+    variables:{
+      first:10,
+    },
+  });
 
   const brands = await storefront.query(GET_BRANDS)
   const hasilLoop =  brands?.metaobjects?.nodes[0]?.fields[0]?.value
@@ -90,7 +95,7 @@ export async function loader({context,request}) {
 
 
   
-  return defer({admgalaxy,balasCepat,custEmail,customerAccessToken,canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,mirrorlessProducts,hasilCollection,banner});
+  return defer({admgalaxy,balasCepat,vouchers,custEmail,customerAccessToken,canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,mirrorlessProducts,hasilCollection,banner});
 }
 
 
@@ -127,6 +132,10 @@ export default function Homepage() {
       <KategoriHalDepan related={data.hasilCollection.collections}/>
       </div>
 
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      <VouchersSection vouchers={data.vouchers} />
       </div>
 
       
@@ -201,7 +210,7 @@ function BannerKecil({ images }) {
   const scrollLeft = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({
-        left: -200,
+        left: -300,
         behavior: 'smooth',
       });
     }
@@ -210,7 +219,7 @@ function BannerKecil({ images }) {
   const scrollRight = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({
-        left: 200,
+        left: 300,
         behavior: 'smooth',
       });
     }
@@ -220,40 +229,45 @@ function BannerKecil({ images }) {
     <Suspense fallback={<div>Loading banners...</div>}>
       <Await resolve={images}>
         {(resolvedImages) => (
-          <div className='relative flex items-center'>
-            <div className="flex overflow-x-auto hide-scroll-bar snap-x items-center" ref={scrollRef}>
+          <div className='relative flex items-center my-8 group/banner'>
+            {/* Left Navigation Button */}
+            <button
+              className='hidden md:flex absolute left-0 z-10 rounded-full p-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg border border-gray-200 hover:border-blue-300 transition-all duration-300 opacity-0 group-hover/banner:opacity-100 active:scale-95'
+              onClick={scrollLeft}
+              aria-label="Scroll left"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 text-slate-700">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+
+            {/* Scrollable Container */}
+            <div className="flex overflow-x-auto hide-scroll-bar snap-x snap-mandatory scroll-smooth items-center gap-3 sm:gap-4 pb-2" ref={scrollRef}>
               {resolvedImages?.map((image, index) => (
-                <div key={image.fields[0].reference.image.url} ref={scrollRef} className="relative flex-none mr-4 snap-center">
+                <div key={image.fields[0].reference.image.url} className="relative flex-none snap-center group">
                   <a href={image.fields[1].value} target="_blank" rel="noopener noreferrer">
-                    <img
-                      src={image.fields[0].reference.image.url}
-                      alt={`Banner ${index}`}
-                      width={'320'}
-                      height={'120'}
-                      className='rounded-md'
-                    />
+                    <div className='overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200'>
+                      <img
+                        src={image.fields[0].reference.image.url}
+                        alt={`Banner ${index}`}
+                        width={'320'}
+                        height={'120'}
+                        className='w-80 h-auto object-cover group-hover:scale-105 transition-transform duration-300'
+                      />
+                    </div>
                   </a>
                 </div>
               ))}
             </div>
 
+            {/* Right Navigation Button */}
             <button
-              className='absolute left-2 rounded-full p-1 bg-neutral-700/50'
-              onClick={scrollLeft}
-              aria-label="Scroll left"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
-              </svg>
-            </button>
-
-            <button
-              className='absolute right-2 rounded-full p-1 bg-neutral-700/50'
+              className='hidden md:flex absolute right-0 z-10 rounded-full p-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg border border-gray-200 hover:border-blue-300 transition-all duration-300 opacity-0 group-hover/banner:opacity-100 active:scale-95'
               onClick={scrollRight}
               aria-label="Scroll right"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 text-slate-700">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
               </svg>
             </button>
           </div>
@@ -272,7 +286,7 @@ function RenderCollection({ collections }) {
     <Suspense fallback={<div>Loading collections...</div>}>
       <Await resolve={collections}>
         {({ nodes }) => (
-          <section className="w-full mb-8">
+          <section className="w-full">
             <div className='flex flex-row items-center justify-between mb-4 gap-2'>
               <h2 className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Kategori Populer</h2>
               <Link to={`/collections/`}>
@@ -952,3 +966,103 @@ query CustomerEmailQuery($customertoken: String!) {
     email
   }
 }`;
+
+const GET_VOUCHERS = `#graphql
+query GetVouchers($first: Int!) {
+  metaobjects(first: $first, type: "discount_voucher") {
+    nodes {
+      id
+      fields {
+        key
+        value
+      }
+    }
+  }
+}`;
+
+// Modern Vouchers Section Component
+function VouchersSection({ vouchers }) {
+  return (
+    <Suspense fallback={<div>Loading vouchers...</div>}>
+      <Await resolve={vouchers}>
+        {(resolvedVouchers) => {
+          const voucherArray = resolvedVouchers?.metaobjects?.nodes?.map((node) => {
+            const fields = node.fields;
+            return {
+              code: fields.find(f => f.key === 'kode')?.value || fields.find(f => f.key === 'code')?.value || 'PROMO',
+              discount: fields.find(f => f.key === 'discount')?.value || fields.find(f => f.key === 'diskon')?.value || '0%',
+              discountType: fields.find(f => f.key === 'discount_type')?.value || 'percentage',
+              description: fields.find(f => f.key === 'description')?.value || fields.find(f => f.key === 'deskripsi')?.value || 'Berlaku untuk pembelian tertentu',
+              minPurchase: fields.find(f => f.key === 'min_purchase')?.value || '',
+              expiryDate: fields.find(f => f.key === 'expiry_date')?.value || '',
+            };
+          }) || [];
+
+          const handleCopyCode = (code) => {
+            navigator.clipboard.writeText(code);
+            alert('Kode disalin!');
+          };
+
+          return (
+            <div className='py-2 mb-6'>
+              {/* Header Section */}
+              <div className='flex flex-row items-center justify-between mb-4 gap-2 px-3 sm:px-0'>
+                <div>
+                  <h2 className="text-gray-900 text-base sm:text-lg font-bold tracking-tight">
+                    🎁 Voucher Eksklusif
+                  </h2>
+                  <p className='text-gray-500 text-[10px] sm:text-xs mt-0.5'>Dapatkan diskon spesial untuk pembelian hari ini</p>
+                </div>
+                <Link to="/promo">
+                  <button className='px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white font-semibold text-[10px] sm:text-xs rounded-full hover:shadow-lg hover:from-orange-600 hover:to-rose-700 transition-all duration-300 whitespace-nowrap'>
+                    Lihat Semua →
+                  </button>
+                </Link>
+              </div>
+
+              {/* Vouchers Grid */}
+              <div className='overflow-x-auto md:overflow-visible'>
+                <div className='flex md:grid md:grid-cols-4 gap-2 sm:gap-3 pb-2 md:pb-0 snap-x snap-mandatory md:snap-none'>
+                  {voucherArray && voucherArray.length > 0 ? (
+                    voucherArray.map((voucher, index) => (
+                      <div key={index} className='flex-shrink-0 w-64 md:w-auto snap-center bg-gradient-to-r from-orange-50 to-rose-50 border border-orange-200 rounded-lg p-3 hover:shadow-md transition-shadow duration-200'>
+                        <div className='flex flex-col gap-2'>
+                          <div className='flex-1'>
+                            <div className='flex items-center gap-2 mb-1'>
+                              <span className='font-bold text-orange-700 text-sm'>{voucher.code}</span>
+                              <span className='bg-gradient-to-r from-orange-500 to-rose-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold'>
+                                {voucher.discount}
+                              </span>
+                            </div>
+                            <p className='text-xs text-gray-700 mb-1'>{voucher.description}</p>
+                            <div className='flex flex-col gap-1 text-xs text-gray-600'>
+                              {voucher.minPurchase && <span>Min: {voucher.minPurchase}</span>}
+                              {voucher.expiryDate && <span>Hingga {new Date(voucher.expiryDate).toLocaleDateString('id-ID')}</span>}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleCopyCode(voucher.code)}
+                            className='bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-200 flex items-center justify-center gap-1'
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.318 0-2.592.644-3.423 1.638m5.853 2.986V9m0 0V7.5m0 1.5h-6m12 0a2.25 2.25 0 01-2.25 2.25h-.08a2.25 2.25 0 01-2.25-2.25m0-12.75h.008v.008h-.008V2.25m0 11.178v3.565c0 .597-.48 1.083-1.07 1.083H7.07c-.597 0-1.083-.486-1.083-1.083v-3.565m6.986 0a2.25 2.25 0 01-2.25 2.25h-.076a2.25 2.25 0 01-2.25-2.25m0 0V5.25m0 0A2.25 2.25 0 015.25 3h3.5a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 018.75 21H5.25a2.25 2.25 0 01-2.25-2.25V5.25" />
+                            </svg>
+                            Salin
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className='w-full py-8 text-center text-gray-500'>
+                      <p className='text-xs'>Tidak ada voucher tersedia saat ini</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        }}
+      </Await>
+    </Suspense>
+  );
+}

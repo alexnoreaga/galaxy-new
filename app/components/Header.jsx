@@ -216,7 +216,7 @@ function SearchToggleMobile() {
         <input 
           placeholder='Cari Produk' 
           readOnly
-          className='w-full h-10 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer'
+          className='w-full h-11 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm placeholder:text-gray-500 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-300 cursor-pointer'
         />
       </div>
 
