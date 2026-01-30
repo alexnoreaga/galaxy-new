@@ -120,7 +120,33 @@ export default function Homepage() {
       
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <Carousel images={data.banner.metaobjects} />
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-0 mt-3 sm:mt-6">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.25),transparent_45%)]"></div>
+          <div className="relative p-3 sm:p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-1.5 sm:gap-4">
+            <div>
+              <div className="hidden sm:inline-flex items-center gap-2 text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-blue-200 bg-white/10 border border-white/15 rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 mb-2">
+                Promo Cicilan
+              </div>
+              <h2 className="text-sm sm:text-xl md:text-2xl font-bold tracking-tight leading-none">
+                Cicil Kamera Tanpa Kartu Kredit
+              </h2>
+              <p className="text-[11px] sm:text-sm md:text-base text-blue-100 mt-0 leading-tight">
+                Proses sekitar 15 menit
+              </p>
+            </div>
+            <Link
+              to="/kredit-kamera"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-white/95 text-slate-900 font-semibold px-3 py-1.5 text-[11px] sm:text-sm md:text-base shadow-md hover:shadow-lg hover:bg-white transition-all duration-200"
+            >
+              <span>Lihat Caranya</span>
+              <span className="text-xs sm:text-base">→</span>
+            </Link>
+          </div>
         </div>
+      </div>
       
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 
