@@ -145,17 +145,161 @@ const COLLECTIONS_QUERY = `#graphql
 
 
 
-export const meta = ({data}) =>{
-  return[
-    {title: "Kategori Produk Galaxy Camera Store"},
+export const meta = ({data}) => {
+  const title = 'Kategori Produk Kamera & Aksesoris | Galaxy Camera';
+  const description =
+    'Jelajahi semua kategori produk Galaxy Camera: kamera, lensa, drone, action cam, dan aksesoris. Harga terbaik, garansi resmi, cicilan 0%, gratis ongkir seluruh Indonesia.';
+  const keywords =
+    'kategori produk kamera, koleksi kamera, toko kamera online, kamera mirrorless, kamera dslr, drone, lensa kamera, galaxy camera';
+  const canonicalUrl = 'https://galaxy.co.id/collections';
+
+  const collectionCount = data?.collections?.nodes?.length || 0;
+
+  return [
+    {title},
     {
-      name: "title",
-      content: "Kategori Produk Galaxy Camera Store",
+      name: 'title',
+      content: title,
     },
     {
-      name: "description",
-      content: "Kategori Produk Pilihan Galaxy Camera",
+      name: 'description',
+      content: description.substring(0, 160),
     },
-      
-  ]
-}
+    {
+      name: 'keywords',
+      content: keywords,
+    },
+    {
+      name: 'author',
+      content: 'Galaxy Camera',
+    },
+    {
+      name: 'robots',
+      content: 'index, follow, max-image-preview:large, max-snippet:-1',
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: canonicalUrl,
+    },
+    {
+      property: 'og:type',
+      content: 'website',
+    },
+    {
+      property: 'og:title',
+      content: title,
+    },
+    {
+      property: 'og:description',
+      content: description.substring(0, 160),
+    },
+    {
+      property: 'og:url',
+      content: canonicalUrl,
+    },
+    {
+      property: 'og:site_name',
+      content: 'Galaxy Camera',
+    },
+    {
+      property: 'og:image',
+      content:
+        'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+    {
+      property: 'og:image:width',
+      content: '1200',
+    },
+    {
+      property: 'og:image:height',
+      content: '630',
+    },
+    {
+      property: 'og:locale',
+      content: 'id_ID',
+    },
+    {
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    },
+    {
+      name: 'twitter:site',
+      content: '@galaxycamera99',
+    },
+    {
+      name: 'twitter:title',
+      content: title,
+    },
+    {
+      name: 'twitter:description',
+      content: description.substring(0, 160),
+    },
+    {
+      name: 'twitter:image',
+      content:
+        'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Kategori Produk Galaxy Camera',
+        description,
+        url: canonicalUrl,
+        image:
+          'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+        numberOfItems: collectionCount,
+        isPartOf: {
+          '@type': 'WebSite',
+          '@id': 'https://galaxy.co.id',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Galaxy Camera',
+          logo: {
+            '@type': 'ImageObject',
+            url:
+              'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+          },
+        },
+      },
+    },
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://galaxy.co.id',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Collections',
+            item: canonicalUrl,
+          },
+        ],
+      },
+    },
+  ];
+};
+
+// OLD CODE - Commented for future reference
+// export const meta = ({data}) =>{
+//   return[
+//     {title: "Kategori Produk Galaxy Camera Store"},
+//     {
+//       name: "title",
+//       content: "Kategori Produk Galaxy Camera Store",
+//     },
+//     {
+//       name: "description",
+//       content: "Kategori Produk Pilihan Galaxy Camera",
+//     },
+//       
+//   ]
+// }
