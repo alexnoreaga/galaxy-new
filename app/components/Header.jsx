@@ -1,5 +1,5 @@
 import {Await, NavLink, useMatches,Link} from '@remix-run/react';
-import {Suspense, useState} from 'react';
+import {Suspense, useState, useEffect} from 'react';
 import { IconName } from "react-icons/fa6";
 
 import { FaInstagram } from "react-icons/fa6";
@@ -201,6 +201,11 @@ function HeaderCtas({isLoggedIn, cart}) {
 function SearchToggleMobile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
+
+  // Close modal when navigation occurs (user clicks a product)
+  useEffect(() => {
+    setIsModalOpen(false);
+  }, [location.pathname]);
 
   // Hide the mobile search bar if on /search page
   if (location.pathname === '/search') {
