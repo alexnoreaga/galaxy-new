@@ -53,16 +53,6 @@ export function links() {
   ];
 }
 
-// export async function loader() {
-//   return json({
-//     analytics: {
-//       // Hard-coded for demonstration purposes.
-//       // In production, retrieve this value from the Storefront API.
-//       shopId: 'gid://shopify/Shop/000000000',
-//     },
-//   });
-// }
-
 
 export async function loader({context}) {
   const {storefront, session, cart} = context;
@@ -130,41 +120,10 @@ export default function App() {
 
 
 
-  // console.log(data)
-
-  // DIBAWAH INI MERUPAKAN KODE TEMPORARY TANGGAL 23 JANUARI 2024
-   // Register the service worker when the component mounts
-  //  useEffect(() => {
-  //   if ('serviceWorker' in navigator) {
-  //     navigator.serviceWorker
-  //       .register('/service-worker.js')
-  //       .then((registration) => {
-  //         console.log('Service Worker registered with scope:', registration.scope);
-  //       })
-  //       .catch((error) => {
-  //         console.error('Service Worker registration failed:', error);
-  //       });
-  //   }
-  // }, []);
-
-    // DIBAWAH INI MERUPAKAN KODE TEMPORARY TANGGAL 23 JANUARI 2024
-
-
   return (
     <html lang="en">
       <head>
 
-
-        {/* <script nonce={nonce}
-dangerouslySetInnerHTML={{__html:`
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-KR7LGXFF');</script>
-<!-- End Google Tag Manager -->
-`}}></script> */}
 
 
 <script nonce={nonce}
@@ -175,53 +134,150 @@ dangerouslySetInnerHTML={{__html:`
   gtag('config', 'G-CY1F8L58R5');
 `}}></script>
 
-{/* <script nonce={nonce}
-dangerouslySetInnerHTML={{__html:`
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-L77JNHKH0K');
-`}}></script> */}
-
-
-
-        
-
+        {/* Primary Meta Tags */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <meta name="theme-color" content="#000000"></meta>
-        <meta name="robots" content="index,follow" />
-        <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png"/>
-<link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png"/>
-<link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png"/>
-<link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png"/>
-<link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png"/>
-<link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png"/>
-<link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png"/>
-<link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png"/>
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png"/>
-<link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png"/>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
-<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png"/>
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
-<link rel="manifest" href="/manifest.json"/>
-<meta name="msapplication-TileColor" content="#ffffff"/>
-<meta name="msapplication-TileImage" content="/ms-icon-144x144.png"/>
-<meta name="theme-color" content="#ffffff"></meta>
-<link rel="manifest" href="/manifest.json" />
+        <meta name="description" content="Galaxy Camera - Toko Kamera Online Terlengkap dan Bergaransi Resmi. Jual Kamera Mirrorless, DSLR, Drone, Lensa dengan Harga Terbaik. Cicilan 0% tanpa kartu kredit. Gratis ongkir ke seluruh Indonesia." />
+        <meta name="keywords" content="toko kamera online, jual kamera, kamera mirrorless, kamera dslr, drone, lensa kamera, kamera murah, galaxy camera" />
+        <meta name="author" content="PT Galaxy Digital Niaga" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://galaxy.co.id" />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="business.business" />
+        <meta property="og:url" content="https://galaxy.co.id" />
+        <meta property="og:title" content="Galaxy Camera - Toko Kamera Online Terpercaya | Harga Terbaik" />
+        <meta property="og:description" content="Belanja kamera, drone, lensa dengan garansi resmi. Cicilan 0%, gratis ongkir, terpercaya sejak 2012." />
+        <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Galaxy Camera" />
+        <meta property="og:locale" content="id_ID" />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@galaxycamera99" />
+        <meta name="twitter:title" content="Galaxy Camera - Toko Kamera Online Terpercaya" />
+        <meta name="twitter:description" content="Belanja kamera, drone, lensa dengan harga terbaik dan garansi resmi." />
+        <meta name="twitter:image" content="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png" />
+
+        {/* Theme & Browser */}
+        <meta name="theme-color" content="#1f2937" />
+        <meta name="msapplication-TileColor" content="#1f2937" />
+        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+
+        {/* Apple Meta Tags */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Galaxy Camera" />
+
+        {/* Icons - Apple Touch */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png" />
+        <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png" />
+        <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png" />
+        <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png" />
+        <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png" />
+        <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png" />
+
+        {/* Icons - Favicon */}
+        <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+        {/* Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* Preconnect for Performance */}
+        <link rel="preconnect" href="https://cdn.shopify.com" />
+        <link rel="preconnect" href="https://shop.app" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+
+        {/* Security & Standards */}
+        <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
+        <meta name="format-detection" content="telephone=no" />
+
+        {/* LocalBusiness Schema JSON-LD */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "name": "Galaxy Camera",
+          "legalName": "PT Galaxy Digital Niaga",
+          "url": "https://galaxy.co.id",
+          "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+          "description": "Toko Kamera Online Terlengkap dan Bergaransi Resmi",
+          "telephone": "+62-821-1131-1131",
+          "email": "sales@galaxy.co.id",
+          "priceRange": "$$",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Ruko Mall Metropolis Town Square, Blok GM3 No.6",
+            "addressLocality": "Kelapa Indah",
+            "addressRegion": "Tangerang",
+            "postalCode": "15810",
+            "addressCountry": "ID"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": -6.2088,
+            "longitude": 106.6408
+          },
+          "sameAs": [
+            "https://www.instagram.com/galaxycamera99",
+            "https://www.facebook.com/galaxycamera99",
+            "https://www.tiktok.com/@galaxycameraid",
+            "https://www.youtube.com/galaxycamera",
+            "https://www.x.com/galaxycamera99"
+          ],
+          "areaServed": "ID",
+          "paymentAccepted": "Cash, Credit Card, Bank Transfer, Kredivo, ShopeePay",
+          "currenciesAccepted": "IDR"
+        })}} />
+
+        {/* Organization Schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Galaxy Camera",
+          "url": "https://galaxy.co.id",
+          "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+          "foundingDate": "2012",
+          "description": "Toko Kamera Online Terlengkap dengan Garansi Resmi",
+          "contact": {
+            "@type": "ContactPoint",
+            "contactType": "Customer Service",
+            "telephone": "+62-821-1131-1131",
+            "email": "sales@galaxy.co.id"
+          }
+        })}} />
+
+        {/* WebSite Schema for Sitelinks Search Box */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "url": "https://galaxy.co.id",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://galaxy.co.id/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        })}} />
 
         <Seo />
         <Meta />
         <Links />
       </head>
       <body>
-      {/* <script nonce={nonce}
-dangerouslySetInnerHTML={{__html:`
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KR7LGXFF"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-`}}></script> */}
 
       <ol>
             {matches

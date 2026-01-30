@@ -9,33 +9,249 @@ export async function loader({context}) {
 }
 
 export const meta = () => {
+  // ENHANCED - Better title and description
+  const title = 'Pengadaan Kamera & Drone untuk Instansi Pemerintah | Galaxy Camera';
+  const description = 'Layanan pengadaan kamera mirrorless, DSLR, drone profesional untuk instansi pemerintah, BUMN, BUMD, pendidikan. Terdaftar E-Katalog INAPROC & SIPLah. Garansi resmi, proses transparan, pengiriman cepat ke seluruh Indonesia.';
+  
+  // ENHANCED - Better keywords
+  const keywords = 'pengadaan kamera, pengadaan drone, pengadaan pemerintah, e-katalog inaproc, siplah, kamera instansi, drone profesional, pengadaan kamera mirrorless, pengadaan kamera dslr, penyedia kamera pemerintah, galaxy camera';
+
+  // Canonical URL
+  const canonicalUrl = 'https://galaxy.co.id/pengadaan';
+
   return [
-    {title: 'Pengadaan Kamera & Drone untuk Instansi Pemerintah | Galaxy Camera'},
+    // Basic Meta Tags
+    {
+      title: title,
+    },
+    {
+      name: 'title',
+      content: title,
+    },
     {
       name: 'description',
-      content:
-        'Layanan pengadaan kamera mirrorless, DSLR, drone, dan peralatan imaging profesional untuk instansi pemerintah, BUMN, BUMD, dan lembaga pendidikan Indonesia. Terdaftar E-Katalog INAPROC & SIPLah.',
+      content: description.substring(0, 160),
     },
     {
       name: 'keywords',
-      content:
-        'pengadaan kamera, pengadaan drone, pengadaan pemerintah, kamera instansi, drone pemerintah, e-katalog inaproc, siplah, galaxy camera',
+      content: keywords,
     },
     {
-      property: 'og:title',
-      content: 'Pengadaan Kamera & Drone untuk Instansi Pemerintah | Galaxy Camera',
+      name: 'author',
+      content: 'PT Galaxy Digital Niaga',
     },
+
+    // Robots & Indexing
     {
-      property: 'og:description',
-      content:
-        'Mitra pengadaan terpercaya untuk kamera, drone, dan peralatan imaging. Bergaransi resmi, proses transparan, melayani seluruh Indonesia.',
+      name: 'robots',
+      content: 'index, follow, max-image-preview:large, max-snippet:-1',
     },
+
+    // Canonical URL
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: canonicalUrl,
+    },
+
+    // Open Graph Tags
     {
       property: 'og:type',
       content: 'website',
     },
+    {
+      property: 'og:title',
+      content: title,
+    },
+    {
+      property: 'og:description',
+      content: description.substring(0, 160),
+    },
+    {
+      property: 'og:url',
+      content: canonicalUrl,
+    },
+    {
+      property: 'og:site_name',
+      content: 'Galaxy Camera',
+    },
+    {
+      property: 'og:image',
+      content: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+    {
+      property: 'og:image:width',
+      content: '1200',
+    },
+    {
+      property: 'og:image:height',
+      content: '630',
+    },
+    {
+      property: 'og:locale',
+      content: 'id_ID',
+    },
+
+    // Twitter Card Tags
+    {
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    },
+    {
+      name: 'twitter:site',
+      content: '@galaxycamera99',
+    },
+    {
+      name: 'twitter:title',
+      content: title,
+    },
+    {
+      name: 'twitter:description',
+      content: description.substring(0, 160),
+    },
+    {
+      name: 'twitter:image',
+      content: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+
+    // Service Schema (JSON-LD)
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        'name': 'Pengadaan Kamera & Drone untuk Instansi Pemerintah',
+        'description': description,
+        'provider': {
+          '@type': 'Organization',
+          'name': 'PT Galaxy Digital Niaga - Galaxy Camera',
+          'url': 'https://galaxy.co.id',
+          'logo': 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+          'sameAs': [
+            'https://www.instagram.com/galaxycamera99',
+            'https://www.facebook.com/galaxycamera99',
+            'https://www.tiktok.com/@galaxycameraid',
+            'https://www.youtube.com/galaxycamera',
+            'https://www.x.com/galaxycamera99',
+          ],
+        },
+        'areaServed': 'ID',
+        'availableLanguage': ['id', 'en'],
+        'serviceType': [
+          'Pengadaan Kamera',
+          'Pengadaan Drone',
+          'Pengadaan Perlengkapan Fotografi',
+          'E-Katalog INAPROC',
+          'SIPLah',
+        ],
+        'hasOfferCatalog': {
+          '@type': 'OfferCatalog',
+          'name': 'Produk Pengadaan',
+          'itemListElement': [
+            {
+              '@type': 'Offer',
+              'name': 'Kamera Mirrorless',
+              'priceCurrency': 'IDR',
+              'description': 'Pengadaan kamera mirrorless profesional untuk instansi pemerintah',
+            },
+            {
+              '@type': 'Offer',
+              'name': 'Kamera DSLR',
+              'priceCurrency': 'IDR',
+              'description': 'Pengadaan kamera DSLR berkualitas tinggi dengan garansi resmi',
+            },
+            {
+              '@type': 'Offer',
+              'name': 'Drone Profesional',
+              'priceCurrency': 'IDR',
+              'description': 'Pengadaan drone untuk survey, pemetaan, dan dokumentasi',
+            },
+          ],
+        },
+      },
+    },
+
+    // Organization Schema
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        'name': 'PT Galaxy Digital Niaga',
+        'alternateName': 'Galaxy Camera',
+        'url': 'https://galaxy.co.id',
+        'logo': 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+        'description': description,
+        'foundingDate': '2012',
+        'areaServed': 'ID',
+        'sameAs': [
+          'https://www.instagram.com/galaxycamera99',
+          'https://www.facebook.com/galaxycamera99',
+          'https://www.tiktok.com/@galaxycameraid',
+          'https://www.youtube.com/galaxycamera',
+          'https://www.x.com/galaxycamera99',
+        ],
+        'contactPoint': {
+          '@type': 'ContactPoint',
+          'contactType': 'Customer Service',
+          'telephone': '+62-821-1131-1131',
+          'email': 'sales@galaxy.co.id',
+          'availableLanguage': ['Indonesian', 'English'],
+        },
+      },
+    },
+
+    // BreadcrumbList Schema
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Home',
+            'item': 'https://galaxy.co.id',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Info Pengadaan',
+            'item': canonicalUrl,
+          },
+        ],
+      },
+    },
   ];
 };
+
+// OLD CODE - Commented for future reference
+// export const meta = () => {
+//   return [
+//     {title: 'Pengadaan Kamera & Drone untuk Instansi Pemerintah | Galaxy Camera'},
+//     {
+//       name: 'description',
+//       content:
+//         'Layanan pengadaan kamera mirrorless, DSLR, drone, dan peralatan imaging profesional untuk instansi pemerintah, BUMN, BUMD, dan lembaga pendidikan Indonesia. Terdaftar E-Katalog INAPROC & SIPLah.',
+//     },
+//     {
+//       name: 'keywords',
+//       content:
+//         'pengadaan kamera, pengadaan drone, pengadaan pemerintah, kamera instansi, drone pemerintah, e-katalog inaproc, siplah, galaxy camera',
+//     },
+//     {
+//       property: 'og:title',
+//       content: 'Pengadaan Kamera & Drone untuk Instansi Pemerintah | Galaxy Camera',
+//     },
+//     {
+//       property: 'og:description',
+//       content:
+//         'Mitra pengadaan terpercaya untuk kamera, drone, dan peralatan imaging. Bergaransi resmi, proses transparan, melayani seluruh Indonesia.',
+//     },
+//     {
+//       property: 'og:type',
+//       content: 'website',
+//     },
+//   ];
+// };
 
 export default function PengadaanPage() {
   const data = useLoaderData();

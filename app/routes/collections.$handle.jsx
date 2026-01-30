@@ -17,40 +17,238 @@ export const handle = {
 
 
 export const meta = ({data}) => {
-  // const currentDomain = "https://galaxy"
+  // ENHANCED - Get collection info
+  const collectionTitle = data?.collection?.seo?.title
+    ? data?.collection?.seo.title
+    : data?.collection?.title;
 
-  // useEffect(() => {
-  //   // Access window.location and perform client-side operations here
-  //   const currentDomain = window.location;
-  //   console.log('current domain ',currentDomain);
-  // }, []);
+  const collectionDescription = data?.collection?.seo?.description
+    ? data?.collection?.seo.description
+    : data?.collection?.description;
 
+  // ENHANCED - Dynamic date for urgency
+  const today = new Date();
+  const monthNames = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+  const indonesianMonth = monthNames[today.getMonth()];
+  const year = today.getFullYear();
 
-  const collectionTitle = data?.collection?.seo.title
-    ?data?.collection?.seo.title
-    :data?.collection?.title;
+  // ENHANCED - Better title with keywords
+  const title = `${collectionTitle} - Harga Terbaik ${indonesianMonth} ${year} | Galaxy Camera`;
 
-    const today = new Date();
-    const monthNames = [
-      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ];
-    const indonesianMonth = monthNames[today.getMonth()];
-    const year = today.getFullYear();
-    const title = `${collectionTitle} - ${indonesianMonth} ${year}`;
-  
+  // ENHANCED - Better description with keywords and CTAs
+  const description = `Jelajahi koleksi ${collectionTitle} terlengkap dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`;
+
+  // ENHANCED - Keywords from collection
+  const keywords = `${collectionTitle}, ${collectionTitle} murah, ${collectionTitle} original, jual ${collectionTitle}, harga ${collectionTitle}, ${collectionTitle} terbaik, ${collectionTitle} garansi resmi`;
+
+  // ENHANCED - Canonical URL
+  const canonicalUrl = data?.canonicalUrl || `https://galaxy.co.id/collections/${data?.collection?.handle}`;
+
+  // ENHANCED - Product count
+  const productCount = data?.collection?.products?.nodes?.length || 0;
 
   return [
-    {title},
+    // Basic Meta Tags
+    { title },
+    {
+      name: "title",
+      content: title,
+    },
     {
       name: "description",
-      content: data?.collection?.seo.description
-      ? data.collection.seo.description.substr(0, 155)
-      : data?.collection?.description.substr(0, 155),
+      content: description.substring(0, 160),
     },
-    // {tagName:'link',rel:'canonical',href:{currentDomain}}
+    {
+      name: "keywords",
+      content: keywords,
+    },
+    {
+      name: "author",
+      content: "Galaxy Camera",
+    },
+
+    // Robots & Indexing
+    {
+      name: "robots",
+      content: "index, follow, max-image-preview:large, max-snippet:-1",
+    },
+
+    // Canonical URL
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: canonicalUrl,
+    },
+
+    // Open Graph Tags
+    {
+      property: "og:type",
+      content: "website",
+    },
+    {
+      property: "og:title",
+      content: title,
+    },
+    {
+      property: "og:description",
+      content: description.substring(0, 160),
+    },
+    {
+      property: "og:url",
+      content: canonicalUrl,
+    },
+    {
+      property: "og:site_name",
+      content: "Galaxy Camera",
+    },
+    {
+      property: "og:image",
+      content: data?.collection?.image?.url || "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+    },
+    {
+      property: "og:image:width",
+      content: "1200",
+    },
+    {
+      property: "og:image:height",
+      content: "630",
+    },
+    {
+      property: "og:locale",
+      content: "id_ID",
+    },
+
+    // Twitter Card Tags
+    {
+      name: "twitter:card",
+      content: "summary_large_image",
+    },
+    {
+      name: "twitter:site",
+      content: "@galaxycamera99",
+    },
+    {
+      name: "twitter:title",
+      content: title,
+    },
+    {
+      name: "twitter:description",
+      content: description.substring(0, 160),
+    },
+    {
+      name: "twitter:image",
+      content: data?.collection?.image?.url || "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+    },
+
+    // Collection Schema (JSON-LD)
+    {
+      "script:ld+json": {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": collectionTitle,
+        "description": description,
+        "url": canonicalUrl,
+        "image": data?.collection?.image?.url || "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+        "numberOfItems": productCount,
+        "publisher": {
+          "@type": "Organization",
+          "name": "Galaxy Camera",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+          },
+        },
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://galaxy.co.id",
+        },
+      },
+    },
+
+    // BreadcrumbList Schema
+    {
+      "script:ld+json": {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://galaxy.co.id",
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Collections",
+            "item": "https://galaxy.co.id/collections",
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": collectionTitle,
+            "item": canonicalUrl,
+          },
+        ],
+      },
+    },
+
+    // Product Collection Schema
+    {
+      "script:ld+json": {
+        "@context": "https://schema.org",
+        "@type": "ItemCollection",
+        "name": `Koleksi ${collectionTitle}`,
+        "description": description,
+        "url": canonicalUrl,
+        "numberOfItems": productCount,
+        "isPartOf": {
+          "@type": "Organization",
+          "name": "Galaxy Camera",
+          "url": "https://galaxy.co.id",
+        },
+      },
+    },
   ];
 };
+
+// OLD CODE - Commented for future reference
+// export const meta = ({data}) => {
+//   // const currentDomain = "https://galaxy"
+
+//   // useEffect(() => {
+//   //   // Access window.location and perform client-side operations here
+//   //   const currentDomain = window.location;
+//   //   console.log('current domain ',currentDomain);
+//   // }, []);
+
+//   const collectionTitle = data?.collection?.seo.title
+//     ?data?.collection?.seo.title
+//     :data?.collection?.title;
+
+//     const today = new Date();
+//     const monthNames = [
+//       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+//       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+//     ];
+//     const indonesianMonth = monthNames[today.getMonth()];
+//     const year = today.getFullYear();
+//     const title = `${collectionTitle} - ${indonesianMonth} ${year}`;
+
+//   return [
+//     {title},
+//     {
+//       name: "description",
+//       content: data?.collection?.seo.description
+//       ? data.collection.seo.description.substr(0, 155)
+//       : data?.collection?.description.substr(0, 155),
+//     },
+//     // {tagName:'link',rel:'canonical',href:{currentDomain}}
+//   ];
+// };
 
 // var reverse = true
 

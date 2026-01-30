@@ -27,17 +27,218 @@ function getCurrentMonthYear() {
 
 export const meta = () => {
   const monthYear = getCurrentMonthYear();
+  
+  // ENHANCED - Better title and description
+  const title = `Cicilan Kamera Tanpa Kartu Kredit ${monthYear} | Galaxy Camera`;
+  const description = `Beli kamera dengan cicilan mulai dari 3-18 bulan. Bunga rendah, proses cepat. Cicilan 0% untuk semua produk kamera. Pilihan leasing: Kredivo, Home Credit, Indodana, Akulaku dan lainnya.`;
+  
+  // ENHANCED - Keywords
+  const keywords = `cicilan kamera, kredit kamera tanpa kartu kredit, cicilan 0%, kredivo kamera, home credit kamera, cicilan kamera mirrorless, cicilan kamera dslr, angsuran kamera`;
+
+  // Canonical URL
+  const canonicalUrl = `https://galaxy.co.id/kredit-kamera`;
+
   return [
+    // Basic Meta Tags
+    { title },
     {
-      title: `Daftar Cicilan Kamera Tanpa Kartu Kredit ${monthYear} | Galaxy Camera`,
+      name: 'title',
+      content: title,
     },
     {
       name: 'description',
-      content:
-        'Beli kamera dengan cicilan mulai dari 3 hingga 12 bulan. Bunga rendah dan proses cepat.',
+      content: description.substring(0, 160),
+    },
+    {
+      name: 'keywords',
+      content: keywords,
+    },
+    {
+      name: 'author',
+      content: 'Galaxy Camera',
+    },
+
+    // Robots & Indexing
+    {
+      name: 'robots',
+      content: 'index, follow, max-image-preview:large, max-snippet:-1',
+    },
+
+    // Canonical URL
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: canonicalUrl,
+    },
+
+    // Open Graph Tags
+    {
+      property: 'og:type',
+      content: 'website',
+    },
+    {
+      property: 'og:title',
+      content: title,
+    },
+    {
+      property: 'og:description',
+      content: description.substring(0, 160),
+    },
+    {
+      property: 'og:url',
+      content: canonicalUrl,
+    },
+    {
+      property: 'og:site_name',
+      content: 'Galaxy Camera',
+    },
+    {
+      property: 'og:image',
+      content: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+    {
+      property: 'og:image:width',
+      content: '1200',
+    },
+    {
+      property: 'og:image:height',
+      content: '630',
+    },
+    {
+      property: 'og:locale',
+      content: 'id_ID',
+    },
+
+    // Twitter Card Tags
+    {
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    },
+    {
+      name: 'twitter:site',
+      content: '@galaxycamera99',
+    },
+    {
+      name: 'twitter:title',
+      content: title,
+    },
+    {
+      name: 'twitter:description',
+      content: description.substring(0, 160),
+    },
+    {
+      name: 'twitter:image',
+      content: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+
+    // Service Schema (JSON-LD)
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        'name': 'Cicilan Kamera Tanpa Kartu Kredit',
+        'description': description,
+        'provider': {
+          '@type': 'Organization',
+          'name': 'Galaxy Camera',
+          'url': 'https://galaxy.co.id',
+          'logo': 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+        },
+        'areaServed': 'ID',
+        'availableLanguage': 'id',
+        'hasOfferCatalog': {
+          '@type': 'OfferCatalog',
+          'name': 'Cicilan Kamera',
+          'itemListElement': [
+            {
+              '@type': 'Offer',
+              'name': 'Cicilan 3-6 bulan',
+              'priceCurrency': 'IDR',
+              'description': 'Cicilan tanpa kartu kredit via Kredivo dan Indodana',
+            },
+            {
+              '@type': 'Offer',
+              'name': 'Cicilan 9-18 bulan',
+              'priceCurrency': 'IDR',
+              'description': 'Cicilan via Home Credit dan provider lainnya',
+            },
+          ],
+        },
+      },
+    },
+
+    // FAQSchema (for FAQ rich snippets)
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': [
+          {
+            '@type': 'Question',
+            'name': 'Apa saja pilihan cicilan yang tersedia?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'Galaxy Camera menyediakan cicilan via Kredivo, Home Credit, Indodana, Akulaku, AEON, dan ShopeePaylater dengan bunga rendah.',
+            },
+          },
+          {
+            '@type': 'Question',
+            'name': 'Berapa lama proses persetujuan cicilan?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'Proses persetujuan cicilan bisa instan hingga 24 jam tergantung penyedia layanan cicilan.',
+            },
+          },
+          {
+            '@type': 'Question',
+            'name': 'Produk apa saja yang bisa dicicil?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'Semua produk kamera di Galaxy Camera bisa dicicil mulai dari kamera mirrorless, DSLR, action camera, drone hingga kamera pocket.',
+            },
+          },
+        ],
+      },
+    },
+
+    // BreadcrumbList Schema
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Home',
+            'item': 'https://galaxy.co.id',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Cicilan Kamera',
+            'item': canonicalUrl,
+          },
+        ],
+      },
     },
   ];
 };
+
+// OLD CODE - Commented for future reference
+// export const meta = () => {
+//   const monthYear = getCurrentMonthYear();
+//   return [
+//     {
+//       title: `Daftar Cicilan Kamera Tanpa Kartu Kredit ${monthYear} | Galaxy Camera`,
+//     },
+//     {
+//       name: 'description',
+//       content:
+//         'Beli kamera dengan cicilan mulai dari 3 hingga 12 bulan. Bunga rendah dan proses cepat.',
+//     },
+//   ];
+// };
 
 export async function loader({request, context}) {
   const productsPromise = context.storefront.query(GET_PRODUCTS_QUERY).then(data => {

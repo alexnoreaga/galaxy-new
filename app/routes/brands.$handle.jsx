@@ -12,7 +12,222 @@ import { useEffect, useState } from 'react';
 import {defer} from '@shopify/remix-oxygen';
 import { HitunganPersen } from '~/components/HitunganPersen';
 
+export const meta = ({data, location}) => {
+  const rawHandle = data?.handle || '';
+  const brandName = rawHandle
+    ? rawHandle.charAt(0).toUpperCase() + rawHandle.slice(1)
+    : 'Brand';
 
+  // ENHANCED - Better title with keywords and dynamic month/year
+  const today = new Date();
+  const monthNames = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+  const indonesianMonth = monthNames[today.getMonth()];
+  const year = today.getFullYear();
+
+  // ENHANCED - More SEO-friendly title
+  const title = `${brandName} - Produk Resmi Harga Terbaik ${indonesianMonth} ${year} | Galaxy Camera`;
+
+  // ENHANCED - Longer description with more keywords
+  const description = `Jelajahi koleksi lengkap produk ${brandName} original dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`;
+
+  // ENHANCED - Better keywords
+  const keywords = `${brandName}, produk ${brandName}, ${brandName} murah, ${brandName} original, ${brandName} garansi resmi, jual ${brandName}, harga ${brandName}, kamera ${brandName}`;
+
+  const canonicalUrl = location?.pathname
+    ? `https://galaxy.co.id${location.pathname}`
+    : `https://galaxy.co.id/brands/${rawHandle}`;
+
+  // ENHANCED - Product count info
+  const productCount = data?.data?.products?.nodes?.length || 0;
+
+  return [
+    // Basic Meta Tags
+    { title },
+    { 
+      name: 'description', 
+      content: description.substring(0, 160)
+    },
+    {
+      name: 'keywords',
+      content: keywords,
+    },
+    {
+      name: 'author',
+      content: 'Galaxy Camera',
+    },
+
+    // Robots & Indexing
+    {
+      name: 'robots',
+      content: 'index, follow, max-image-preview:large, max-snippet:-1',
+    },
+
+    // Canonical URL
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: canonicalUrl,
+    },
+
+    // Open Graph Tags (Facebook, WhatsApp)
+    {
+      property: 'og:type',
+      content: 'website',
+    },
+    {
+      property: 'og:title',
+      content: title,
+    },
+    {
+      property: 'og:description',
+      content: description.substring(0, 160),
+    },
+    {
+      property: 'og:url',
+      content: canonicalUrl,
+    },
+    {
+      property: 'og:site_name',
+      content: 'Galaxy Camera',
+    },
+    {
+      property: 'og:image',
+      content: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+    {
+      property: 'og:image:width',
+      content: '1200',
+    },
+    {
+      property: 'og:image:height',
+      content: '630',
+    },
+    {
+      property: 'og:locale',
+      content: 'id_ID',
+    },
+
+    // Twitter Card Tags
+    {
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    },
+    {
+      name: 'twitter:site',
+      content: '@galaxycamera99',
+    },
+    {
+      name: 'twitter:title',
+      content: title,
+    },
+    {
+      name: 'twitter:description',
+      content: description.substring(0, 160),
+    },
+    {
+      name: 'twitter:image',
+      content: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+    },
+
+    // Collection/Brand Schema (JSON-LD)
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        'name': `${brandName} - Galaxy Camera`,
+        'description': description,
+        'url': canonicalUrl,
+        'image': 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+        'publisher': {
+          '@type': 'Organization',
+          'name': 'Galaxy Camera',
+          'logo': {
+            '@type': 'ImageObject',
+            'url': 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+          },
+        },
+        'isPartOf': {
+          '@type': 'WebSite',
+          '@id': 'https://galaxy.co.id',
+        },
+      },
+    },
+
+    // BreadcrumbList Schema
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Home',
+            'item': 'https://galaxy.co.id',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Brands',
+            'item': 'https://galaxy.co.id/brands',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 3,
+            'name': brandName,
+            'item': canonicalUrl,
+          },
+        ],
+      },
+    },
+
+    // Product Collection Schema
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'ItemCollection',
+        'name': `Koleksi ${brandName}`,
+        'description': description,
+        'url': canonicalUrl,
+        'numberOfItems': productCount,
+        'isPartOf': {
+          '@type': 'Organization',
+          'name': 'Galaxy Camera',
+          'url': 'https://galaxy.co.id',
+        },
+      },
+    },
+  ].filter(Boolean);
+};
+
+// OLD CODE - Commented for future reference
+// export const meta = ({data, location}) => {
+//   const rawHandle = data?.handle || '';
+//   const brandName = rawHandle
+//     ? rawHandle.charAt(0).toUpperCase() + rawHandle.slice(1)
+//     : 'Brand';
+
+//   const title = `Produk ${brandName} | Brand Resmi`;
+//   const description = `Jelajahi koleksi produk ${brandName} terbaru, harga terbaik, dan promo menarik. Belanja aman di toko kami.`;
+
+//   const canonicalUrl = location?.pathname
+//     ? `${location.pathname}`
+//     : undefined;
+
+//   return [
+//     {title},
+//     {name: 'description', content: description},
+//     canonicalUrl
+//       ? {tagName: 'link', rel: 'canonical', href: canonicalUrl}
+//       : null,
+//   ].filter(Boolean);
+// };
+
+
+// ADDITIONAL OLD CODE - Commented for future reference
 // export const meta = ({data}) => {
 
 //   const collectionTitle = data?.collection?.seo.title
@@ -28,15 +243,6 @@ import { HitunganPersen } from '~/components/HitunganPersen';
 //     const year = today.getFullYear();
 //     const title = `${collectionTitle} - ${indonesianMonth} ${year}`;
 
-
-  // const collectionTitle = data?.collection?.seo.title
-  //   ?data?.collection?.seo.title
-  //   :data?.collection?.title;
-  
-  // const collectionTitle = data?.collection?.seo.title
-  //   ?data?.collection?.seo.title
-  //   :data?.collection?.title;
-
 //   return [
 //     {title},
 //     {
@@ -45,7 +251,6 @@ import { HitunganPersen } from '~/components/HitunganPersen';
 //       ? data.collection.seo.description.substr(0, 155)
 //       : data?.collection?.description.substr(0, 155),
 //     },
-//     // {tagName:'link',rel:'canonical',href:{currentDomain}}
 //   ];
 // };
 

@@ -124,8 +124,48 @@ export default function Homepage() {
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-0 mt-3 sm:mt-6">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 text-white">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.25),transparent_45%)]"></div>
-          <div className="relative p-3 sm:p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-1.5 sm:gap-4">
+          {/* Enhanced texture background */}
+          <div className="absolute inset-0">
+            {/* Radial gradients */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.25),transparent_45%)]"></div>
+            
+            {/* Subtle dot pattern texture */}
+            <div 
+              className="absolute inset-0 opacity-5"
+              style={{
+                backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)`,
+                backgroundSize: '20px 20px',
+              }}
+            ></div>
+            
+            {/* Noise texture overlay */}
+            <div 
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: `
+                  url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise' /%3E%3C/filter%3E%3Crect width='400' height='400' fill='%23ffffff' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E")
+                `,
+                backgroundSize: '200px 200px',
+              }}
+            ></div>
+            
+            {/* Diagonal lines pattern */}
+            <div 
+              className="absolute inset-0 opacity-5"
+              style={{
+                backgroundImage: `repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 35px,
+                  rgba(255,255,255,0.5) 35px,
+                  rgba(255,255,255,0.5) 70px
+                )`,
+              }}
+            ></div>
+          </div>
+
+          {/* Content */}
+          <div className="relative p-3 sm:p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-1.5 sm:gap-4 z-10">
             <div>
               <div className="hidden sm:inline-flex items-center gap-2 text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-blue-200 bg-white/10 border border-white/15 rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 mb-2">
                 Promo Cicilan
