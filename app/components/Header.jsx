@@ -244,7 +244,7 @@ function SearchToggleMobile() {
               </div>
 
               {/* Search Content */}
-              <div className='flex-1 overflow-y-auto p-4'>
+              <div className='flex-1 overflow-y-auto p-4' onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
                 <PredictiveSearchForm>
                   {({fetchResults, inputRef}) => (
                     <div className='w-full'>
