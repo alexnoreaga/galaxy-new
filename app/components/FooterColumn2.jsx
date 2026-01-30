@@ -24,6 +24,12 @@ export const FooterColumn2 = () => {
                 <div className='text-white text-sm py-1'>Blog & Artikel</div>
             </Link>
             </div>
+        <div>
+            <Link
+                to={`/pengadaan`}>
+                <div className='text-white text-sm py-1'>    Pengadaan Instansi & Pemerintah</div>
+            </Link>
+            </div>
         </div>
         </nav>
 
