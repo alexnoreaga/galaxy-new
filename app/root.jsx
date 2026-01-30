@@ -116,6 +116,41 @@ export default function App() {
   const nonce = useNonce();
   const data = useLoaderData();
   const matches = useMatches();
+  const [installPrompt, setInstallPrompt] = useState(null);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch(() => {
+        // no-op
+      });
+    }
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+
+      const alreadyPrompted = sessionStorage.getItem('pwa-install-prompted');
+      if (!alreadyPrompted) {
+        sessionStorage.setItem('pwa-install-prompted', 'true');
+        setTimeout(() => {
+          event.prompt();
+        }, 1200);
+      }
+    };
+
+    const handleAppInstalled = () => {
+      setInstallPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
 
 
 
@@ -278,6 +313,7 @@ dangerouslySetInnerHTML={{__html:`
         <Links />
       </head>
       <body>
+
 
       <ol>
             {matches
