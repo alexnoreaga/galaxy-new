@@ -242,14 +242,6 @@ export function PredictiveSearchResults() {
   const {results, totalResults, searchInputRef, searchTerm} =
     usePredictiveSearch();
 
-  function goToSearchResult(event) {
-    if (!searchInputRef.current) return;
-    searchInputRef.current.blur();
-    searchInputRef.current.value = '';
-    // close the aside
-    window.location.href = event.currentTarget.href;
-  }
-
   if (!totalResults) {
     return <NoPredictiveSearchResults searchTerm={searchTerm} />;
   }
@@ -261,7 +253,6 @@ export function PredictiveSearchResults() {
       <div>
         {results.map(({type, items}) => (
           <PredictiveSearchResult
-            goToSearchResult={goToSearchResult}
             items={items}
             key={type}
             searchTerm={searchTerm}
@@ -271,7 +262,7 @@ export function PredictiveSearchResults() {
       </div>
       {/* view all results /search?q=term */}
       {searchTerm.current && (
-        <Link onClick={goToSearchResult} to={`/search?q=${searchTerm.current}`}>
+        <Link to={`/search?q=${searchTerm.current}`}>
           <p className="mt-4 font-bold text-center bg-blue-600 text-white text-sm rounded-lg py-2 px-4 hover:bg-blue-700 transition-colors duration-200">
             Lihat Semua Hasil "<span className='font-semibold'>{searchTerm.current}</span>" →
           </p>
@@ -316,7 +307,7 @@ function NoPredictiveSearchResults({searchTerm}) {
 //   );
 // }
 
-function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
+function PredictiveSearchResult({items, searchTerm, type}) {
   const isSuggestions = type === 'queries';
   const categoryUrl = `/search?q=${
     searchTerm.current
@@ -327,7 +318,7 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
 
   return (
     <div className="predictive-search-result" key={type}>
-      {/* <Link prefetch="intent" to={categoryUrl} onClick={goToSearchResult}>
+      {/* <Link prefetch="intent" to={categoryUrl}>
         <h5>{isSuggestions ? 'Suggestions' : type}</h5>
       </Link> */}
       
@@ -335,7 +326,6 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
       <ul className='predictive-search-result-items grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3'>
         {items.map((item) => (
           <SearchResultItem
-            goToSearchResult={goToSearchResult}
             item={item}
             key={item.id}
           />
@@ -346,7 +336,7 @@ function PredictiveSearchResult({goToSearchResult, items, searchTerm, type}) {
   );
 }
 
-function SearchResultItem({goToSearchResult, item}) {
+function SearchResultItem({item}) {
 
 
   let url = item.url;
@@ -362,20 +352,10 @@ function SearchResultItem({goToSearchResult, item}) {
   }
 
   // console.log('Path',item)
-  
-  const handleClick = (e) => {
-    goToSearchResult(e);
-  };
-
-  const handleTouchEnd = (e) => {
-    goToSearchResult(e);
-  };
 
   return (
     <li className="predictive-search-result-item" key={path}>
       <Link 
-        onClick={handleClick} 
-        onTouchEnd={handleTouchEnd}
         to={path} 
         className='flex flex-col hover:no-underline border border-gray-200 rounded-lg p-2 sm:p-3 cursor-pointer active:opacity-75 hover:shadow-md hover:border-blue-300 transition-all duration-200 bg-white h-full'
       >
