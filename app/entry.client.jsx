@@ -27,9 +27,10 @@ async function initializeNotifications() {
   }
 
   try {
-    // Register service worker
-    const registration = await navigator.serviceWorker.register('/service-worker.js');
-    console.log('Service Worker registered:', registration.scope);
+    // Register both service workers
+    await navigator.serviceWorker.register('/service-worker.js');
+    const firebaseRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    console.log('Service Workers registered:', firebaseRegistration.scope);
     
     // Wait for service worker to be ready
     await navigator.serviceWorker.ready;
@@ -58,11 +59,17 @@ async function registerForNotifications() {
     }
 
     const vapidKey = window.FCM_VAPID_KEY || 'BJVWFBO9hv4b9x6gxwSalMHFom3f17pAVxUTptFQBfUtDHKiNcDlHt9xPQ3F7FHdHC8rXhfJGCnv3a3unkedr0Y';
-    const serviceWorkerRegistration = await navigator.serviceWorker.ready;
+    
+    // Get the Firebase messaging service worker registration
+    await navigator.serviceWorker.ready;
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    const firebaseRegistration = registrations.find(reg => 
+      reg.active?.scriptURL.includes('firebase-messaging-sw.js')
+    ) || registrations[0];
 
     const token = await getToken(messaging, {
       vapidKey: vapidKey,
-      serviceWorkerRegistration,
+      serviceWorkerRegistration: firebaseRegistration,
     });
     
     if (token) {
