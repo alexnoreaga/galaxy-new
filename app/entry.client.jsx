@@ -33,9 +33,14 @@ async function registerForNotifications() {
   try {
     // Get VAPID key - replace with your actual key from Firebase Console
     const vapidKey = window.FCM_VAPID_KEY || 'BJVWFBO9hv4b9x6gxwSalMHFom3f17pAVxUTptFQBfUtDHKiNcDlHt9xPQ3F7FHdHC8rXhfJGCnv3a3unkedr0Y';
-    
+    const hasServiceWorker = 'serviceWorker' in navigator;
+    const serviceWorkerRegistration = hasServiceWorker
+      ? await navigator.serviceWorker.ready
+      : undefined;
+
     const token = await getToken(messaging, {
-      vapidKey: vapidKey
+      vapidKey: vapidKey,
+      serviceWorkerRegistration,
     });
     
     if (token) {
