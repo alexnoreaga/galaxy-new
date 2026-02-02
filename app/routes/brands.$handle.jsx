@@ -261,22 +261,38 @@ export async function loader({params, context, request}) {
   const url = new URL(request.url);
   const reverse = url.searchParams.get("reverse") === 'true' ? true : false;
   const sortKey = url.searchParams.get("sortkey")?.toUpperCase();
+  const category = url.searchParams.get("category") || '';
+  const minPrice = url.searchParams.get("minPrice") || '';
+  const maxPrice = url.searchParams.get("maxPrice") || '';
+  const categoryPage = parseInt(url.searchParams.get("categoryPage") || '1');
   
+  const pageBy = 8;
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
+    pageBy: pageBy,
   });
 
   if (!handle) {
     return redirect('/brands');
   }
 
+  // Build query string with filters
+  let query = `vendor:${handle}`;
+  if (minPrice || maxPrice) {
+    const min = minPrice || '0';
+    const max = maxPrice || '999999999';
+    query += ` price:[${min} TO ${max}]`;
+  }
+
+  // When no filters, use normal pagination. When filtering by category, fetch max allowed (250)
+  const fetchCount = category ? 250 : pageBy;
+
   const data = await context.storefront.query(BRAND_QUERY, {
     variables: {
-      first: 10,
-      query: "vendor:" + handle,
+      first: fetchCount,
+      query: query,
       reverse,
       sortkey: sortKey,
-      ...paginationVariables
+      ...(category ? {} : paginationVariables),
     },
   });
 
@@ -286,12 +302,59 @@ export async function loader({params, context, request}) {
     });
   }
 
-  return json({data, handle});
+  // Client-side filtering by category
+  let filteredProducts = data.products.nodes;
+  let pageInfo = data.products.pageInfo;
+  
+  if (category) {
+    filteredProducts = data.products.nodes.filter(
+      product => product.productType === category
+    );
+    
+    // Calculate pagination for filtered results
+    const totalFilteredProducts = filteredProducts.length;
+    const startIndex = (categoryPage - 1) * pageBy;
+    const endIndex = startIndex + pageBy;
+    const displayedProducts = filteredProducts.slice(startIndex, endIndex);
+    
+    // Update pageInfo for pagination
+    pageInfo = {
+      ...data.products.pageInfo,
+      hasNextPage: endIndex < totalFilteredProducts,
+      hasPreviousPage: categoryPage > 1,
+      startCursor: `cat-${categoryPage}`,
+      endCursor: `cat-${categoryPage}`,
+    };
+    
+    filteredProducts = displayedProducts;
+  }
+
+  // Get all product types for category filter
+  const allProductsData = await context.storefront.query(ALL_PRODUCTS_FOR_CATEGORIES, {
+    variables: {
+      query: `vendor:${handle}`,
+    },
+  });
+    },
+  });
+
+  const categories = [...new Set(allProductsData.products.nodes.map(p => p.productType).filter(Boolean))].sort();
+
+  return json({
+    data: {...data, products: {...data.products, nodes: filteredProducts, pageInfo: pageInfo}}, 
+    handle, 
+    categories, 
+    selectedCategory: category,
+    categoryPage: categoryPage
+  });
 }
 
 export default function BrandHandle() {
-  const {data, handle} = useLoaderData();
+  const {data, handle, categories, selectedCategory, categoryPage} = useLoaderData();
   const [formData, setFormData] = useState('');
+  const [selectedCat, setSelectedCat] = useState(selectedCategory || '');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const location = useLocation();
   const submit = useSubmit();
   const formDatax = new FormData();
@@ -310,46 +373,162 @@ export default function BrandHandle() {
     submit(formDatax, { method: "get" });
   };
 
+  const handleCategoryChange = (event) => {
+    const category = event.target.value;
+    setSelectedCat(category);
+    const searchParams = new URLSearchParams(location.search);
+    if (category) {
+      searchParams.set('category', category);
+    } else {
+      searchParams.delete('category');
+    }
+    const formData = new FormData();
+    searchParams.forEach((value, key) => {
+      formData.append(key, value);
+    });
+    submit(formData, { method: "get" });
+  };
+
+  const handlePriceFilter = () => {
+    const searchParams = new URLSearchParams(location.search);
+    if (minPrice) searchParams.set('minPrice', minPrice);
+    if (maxPrice) searchParams.set('maxPrice', maxPrice);
+    // Reset to page 1 when applying filters
+    searchParams.delete('categoryPage');
+    const formData = new FormData();
+    searchParams.forEach((value, key) => {
+      formData.append(key, value);
+    });
+    submit(formData, { method: "get" });
+  };
+
+  const handleCategoryPageChange = (newPage) => {
+    const searchParams = new URLSearchParams(location.search);
+    searchParams.set('categoryPage', newPage.toString());
+    const formData = new FormData();
+    searchParams.forEach((value, key) => {
+      formData.append(key, value);
+    });
+    submit(formData, { method: "get" });
+  };
+
   return (
     <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <div className="flex flex-col md:flex-row lg:flex-row md:justify-between md:items-center">
-        <h1>{handle.charAt(0).toUpperCase() + handle.slice(1)}</h1>
+      <h1 className="mb-6">{handle.charAt(0).toUpperCase() + handle.slice(1)}</h1>
+      
+      {/* Filters Section */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+        {/* Category Filter */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="category" className='text-gray-900 text-sm font-bold'>Kategori</label>
+          <select
+            id="category"
+            value={selectedCat}
+            onChange={handleCategoryChange}
+            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+          >
+            <option value="">Semua Kategori</option>
+            {categories && categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
 
-        <Form method="get">
-          <div className='w-full flex flex-col md:flex-row lg:flex-row gap-2 md:items-center mb-5'>
-            <label htmlFor="reverse" className='text-gray-900 text-sm font-bold hidden md:block'>Urutkan</label>
-            <select
-              name="reverse"
-              id="reverse"
-              value={formData}
-              onChange={handleInputChange}
-              className="ml-0 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            >
-              <option value="" disabled defaultValue>Pilih...</option>
-              <option sortkey="RELEVANCE" data-reverse="false">Relevansi</option>
-              <option sortkey="TITLE" data-reverse="false">A-Z</option>
-              <option sortkey="TITLE" data-reverse="true">Z-A</option>
-              <option sortkey="PRICE" data-reverse="false">Harga Terendah</option>
-              <option sortkey="PRICE" data-reverse="true">Harga Tertinggi</option>
-            </select>
-          </div>
-        </Form>
+        {/* Min Price Filter */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="minPrice" className='text-gray-900 text-sm font-bold'>Harga Min</label>
+          <input
+            type="number"
+            id="minPrice"
+            placeholder="Rp 0"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+          />
+        </div>
+
+        {/* Max Price Filter */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="maxPrice" className='text-gray-900 text-sm font-bold'>Harga Max</label>
+          <input
+            type="number"
+            id="maxPrice"
+            placeholder="Rp 999999999"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+          />
+        </div>
+
+        {/* Sort Dropdown */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="sort" className='text-gray-900 text-sm font-bold'>Urutkan</label>
+          <select
+            id="sort"
+            value={formData}
+            onChange={handleInputChange}
+            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+          >
+            <option value="" disabled>Pilih...</option>
+            <option sortkey="RELEVANCE" data-reverse="false">Relevansi</option>
+            <option sortkey="TITLE" data-reverse="false">A-Z</option>
+            <option sortkey="TITLE" data-reverse="true">Z-A</option>
+            <option sortkey="PRICE" data-reverse="false">Harga Terendah</option>
+            <option sortkey="PRICE" data-reverse="true">Harga Tertinggi</option>
+          </select>
+        </div>
       </div>
 
-      <Pagination connection={data.products}>
-        {({nodes, isLoading, PreviousLink, NextLink}) => (
-          <>
-            <PreviousLink>
-              {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
-            </PreviousLink>
-            <ProductsGrid products={nodes} />
-            <br />
-            <NextLink>
-              {isLoading ? 'Loading...' : <span className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">Load more ↓</span>}
-            </NextLink>
-          </>
-        )}
-      </Pagination>
+      {/* Apply Filters Button */}
+      <button
+        onClick={handlePriceFilter}
+        className="mb-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        Terapkan Filter
+      </button>
+
+      {/* Pagination */}
+      {selectedCategory ? (
+        // Custom pagination for category filter
+        <div className="mt-8 space-y-4">
+          <ProductsGrid products={data.products.nodes} />
+          <div className="flex justify-between items-center gap-4 mt-6">
+            <button
+              onClick={() => handleCategoryPageChange(categoryPage - 1)}
+              disabled={!data.products.pageInfo.hasPreviousPage}
+              className="px-4 py-2 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              ↑ Previous
+            </button>
+            <span className="text-sm font-semibold text-gray-600">
+              Page {categoryPage}
+            </span>
+            <button
+              onClick={() => handleCategoryPageChange(categoryPage + 1)}
+              disabled={!data.products.pageInfo.hasNextPage}
+              className="px-4 py-2 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next ↓
+            </button>
+          </div>
+        </div>
+      ) : (
+        // Standard Shopify pagination for non-filtered view
+        <Pagination connection={data.products}>
+          {({nodes, isLoading, PreviousLink, NextLink}) => (
+            <>
+              <PreviousLink>
+                {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
+              </PreviousLink>
+              <ProductsGrid products={nodes} />
+              <br />
+              <NextLink>
+                {isLoading ? 'Loading...' : <span className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block p-2.5">Load more ↓</span>}
+              </NextLink>
+            </>
+          )}
+        </Pagination>
+      )}
     </div>
   );
 }
@@ -434,6 +613,7 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
     handle
     availableForSale
     title
+    productType
     featuredImage {
       id
       altText
@@ -492,6 +672,22 @@ query Brand(
     }
     nodes {
       ...ProductItem
+    }
+  }
+}
+`;
+
+const ALL_PRODUCTS_FOR_CATEGORIES = `#graphql
+query AllProducts(
+  $query: String!
+) {
+  products(
+    first: 250
+    query: $query
+  ) {
+    nodes {
+      id
+      productType
     }
   }
 }
