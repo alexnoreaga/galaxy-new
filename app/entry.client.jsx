@@ -20,23 +20,33 @@ const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
 // Request notification permission
-if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission().then((permission) => {
-    if (permission === 'granted') {
-      registerForNotifications();
-    }
-  });
+if ('Notification' in window) {
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        registerForNotifications();
+      }
+    });
+  } else if (Notification.permission === 'granted') {
+    registerForNotifications();
+  }
 }
 
 // Register device token
 async function registerForNotifications() {
   try {
+    console.log('Notification permission:', Notification.permission);
+    console.log('ServiceWorker supported:', 'serviceWorker' in navigator);
     // Get VAPID key - replace with your actual key from Firebase Console
     const vapidKey = window.FCM_VAPID_KEY || 'BJVWFBO9hv4b9x6gxwSalMHFom3f17pAVxUTptFQBfUtDHKiNcDlHt9xPQ3F7FHdHC8rXhfJGCnv3a3unkedr0Y';
     const hasServiceWorker = 'serviceWorker' in navigator;
     const serviceWorkerRegistration = hasServiceWorker
       ? await navigator.serviceWorker.ready
       : undefined;
+
+    if (serviceWorkerRegistration) {
+      console.log('ServiceWorker scope:', serviceWorkerRegistration.scope);
+    }
 
     const token = await getToken(messaging, {
       vapidKey: vapidKey,

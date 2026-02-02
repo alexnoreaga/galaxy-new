@@ -15,23 +15,40 @@ export default async function handleRequest(
 
 // const { nonce, header, NonceProvider } = createContentSecurityPolicy()
 
-  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
+    const { nonce, header, NonceProvider } = createContentSecurityPolicy({
     defaultSrc: [
-        "'self'",
-        'https://cdn.shopify.com',
-        'https://shopify.com'
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://shopify.com'
+    ],
+    scriptSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://shopify.com',
+      'https://www.gstatic.com'
+    ],
+    connectSrc: [
+      "'self'",
+      'https://www.gstatic.com',
+      'https://fcm.googleapis.com',
+      'https://firebaseinstallations.googleapis.com',
+      'https://firebaselogging.googleapis.com'
+    ],
+    workerSrc: [
+      "'self'",
+      'https://www.gstatic.com'
     ],
     frameSrc: [
-        "'self'",
-        'https://www.google.com',
-        'https://www.youtube.com',
-        'https://www.googletagmanager.com',
-        'https://tagmanager.google.com',
-        'https://analytics.google.com/'
+      "'self'",
+      'https://www.google.com',
+      'https://www.youtube.com',
+      'https://www.googletagmanager.com',
+      'https://tagmanager.google.com',
+      'https://analytics.google.com/'
 
     ],
 
-});
+  });
 
 
   const body = await renderToReadableStream(
