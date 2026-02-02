@@ -34,6 +34,14 @@ function xmlEncode(string) {
 }
 
 function generateSitemap({data, baseUrl}) {
+  // Add homepage - MOST IMPORTANT!
+  const homepage = {
+    url: baseUrl,
+    lastMod: new Date().toISOString(),
+    changeFreq: 'daily',
+    priority: 1.0,
+  };
+
   const products = flattenConnection(data.products)
     .filter((product) => product.onlineStoreUrl)
     .map((product) => {
@@ -43,6 +51,7 @@ function generateSitemap({data, baseUrl}) {
         url,
         lastMod: product.updatedAt,
         changeFreq: 'daily',
+        priority: 0.8,
       };
 
       if (product.featuredImage?.url) {
@@ -71,6 +80,7 @@ function generateSitemap({data, baseUrl}) {
         url,
         lastMod: collection.updatedAt,
         changeFreq: 'daily',
+        priority: 0.7,
       };
     });
 
@@ -83,10 +93,11 @@ function generateSitemap({data, baseUrl}) {
         url,
         lastMod: page.updatedAt,
         changeFreq: 'weekly',
+        priority: 0.6,
       };
     });
 
-  const urls = [...products, ...collections, ...pages];
+  const urls = [homepage, ...products, ...collections, ...pages];
 
   return `
     <urlset
@@ -97,7 +108,7 @@ function generateSitemap({data, baseUrl}) {
     </urlset>`;
 }
 
-function renderUrlTag({url, lastMod, changeFreq, image}) {
+function renderUrlTag({url, lastMod, changeFreq, priority, image}) {
   const imageTag = image
     ? `<image:image>
         <image:loc>${image.url}</image:loc>
@@ -111,6 +122,7 @@ function renderUrlTag({url, lastMod, changeFreq, image}) {
       <loc>${url}</loc>
       <lastmod>${lastMod}</lastmod>
       <changefreq>${changeFreq}</changefreq>
+      <priority>${priority}</priority>
       ${imageTag}
     </url>
   `.trim();
