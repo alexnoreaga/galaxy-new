@@ -529,6 +529,7 @@ DP : 0
                   <ProductOptions
                     options={product.options}
                     selectedVariant={selectedVariant}
+                    product={product}
                   />
                   )}
                   </div>
@@ -1228,7 +1229,7 @@ function TombolWaDiscontinue({product}){
         }
       }
 
-      variants(first: 1) {
+      variants(first: 50) {
         nodes {
           id
           title
