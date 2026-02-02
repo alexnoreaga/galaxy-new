@@ -19,34 +19,40 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-// Request notification permission
-if ('Notification' in window) {
-  if (Notification.permission === 'default') {
-    Notification.requestPermission().then((permission) => {
+// Register service worker first, then setup notifications
+async function initializeNotifications() {
+  if (!('serviceWorker' in navigator)) {
+    console.warn('Service workers not supported');
+    return;
+  }
+
+  try {
+    // Register service worker
+    const registration = await navigator.serviceWorker.register('/service-worker.js');
+    console.log('Service Worker registered:', registration.scope);
+    
+    // Wait for service worker to be ready
+    await navigator.serviceWorker.ready;
+    
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        registerForNotifications();
+        await registerForNotifications();
       }
-    });
-  } else if (Notification.permission === 'granted') {
-    registerForNotifications();
+    } else if (Notification.permission === 'granted') {
+      await registerForNotifications();
+    }
+  } catch (error) {
+    console.error('Error initializing notifications:', error);
   }
 }
 
 // Register device token
 async function registerForNotifications() {
   try {
-    console.log('Notification permission:', Notification.permission);
-    console.log('ServiceWorker supported:', 'serviceWorker' in navigator);
-    // Get VAPID key - replace with your actual key from Firebase Console
     const vapidKey = window.FCM_VAPID_KEY || 'BJVWFBO9hv4b9x6gxwSalMHFom3f17pAVxUTptFQBfUtDHKiNcDlHt9xPQ3F7FHdHC8rXhfJGCnv3a3unkedr0Y';
-    const hasServiceWorker = 'serviceWorker' in navigator;
-    const serviceWorkerRegistration = hasServiceWorker
-      ? await navigator.serviceWorker.ready
-      : undefined;
-
-    if (serviceWorkerRegistration) {
-      console.log('ServiceWorker scope:', serviceWorkerRegistration.scope);
-    }
+    const serviceWorkerRegistration = await navigator.serviceWorker.ready;
 
     const token = await getToken(messaging, {
       vapidKey: vapidKey,
@@ -69,6 +75,13 @@ async function registerForNotifications() {
   } catch (error) {
     console.error('Error getting FCM token:', error);
   }
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeNotifications);
+} else {
+  initializeNotifications();
 }
 
 // Listen for messages when app is open

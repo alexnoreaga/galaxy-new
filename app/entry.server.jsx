@@ -31,8 +31,10 @@ export default async function handleRequest(
       "'self'",
       'https://www.gstatic.com',
       'https://fcm.googleapis.com',
+      'https://fcmregistrations.googleapis.com',
       'https://firebaseinstallations.googleapis.com',
-      'https://firebaselogging.googleapis.com'
+      'https://firebaselogging.googleapis.com',
+      'https://*.googleapis.com'
     ],
     workerSrc: [
       "'self'",

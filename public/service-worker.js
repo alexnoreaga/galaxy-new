@@ -1,7 +1,7 @@
 // service-worker.js
 
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU",

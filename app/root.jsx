@@ -119,12 +119,6 @@ export default function App() {
   const [installPrompt, setInstallPrompt] = useState(null);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(() => {
-        // no-op
-      });
-    }
-
     const handleAppInstalled = () => {
       setInstallPrompt(null);
     };
