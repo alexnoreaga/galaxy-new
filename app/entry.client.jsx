@@ -19,6 +19,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
 // Listen for messages when app is open
 onMessage(messaging, (payload) => {
   console.log('Message received:', payload);
