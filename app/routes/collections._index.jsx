@@ -289,7 +289,7 @@ export const meta = ({data}) => {
 };
 
 // OLD CODE - Commented for future reference
-// export const meta = ({data}) =>{
+// export const meta = ({data}) =>{gi
 //   return[
 //     {title: "Kategori Produk Galaxy Camera Store"},
 //     {

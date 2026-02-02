@@ -116,13 +116,10 @@ Disallow: /*/blogs/*%2b*
 Disallow: /*?*oseid=*
 Disallow: /*preview_theme_id*
 Disallow: /*preview_script_id*
-Disallow: /policies/
 Disallow: /*/*?*ls=*&ls=*
 Disallow: /*/*?*ls%3D*%3Fls%3D*
 Disallow: /*/*?*ls%3d*%3fls%3d*
-Disallow: /search
-Allow: /search/
-Disallow: /search/?*
+Disallow: /search?*
 Disallow: /apple-app-site-association
 Disallow: /.well-known/shopify/monorail
 ${sitemapUrl ? `Sitemap: ${sitemapUrl}` : ''}`;
