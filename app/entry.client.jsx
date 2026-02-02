@@ -51,6 +51,12 @@ async function initializeNotifications() {
 // Register device token
 async function registerForNotifications() {
   try {
+    // Check if IndexedDB is available (required for Firebase)
+    if (!('indexedDB' in window)) {
+      console.warn('IndexedDB not available - notifications disabled');
+      return;
+    }
+
     const vapidKey = window.FCM_VAPID_KEY || 'BJVWFBO9hv4b9x6gxwSalMHFom3f17pAVxUTptFQBfUtDHKiNcDlHt9xPQ3F7FHdHC8rXhfJGCnv3a3unkedr0Y';
     const serviceWorkerRegistration = await navigator.serviceWorker.ready;
 
@@ -74,6 +80,9 @@ async function registerForNotifications() {
     }
   } catch (error) {
     console.error('Error getting FCM token:', error);
+    if (error.message?.includes('indexedDB')) {
+      console.warn('IndexedDB error - try disabling private/incognito mode');
+    }
   }
 }
 
