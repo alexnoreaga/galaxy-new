@@ -31,6 +31,7 @@ messaging.onBackgroundMessage((payload) => {
     badge: '/apple-icon-72x72.png',
     tag: 'galaxy-notification',
     requireInteraction: false,
+    data: payload?.data || {},
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions)
@@ -44,19 +45,23 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
   
-  // Open or focus the website
+  // Get custom URL from notification data, fallback to home
+  const urlToOpen = event.notification.data?.url || 'https://www.galaxy.co.id/';
+  console.log('Opening URL:', urlToOpen);
+  
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // Check if website is already open
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url === '/' && 'focus' in client) {
+        if ('focus' in client) {
+          client.navigate(urlToOpen);
           return client.focus();
         }
       }
       // If not open, open new window
       if (clients.openWindow) {
-        return clients.openWindow('https://www.galaxy.co.id/');
+        return clients.openWindow(urlToOpen);
       }
     })
   );
