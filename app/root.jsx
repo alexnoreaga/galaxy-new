@@ -127,14 +127,9 @@ export default function App() {
 
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
-      setInstallPrompt(event);
-
       const alreadyPrompted = sessionStorage.getItem('pwa-install-prompted');
       if (!alreadyPrompted) {
-        sessionStorage.setItem('pwa-install-prompted', 'true');
-        setTimeout(() => {
-          event.prompt();
-        }, 1200);
+        setInstallPrompt(event);
       }
     };
 
@@ -150,6 +145,7 @@ export default function App() {
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
+
 
 
 

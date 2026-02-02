@@ -2,6 +2,7 @@
  "name": "Galaxy Camera Store",
  "short_name": "Galaxy.co.id",
  "description": "Toko Kamera Online Offline Terbaik",
+ "id": "/",
  "start_url": "/",
  "display": "standalone",
  "background_color": "#ffffff",
