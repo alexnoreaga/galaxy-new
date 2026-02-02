@@ -354,7 +354,7 @@ export default function PengadaanPage() {
           {/* Intro Section */}
           <div className="mb-12 sm:mb-20">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-              Solusi Pengadaan Kamera & Drone untuk Instansi Pemerintah
+              Solusi Pengadaan Kamera & Drone untuk Instansi Pemerintah & Perusahaan Swasta
             </h1>
             <div className="grid md:grid-cols-2 gap-4 sm:gap-8">
               <div>
@@ -583,7 +583,111 @@ export default function PengadaanPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-green-600 mr-2 sm:mr-3 text-base sm:text-lg">📞</span>
-                  <span className="text-sm sm:text-base text-gray-700">Customer support responsif 24/7</span>
+                  <span className="text-sm sm:text-base text-gray-700">Customer support responsif & cepat</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Partner & Klien Section */}
+          <div className="mb-12 sm:mb-20">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 pb-3 sm:pb-4 border-b-2 border-blue-600">
+              Partner & Klien Kami
+            </h2>
+            <p className="text-sm sm:text-base text-gray-700 mb-8 sm:mb-12 leading-relaxed max-w-4xl">
+              PT. Galaxy Digital Niaga telah dipercaya oleh ribuan klien dari berbagai sektor industri di seluruh Indonesia, mulai dari institusi pendidikan, perusahaan swasta nasional & multinasional, hingga instansi pemerintah, dalam penyediaan solusi teknologi dan pengadaan yang andal.
+            </p>
+
+            {/* Institusi Pendidikan & Yayasan */}
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6 sm:p-8 border border-blue-200 mb-6 sm:mb-8">
+              <div className="flex items-center mb-4 sm:mb-6">
+                <span className="text-blue-600 text-2xl sm:text-3xl mr-3">🎓</span>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900">Institusi Pendidikan & Yayasan</h3>
+              </div>
+              <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">Kami menjalin kerja sama dengan berbagai institusi pendidikan dan yayasan terkemuka, di antaranya:</p>
+              <ul className="grid md:grid-cols-2 gap-3 sm:gap-4">
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-blue-600 mr-3">✓</span>Yayasan Universitas Pelita Harapan
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-blue-600 mr-3">✓</span>Universitas Trisakti
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-blue-600 mr-3">✓</span>Yayasan Citra Berkat
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-blue-600 mr-3">✓</span>Ratusan institusi pendidikan lainnya
+                </li>
+              </ul>
+            </div>
+
+            {/* Perusahaan Swasta & Korporasi */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6 sm:p-8 border border-green-200 mb-6 sm:mb-8">
+              <div className="flex items-center mb-4 sm:mb-6">
+                <span className="text-green-600 text-2xl sm:text-3xl mr-3">🏢</span>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900">Perusahaan Swasta & Korporasi</h3>
+              </div>
+              <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">Kepercayaan juga datang dari perusahaan-perusahaan nasional dari berbagai sektor, seperti:</p>
+              <ul className="grid md:grid-cols-2 gap-3 sm:gap-4">
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-green-600 mr-3">✓</span>PT. Maybank Sekuritas Indonesia
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-green-600 mr-3">✓</span>Indofood Fortuna Makmur
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-green-600 mr-3">✓</span>PT. JHL Collections Indonesia
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-green-600 mr-3">✓</span>PT. Surya Internusa Hotels
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-green-600 mr-3">✓</span>PT. Bos Tobos Indonesia
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-green-600 mr-3">✓</span>Ribuan perusahaan mitra lainnya
+                </li>
+              </ul>
+            </div>
+
+            {/* Instansi Pemerintah & Layanan Publik */}
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-6 sm:p-8 border border-orange-200">
+              <div className="flex items-center mb-4 sm:mb-6">
+                <span className="text-orange-600 text-2xl sm:text-3xl mr-3">🏛️</span>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900">Instansi Pemerintah & Layanan Publik</h3>
+              </div>
+              <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">Kami berpengalaman mendukung kebutuhan pengadaan dan teknologi untuk instansi pemerintah dan layanan publik, antara lain:</p>
+              <ul className="space-y-3 sm:space-y-4">
+                <li className="flex items-start text-sm sm:text-base text-gray-700">
+                  <span className="text-orange-600 mr-3 mt-1">►</span>
+                  <div>
+                    <strong>Pusat Investasi Pemerintah</strong>
+                    <p className="text-gray-600 text-xs sm:text-sm">Direktorat Jenderal Perbendaharaan – Kementerian Keuangan</p>
+                  </div>
+                </li>
+                <li className="flex items-start text-sm sm:text-base text-gray-700">
+                  <span className="text-orange-600 mr-3 mt-1">►</span>
+                  <div>
+                    <strong>Kantor Pelayanan Pajak Pratama Payakumbuh</strong>
+                    <p className="text-gray-600 text-xs sm:text-sm">Direktorat Jenderal Pajak – Kementerian Keuangan</p>
+                  </div>
+                </li>
+                <li className="flex items-start text-sm sm:text-base text-gray-700">
+                  <span className="text-orange-600 mr-3 mt-1">►</span>
+                  <div>
+                    <strong>Rumah Sakit Umum Dr. Hasan Sadikin Bandung</strong>
+                    <p className="text-gray-600 text-xs sm:text-sm">Direktorat Jenderal Pelayanan Kesehatan – Kementerian Kesehatan</p>
+                  </div>
+                </li>
+                <li className="flex items-start text-sm sm:text-base text-gray-700">
+                  <span className="text-orange-600 mr-3 mt-1">►</span>
+                  <div>
+                    <strong>Balai Pengembangan SDM dan Penelitian</strong>
+                    <p className="text-gray-600 text-xs sm:text-sm">Komunikasi dan Informatika Bandung</p>
+                  </div>
+                </li>
+                <li className="flex items-center text-sm sm:text-base text-gray-700">
+                  <span className="text-orange-600 mr-3">✓</span>Berbagai instansi pemerintah pusat dan daerah lainnya
                 </li>
               </ul>
             </div>
