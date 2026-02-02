@@ -329,12 +329,15 @@ export async function loader({params, context, request}) {
     filteredProducts = displayedProducts;
   }
 
+  if (!data) {
+    throw new Response(`Brands ${handle} tidak ditemukan`, {
+      status: 404,
+    });
+
   // Get all product types for category filter
   const allProductsData = await context.storefront.query(ALL_PRODUCTS_FOR_CATEGORIES, {
     variables: {
       query: `vendor:${handle}`,
-    },
-  });
     },
   });
 
@@ -488,47 +491,22 @@ export default function BrandHandle() {
       </button>
 
       {/* Pagination */}
-      {selectedCategory ? (
-        // Custom pagination for category filter
-        <div className="mt-8 space-y-4">
-          <ProductsGrid products={data.products.nodes} />
-          <div className="flex justify-between items-center gap-4 mt-6">
-            <button
-              onClick={() => handleCategoryPageChange(categoryPage - 1)}
-              disabled={!data.products.pageInfo.hasPreviousPage}
-              className="px-4 py-2 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              ↑ Previous
-            </button>
-            <span className="text-sm font-semibold text-gray-600">
-              Page {categoryPage}
-            </span>
-            <button
-              onClick={() => handleCategoryPageChange(categoryPage + 1)}
-              disabled={!data.products.pageInfo.hasNextPage}
-              className="px-4 py-2 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next ↓
-            </button>
-          </div>
-        </div>
-      ) : (
-        // Standard Shopify pagination for non-filtered view
-        <Pagination connection={data.products}>
-          {({nodes, isLoading, PreviousLink, NextLink}) => (
-            <>
+      <Pagination connection={data.products}>
+        {({nodes, isLoading, PreviousLink, NextLink}) => (
+          <>
+            {selectedCategory && (
               <PreviousLink>
                 {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
               </PreviousLink>
-              <ProductsGrid products={nodes} />
-              <br />
-              <NextLink>
-                {isLoading ? 'Loading...' : <span className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block p-2.5">Load more ↓</span>}
-              </NextLink>
-            </>
-          )}
-        </Pagination>
-      )}
+            )}
+            <ProductsGrid products={nodes} />
+            <br />
+            <NextLink>
+              {isLoading ? 'Loading...' : <span className="mb-12 font-bold text-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">Load more ↓</span>}
+            </NextLink>
+          </>
+        )}
+      </Pagination>
     </div>
   );
 }
