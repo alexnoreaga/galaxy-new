@@ -2,7 +2,7 @@ import {RemixBrowser} from '@remix-run/react';
 import {startTransition, StrictMode} from 'react';
 import {hydrateRoot} from 'react-dom/client';
 import { initializeApp } from 'firebase/app';
-import { getMessaging, onMessage } from 'firebase/messaging';
+import { getMessaging, onMessage, getToken } from 'firebase/messaging';
 
 // Firebase config
 const firebaseConfig = {
@@ -21,7 +21,39 @@ const messaging = getMessaging(app);
 
 // Request notification permission
 if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission();
+  Notification.requestPermission().then((permission) => {
+    if (permission === 'granted') {
+      registerForNotifications();
+    }
+  });
+}
+
+// Register device token
+async function registerForNotifications() {
+  try {
+    // Get VAPID key - replace with your actual key from Firebase Console
+    const vapidKey = window.FCM_VAPID_KEY || 'BJVWFBO9hv4b9x6gxwSalMHFom3f17pAVxUTptFQBfUtDHKiNcDlHt9xPQ3F7FHdHC8rXhfJGCnv3a3unkedr0Y';
+    
+    const token = await getToken(messaging, {
+      vapidKey: vapidKey
+    });
+    
+    if (token) {
+      console.log('FCM Token:', token);
+      // Save token to your backend/database
+      try {
+        await fetch('/api/save-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+      } catch (fetchError) {
+        console.warn('Could not save token to server:', fetchError);
+      }
+    }
+  } catch (error) {
+    console.error('Error getting FCM token:', error);
+  }
 }
 
 // Listen for messages when app is open
