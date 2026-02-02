@@ -38,6 +38,30 @@ messaging.onBackgroundMessage((payload) => {
     .catch(err => console.error('❌ Failed to show notification:', err));
 });
 
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  console.log('📲 Notification clicked:', event.notification.tag);
+  
+  event.notification.close();
+  
+  // Open or focus the website
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Check if website is already open
+      for (let i = 0; i < clientList.length; i++) {
+        const client = clientList[i];
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If not open, open new window
+      if (clients.openWindow) {
+        return clients.openWindow('https://www.galaxy.co.id/');
+      }
+    })
+  );
+});
+
 const CACHE_NAME = 'galaxy-cache-v1';
 const PRECACHE_URLS = [
   '/',
