@@ -17,16 +17,25 @@ const messaging = firebase.messaging();
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
+  console.log('📩 Message received (background):', payload);
+  
   const notificationTitle = payload?.notification?.title || 'Galaxy Camera';
+  const notificationBody = payload?.notification?.body || 'You have a new message';
+  
+  console.log('Title:', notificationTitle);
+  console.log('Body:', notificationBody);
+  
   const notificationOptions = {
-    body: payload?.notification?.body || '',
-    icon: payload?.notification?.icon || '/icon-192x192.png',
-    badge: '/badge-72x72.png',
+    body: notificationBody,
+    icon: payload?.notification?.icon || '/icon-512x512.png',
+    badge: '/apple-icon-72x72.png',
     tag: 'galaxy-notification',
     requireInteraction: false,
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(notificationTitle, notificationOptions)
+    .then(() => console.log('✅ Notification shown (background)'))
+    .catch(err => console.error('❌ Failed to show notification:', err));
 });
 
 const CACHE_NAME = 'galaxy-cache-v1';

@@ -95,15 +95,24 @@ if (document.readyState === 'loading') {
 
 // Listen for messages when app is open
 onMessage(messaging, (payload) => {
-  console.log('Message received:', payload);
+  console.log('📩 Message received (foreground):', payload);
+  console.log('Title:', payload.notification?.title);
+  console.log('Body:', payload.notification?.body);
   
   // Show notification if app is in foreground
   if (Notification.permission === 'granted') {
-    new Notification(payload.notification.title, {
-      body: payload.notification.body,
-      icon: payload.notification.icon,
-      badge: '/badge-72x72.png',
-    });
+    try {
+      new Notification(payload.notification?.title || 'Galaxy Camera', {
+        body: payload.notification?.body || 'You have a new notification',
+        icon: payload.notification?.icon || '/icon-512x512.png',
+        badge: '/apple-icon-72x72.png',
+      });
+      console.log('✅ Notification shown (foreground)');
+    } catch (error) {
+      console.error('❌ Failed to show notification:', error);
+    }
+  } else {
+    console.warn('⚠️ Notification permission not granted');
   }
 });
 
