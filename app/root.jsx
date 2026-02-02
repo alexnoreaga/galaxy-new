@@ -125,23 +125,13 @@ export default function App() {
       });
     }
 
-    const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault();
-      const alreadyPrompted = sessionStorage.getItem('pwa-install-prompted');
-      if (!alreadyPrompted) {
-        setInstallPrompt(event);
-      }
-    };
-
     const handleAppInstalled = () => {
       setInstallPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
