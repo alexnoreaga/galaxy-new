@@ -29,60 +29,75 @@ const scrollRef = useRef(null);
   if (!related) return null;
 
   return (
-
-    <div className="mirrorless-products mb-2 mt-1">
-      <div className='flex flex-row items-center justify-between mb-2 gap-'>
-        <div className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Kategori Populer</div>
+    <div className="w-full py-4 sm:py-6">
+      <div className='flex flex-row items-end justify-between mb-5 gap-3 px-3 sm:px-0'>
+        <div>
+          <div className="text-gray-900 text-lg sm:text-2xl font-bold tracking-tight">Kategori Populer</div>
+          <div className='h-1 w-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mt-2'></div>
+        </div>
         <Link to="/collections">
-          <div className='text-blue-600 hover:text-blue-800 text-xs sm:text-sm lg:text-base font-medium leading-tight whitespace-nowrap'>Lihat Semua →</div>
+          <button className='px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-xs sm:text-sm rounded-full shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap'>
+            Lihat Semua →
+          </button>
         </Link>
       </div>
 
+      <div className="relative flex items-center group/scroll">
+        {/* Left Scroll Button */}
+        <button
+          onClick={scrollLeft}
+          className='hidden sm:flex absolute left-0 z-10 rounded-full p-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg border border-gray-200 hover:border-blue-300 transition-all duration-300 opacity-0 group-hover/scroll:opacity-100 active:scale-95'
+          aria-label="Scroll left"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 text-slate-700">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
 
-
-    
-
-      <div className="relative flex items-center">
-        <div className="flex overflow-x-auto snap-x items-center scroll-smooth gap-2 pb-2" ref={scrollRef}>
+        {/* Scrollable Container */}
+        <div className="flex overflow-x-auto hide-scroll-bar snap-x snap-mandatory scroll-smooth gap-1.5 sm:gap-3 pb-2 w-full px-2 sm:px-12" ref={scrollRef}>
           {related?.nodes.map((relate) => (
-            <div
-              className="flex-shrink-0 w-20 h-24 sm:w-24 sm:h-28 md:w-28 md:h-32 p-1 bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-150 hover:border-blue-300 transition-all duration-300 mr-[2px] sm:mr-1 last:mr-0 cursor-pointer group flex flex-col items-center justify-between hover:bg-blue-50"
+            <Link
+              to={`/collections/${relate?.handle}`}
               key={relate?.id}
+              className="flex-shrink-0"
             >
-              <Link to={`/collections/${relate?.handle}`}
-                className="flex flex-col items-center justify-center w-full h-full">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center mt-1 group-hover:scale-105 transition-transform duration-200 shadow-sm sm:border sm:border-gray-200">
+              <div className="group relative flex flex-col items-center justify-center p-2 sm:p-4 bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-2xl border border-gray-100 hover:border-blue-300 transition-all duration-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 w-16 sm:w-28 md:w-32 h-20 sm:h-32 md:h-36 overflow-hidden cursor-pointer snap-center">
+                
+                {/* Background Glow Effect */}
+                <div className='absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-blue-400/5 to-indigo-400/5'></div>
+                
+                {/* Image Container */}
+                <div className='relative w-9 h-9 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center mb-1 sm:mb-3 flex-shrink-0 shadow-sm group-hover:shadow-md transition-all duration-300'>
                   <img
                     src={relate?.image?.url}
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
                     alt={relate?.title}
                   />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-700 text-center px-0 whitespace-normal leading-tight break-words w-full mt-1 mb-1" style={{wordBreak: 'break-word', fontWeight: 400}}>
+                
+                {/* Text */}
+                <p className="text-gray-800 text-center text-[10px] sm:text-sm font-semibold line-clamp-2 leading-tight relative z-10 group-hover:text-blue-700 transition-colors duration-300 px-1">
                   {relate?.title}
-                </div>
-              </Link>
-            </div>
+                </p>
+                
+                {/* Hover Bottom Border */}
+                <div className='absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+              </div>
+            </Link>
           ))}
         </div>
 
-        {/*
-        <button className='absolute left-1 rounded-full p-1 bg-neutral-700/50' onClick={scrollLeft}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-            <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a.75.75 0 000 1.06l3 3a.75.75 0 101.06-1.06l-1.72-1.72h5.69a.75.75 0 000-1.5h-5.69l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3z" clipRule="evenodd" />
+        {/* Right Scroll Button */}
+        <button
+          onClick={scrollRight}
+          className='hidden sm:flex absolute right-0 z-10 rounded-full p-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg border border-gray-200 hover:border-blue-300 transition-all duration-300 opacity-0 group-hover/scroll:opacity-100 active:scale-95'
+          aria-label="Scroll right"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 text-slate-700">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
         </button>
-        <button className='absolute right-1 rounded-full p-1 bg-neutral-700/50' onClick={scrollRight}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-10 sm:h-10 text-white hover:text-gray-300">
-            <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
-          </svg>
-        </button>
-        */}
-
-
-
-
-
       </div>
     </div>
   );

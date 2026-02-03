@@ -352,31 +352,42 @@ function RenderCollection({ collections }) {
     <Suspense fallback={<div>Loading collections...</div>}>
       <Await resolve={collections}>
         {({ nodes }) => (
-          <section className="w-full">
-            <div className='flex flex-row items-center justify-between mb-4 gap-2'>
-              <h2 className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Kategori Populer</h2>
+          <section className="w-full py-6 sm:py-8">
+            <div className='flex flex-row items-end justify-between mb-6 gap-4'>
+              <div>
+                <h2 className="text-gray-900 text-lg sm:text-2xl md:text-3xl font-bold tracking-tight">Kategori Populer</h2>
+                <div className='h-1 w-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mt-2'></div>
+              </div>
               <Link to={`/collections/`}>
-                <div className='text-blue-600 hover:text-blue-800 text-xs sm:text-sm lg:text-base font-medium leading-tight whitespace-nowrap'>Lihat Semua →</div>
+                <button className='px-4 py-2 sm:px-6 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-xs sm:text-sm rounded-full shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap'>
+                  Lihat Semua →
+                </button>
               </Link>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2 sm:gap-3 lg:gap-4">
               {nodes.map((collection) => (
                 <Link to={`/collections/${collection.handle}`} key={collection.id}>
-                  <div className="group flex flex-col items-center justify-center p-2 sm:p-3 bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-blue-300 transition-all duration-300 hover:bg-blue-50 h-32 sm:h-40 lg:h-48">
+                  <div className="group relative flex flex-col items-center justify-center p-3 sm:p-4 bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-gray-100 hover:border-blue-300 transition-all duration-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 h-32 sm:h-40 lg:h-48 overflow-hidden cursor-pointer">
+                    {/* Background Glow Effect */}
+                    <div className='absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-blue-400/5 to-indigo-400/5'></div>
+                    
                     {collection?.image && (
-                      <div className='w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform duration-300 flex-shrink-0'>
+                      <div className='relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center mb-2 sm:mb-3 flex-shrink-0 shadow-sm group-hover:shadow-md transition-all duration-300'>
                         <Image
                           alt={`Image of ${collection.title}`}
                           data={collection.image}
-                          sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
+                          sizes="(max-width: 640px) 56px, (max-width: 1024px) 64px, 80px"
                           crop="center"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                     )}
-                    <p className="text-gray-800 text-center text-xs sm:text-sm font-medium line-clamp-2 leading-tight">
+                    <p className="text-gray-800 text-center text-xs sm:text-sm font-semibold line-clamp-2 leading-tight relative z-10 group-hover:text-blue-700 transition-colors duration-300">
                       {collection.title}
                     </p>
+                    
+                    {/* Hover Bottom Border */}
+                    <div className='absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
                   </div>
                 </Link>
               ))}
