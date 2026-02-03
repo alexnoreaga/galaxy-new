@@ -96,17 +96,19 @@ export function Header({header, isLoggedIn, cart}) {
     </div>
 
     
-    <header className="header backdrop-blur-md shadow-md !bg-white/90 border-b-1">
-      <div className='container  flex items-center justify-between relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl'>
-      <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
-        {/* <strong>{shop.name}</strong> */}
-        <img className='h-8 sm:h-8 md:h-10 lg:h-10' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105" alt="Logo Galaxy Camera" />
-      </NavLink>
-      <HeaderMenu menu={menu} viewport="desktop" />
-      <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+    <header className="header sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-sm">
+      <div className='flex items-center justify-between w-full px-4 py-2.5 lg:py-3 max-w-7xl mx-auto'>
+        <div className='flex items-center gap-4 lg:gap-8 flex-1'>
+          <HeaderMenuMobileToggle />
+          <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className='flex-shrink-0 hover:opacity-80 transition-opacity'>
+            <img className='h-7 sm:h-7 md:h-9 lg:h-10 w-auto' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105" alt="Logo Galaxy Camera" />
+          </NavLink>
+          <div className='hidden lg:block'>
+            <HeaderMenu menu={menu} viewport="desktop" />
+          </div>
+        </div>
+        <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
       </div>
-      
     </header>
 
     {/* Mobile Search Bar - Full Width Below Header */}

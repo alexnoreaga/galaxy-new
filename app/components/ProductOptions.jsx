@@ -61,11 +61,14 @@ import {
                   linkParams.set(option.name, value);
 
                   // Check if this option value has an associated image from all product variants
-                  const optionImage = product?.variants?.nodes?.find(
+                  const variantForOption = product?.variants?.nodes?.find(
                     variant => variant.selectedOptions.some(
                       opt => opt.name === option.name && opt.value === value
                     )
-                  )?.image?.url;
+                  );
+                  
+                  const optionImage = variantForOption?.image?.url;
+                  const isOutOfStock = !variantForOption?.availableForSale;
 
                   const isActive = currentOptionVal === value;
 
@@ -77,6 +80,7 @@ import {
                       replace
                       className={`
                         group relative overflow-hidden rounded-lg border transition-all duration-200
+                        ${isOutOfStock ? 'opacity-70' : ''}
                         ${isActive 
                           ? 'border-rose-500 bg-gradient-to-br from-rose-50 to-pink-50 shadow-sm ring-2 ring-rose-200' 
                           : 'border-gray-200 bg-white hover:border-rose-300 hover:shadow-sm'
@@ -88,16 +92,18 @@ import {
                         <div className="flex items-center gap-2 p-1.5">
                           <div className={`
                             w-10 h-10 rounded-md overflow-hidden border flex-shrink-0
+                            ${isOutOfStock ? 'opacity-70' : ''}
                             ${isActive ? 'border-rose-300 ring-1 ring-rose-200' : 'border-gray-200'}
                           `}>
                             <img 
                               src={optionImage} 
                               alt={value}
-                              className="w-full h-full object-cover"
+                              className={`w-full h-full object-cover ${isOutOfStock ? 'opacity-70' : ''}`}
                             />
                           </div>
                           <span className={`
                             text-xs font-medium pr-2
+                            ${isOutOfStock ? 'opacity-70' : ''}
                             ${isActive ? 'text-rose-700' : 'text-gray-700'}
                           `}>
                             {value}
@@ -108,6 +114,7 @@ import {
                         <div className="px-3 py-2">
                           <span className={`
                             text-xs font-medium whitespace-nowrap
+                            ${isOutOfStock ? 'opacity-70' : ''}
                             ${isActive ? 'text-rose-700' : 'text-gray-700'}
                           `}>
                             {value}

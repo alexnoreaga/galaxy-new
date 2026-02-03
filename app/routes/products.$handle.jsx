@@ -472,13 +472,25 @@ DP : 0
 
               </div>
 
-              {product?.metafields[12]?.value == "true" && <div className='bg-rose-700 flex flex-row items-center px-2 gap-2 text-center text-white text-base p-1 rounded-lg'>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                </svg>
-
-              <div>Produk Discontinue</div>
-              </div> }
+              {product?.metafields[12]?.value == "true" && (
+                <div className='relative rounded-2xl overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800/60 shadow-xl'>
+                  <div className='absolute inset-0 bg-gradient-to-r from-red-500/10 via-transparent to-orange-500/10'></div>
+                  <div className='relative flex items-center gap-4 px-6 py-5'>
+                    <div className='flex-shrink-0'>
+                      <div className='w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg'>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-7 h-7">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M12 16v-4M12 8h.01"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className='flex-1'>
+                      <h3 className='text-sm font-bold text-white uppercase tracking-widest'>Produk Discontinued</h3>
+                      <p className='text-xs text-slate-400 mt-1.5'>Produk ini tidak lagi tersedia untuk pembelian</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
 <div className='flex flex-row gap-2 sm:mb-2 md:4'>
   {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
