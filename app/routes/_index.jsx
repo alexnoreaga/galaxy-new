@@ -122,68 +122,46 @@ export default function Homepage() {
         <Carousel images={data.banner.metaobjects} />
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-0 mt-3 sm:mt-6">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 text-white">
-          {/* Enhanced texture background */}
-          <div className="absolute inset-0">
-            {/* Radial gradients */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.25),transparent_45%)]"></div>
-            
-            {/* Subtle dot pattern texture */}
-            <div 
-              className="absolute inset-0 opacity-5"
-              style={{
-                backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)`,
-                backgroundSize: '20px 20px',
-              }}
-            ></div>
-            
-            {/* Noise texture overlay */}
-            <div 
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `
-                  url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise' /%3E%3C/filter%3E%3Crect width='400' height='400' fill='%23ffffff' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E")
-                `,
-                backgroundSize: '200px 200px',
-              }}
-            ></div>
-            
-            {/* Diagonal lines pattern */}
-            <div 
-              className="absolute inset-0 opacity-5"
-              style={{
-                backgroundImage: `repeating-linear-gradient(
-                  45deg,
-                  transparent,
-                  transparent 35px,
-                  rgba(255,255,255,0.5) 35px,
-                  rgba(255,255,255,0.5) 70px
-                )`,
-              }}
-            ></div>
-          </div>
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-6">
+        <div className="relative overflow-hidden rounded-xl sm:rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg sm:shadow-xl hover:shadow-2xl transition-shadow duration-300">
+          {/* Modern gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/10"></div>
+          
+          {/* Animated gradient orbs */}
+          <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-80 sm:h-80 bg-gradient-to-tr from-blue-400/20 to-transparent rounded-full blur-3xl"></div>
 
           {/* Content */}
-          <div className="relative p-3 sm:p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-1.5 sm:gap-4 z-10">
-            <div>
-              <div className="hidden sm:inline-flex items-center gap-2 text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-blue-200 bg-white/10 border border-white/15 rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 mb-2">
-                Promo Cicilan
+          <div className="relative px-3 py-2.5 sm:px-8 sm:py-6 md:py-8 flex flex-row items-center justify-between gap-2 sm:gap-6 z-10">
+            <div className="flex-1 min-w-0">
+              <div className="hidden sm:inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-wider uppercase bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-2 py-0.5 sm:px-3 sm:py-1 mb-1.5 sm:mb-3 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-300">
+                  <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                </svg>
+                <span className="text-white">Promo Cicilan</span>
               </div>
-              <h2 className="text-sm sm:text-xl md:text-2xl font-bold tracking-tight leading-none">
+              <h2 className="text-sm sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight mb-0.5 sm:mb-2">
                 Cicil Kamera Tanpa Kartu Kredit
               </h2>
-              <p className="text-[11px] sm:text-sm md:text-base text-blue-100 mt-0 leading-tight">
-                Proses sekitar 15 menit
+              <p className="text-[11px] sm:text-base text-blue-50 hidden sm:flex items-center gap-1 sm:gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-blue-200">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
+                </svg>
+                Proses cepat sekitar 15 menit
               </p>
             </div>
-            <Link
-              to="/kredit-kamera"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-white/95 text-slate-900 font-semibold px-3 py-1.5 text-[11px] sm:text-sm md:text-base shadow-md hover:shadow-lg hover:bg-white transition-all duration-200"
-            >
-              <span>Lihat Caranya</span>
-              <span className="text-xs sm:text-base">→</span>
-            </Link>
+            <div className="flex-shrink-0">
+              <Link
+                to="/kredit-kamera"
+                className="group inline-flex items-center justify-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl bg-white text-indigo-600 font-bold px-3 py-1.5 sm:px-8 sm:py-4 text-[11px] sm:text-base shadow-md sm:shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap"
+              >
+                <span className="hidden sm:inline">Lihat Caranya</span>
+                <span className="sm:hidden">Lihat</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300">
+                  <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
