@@ -89,17 +89,20 @@ export const Carousel = ({ images }) => {
                 className='m-auto w-full rounded-2xl select-none transition-all duration-700 ease-out' 
                 width={'1280'}
                 height={'543'}
-                src={resolvedImages.nodes[currentIndex].fields[0].reference.image.url} 
+                src={`${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}&width=800`}
                 alt={`Image ${currentIndex + 1}`} 
+                loading={currentIndex === 0 ? 'eager' : 'lazy'}
+                fetchpriority={currentIndex === 0 ? 'high' : 'auto'}
                 style={{ 
                   maxWidth: '100%', 
                   userSelect: 'none', 
                   WebkitUserSelect: 'none',
                   transform: swipeOffset !== 0 ? `scale(${1 - Math.abs(swipeOffset) / 1200})` : 'scale(1)',
                 }} 
-                srcSet={`${resolvedImages.nodes[currentIndex].fields[0].reference.image.url} 1280w,
-                         ${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}?w=640 640w,
-                         ${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}?w=320 320w`}
+                srcSet={`${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}&width=400 400w,
+                         ${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}&width=800 800w,
+                         ${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}&width=1280 1280w`}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
               />
             </a>
             
