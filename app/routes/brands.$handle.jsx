@@ -11,6 +11,7 @@ import { useLocation} from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {defer} from '@shopify/remix-oxygen';
 import { HitunganPersen } from '~/components/HitunganPersen';
+import { BrandSEOContent } from '~/components/BrandSEOContent';
 
 export const meta = ({data, location}) => {
   const rawHandle = data?.handle || '';
@@ -527,6 +528,12 @@ export default function BrandHandle() {
           )}
         </Pagination>
       )}
+      
+      {/* SEO Content Section */}
+      <BrandSEOContent 
+        brandName={handle.charAt(0).toUpperCase() + handle.slice(1)} 
+        category={selectedCategory || 'Produk'}
+      />
     </div>
   );
 }
