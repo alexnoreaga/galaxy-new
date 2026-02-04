@@ -979,7 +979,7 @@ export const meta = ({data}) => {
       "https://www.instagram.com/galaxycamera99"],
       "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678",
       "name": "Galaxy Camera Store",
-      "description": "Galaxy Camera merupakan Toko Kamera Online Offline menjual berbagai peralatan forografi dan videografi terlengkap dan termurah.",
+      "description": "Galaxy Camera merupakan Toko Kamera Online Offline menjual berbagai peralatan fotografi dan videografi terlengkap dan termurah.",
       "email": "sales@galaxycamera.id",
       "telephone": "+6282111311131",
       "address": {

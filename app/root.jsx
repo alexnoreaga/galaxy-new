@@ -241,8 +241,8 @@ dangerouslySetInnerHTML={{__html:`
           },
           "geo": {
             "@type": "GeoCoordinates",
-            "latitude": -6.2088,
-            "longitude": 106.6408
+            "latitude": -6.197789476683706,
+            "longitude": 106.63769239999999
           },
           "sameAs": [
             "https://www.instagram.com/galaxycamera99",
@@ -263,7 +263,7 @@ dangerouslySetInnerHTML={{__html:`
           "name": "Galaxy Camera",
           "url": "https://galaxy.co.id",
           "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
-          "foundingDate": "2012",
+          "foundingDate": "2014",
           "description": "Toko Kamera Online Terlengkap dengan Garansi Resmi",
           "contact": {
             "@type": "ContactPoint",
@@ -286,6 +286,140 @@ dangerouslySetInnerHTML={{__html:`
             },
             "query-input": "required name=search_term_string"
           }
+        })}} />
+
+        {/* WebPage Schema for Homepage */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Galaxy Camera - Toko Kamera Online Terpercaya",
+          "url": "https://galaxy.co.id",
+          "description": "Galaxy Camera - Toko Kamera Online Terlengkap dan Bergaransi Resmi. Jual Kamera Mirrorless, DSLR, Drone, Lensa dengan Harga Terbaik. Cicilan 0% tanpa kartu kredit. Gratis ongkir ke seluruh Indonesia.",
+          "image": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+          "isPartOf": {
+            "@type": "WebSite",
+            "url": "https://galaxy.co.id",
+            "name": "Galaxy Camera"
+          },
+          "mainEntity": {
+            "@id": "https://galaxy.co.id/#organization"
+          },
+          "publisher": {
+            "@id": "https://galaxy.co.id/#organization"
+          },
+          "datePublished": "2014-01-01",
+          "dateModified": new Date().toISOString().split('T')[0],
+          "inLanguage": "id-ID"
+        })}} />
+
+        {/* BreadcrumbList Schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://galaxy.co.id"
+            }
+          ]
+        })}} />
+
+        {/* FAQ Schema for Featured Snippets */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Apa itu Galaxy Camera?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Galaxy Camera adalah toko kamera online terlengkap dan terpercaya yang berdiri sejak 2014. Kami menjual berbagai produk fotografi dan videografi termasuk kamera mirrorless, DSLR, drone, lensa, dan aksesoris dengan garansi resmi dan harga terbaik."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Bagaimana cara cicilan di Galaxy Camera?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Galaxy Camera menawarkan cicilan 0% tanpa kartu kredit melalui berbagai metode pembayaran seperti Kredivo, ShopeePay, dan bank transfer. Proses cicilan sangat cepat, hanya sekitar 15 menit."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Apakah semua produk di Galaxy Camera original dan bergaransi?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ya, semua produk yang kami jual adalah original dengan garansi resmi dari distributor resmi. Galaxy Camera hanya menjual produk original dari brand terpercaya seperti Canon, Nikon, Sony, Fujifilm, DJI, dan GoPro."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Apakah Galaxy Camera gratis ongkir?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ya, Galaxy Camera menawarkan gratis ongkir ke seluruh Indonesia untuk pembelian tertentu. Lebih banyak informasi dapat dilihat di halaman promo atau hubungi tim customer service kami."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Di mana lokasi toko fisik Galaxy Camera?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Galaxy Camera memiliki dua lokasi toko fisik: Tangerang di Ruko Mall Metropolis Townsquare Blok GM3 No 6 Kelapa Indah Tangerang, dan Depok di Mall Depok Town Square Lantai 2 Blok SS2 No 8 Beji Depok."
+              }
+            }
+          ]
+        })}} />
+
+        {/* AggregateOffer Schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "AggregateOffer",
+          "priceCurrency": "IDR",
+          "lowPrice": "500000",
+          "highPrice": "200000000",
+          "offerCount": 1000,
+          "offers": [
+            {
+              "@type": "Offer",
+              "url": "https://galaxy.co.id/collections/kamera-mirrorless",
+              "priceCurrency": "IDR",
+              "price": "5000000",
+              "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+              "availability": "https://schema.org/InStock",
+              "seller": {
+                "@type": "Organization",
+                "name": "Galaxy Camera"
+              }
+            },
+            {
+              "@type": "Offer",
+              "url": "https://galaxy.co.id/collections/kamera-dslr",
+              "priceCurrency": "IDR",
+              "price": "4000000",
+              "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+              "availability": "https://schema.org/InStock",
+              "seller": {
+                "@type": "Organization",
+                "name": "Galaxy Camera"
+              }
+            },
+            {
+              "@type": "Offer",
+              "url": "https://galaxy.co.id/collections/drone",
+              "priceCurrency": "IDR",
+              "price": "3000000",
+              "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+              "availability": "https://schema.org/InStock",
+              "seller": {
+                "@type": "Organization",
+                "name": "Galaxy Camera"
+              }
+            }
+          ]
         })}} />
 
         <Seo />
