@@ -133,7 +133,7 @@ export const CollectionSEOContent = ({ collectionTitle, products = [] }) => {
 
       {/* Preview Text with Fade Effect - Always visible */}
       <div className="relative mb-3 overflow-hidden">
-        <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
+        <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
           {previewText}
         </p>
         {!isExpanded && (
