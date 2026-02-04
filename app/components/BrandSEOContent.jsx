@@ -47,6 +47,13 @@ export const BrandSEOContent = ({ brandName = 'Brand', category = 'Produk' }) =>
               Tanpa perlu keluar rumah, Anda dapat memesan dan membeli {category} {brandName} terbaru {currentMonth} {currentYear} secara online di Galaxy Camera. Pesanan akan diproses dengan cepat dan dikirim secara aman ke seluruh Indonesia. Nikmati berbagai promo menarik, potongan harga khusus, serta kemudahan metode pembayaran, termasuk cicilan 0% untuk tenor tertentu. Dapatkan {category} {brandName} original dan berkualitas hanya di Galaxy Camera.
             </p>
           </div>
+
+          <div>
+            <h3 className='font-bold text-lg text-gray-900 mb-2'>Jaminan Garansi Resmi, Purna Jual, dan Service Center</h3>
+            <p className='text-gray-700 leading-relaxed text-sm sm:text-base'>
+              Semua {category} {brandName} yang dijual di Galaxy Camera adalah bergaransi resmi dan dari distributor resmi Indonesia. Selain menjamin harga terbaik produk sesuai dengan harga di pasaran, kualitasnya juga terjamin. Untuk klaim garansi produk bisa mengikuti petunjuk yang tersedia pada box produk atau bisa juga dititip ke store kami Galaxy Camera.
+            </p>
+          </div>
         </div>
       )}
 
