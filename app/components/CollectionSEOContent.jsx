@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export const CollectionSEOContent = ({ collectionTitle }) => {
+export const CollectionSEOContent = ({ collectionTitle, products = [] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const today = new Date();
@@ -10,6 +10,14 @@ export const CollectionSEOContent = ({ collectionTitle }) => {
   ];
   const currentMonth = monthNames[today.getMonth()];
   const currentYear = today.getFullYear();
+
+  // Generate product list (first 5 products, comma-separated)
+  const productList = products
+    .slice(0, 5)
+    .map(p => p.title)
+    .join(', ');
+
+  const introText = `Galaxy Camera jual ${collectionTitle} dengan banyak pilihan jenisnya. ${collectionTitle} ${productList} kami jual dengan harga terbaik di sini. Anda bisa cek harga ${collectionTitle} disini karena harga kamera yang ada di website kami selalu update.`;
 
   const previewText = `Galaxy Camera adalah toko kamera dan perlengkapan fotografi terpercaya di Indonesia yang menyediakan berbagai jenis, tipe, dan merek ${collectionTitle} untuk kebutuhan profesional, content creator, instansi, hingga UMKM. Kami menghadirkan produk ${collectionTitle} dengan spesifikasi terbaik, kondisi terjamin, dan harga kompetitif.`;
 
@@ -115,6 +123,13 @@ export const CollectionSEOContent = ({ collectionTitle }) => {
       <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-3">
         Jual {collectionTitle} Terbaik {currentMonth} {currentYear}
       </h2>
+
+      {/* Intro Text with Product List - Always visible */}
+      <div className="mb-4">
+        <p className="text-sm text-gray-700 leading-relaxed">
+          {introText}
+        </p>
+      </div>
 
       {/* Preview Text with Fade Effect - Always visible */}
       <div className="relative mb-3 overflow-hidden">

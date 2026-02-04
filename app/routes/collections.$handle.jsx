@@ -416,7 +416,10 @@ export default function Collection() {
       </Pagination>
 
       {/* Dynamic SEO Content */}
-      <CollectionSEOContent collectionTitle={collection.title} />
+      <CollectionSEOContent 
+        collectionTitle={collection.title}
+        products={collection.products.nodes}
+      />
       
       <div
         dangerouslySetInnerHTML={{__html: collection.descriptionHtml}}
