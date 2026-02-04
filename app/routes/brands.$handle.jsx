@@ -533,6 +533,7 @@ export default function BrandHandle() {
       <BrandSEOContent 
         brandName={handle.charAt(0).toUpperCase() + handle.slice(1)} 
         category={selectedCategory || 'Produk'}
+        products={data.products.nodes}
       />
     </div>
   );

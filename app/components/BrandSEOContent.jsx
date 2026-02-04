@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export const BrandSEOContent = ({ brandName = 'Brand', category = 'Produk' }) => {
+export const BrandSEOContent = ({ brandName = 'Brand', category = 'Produk', products = [] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Get current month and year
@@ -12,8 +12,22 @@ export const BrandSEOContent = ({ brandName = 'Brand', category = 'Produk' }) =>
   const currentMonth = monthNames[today.getMonth()];
   const currentYear = today.getFullYear();
 
+  // Generate product list (first 5 products, comma-separated)
+  const productList = products
+    .slice(0, 5)
+    .map(p => p.title)
+    .join(', ');
+
   return (
     <div className='mt-8 mb-6'>
+      {/* Intro Section */}
+      <div className='mb-4'>
+        <h3 className='font-bold text-lg text-gray-900 mb-2'>Galaxy Camera Jual {category} {brandName} Harga Terbaik dan Garansi Resmi {currentMonth} {currentYear}</h3>
+        <p className='text-gray-700 leading-relaxed text-sm sm:text-base mb-3'>
+          Galaxy Camera jual {category} {brandName} dengan banyak pilihan jenisnya. {category} {productList} kami jual dengan harga terbaik di sini. Anda bisa cek harga {category} {brandName} disini karena harga kamera yang ada di website kami selalu update.
+        </p>
+      </div>
+
       {/* Preview Section */}
       <div className='mb-3'>
         <h3 className='font-bold text-lg text-gray-900 mb-2'>Jual {category} {brandName} Terbaik {currentMonth} {currentYear} – 100% Original</h3>
