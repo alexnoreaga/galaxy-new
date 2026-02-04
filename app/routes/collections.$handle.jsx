@@ -10,6 +10,7 @@ import {useVariantUrl} from '~/utils';
 import { useLocation} from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import { HitunganPersen } from '~/components/HitunganPersen';
+import { CollectionSEOContent } from '~/components/CollectionSEOContent';
 
 export const handle = {
   breadcrumbType: 'collection',
@@ -413,7 +414,9 @@ export default function Collection() {
           </>
         )}
       </Pagination>
-      {/* <p className="collection-description">{collection.description}</p> */}
+
+      {/* Dynamic SEO Content */}
+      <CollectionSEOContent collectionTitle={collection.title} />
       
       <div
         dangerouslySetInnerHTML={{__html: collection.descriptionHtml}}
