@@ -573,3 +573,13 @@ aside li {
   font-weight: 600;
   color: #b91c1c;
 }
+
+/* Hide scrollbar for category navigation on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

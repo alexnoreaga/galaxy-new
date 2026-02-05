@@ -420,8 +420,6 @@ export default function BrandHandle() {
   const location = useLocation();
   const [formData, setFormData] = useState('');
   const [selectedCat, setSelectedCat] = useState(selectedCategory || '');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
   const [currentPage, setCurrentPage] = useState(categoryPage || 1);
 
   // Update currentPage when loader data changes
@@ -451,15 +449,6 @@ export default function BrandHandle() {
     navigate(`${location.pathname}?${searchParams.toString()}`);
   };
 
-  const handlePriceFilter = () => {
-    const searchParams = new URLSearchParams(location.search);
-    if (minPrice) searchParams.set('minPrice', minPrice);
-    if (maxPrice) searchParams.set('maxPrice', maxPrice);
-    // Reset to page 1 when applying filters
-    searchParams.delete('categoryPage');
-    navigate(`${location.pathname}?${searchParams.toString()}`);
-  };
-
   const handleCategoryPageChange = (newPage) => {
     if (newPage < 1) return;
     const searchParams = new URLSearchParams(location.search);
@@ -478,94 +467,65 @@ export default function BrandHandle() {
       
       {/* SEO-Friendly Category Navigation Links (for Google crawling) */}
       {categories && categories.length > 0 && (
-        <nav className="mb-6 p-4 bg-white border border-gray-200 rounded-lg" aria-label="Category navigation">
-          <h2 className="text-sm font-bold text-gray-900 mb-3">Kategori {handle.charAt(0).toUpperCase() + handle.slice(1)}:</h2>
-          <div className="flex flex-wrap gap-2">
-            <a
-              href={`/brands/${handle}`}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-semibold ${
-                !selectedCategory 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Semua Produk
-            </a>
-            {categories.map((cat) => {
-              const catHandle = encodeURIComponent(cat.toLowerCase().replace(/\s+/g, '-'));
-              const isActive = selectedCategory === cat;
-              return (
-                <a
-                  key={cat}
-                  href={`/brands/${handle}/${catHandle}`}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-semibold ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {cat}
-                </a>
-              );
-            })}
+        <nav className="mb-6 bg-white border border-gray-200 rounded-lg overflow-hidden" aria-label="Category navigation">
+          <div className="p-3 sm:p-4 border-b border-gray-200 bg-gray-50">
+            <h2 className="text-sm sm:text-base font-bold text-gray-900">
+              Kategori {handle.charAt(0).toUpperCase() + handle.slice(1)}
+            </h2>
+          </div>
+          
+          {/* Mobile: Horizontal scroll, Desktop: Wrap */}
+          <div className="p-3 sm:p-4">
+            <div className="flex md:flex-wrap gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+              <a
+                href={`/brands/${handle}`}
+                className={`flex-shrink-0 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-full transition-all font-semibold whitespace-nowrap ${
+                  !selectedCategory 
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+                }`}
+              >
+                ✨ Semua Produk
+              </a>
+              {categories.map((cat) => {
+                const catHandle = encodeURIComponent(cat.toLowerCase().replace(/\s+/g, '-'));
+                const isActive = selectedCategory === cat;
+                return (
+                  <a
+                    key={cat}
+                    href={`/brands/${handle}/${catHandle}`}
+                    className={`flex-shrink-0 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-full transition-all font-semibold whitespace-nowrap ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+                    }`}
+                  >
+                    {cat}
+                  </a>
+                );
+              })}
+            </div>
           </div>
         </nav>
       )}
       
-      {/* Filters Section - Price & Sort Only */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        {/* Min Price Filter */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="minPrice" className='text-gray-900 text-sm font-bold'>Harga Min</label>
-          <input
-            type="number"
-            id="minPrice"
-            placeholder="Rp 0"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
-          />
-        </div>
-
-        {/* Max Price Filter */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="maxPrice" className='text-gray-900 text-sm font-bold'>Harga Max</label>
-          <input
-            type="number"
-            id="maxPrice"
-            placeholder="Rp 999999999"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
-          />
-        </div>
-
-        {/* Sort Dropdown */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="sort" className='text-gray-900 text-sm font-bold'>Urutkan</label>
-          <select
-            id="sort"
-            value={formData}
-            onChange={handleInputChange}
-            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
-          >
-            <option value="" disabled>Pilih...</option>
-            <option sortkey="RELEVANCE" data-reverse="false">Relevansi</option>
-            <option sortkey="TITLE" data-reverse="false">A-Z</option>
-            <option sortkey="TITLE" data-reverse="true">Z-A</option>
-            <option sortkey="PRICE" data-reverse="false">Harga Terendah</option>
-            <option sortkey="PRICE" data-reverse="true">Harga Tertinggi</option>
-          </select>
-        </div>
+      {/* Filters Section - Sort Only */}
+      <div className="mb-6 max-w-xs">
+        <label htmlFor="sort" className='block text-gray-900 text-sm font-bold mb-2'>Urutkan Produk</label>
+        <select
+          id="sort"
+          value={formData}
+          onChange={handleInputChange}
+          className="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+        >
+          <option value="" disabled>Pilih...</option>
+          <option sortkey="RELEVANCE" data-reverse="false">Relevansi</option>
+          <option sortkey="TITLE" data-reverse="false">A-Z</option>
+          <option sortkey="TITLE" data-reverse="true">Z-A</option>
+          <option sortkey="PRICE" data-reverse="false">Harga Terendah</option>
+          <option sortkey="PRICE" data-reverse="true">Harga Tertinggi</option>
+        </select>
       </div>
-
-      {/* Apply Filters Button */}
-      <button
-        onClick={handlePriceFilter}
-        className="mb-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-      >
-        Terapkan Filter
-      </button>
 
       {/* Pagination */}
       {selectedCategory ? (
