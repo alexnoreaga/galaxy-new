@@ -110,6 +110,8 @@ function generateSitemap({data, brandCategoryData, baseUrl}) {
 
   // Generate brand category URLs for SEO (with clean URLs)
   const brandCategories = [];
+  const brands = new Set(); // Track unique brands
+  
   if (brandCategoryData?.products?.nodes) {
     // Group products by vendor (brand) and productType (category)
     const brandCategoryMap = new Map();
@@ -117,6 +119,7 @@ function generateSitemap({data, brandCategoryData, baseUrl}) {
     brandCategoryData.products.nodes.forEach((product) => {
       if (product.vendor && product.productType) {
         const vendorHandle = product.vendor.toLowerCase().replace(/\s+/g, '-');
+        brands.add(vendorHandle);
         
         if (!brandCategoryMap.has(vendorHandle)) {
           brandCategoryMap.set(vendorHandle, new Set());
@@ -125,11 +128,22 @@ function generateSitemap({data, brandCategoryData, baseUrl}) {
       }
     });
 
+    // Add base brand URLs (e.g., /brands/Sony)
+    brands.forEach((brandHandle) => {
+      const url = xmlEncode(`${baseUrl}/brands/${brandHandle}`);
+      brandCategories.push({
+        url,
+        lastMod: new Date().toISOString(),
+        changeFreq: 'weekly',
+        priority: 0.8,
+      });
+    });
+
     // Create sitemap entries for each brand-category combination with CLEAN URLs
     brandCategoryMap.forEach((categories, vendorHandle) => {
       categories.forEach((category) => {
-        const categoryHandle = category.toLowerCase().replace(/\s+/g, '-');
-        const url = `${baseUrl}/brands/${vendorHandle}/${categoryHandle}`;
+        const categoryHandle = encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'));
+        const url = xmlEncode(`${baseUrl}/brands/${vendorHandle}/${categoryHandle}`);
         brandCategories.push({
           url,
           lastMod: new Date().toISOString(),
