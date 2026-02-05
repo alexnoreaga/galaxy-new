@@ -219,11 +219,11 @@ dangerouslySetInnerHTML={{__html:`
         <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
         <meta name="format-detection" content="telephone=no" />
 
-        {/* LocalBusiness Schema JSON-LD */}
+        {/* LocalBusiness Schema JSON-LD - Headquarters */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
-          "name": "Galaxy Camera",
+          "name": "Galaxy Camera - Tangerang",
           "legalName": "PT Galaxy Digital Niaga",
           "url": "https://galaxy.co.id",
           "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
@@ -243,6 +243,43 @@ dangerouslySetInnerHTML={{__html:`
             "@type": "GeoCoordinates",
             "latitude": -6.197789476683706,
             "longitude": 106.63769239999999
+          },
+          "sameAs": [
+            "https://www.instagram.com/galaxycamera99",
+            "https://www.facebook.com/galaxycamera99",
+            "https://www.tiktok.com/@galaxycameraid",
+            "https://www.youtube.com/galaxycamera",
+            "https://www.x.com/galaxycamera99"
+          ],
+          "areaServed": "ID",
+          "paymentAccepted": "Cash, Credit Card, Bank Transfer, Kredivo, ShopeePay",
+          "currenciesAccepted": "IDR"
+        })}} />
+
+        {/* LocalBusiness Schema JSON-LD - Depok Branch */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "name": "Galaxy Camera - Depok",
+          "legalName": "PT Galaxy Digital Niaga",
+          "url": "https://galaxy.co.id",
+          "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
+          "description": "Toko Kamera Online Terlengkap dan Bergaransi Resmi",
+          "telephone": "+62-821-1131-1131",
+          "email": "sales@galaxy.co.id",
+          "priceRange": "$$",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Mall Depok Town Square, Lantai 2 Blok SS2 No.8",
+            "addressLocality": "Beji",
+            "addressRegion": "Depok",
+            "postalCode": "16421",
+            "addressCountry": "ID"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": -6.401604,
+            "longitude": 106.840134
           },
           "sameAs": [
             "https://www.instagram.com/galaxycamera99",
