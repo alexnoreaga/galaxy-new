@@ -1,0 +1,20 @@
+{
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": false,
+    "source.fixAll": false
+  },
+  "[javascript]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": false
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": false
+  },
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false
+  }
+}

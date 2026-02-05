@@ -1,5 +1,5 @@
 import {json, redirect} from '@shopify/remix-oxygen';
-import {useLoaderData, Link, Form, useParams, useNavigate, useSubmit} from '@remix-run/react';
+import {useLoaderData, Link, Form, useParams, useNavigate, useLocation} from '@remix-run/react';
 import {
   Pagination,
   getPaginationVariables,
@@ -7,7 +7,6 @@ import {
   Money,
 } from '@shopify/hydrogen';
 import {useVariantUrl} from '~/utils';
-import { useLocation} from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {defer} from '@shopify/remix-oxygen';
 import { HitunganPersen } from '~/components/HitunganPersen';
@@ -18,6 +17,9 @@ export const meta = ({data, location}) => {
   const brandName = rawHandle
     ? rawHandle.charAt(0).toUpperCase() + rawHandle.slice(1)
     : 'Brand';
+  
+  // Get category from data (passed from loader)
+  const selectedCategory = data?.selectedCategory || '';
 
   // ENHANCED - Better title with keywords and dynamic month/year
   const today = new Date();
@@ -28,18 +30,34 @@ export const meta = ({data, location}) => {
   const indonesianMonth = monthNames[today.getMonth()];
   const year = today.getFullYear();
 
-  // ENHANCED - More SEO-friendly title
-  const title = `${brandName} - Produk Resmi Harga Terbaik ${indonesianMonth} ${year} | Galaxy Camera`;
+  // ENHANCED - Category-specific title for SEO
+  const title = selectedCategory 
+    ? `${brandName} ${selectedCategory} - Harga Terbaik ${indonesianMonth} ${year} | Galaxy Camera`
+    : `${brandName} - Produk Resmi Harga Terbaik ${indonesianMonth} ${year} | Galaxy Camera`;
 
-  // ENHANCED - Longer description with more keywords
-  const description = `Jelajahi koleksi lengkap produk ${brandName} original dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`;
+  // ENHANCED - Category-specific description for better SEO
+  const description = selectedCategory
+    ? `Koleksi lengkap ${brandName} ${selectedCategory} original garansi resmi. Harga terbaik, cicilan 0%, gratis ongkir. Belanja ${selectedCategory} ${brandName} aman di Galaxy Camera.`
+    : `Jelajahi koleksi lengkap produk ${brandName} original dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`;
 
-  // ENHANCED - Better keywords
-  const keywords = `${brandName}, produk ${brandName}, ${brandName} murah, ${brandName} original, ${brandName} garansi resmi, jual ${brandName}, harga ${brandName}, kamera ${brandName}`;
+  // ENHANCED - Category-specific keywords
+  const keywords = selectedCategory
+    ? `${brandName} ${selectedCategory}, ${selectedCategory} ${brandName}, jual ${brandName} ${selectedCategory}, harga ${brandName} ${selectedCategory}, ${selectedCategory} murah, ${selectedCategory} original, ${brandName} terbaik`
+    : `${brandName}, produk ${brandName}, ${brandName} murah, ${brandName} original, ${brandName} garansi resmi, jual ${brandName}, harga ${brandName}, kamera ${brandName}`;
 
-  const canonicalUrl = location?.pathname
+  // ENHANCED - Include category in canonical URL for SEO crawling
+  let canonicalUrl = location?.pathname
     ? `https://galaxy.co.id${location.pathname}`
     : `https://galaxy.co.id/brands/${rawHandle}`;
+  
+  // Add category to canonical URL so Google can index filtered pages
+  if (selectedCategory && location?.search) {
+    const searchParams = new URLSearchParams(location.search);
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      canonicalUrl = `${canonicalUrl}?category=${encodeURIComponent(categoryParam)}`;
+    }
+  }
 
   // ENHANCED - Product count info
   const productCount = data?.data?.products?.nodes?.length || 0;
@@ -135,7 +153,7 @@ export const meta = ({data, location}) => {
 
     // Collection/Brand Schema (JSON-LD)
     {
-      'script:ld+json': {
+      'script:ld+json:collection': {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
         'name': `${brandName} - Galaxy Camera`,
@@ -157,12 +175,37 @@ export const meta = ({data, location}) => {
       },
     },
 
-    // BreadcrumbList Schema
+    // BreadcrumbList Schema - Enhanced with category
     {
-      'script:ld+json': {
+      'script:ld+json:breadcrumb': {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
-        'itemListElement': [
+        'itemListElement': selectedCategory ? [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Home',
+            'item': 'https://galaxy.co.id',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Brands',
+            'item': 'https://galaxy.co.id/brands',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 3,
+            'name': brandName,
+            'item': `https://galaxy.co.id/brands/${rawHandle}`,
+          },
+          {
+            '@type': 'ListItem',
+            'position': 4,
+            'name': selectedCategory,
+            'item': canonicalUrl,
+          },
+        ] : [
           {
             '@type': 'ListItem',
             'position': 1,
@@ -185,12 +228,12 @@ export const meta = ({data, location}) => {
       },
     },
 
-    // Product Collection Schema
+    // Product Collection Schema - Enhanced with category
     {
-      'script:ld+json': {
+      'script:ld+json:items': {
         '@context': 'https://schema.org',
         '@type': 'ItemCollection',
-        'name': `Koleksi ${brandName}`,
+        'name': selectedCategory ? `Koleksi ${brandName} ${selectedCategory}` : `Koleksi ${brandName}`,
         'description': description,
         'url': canonicalUrl,
         'numberOfItems': productCount,
@@ -260,12 +303,36 @@ export async function loader({params, context, request}) {
   const {handle} = params;
   const {storefront} = context;
   const url = new URL(request.url);
+  const pathname = url.pathname;
+  
+  // Support both:
+  // 1. Clean URL: /brands/fujifilm/kamera-compact
+  // 2. Query param: /brands/fujifilm?category=Kamera+Compact
+  
+  // Extract category from path if it exists
+  const pathSegments = pathname.split('/').filter(Boolean);
+  let categoryFromPath = '';
+  let categoryNameFromPath = '';
+  
+  if (pathSegments.length > 2 && pathSegments[0] === 'brands') {
+    // /brands/:handle/:category format
+    categoryFromPath = pathSegments[2]; // e.g., "kamera-compact"
+    // Decode and convert to display name: "kamera-compact" -> "Kamera Compact"
+    categoryNameFromPath = decodeURIComponent(categoryFromPath)
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  
   const reverse = url.searchParams.get("reverse") === 'true' ? true : false;
   const sortKey = url.searchParams.get("sortkey")?.toUpperCase();
-  const category = url.searchParams.get("category") || '';
+  const categoryParam = url.searchParams.get("category") || '';
   const minPrice = url.searchParams.get("minPrice") || '';
   const maxPrice = url.searchParams.get("maxPrice") || '';
   const categoryPage = parseInt(url.searchParams.get("categoryPage") || '1');
+  
+  // Use category from path if available, otherwise from query param
+  const category = categoryNameFromPath || categoryParam;
   
   const pageBy = 8;
   const paginationVariables = getPaginationVariables(request, {
@@ -350,26 +417,26 @@ export async function loader({params, context, request}) {
 
 export default function BrandHandle() {
   const {data, handle, categories, selectedCategory, categoryPage} = useLoaderData();
+  const location = useLocation();
   const [formData, setFormData] = useState('');
   const [selectedCat, setSelectedCat] = useState(selectedCategory || '');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
-  const location = useLocation();
-  const submit = useSubmit();
-  const formDatax = new FormData();
+  const [currentPage, setCurrentPage] = useState(categoryPage || 1);
+
+  // Update currentPage when loader data changes
+  useEffect(() => {
+    setCurrentPage(categoryPage || 1);
+  }, [categoryPage]);
+  
+  const navigate = useNavigate();
 
   const handleInputChange = (event) => {
     setFormData(event.target.selectedOptions[0].textContent.trim());
     const searchParams = new URLSearchParams(location.search);
     searchParams.set('sortkey', event.target.selectedOptions[0].getAttribute('sortKey'));
     searchParams.set('reverse', event.target.selectedOptions[0].getAttribute('data-reverse'));
-
-    window.history.replaceState(null, '', `${location.pathname}?${searchParams}`);
-    searchParams.forEach((value, key) => {
-      formDatax.append(key, value);
-    });
-
-    submit(formDatax, { method: "get" });
+    navigate(`${location.pathname}?${searchParams.toString()}`);
   };
 
   const handleCategoryChange = (event) => {
@@ -381,11 +448,7 @@ export default function BrandHandle() {
     } else {
       searchParams.delete('category');
     }
-    const formData = new FormData();
-    searchParams.forEach((value, key) => {
-      formData.append(key, value);
-    });
-    submit(formData, { method: "get" });
+    navigate(`${location.pathname}?${searchParams.toString()}`);
   };
 
   const handlePriceFilter = () => {
@@ -394,45 +457,63 @@ export default function BrandHandle() {
     if (maxPrice) searchParams.set('maxPrice', maxPrice);
     // Reset to page 1 when applying filters
     searchParams.delete('categoryPage');
-    const formData = new FormData();
-    searchParams.forEach((value, key) => {
-      formData.append(key, value);
-    });
-    submit(formData, { method: "get" });
+    navigate(`${location.pathname}?${searchParams.toString()}`);
   };
 
   const handleCategoryPageChange = (newPage) => {
+    if (newPage < 1) return;
     const searchParams = new URLSearchParams(location.search);
     searchParams.set('categoryPage', newPage.toString());
-    const formData = new FormData();
-    searchParams.forEach((value, key) => {
-      formData.append(key, value);
-    });
-    submit(formData, { method: "get" });
+    window.location.href = `${location.pathname}?${searchParams.toString()}`;
   };
 
   return (
     <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <h1 className="mb-6">{handle.charAt(0).toUpperCase() + handle.slice(1)}</h1>
+      <h1 className="mb-6">
+        {selectedCategory 
+          ? `${handle.charAt(0).toUpperCase() + handle.slice(1)} ${selectedCategory}` 
+          : handle.charAt(0).toUpperCase() + handle.slice(1)
+        }
+      </h1>
       
-      {/* Filters Section */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        {/* Category Filter */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="category" className='text-gray-900 text-sm font-bold'>Kategori</label>
-          <select
-            id="category"
-            value={selectedCat}
-            onChange={handleCategoryChange}
-            className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
-          >
-            <option value="">Semua Kategori</option>
-            {categories && categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-
+      {/* SEO-Friendly Category Navigation Links (for Google crawling) */}
+      {categories && categories.length > 0 && (
+        <nav className="mb-6 p-4 bg-white border border-gray-200 rounded-lg" aria-label="Category navigation">
+          <h2 className="text-sm font-bold text-gray-900 mb-3">Kategori {handle.charAt(0).toUpperCase() + handle.slice(1)}:</h2>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={`/brands/${handle}`}
+              className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-semibold ${
+                !selectedCategory 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Semua Produk
+            </a>
+            {categories.map((cat) => {
+              const catHandle = encodeURIComponent(cat.toLowerCase().replace(/\s+/g, '-'));
+              const isActive = selectedCategory === cat;
+              return (
+                <a
+                  key={cat}
+                  href={`/brands/${handle}/${catHandle}`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-semibold ${
+                    isActive
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat}
+                </a>
+              );
+            })}
+          </div>
+        </nav>
+      )}
+      
+      {/* Filters Section - Price & Sort Only */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
         {/* Min Price Filter */}
         <div className="flex flex-col gap-2">
           <label htmlFor="minPrice" className='text-gray-900 text-sm font-bold'>Harga Min</label>
@@ -488,22 +569,22 @@ export default function BrandHandle() {
 
       {/* Pagination */}
       {selectedCategory ? (
-        // Custom pagination for category filter
+        // Custom pagination for category-filtered pages
         <div className="mt-8 space-y-4">
           <ProductsGrid products={data.products.nodes} />
           <div className="flex justify-between items-center gap-4 mt-6">
             <button
-              onClick={() => handleCategoryPageChange(categoryPage - 1)}
+              onClick={() => handleCategoryPageChange(currentPage - 1)}
               disabled={!data.products.pageInfo.hasPreviousPage}
               className="px-4 py-2 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               ↑ Previous
             </button>
             <span className="text-sm font-semibold text-gray-600">
-              Page {categoryPage}
+              Page {currentPage}
             </span>
             <button
-              onClick={() => handleCategoryPageChange(categoryPage + 1)}
+              onClick={() => handleCategoryPageChange(currentPage + 1)}
               disabled={!data.products.pageInfo.hasNextPage}
               className="px-4 py-2 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -512,7 +593,7 @@ export default function BrandHandle() {
           </div>
         </div>
       ) : (
-        // Standard Shopify pagination for non-filtered view
+        // Standard Shopify pagination for non-filtered brand pages
         <Pagination connection={data.products}>
           {({nodes, isLoading, PreviousLink, NextLink}) => (
             <>

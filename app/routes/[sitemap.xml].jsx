@@ -18,7 +18,18 @@ export async function loader({request, context: {storefront}}) {
     throw new Response('No data found', {status: 404});
   }
 
-  const sitemap = generateSitemap({data, baseUrl: new URL(request.url).origin});
+  // Fetch brand category data for sitemap
+  const brandCategoryData = await storefront.query(BRAND_CATEGORIES_QUERY, {
+    variables: {
+      first: 250,
+    },
+  });
+
+  const sitemap = generateSitemap({
+    data, 
+    brandCategoryData,
+    baseUrl: new URL(request.url).origin
+  });
 
   return new Response(sitemap, {
     headers: {
@@ -33,7 +44,7 @@ function xmlEncode(string) {
   return string.replace(/[&<>'"]/g, (char) => `&#${char.charCodeAt(0)};`);
 }
 
-function generateSitemap({data, baseUrl}) {
+function generateSitemap({data, brandCategoryData, baseUrl}) {
   // Add homepage - MOST IMPORTANT!
   const homepage = {
     url: baseUrl,
@@ -97,7 +108,39 @@ function generateSitemap({data, baseUrl}) {
       };
     });
 
-  const urls = [homepage, ...products, ...collections, ...pages];
+  // Generate brand category URLs for SEO (with clean URLs)
+  const brandCategories = [];
+  if (brandCategoryData?.products?.nodes) {
+    // Group products by vendor (brand) and productType (category)
+    const brandCategoryMap = new Map();
+    
+    brandCategoryData.products.nodes.forEach((product) => {
+      if (product.vendor && product.productType) {
+        const vendorHandle = product.vendor.toLowerCase().replace(/\s+/g, '-');
+        
+        if (!brandCategoryMap.has(vendorHandle)) {
+          brandCategoryMap.set(vendorHandle, new Set());
+        }
+        brandCategoryMap.get(vendorHandle).add(product.productType);
+      }
+    });
+
+    // Create sitemap entries for each brand-category combination with CLEAN URLs
+    brandCategoryMap.forEach((categories, vendorHandle) => {
+      categories.forEach((category) => {
+        const categoryHandle = category.toLowerCase().replace(/\s+/g, '-');
+        const url = `${baseUrl}/brands/${vendorHandle}/${categoryHandle}`;
+        brandCategories.push({
+          url,
+          lastMod: new Date().toISOString(),
+          changeFreq: 'weekly',
+          priority: 0.7, // Same as collections for SEO importance
+        });
+      });
+    });
+  }
+
+  const urls = [homepage, ...products, ...collections, ...pages, ...brandCategories];
 
   return `
     <urlset
@@ -161,6 +204,17 @@ const SITEMAP_QUERY = `#graphql
         updatedAt
         handle
         onlineStoreUrl
+      }
+    }
+  }
+`;
+
+const BRAND_CATEGORIES_QUERY = `#graphql
+  query BrandCategories($first: Int!) {
+    products(first: $first) {
+      nodes {
+        vendor
+        productType
       }
     }
   }

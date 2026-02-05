@@ -6,3 +6,6 @@ node_modules
 /.mf
 .env
 .shopify
+
+# Prevent accidental creation of non-splat brands route
+app/routes/brands.$handle.jsx
