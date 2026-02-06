@@ -61,56 +61,48 @@ export async function loader({params, context, request}) {
         },
       });
 
-      const liveshopee = await context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
-        variables: {
-          type: "live_shopee", // Value for the 'type' variable
-          first: 4, // Value for the 'first' variable
-        },
-      });
-
-      const custEmail = await context.storefront.query(CUSTOMER_EMAIL_QUERY, {
-        variables: {
-          customertoken: customerAccessToken?.accessToken? customerAccessToken?.accessToken:'', // Value for the 'first' variable
-        }, 
-      });
-    
-      const admgalaxy = await context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
-        variables: {
-          type: "admin_galaxy", // Value for the 'type' variable
-          first: 20, // Value for the 'first' variable
-        },
-      });
-
-      const balasCepat = await context.storefront.query(BALAS_CEPAT,{
-        variables:{
-          first:100,
-        },
-      });
-
-      
-
-      const marketplace = await context.storefront.query(METAOBJECT_MARKETPLACE, {
-        variables: {
-          type: "marketplace", // Value for the 'type' variable
-          first: 10, // Value for the 'first' variable
-        },
-      });
-
-      const discountVouchers = await context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
-        variables: {
-          type: "discount_voucher",
-          first: 10,
-        },
-      });
-
-  
-
-   
-        const related = await context.storefront.query(PRODUK_RELATED, {
-        variables: {
-          productId: product?.id, // Value for the 'type' variable
-        },
-      });
+      // Run all non-critical queries in parallel using Promise.all()
+      const [liveshopee, custEmail, admgalaxy, balasCepat, marketplace, discountVouchers, related] = await Promise.all([
+        context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
+          variables: {
+            type: "live_shopee",
+            first: 4,
+          },
+        }),
+        context.storefront.query(CUSTOMER_EMAIL_QUERY, {
+          variables: {
+            customertoken: customerAccessToken?.accessToken ? customerAccessToken.accessToken : '',
+          },
+        }),
+        context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
+          variables: {
+            type: "admin_galaxy",
+            first: 20,
+          },
+        }),
+        context.storefront.query(BALAS_CEPAT, {
+          variables: {
+            first: 20,
+          },
+        }),
+        context.storefront.query(METAOBJECT_MARKETPLACE, {
+          variables: {
+            type: "marketplace",
+            first: 10,
+          },
+        }),
+        context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
+          variables: {
+            type: "discount_voucher",
+            first: 10,
+          },
+        }),
+        context.storefront.query(PRODUK_RELATED, {
+          variables: {
+            productId: product?.id,
+          },
+        }),
+      ]);
 
       // const tebusMurah = await context.storefront.query(TEBUS_MURAH, {
       //   variables: {
@@ -1010,23 +1002,18 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
 
 
   const ImageGallery = ({ productData, selectedVariant }) => {
-    // State for the main image
-    // console.log('Selected image terbaru',selectedVariant)
-
     const [selectedImage, setSelectedImage] = useState(
       selectedVariant || productData.images.edges[0].node.src
     );
   
     useEffect(() => {
-      // Update the selected image when the variant changes
       if (selectedVariant) {
         setSelectedImage(selectedVariant);
       } else {
-        setSelectedImage(productData.images.edges[0].node.src); // fallback to default image
+        setSelectedImage(productData.images.edges[0].node.src);
       }
     }, [selectedVariant, productData]);
   
-    // The rest of your component code remains unchanged...
     const [startIndex, setStartIndex] = useState(0);
   
     const handleImageChange = (newImageSrc) => {
@@ -1058,6 +1045,10 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
             <img
               src={selectedImage}
               alt={productData?.title}
+              loading="eager"
+              decoding="async"
+              width="400"
+              height="400"
               className="w-full max-w-sm md:max-w-lg mx-auto h-auto rounded-lg"
             />
           </div>
@@ -1072,6 +1063,10 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
                   <img
                     src={image.node.src}
                     alt={productData?.title}
+                    loading="lazy"
+                    decoding="async"
+                    width="100"
+                    height="100"
                     className={`w-full max-w-xs h-auto md:mx-auto p-1 rounded-lg ${
                     selectedImage === image.node.src && 'border-2 border-red-700'
                   }`}
@@ -1414,14 +1409,11 @@ query CustomerEmailQuery($customertoken: String!) {
 const BALAS_CEPAT = `#graphql
 query BrandQuery($first:Int!){
     metaobjects(first:$first type:"balas_cepat"){
-      
     nodes {
       id
       fields {
         value
         key
-           
-        
       }
     }
   }}
