@@ -13,7 +13,7 @@ export const TombolWa = () => {
   return (
     <div
       onClick={getUrl}
-      className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 z-50 cursor-pointer group"
+      className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 md:bottom-40 z-50 cursor-pointer group"
     >
       <div className="relative flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-white/70 sm:bg-white/60 shadow-lg sm:shadow-2xl border border-green-200 hover:bg-green-600 transition-all duration-200 backdrop-blur-xl">
         <span className="absolute inset-0 flex items-center justify-center">

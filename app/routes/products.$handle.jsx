@@ -19,7 +19,7 @@ import { ProdukRelated } from '~/components/ProdukRelated';
 import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
 import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
-import { FaSquareWhatsapp } from "react-icons/fa6";
+import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa6";
 import { FaBagShopping } from "react-icons/fa6";
@@ -560,53 +560,6 @@ DP : 0
 
           <div className='text-sm text-gray-700 mt-3 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
 
-          {!product?.metafields[12]?.value &&(
-          <CartForm
-            route="/cart"
-            inputs={{
-              lines: [
-                {
-                  merchandiseId: selectedVariant.id,
-                },
-              ],
-            }}
-            action={CartForm.ACTIONS.LinesAdd}
-          >
-            {(fetcher) => (
-              <>
-                <button
-                  type="submit"
-                  onClick={() => {
-                    window.location.href = window.location.href + '#cart-aside';
-                  }}
-                  disabled={
-                    !selectedVariant.availableForSale ??
-                    fetcher.state !== 'idle'
-                  }
-                  className="border flex justify-center gap-1 items-center border-black rounded-sm w-full px-4 py-2 text-white bg-black uppercase hover:bg-white hover:text-black transition-colors duration-150"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                    </svg>
-
-                    <span>
-                  {selectedVariant?.availableForSale
-                    ? 'Beli Langsung'
-                    : 'Sold out'}
-                    </span>
-                </button>
-              </>
-            )}
-            </CartForm>
-            )
-          }
-
-
-  
-    {selectedVariant?.availableForSale 
-      && product?.metafields[12]?.value != "true" 
-      && <TombolWa product={product} canonicalUrl={canonicalUrl}/>}
-
       </div>
 
   {/* CICILAN MULAI DARI END */}
@@ -827,6 +780,77 @@ DP : 0
       
       <div className='mt-5 pt-5 font-bold border-t'>PRODUK SERUPA</div>
 
+      {/* DESKTOP STICKY CHECKOUT START HERE */}
+
+      {selectedVariant?.availableForSale 
+        && product?.metafields[12]?.value != "true" 
+         && (
+      
+      <div className='hidden md:block fixed inset-x-0 bottom-0 z-50 bg-black/95 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(255,255,255,0.04),transparent_40%),linear-gradient(90deg,rgba(255,255,255,0.02)_0,rgba(255,255,255,0.02)_1px,transparent_1px,transparent_6px)] backdrop-blur-xl border-t border-white/10 shadow-[0_-14px_45px_rgba(2,6,23,0.45)]'>
+        <div className='lg:container mx-auto w-full px-0 md:px-8 lg:px-12 lg:pr-16 py-3'>
+          <div className='w-full max-w-none flex items-center justify-between gap-6 p-2.5 bg-white/90 backdrop-blur-lg border border-white/70 rounded-2xl shadow-[0_18px_45px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/70'>
+            <div className='min-w-0'>
+              <div className='flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500'>
+                <span className='h-1.5 w-1.5 rounded-full bg-rose-500' />
+                Harga
+              </div>
+              <div className='flex items-baseline gap-2 mt-0.5'>
+                <div className='text-2xl font-extrabold text-rose-600 leading-tight'>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
+                {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
+                  <div className='text-xs text-slate-500 line-through'>Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
+                )}
+              </div>
+              <div className='truncate text-xs text-slate-500 mt-0.5'>
+                <span className='font-semibold text-slate-900'>{product.title}</span>
+              </div>
+            </div>
+
+            <div className='hidden md:block h-9 w-px bg-slate-200/80' />
+
+            <div className='flex items-center gap-3 flex-shrink-0'>
+              <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" className='flex-shrink-0'>
+              <button className='group inline-flex items-center justify-center gap-2 font-semibold bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white px-5 py-2 rounded-xl h-10 shadow-sm whitespace-nowrap hover:from-emerald-700 hover:via-emerald-600 hover:to-emerald-700 transition-all duration-200'>
+                <FaWhatsapp className='text-lg text-white drop-shadow-sm'/>
+                <span className='hidden lg:inline'>Order via WhatsApp</span>
+                <span className='lg:hidden'>Order WA</span>
+              </button>
+              </a>
+
+              <CartForm
+                route="/cart"
+                inputs={{
+                  lines: [
+                    {
+                      merchandiseId: selectedVariant.id,
+                    },
+                  ],
+                }}
+                action={CartForm.ACTIONS.LinesAdd}
+              >
+              {(fetcher) => (
+                <button 
+                  type="submit"
+                  onClick={() => {
+                    window.location.href = window.location.href + '#cart-aside';
+                  }}
+                  disabled={
+                    !selectedVariant.availableForSale ??
+                    fetcher.state !== 'idle'
+                  }
+                  className='flex gap-2 items-center justify-center font-semibold bg-gradient-to-r from-slate-900 to-slate-800 text-white px-5 py-2 rounded-xl h-11 hover:from-slate-800 hover:to-slate-700 transition-all duration-200 shadow-sm whitespace-nowrap'>
+                  <FaBagShopping className='text-lg'/>
+                  <span>{selectedVariant?.availableForSale ? 'Beli Sekarang' : 'Sold Out'}</span>
+                </button>
+              )}
+              </CartForm>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+        {/* DESKTOP STICKY CHECKOUT END HERE */}
+
       </section>
 
      
@@ -897,6 +921,9 @@ DP : 0
         </div>
         </div>
       )}
+
+
+
           {/* BOTTOM CHECKOUT END HERE */}
 
       </>
