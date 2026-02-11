@@ -376,7 +376,7 @@ export async function loader({params, context, request}) {
   
   if (category) {
     filteredProducts = data.products.nodes.filter(
-      product => product.productType === category
+      product => product.productType.toLowerCase() === category.toLowerCase()
     );
     
     // Calculate pagination for filtered results

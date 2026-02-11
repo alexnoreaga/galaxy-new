@@ -33,6 +33,29 @@ export const CollectionSEOContent = ({ collectionTitle, products = [] }) => {
     
     <h3 class="text-xl font-bold text-gray-900 mb-3 mt-6">Harga ${collectionTitle} Terbaru &amp; Kompetitif ${currentMonth} ${currentYear}</h3>
     
+    ${products && products.length > 0 ? `
+    <div class="mb-4 overflow-x-auto">
+      <table class="w-full border-collapse border border-gray-300 text-sm">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900">No</th>
+            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900">Nama Produk</th>
+            <th class="border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900">Harga</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${products.slice(0, 10).map((product, index) => `
+            <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
+              <td class="border border-gray-300 px-3 py-2 text-gray-700 font-semibold">${index + 1}</td>
+              <td class="border border-gray-300 px-3 py-2 text-gray-700">${product.title}</td>
+              <td class="border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900">Rp${parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString('id-ID')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    ` : ''}
+    
     <p class="text-gray-700 mb-4 leading-relaxed">
       Di Galaxy Camera, Anda bisa mendapatkan produk ${collectionTitle} dengan harga resmi yang berlaku di Indonesia. Kami juga menyediakan beberapa produk dengan harga spesial, harga reseller, dan penawaran bundle yang lebih hemat dibandingkan toko online maupun offline lainnya.
     </p>

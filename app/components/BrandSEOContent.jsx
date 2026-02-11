@@ -50,6 +50,33 @@ export const BrandSEOContent = ({ brandName = 'Brand', category = 'Produk', prod
         <div className='space-y-3 mb-3'>
           <div>
             <h3 className='font-bold text-lg text-gray-900 mb-2'>Harga {category} {brandName} Terbaru {currentMonth} {currentYear}</h3>
+            
+            {/* Product Price Table */}
+            {products.length > 0 && (
+              <div className='mb-4 overflow-x-auto'>
+                <table className='w-full border-collapse border border-gray-300 text-sm'>
+                  <thead>
+                    <tr className='bg-gray-100'>
+                      <th className='border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900'>No</th>
+                      <th className='border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900'>Nama Produk</th>
+                      <th className='border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900'>Harga</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.slice(0, 10).map((product, index) => (
+                      <tr key={product.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className='border border-gray-300 px-3 py-2 text-gray-700 font-semibold'>{index + 1}</td>
+                        <td className='border border-gray-300 px-3 py-2 text-gray-700'>{product.title}</td>
+                        <td className='border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900'>
+                          Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString('id-ID')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            
             <p className='text-gray-700 leading-relaxed text-sm sm:text-base'>
               Galaxy Camera menyediakan beragam jenis dan model {category} {brandName} terbaru {currentMonth} {currentYear} yang dapat disesuaikan dengan kebutuhan dan anggaran Anda. Produk dapat diurutkan berdasarkan harga maupun nama untuk memudahkan pencarian. Tersedia juga fitur penyaringan harga agar Anda bisa menemukan {category} {brandName} dengan harga terbaik dan bersaing di pasaran Indonesia.
             </p>
