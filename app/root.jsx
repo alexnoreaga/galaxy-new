@@ -430,6 +430,13 @@ dangerouslySetInnerHTML={{__html:`
               "seller": {
                 "@type": "Organization",
                 "name": "Galaxy Camera"
+              },
+              "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                "merchantReturnDays": 14,
+                "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
+                "applicableCountry": "ID"
               }
             },
             {
@@ -442,6 +449,13 @@ dangerouslySetInnerHTML={{__html:`
               "seller": {
                 "@type": "Organization",
                 "name": "Galaxy Camera"
+              },
+              "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                "merchantReturnDays": 14,
+                "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
+                "applicableCountry": "ID"
               }
             },
             {
@@ -454,6 +468,13 @@ dangerouslySetInnerHTML={{__html:`
               "seller": {
                 "@type": "Organization",
                 "name": "Galaxy Camera"
+              },
+              "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                "merchantReturnDays": 14,
+                "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
+                "applicableCountry": "ID"
               }
             }
           ]
