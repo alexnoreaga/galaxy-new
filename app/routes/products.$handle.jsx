@@ -786,16 +786,16 @@ DP : 0
         && product?.metafields[12]?.value != "true" 
          && (
       
-      <div className='hidden md:block fixed inset-x-0 bottom-0 z-50 bg-black/95 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(255,255,255,0.04),transparent_40%),linear-gradient(90deg,rgba(255,255,255,0.02)_0,rgba(255,255,255,0.02)_1px,transparent_1px,transparent_6px)] backdrop-blur-xl border-t border-white/10 shadow-[0_-14px_45px_rgba(2,6,23,0.45)]'>
-        <div className='lg:container mx-auto w-full px-0 md:px-8 lg:px-12 lg:pr-16 py-3'>
-          <div className='w-full max-w-none flex items-center justify-between gap-6 p-2.5 bg-white/90 backdrop-blur-lg border border-white/70 rounded-2xl shadow-[0_18px_45px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/70'>
+      <div className='hidden md:block fixed inset-x-0 bottom-0 z-50 bg-white/40 backdrop-blur-2xl border-t border-white/40 shadow-[0_-10px_30px_rgba(15,23,42,0.10)]'>
+        <div className='lg:container mx-auto w-full px-0 md:px-8 lg:px-12 lg:pr-16 py-2'>
+          <div className='w-full max-w-none flex items-center justify-between gap-6 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm'>
             <div className='min-w-0'>
-              <div className='flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500'>
-                <span className='h-1.5 w-1.5 rounded-full bg-rose-500' />
+              <div className='flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500'>
+                <span className='h-1.5 w-1.5 rounded-full bg-rose-600' />
                 Harga
               </div>
               <div className='flex items-baseline gap-2 mt-0.5'>
-                <div className='text-2xl font-extrabold text-rose-600 leading-tight'>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
+                <div className='text-2xl font-extrabold text-rose-700 leading-tight'>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
                 {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
                   <div className='text-xs text-slate-500 line-through'>Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
                 )}
@@ -805,11 +805,11 @@ DP : 0
               </div>
             </div>
 
-            <div className='hidden md:block h-9 w-px bg-slate-200/80' />
+            <div className='hidden md:block h-8 w-px bg-slate-200' />
 
             <div className='flex items-center gap-3 flex-shrink-0'>
               <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" className='flex-shrink-0'>
-              <button className='group inline-flex items-center justify-center gap-2 font-semibold bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white px-5 py-2 rounded-xl h-10 shadow-sm whitespace-nowrap hover:from-emerald-700 hover:via-emerald-600 hover:to-emerald-700 transition-all duration-200'>
+              <button className='group inline-flex items-center justify-center gap-2 font-semibold bg-emerald-600 text-white px-4 py-1.5 rounded-lg h-9 shadow-sm whitespace-nowrap hover:bg-emerald-700 transition-colors duration-200'>
                 <FaWhatsapp className='text-lg text-white drop-shadow-sm'/>
                 <span className='hidden lg:inline'>Order via WhatsApp</span>
                 <span className='lg:hidden'>Order WA</span>
@@ -837,7 +837,7 @@ DP : 0
                     !selectedVariant.availableForSale ??
                     fetcher.state !== 'idle'
                   }
-                  className='flex gap-2 items-center justify-center font-semibold bg-gradient-to-r from-slate-900 to-slate-800 text-white px-5 py-2 rounded-xl h-11 hover:from-slate-800 hover:to-slate-700 transition-all duration-200 shadow-sm whitespace-nowrap'>
+                  className='flex gap-2 items-center justify-center font-semibold bg-slate-900 text-white px-4 py-1.5 rounded-lg h-9 hover:bg-slate-800 transition-colors duration-200 shadow-sm whitespace-nowrap'>
                   <FaBagShopping className='text-lg'/>
                   <span>{selectedVariant?.availableForSale ? 'Beli Sekarang' : 'Sold Out'}</span>
                 </button>
