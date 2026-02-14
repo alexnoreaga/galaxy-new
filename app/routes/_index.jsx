@@ -122,29 +122,29 @@ export default function Homepage() {
         <Carousel images={data.banner.metaobjects} />
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-6">
-        <div className="relative overflow-hidden rounded-xl sm:rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg sm:shadow-xl hover:shadow-2xl transition-shadow duration-300">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-md hover:shadow-lg transition-shadow duration-300">
           {/* Modern gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/10"></div>
           
           {/* Animated gradient orbs */}
-          <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-80 sm:h-80 bg-gradient-to-tr from-blue-400/20 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-56 sm:h-56 bg-gradient-to-tr from-blue-400/20 to-transparent rounded-full blur-3xl"></div>
 
           {/* Content */}
-          <div className="relative px-3 py-2.5 sm:px-8 sm:py-6 md:py-8 flex flex-row items-center justify-between gap-2 sm:gap-6 z-10">
+          <div className="relative px-3 py-2 sm:px-6 sm:py-3 md:py-3.5 flex flex-row items-center justify-between gap-2 sm:gap-4 z-10">
             <div className="flex-1 min-w-0">
-              <div className="hidden sm:inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-wider uppercase bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-2 py-0.5 sm:px-3 sm:py-1 mb-1.5 sm:mb-3 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-300">
+              <div className="hidden sm:inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-2 py-0.5 mb-1 sm:mb-1.5 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-300">
                   <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
                 </svg>
                 <span className="text-white">Promo Cicilan</span>
               </div>
-              <h2 className="text-sm sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight mb-0.5 sm:mb-2">
+              <h2 className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-white tracking-tight leading-tight mb-0.5 sm:mb-1">
                 Cicil Kamera Tanpa Kartu Kredit
               </h2>
-              <p className="text-[11px] sm:text-base text-blue-50 hidden sm:flex items-center gap-1 sm:gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-blue-200">
+              <p className="text-[10px] sm:text-xs text-blue-50 hidden sm:flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-200">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
                 </svg>
                 Proses cepat sekitar 15 menit
@@ -153,11 +153,11 @@ export default function Homepage() {
             <div className="flex-shrink-0">
               <Link
                 to="/kredit-kamera"
-                className="group inline-flex items-center justify-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl bg-white text-indigo-600 font-bold px-3 py-1.5 sm:px-8 sm:py-4 text-[11px] sm:text-base shadow-md sm:shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap"
+                className="group inline-flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg bg-white text-indigo-600 font-bold px-3 py-1.5 sm:px-5 sm:py-2 text-[10px] sm:text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 whitespace-nowrap"
               >
                 <span className="hidden sm:inline">Lihat Caranya</span>
                 <span className="sm:hidden">Lihat</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300">
                   <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
                 </svg>
               </Link>
@@ -1035,7 +1035,7 @@ query GetVouchers($first: Int!) {
   }
 }`;
 
-// Modern Vouchers Section Component
+// Compact Vouchers Section Component
 function VouchersSection({ vouchers }) {
   return (
     <Suspense fallback={<div>Loading vouchers...</div>}>
@@ -1059,28 +1059,26 @@ function VouchersSection({ vouchers }) {
           };
 
           return (
-            <div className='py-2 mb-6'>
-              {/* Header Section */}
-              <div className='flex flex-row items-start sm:items-center justify-between mb-2 gap-2 px-3 sm:px-0'>
+            <div className='py-2 mb-4'>
+              {/* Header */}
+              <div className='flex items-center justify-between mb-3 gap-2'>
                 <div>
-                  <h2 className="text-gray-900 text-base sm:text-lg font-bold tracking-tight">
-                    🎁 Voucher Eksklusif
-                  </h2>
-                  <p className='text-gray-500 text-[10px] sm:text-xs mt-0.5 hidden sm:block'>Dapatkan diskon spesial untuk pembelian hari ini</p>
+                  <h2 className="text-gray-900 text-base sm:text-lg font-bold">🎁 Voucher Eksklusif</h2>
+                  <p className='text-gray-500 text-xs mt-0.5 hidden sm:block'>Dapatkan diskon spesial untuk pembelian hari ini</p>
                 </div>
                 <Link to="/promo">
-                  <button className='px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white font-semibold text-[10px] sm:text-xs rounded-full hover:shadow-lg hover:from-orange-600 hover:to-rose-700 transition-all duration-300 whitespace-nowrap'>
+                  <button className='px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white font-semibold text-xs rounded-full hover:shadow-lg hover:from-orange-600 hover:to-rose-700 transition-all duration-300 whitespace-nowrap'>
                     Lihat Semua →
                   </button>
                 </Link>
               </div>
 
               {/* Vouchers Grid */}
-              <div className='overflow-x-auto md:overflow-visible'>
-                <div className='flex md:grid md:grid-cols-4 gap-2 sm:gap-3 pb-2 md:pb-0 snap-x snap-mandatory md:snap-none'>
+              <div className='overflow-x-auto md:overflow-visible hide-scroll-bar'>
+                <div className='flex md:grid md:grid-cols-4 gap-3 pb-2 md:pb-0 snap-x snap-mandatory md:snap-none'>
                   {voucherArray && voucherArray.length > 0 ? (
                     voucherArray.map((voucher, index) => (
-                      <div key={index} className='flex-shrink-0 w-64 md:w-auto snap-center bg-gradient-to-r from-orange-50 to-rose-50 border border-orange-200 rounded-lg p-3 hover:shadow-md transition-shadow duration-200'>
+                      <div key={index} className='flex-shrink-0 w-64 md:w-auto snap-start bg-gradient-to-r from-orange-50 to-rose-50 border border-orange-200 rounded-lg p-3 hover:shadow-md transition-shadow duration-200'>
                         <div className='flex flex-col gap-2'>
                           <div className='flex-1'>
                             <div className='flex items-center gap-2 mb-1'>
@@ -1089,27 +1087,29 @@ function VouchersSection({ vouchers }) {
                                 {voucher.discount}
                               </span>
                             </div>
-                            <p className='text-xs text-gray-700 mb-1'>{voucher.description}</p>
-                            <div className='flex flex-col gap-1 text-xs text-gray-600'>
-                              {voucher.minPurchase && <span>Min: {voucher.minPurchase}</span>}
-                              {voucher.expiryDate && <span>Hingga {new Date(voucher.expiryDate).toLocaleDateString('id-ID')}</span>}
-                            </div>
+                            <p className='text-xs text-gray-700 line-clamp-2'>{voucher.description}</p>
+                            {(voucher.minPurchase || voucher.expiryDate) && (
+                              <div className='flex flex-col gap-0.5 text-[10px] text-gray-600 mt-1'>
+                                {voucher.minPurchase && <span>Min: {voucher.minPurchase}</span>}
+                                {voucher.expiryDate && <span>Hingga {new Date(voucher.expiryDate).toLocaleDateString('id-ID')}</span>}
+                              </div>
+                            )}
                           </div>
                           <button
                             onClick={() => handleCopyCode(voucher.code)}
-                            className='bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-200 flex items-center justify-center gap-1'
+                            className='bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-200 flex items-center justify-center gap-1.5'
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.318 0-2.592.644-3.423 1.638m5.853 2.986V9m0 0V7.5m0 1.5h-6m12 0a2.25 2.25 0 01-2.25 2.25h-.08a2.25 2.25 0 01-2.25-2.25m0-12.75h.008v.008h-.008V2.25m0 11.178v3.565c0 .597-.48 1.083-1.07 1.083H7.07c-.597 0-1.083-.486-1.083-1.083v-3.565m6.986 0a2.25 2.25 0 01-2.25 2.25h-.076a2.25 2.25 0 01-2.25-2.25m0 0V5.25m0 0A2.25 2.25 0 015.25 3h3.5a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 018.75 21H5.25a2.25 2.25 0 01-2.25-2.25V5.25" />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" />
                             </svg>
-                            Salin
+                            Salin Kode
                           </button>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className='w-full py-8 text-center text-gray-500'>
-                      <p className='text-xs'>Tidak ada voucher tersedia saat ini</p>
+                    <div className='w-full py-6 text-center text-gray-500'>
+                      <p className='text-sm'>Tidak ada voucher tersedia saat ini</p>
                     </div>
                   )}
                 </div>
