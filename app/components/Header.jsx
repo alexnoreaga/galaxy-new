@@ -38,15 +38,15 @@ export function Header({header, isLoggedIn, cart}) {
       {/* Top bar — desktop only */}
       <div className="hidden sm:block bg-gray-900 text-white">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 h-9 text-xs">
-          <div className="flex items-center">
-            <span className="bg-red-600 px-2.5 py-1 font-medium tracking-wide text-[11px]">Part of Galaxycamera.id</span>
+          <div className="flex items-stretch self-stretch">
+            <span className="bg-red-600 px-3 flex items-center font-medium tracking-wide text-[11px]">Part of Galaxycamera.id</span>
             <Link
               to="/pengadaan"
-              className="bg-gradient-to-r from-blue-600 to-blue-500 px-2.5 py-1 hover:from-blue-700 hover:to-blue-600 transition-all duration-200 text-white no-underline text-[11px] font-medium"
+              className="bg-gradient-to-r from-blue-600 to-blue-500 px-3 flex items-center hover:from-blue-700 hover:to-blue-600 transition-all duration-200 text-white no-underline text-[11px] font-medium"
             >
               Info Pengadaan
             </Link>
-            <span className="ml-3 text-gray-400 hidden md:inline text-[11px]">Toko Kamera Online Terlengkap dan Bergaransi Resmi</span>
+            <span className="ml-3 text-gray-400 hidden md:flex items-center text-[11px]">Toko Kamera Online Terlengkap dan Bergaransi Resmi</span>
           </div>
           <div className="flex items-center gap-3.5">
             <a href="https://wa.me/6282111311131" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors no-underline">

@@ -3,8 +3,6 @@ import { useState } from 'react';
 
 export const InfoProduk = ({deskripsi,specs,isibox}) => {
 
-    console.log(isibox)
-  
     const [selectedContent, setSelectedContent] = useState("description");
 
     const handleContentChange = (content) => {
@@ -12,30 +10,42 @@ export const InfoProduk = ({deskripsi,specs,isibox}) => {
     };
   
     return (
-      <div className=''>
-        <div className='flex flex-wrap gap-2 p-2 flex-auto'>
-        
-          <button onClick={() => handleContentChange("description")} className={`text-center w-28 py-1 text-slate-600 cursor-pointer ${selectedContent == 'description' && ' rounded-md shadow border'}  font-bold text-slate-600`}>DESKRIPSI</button>
-          {specs.props.dangerouslySetInnerHTML?.__html &&<button onClick={() => handleContentChange("specs")} className={`w-28 py-1 cursor-pointer ${selectedContent == 'specs' && ' rounded-md shadow border'}  font-bold text-slate-600`}>SPESIFIKASI</button>}
-          {isibox && <button onClick={() => handleContentChange("box content")} className={`block py-1 sm:hidden md:block lg:hidden w-28 cursor-pointer ${selectedContent == 'box content' && ' rounded-md shadow border'}  font-bold text-slate-600`}>ISI BOX</button>}
-          
+      <div>
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-gray-200 mb-4">
+          {[
+            {key: 'description', label: 'Deskripsi', show: true},
+            {key: 'specs', label: 'Spesifikasi', show: !!specs.props.dangerouslySetInnerHTML?.__html},
+            {key: 'box content', label: 'Isi Box', show: !!isibox, extraClass: 'sm:hidden md:flex lg:hidden'},
+          ].filter(t => t.show).map(({key, label, extraClass = ''}) => (
+            <button
+              key={key}
+              onClick={() => handleContentChange(key)}
+              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${extraClass} ${
+                selectedContent === key
+                  ? 'border-gray-900 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-        <div className='mt-2'>
-          {selectedContent === "description" && (
-            <div>
-              <div>{deskripsi}</div>
-            </div>
+
+        {/* Content */}
+        <div>
+          {selectedContent === 'description' && deskripsi}
+          {selectedContent === 'box content' && isibox && (
+            <ul className="flex flex-col gap-1.5">
+              {isibox.split('\n').filter(Boolean).map((str) => (
+                <li key={str} className="flex items-start gap-2 text-sm text-gray-700">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                  {str}
+                </li>
+              ))}
+            </ul>
           )}
-          {selectedContent === "box content" && (
-            <div className='w-full prose '>
-              {isibox.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
-            </div>
-          )}
-          {selectedContent === "specs" && (
-            <div>
-              {specs}
-            </div>
-          )}
+          {selectedContent === 'specs' && specs}
         </div>
       </div>
     );

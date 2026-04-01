@@ -779,38 +779,42 @@ DP : 0
     
   
 
-    <div className='space-y-2 mt-2'>
+    <div className='flex flex-col gap-2 mt-2'>
 
-        <Accordion 
-        title="Belanja Lewat Marketplace ?" 
-        content={(<MarketPlace link={product.metafields}/>)}
-        icon={(
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-  <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
-</svg>
-        )}/>
+        {/* Marketplace */}
+        <Accordion
+          title="Belanja Lewat Marketplace ?"
+          content={(<MarketPlace link={product.metafields}/>)}
+          icon={(
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
+            </svg>
+          )}
+        />
 
-        <Accordion 
-        title="14 Hari Tukar Baru" 
-        content="Jaminan penukaran kembali jika barang yang diterima tidak sesuai / cacat produksi atau salah ukuran." 
-        icon={(
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-        <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
-        </svg>
+        {/* 14 Hari Tukar Baru — shield check icon */}
+        <Accordion
+          title="14 Hari Tukar Baru"
+          content="Jaminan penukaran kembali jika barang yang diterima tidak sesuai / cacat produksi atau salah ukuran."
+          icon={(
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.75.75 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+            </svg>
+          )}
+        />
 
-        )}/>
+        {/* Pengadaan — building/office icon */}
+        <Accordion
+          title="Pengadaan Barang ?"
+          content="Untuk kebutuhan pengadaan barang silahkan langsung kontak Sales Marketing kami di 0821-1131-1131"
+          icon={(
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path fillRule="evenodd" d="M4.5 2.25a.75.75 0 000 1.5v16.5h-.75a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5h-.75V3.75a.75.75 0 000-1.5h-15zM9 6a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5H9zm-.75 3.75A.75.75 0 019 9h1.5a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75zM9 12a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5H9zm3.75-5.25A.75.75 0 0113.5 6H15a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM13.5 9a.75.75 0 000 1.5H15A.75.75 0 0015 9h-1.5zm-.75 3.75a.75.75 0 01.75-.75H15a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM9 19.5v-2.25a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75h-4.5A.75.75 0 019 19.5z" clipRule="evenodd" />
+            </svg>
+          )}
+        />
 
-      <Accordion 
-        title="Pengadaan Barang ?" 
-        content="Untuk kebutuhan pengadaan barang silahkan langsung kontak Sales Marketing kami di 0821-1131-1131" 
-        icon={(
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-        <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
-        </svg>
-
-        )}/>
-
-</div>
+    </div>
 
 
 
@@ -821,20 +825,32 @@ DP : 0
 
 
 
-          {product.metafields[2]?.value &&    
-          <div className='hidden border lg:block mx-auto w-full mt-2 lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-1 md:p-2 lg:p-4 md:px-2 '>
-            <div className='bg-black flex gap-1  justify-center text-white border py-2 border-solid items-center font-bold rounded-md m-auto text-center'>
-              
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          {product.metafields[2]?.value &&
+          <div className='hidden border lg:block mx-auto w-full mt-2 lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-1 md:p-2 lg:p-4 md:px-2'>
+            <div className='bg-gray-900 flex gap-1.5 justify-center text-white py-2.5 items-center font-semibold rounded-lg text-sm'>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+              </svg>
+              <span>Isi Dalam Box</span>
+            </div>
+            <ul
+              onClick={() => copyToClipboard(product.metafields[2]?.value)}
+              title="Klik untuk menyalin semua"
+              className='mt-3 flex flex-col gap-1 cursor-pointer group'
+            >
+              {product.metafields[2]?.value.split('\n').filter(Boolean).map((str) => (
+                <li key={str} className='flex items-start gap-2 text-sm text-gray-700 leading-tight px-1 py-0'>
+                  <span className='mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0' />
+                  <span>{str}</span>
+                </li>
+              ))}
+              <div className='mt-2 flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-gray-600 transition-colors px-1'>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='w-3 h-3'>
+                  <path fill="currentColor" d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/>
                 </svg>
-                <div>Isi Dalam Box</div>
-
-            </div>
-            <div className='mt-2'>
-            {product.metafields[2]?.value.split('\n').map(str => <div className='text-sm p-1' key={str}>{str}</div>)}
-            </div>
-
+                Klik untuk salin semua
+              </div>
+            </ul>
           </div>}
           
 
@@ -862,7 +878,7 @@ DP : 0
         
 
 
-            <div className='flex items-center gap-1.5'>
+            <div className='p-1 flex items-center gap-1.5'>
               <span className='text-xs text-gray-400 font-medium mr-1'>Share</span>
 
               {/* Copy link */}
@@ -949,12 +965,12 @@ DP : 0
         <div className='sm:grid sm:grid-cols-2 md:grid md:grid-cols-2'>
 
         
-        <InfoProduk 
-        deskripsi={(<div className="w-full prose md:border-gray-200 pt-2 text-black tracking-normal"
+        <InfoProduk
+        deskripsi={(<div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-ul:my-2 prose-ol:my-2 pt-2"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
-        
+
         isibox={product.metafields[2]?.value}
-        specs={(<div className="w-full prose md:border-gray-200 pt-2 text-black "
+        specs={(<div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-semibold prose-table:text-sm pt-2"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
         />
 
@@ -996,65 +1012,71 @@ DP : 0
         && product?.metafields[12]?.value != "true" 
          && (
       
-      <div className='hidden md:block fixed inset-x-0 bottom-0 z-50 bg-white/40 backdrop-blur-2xl border-t border-white/40 shadow-[0_-10px_30px_rgba(15,23,42,0.10)]'>
-        <div className='lg:container mx-auto w-full px-0 md:px-8 lg:px-12 lg:pr-16 py-2'>
-          <div className='w-full max-w-none flex items-center justify-between gap-6 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm'>
+      <div className='hidden md:flex fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)]'>
+        <div className='max-w-5xl mx-auto w-full px-4 md:px-8 py-3 flex items-center gap-6'>
+
+          {/* Product info */}
+          <div className='flex items-center gap-3 min-w-0 flex-1'>
+            {(selectedVariant?.image?.url || product?.featuredImage?.url) && (
+              <img
+                src={selectedVariant?.image?.url || product.featuredImage.url}
+                alt={product.title}
+                className='w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-gray-100'
+              />
+            )}
             <div className='min-w-0'>
-              <div className='flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500'>
-                <span className='h-1.5 w-1.5 rounded-full bg-rose-600' />
-                Harga
-              </div>
-              <div className='flex items-baseline gap-2 mt-0.5'>
-                <div className='text-2xl font-extrabold text-rose-700 leading-tight'>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
+              <p className='text-xs text-gray-500 truncate max-w-xs lg:max-w-sm'>{product.title}</p>
+              <div className='flex items-baseline gap-2'>
+                <span className='text-xl font-bold text-gray-900'>
+                  Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}
+                </span>
                 {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                  <div className='text-xs text-slate-500 line-through'>Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
+                  <span className='text-sm text-gray-400 line-through'>
+                    Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}
+                  </span>
+                )}
+                {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
+                  <span className='text-xs font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded'>
+                    -{Math.round((1 - parseFloat(selectedVariant.price.amount) / parseFloat(selectedVariant.compareAtPrice.amount)) * 100)}%
+                  </span>
                 )}
               </div>
-              <div className='truncate text-xs text-slate-500 mt-0.5'>
-                <span className='font-semibold text-slate-900'>{product.title}</span>
-              </div>
-            </div>
-
-            <div className='hidden md:block h-8 w-px bg-slate-200' />
-
-            <div className='flex items-center gap-3 flex-shrink-0'>
-              <a href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" className='flex-shrink-0'>
-              <button className='group inline-flex items-center justify-center gap-2 font-semibold bg-emerald-600 text-white px-4 py-1.5 rounded-lg h-9 shadow-sm whitespace-nowrap hover:bg-emerald-700 transition-colors duration-200'>
-                <FaWhatsapp className='text-lg text-white drop-shadow-sm'/>
-                <span className='hidden lg:inline'>Order via WhatsApp</span>
-                <span className='lg:hidden'>Order WA</span>
-              </button>
-              </a>
-
-              <CartForm
-                route="/cart"
-                inputs={{
-                  lines: [
-                    {
-                      merchandiseId: selectedVariant.id,
-                    },
-                  ],
-                }}
-                action={CartForm.ACTIONS.LinesAdd}
-              >
-              {(fetcher) => (
-                <button 
-                  type="submit"
-                  onClick={() => {
-                    window.location.href = window.location.href + '#cart-aside';
-                  }}
-                  disabled={
-                    !selectedVariant.availableForSale ??
-                    fetcher.state !== 'idle'
-                  }
-                  className='flex gap-2 items-center justify-center font-semibold bg-slate-900 text-white px-4 py-1.5 rounded-lg h-9 hover:bg-slate-800 transition-colors duration-200 shadow-sm whitespace-nowrap'>
-                  <FaBagShopping className='text-lg'/>
-                  <span>{selectedVariant?.availableForSale ? 'Beli Sekarang' : 'Sold Out'}</span>
-                </button>
-              )}
-              </CartForm>
             </div>
           </div>
+
+          {/* Actions */}
+          <div className='flex items-center gap-2.5 flex-shrink-0 ml-auto'>
+            <a
+              href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <button className='inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors whitespace-nowrap'>
+                <FaWhatsapp className='text-base' />
+                <span className='hidden lg:inline'>Order via WhatsApp</span>
+                <span className='lg:hidden'>WhatsApp</span>
+              </button>
+            </a>
+
+            <CartForm
+              route="/cart"
+              inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
+              action={CartForm.ACTIONS.LinesAdd}
+            >
+              {(fetcher) => (
+                <button
+                  type="submit"
+                  onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                  disabled={!selectedVariant.availableForSale ?? fetcher.state !== 'idle'}
+                  className='inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors whitespace-nowrap shadow-sm'
+                >
+                  <FaBagShopping className='text-base' />
+                  {selectedVariant?.availableForSale ? 'Beli Sekarang' : 'Sold Out'}
+                </button>
+              )}
+            </CartForm>
+          </div>
+
         </div>
       </div>
     )}
@@ -1168,13 +1190,14 @@ function MarketPlace({link}){
 }
 
 function DiscountVoucherSection({ voucherData, product, selectedVariant, canonicalUrl, copyToClipboard }) {
-  // Transform Shopify metaobject data to voucher format
+  const [copiedCode, setCopiedCode] = useState(null);
+
   const voucherArray = voucherData?.metaobjects?.edges?.map((edge) => {
     const fields = edge.node.fields;
     return {
       code: fields.find(f => f.key === 'code')?.value || '',
       discount: fields.find(f => f.key === 'discount_value')?.value || '',
-      discountType: fields.find(f => f.key === 'discount_type')?.value || 'fixed', // 'fixed' or 'percentage'
+      discountType: fields.find(f => f.key === 'discount_type')?.value || 'fixed',
       description: fields.find(f => f.key === 'description')?.value || '',
       minPurchase: fields.find(f => f.key === 'min_purchase')?.value || '',
       expiryDate: fields.find(f => f.key === 'expiry_date')?.value || '',
@@ -1183,44 +1206,89 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
 
   const handleCopyCode = (code) => {
     copyToClipboard(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
   };
 
+  if (!voucherArray.length) return null;
+
   return (
-    <div className='mt-4 mb-4 space-y-3'>
-      {voucherArray && voucherArray.length > 0 && (
-        <div className='space-y-2'>
-          <h3 className='text-sm font-semibold text-gray-800'>Kode Voucher Tersedia</h3>
-          {voucherArray.map((voucher, index) => (
-            <div key={index} className='bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-300 rounded-lg p-3 hover:shadow-md transition-shadow duration-200'>
-              <div className='flex items-center justify-between gap-2'>
-                <div className='flex-1'>
-                  <div className='flex items-center gap-2 mb-1'>
-                    <span className='font-bold text-emerald-700 text-base'>{voucher.code}</span>
-                    <span className='bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold'>
-                      {voucher.discountType === 'percentage' ? `${voucher.discount}%` : `Rp ${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
+    <div className='mt-3 mb-1'>
+      {/* Header */}
+      <div className='flex items-center gap-1.5 mb-2'>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-rose-500">
+          <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+          <path d="M6 6h.008v.008H6V6z" />
+        </svg>
+        <span className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>Voucher Diskon</span>
+      </div>
+
+      <div className='flex flex-col gap-2'>
+        {voucherArray.map((voucher, index) => (
+          <div
+            key={index}
+            className='flex items-stretch rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm'
+          >
+            {/* Left: colored discount pill */}
+            <div className='flex flex-col items-center justify-center bg-rose-500 px-3 py-3 min-w-[60px] text-white'>
+              <span className='text-lg font-black leading-none'>
+                {voucher.discountType === 'percentage'
+                  ? `${voucher.discount}%`
+                  : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
+              </span>
+              <span className='text-[9px] font-semibold uppercase tracking-widest opacity-80 mt-0.5'>OFF</span>
+            </div>
+
+            {/* Middle: code + desc */}
+            <div className='flex-1 flex flex-col justify-center px-3 py-2.5 border-l border-dashed border-gray-300 min-w-0'>
+              <div className='flex items-center gap-1.5 mb-0.5'>
+                <span className='font-mono font-bold text-gray-900 text-sm tracking-wider'>{voucher.code}</span>
+              </div>
+              {voucher.description && (
+                <p className='text-[11px] text-gray-500 leading-tight truncate'>{voucher.description}</p>
+              )}
+              {(voucher.minPurchase || voucher.expiryDate) && (
+                <div className='flex items-center gap-2 mt-1'>
+                  {voucher.minPurchase && (
+                    <span className='text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded'>{voucher.minPurchase}</span>
+                  )}
+                  {voucher.expiryDate && (
+                    <span className='text-[10px] text-gray-400'>
+                      s/d {new Date(voucher.expiryDate).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}
                     </span>
-                  </div>
-                  <p className='text-xs text-gray-700 mb-1'>{voucher.description}</p>
-                  <div className='flex gap-3 text-xs text-gray-600'>
-                    {voucher.minPurchase && <span>{voucher.minPurchase}</span>}
-                    {voucher.minPurchase && voucher.expiryDate && <span>•</span>}
-                    {voucher.expiryDate && <span>Berlaku hingga {new Date(voucher.expiryDate).toLocaleDateString('id-ID')}</span>}
-                  </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => handleCopyCode(voucher.code)}
-                  className='bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors duration-200 flex items-center gap-1'
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.318 0-2.592.644-3.423 1.638m5.853 2.986V9m0 0V7.5m0 1.5h-6m12 0a2.25 2.25 0 01-2.25 2.25h-.08a2.25 2.25 0 01-2.25-2.25m0-12.75h.008v.008h-.008V2.25m0 11.178v3.565c0 .597-.48 1.083-1.07 1.083H7.07c-.597 0-1.083-.486-1.083-1.083v-3.565m6.986 0a2.25 2.25 0 01-2.25 2.25h-.076a2.25 2.25 0 01-2.25-2.25m0 0V5.25m0 0A2.25 2.25 0 015.25 3h3.5a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 018.75 21H5.25a2.25 2.25 0 01-2.25-2.25V5.25" />
+              )}
+            </div>
+
+            {/* Right: copy button */}
+            <button
+              onClick={() => handleCopyCode(voucher.code)}
+              className={`flex-shrink-0 flex flex-col items-center justify-center w-16 text-[10px] font-bold border-l transition-all duration-200 active:scale-95 ${
+                copiedCode === voucher.code
+                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200'
+              }`}
+            >
+              {copiedCode === voucher.code ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mb-0.5">
+                    <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                  </svg>
+                  Tersalin!
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4 mb-0.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
                   </svg>
                   Salin
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                </>
+              )}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
