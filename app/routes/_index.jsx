@@ -123,6 +123,7 @@ export default function Homepage() {
       
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <Carousel images={data.banner.metaobjects} />
+        <h1 className="sr-only">Toko Kamera Tangerang Depok Terlengkap — Galaxy Camera Store</h1>
       </div>
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
@@ -298,7 +299,7 @@ function BannerKecil({ images }) {
                     <div className='overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200'>
                       <img
                         src={image.fields[0].reference.image.url}
-                        alt={`Banner ${index}`}
+                        alt={`Promo ${(image.fields[1].value || '').split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Galaxy Camera'}`}
                         width={320}
                         height={120}
                         className='w-80 h-auto object-cover group-hover:scale-105 transition-transform duration-300'
@@ -927,11 +928,11 @@ const GET_ARTIKEL = `#graphql
 export const meta = ({data}) => {
 
   return [
-    {title: 'Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap dan Terpercaya'},
+    {title: 'Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap'},
     {
       name: "title",
-    content: "Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap dan Terpercaya"
-  },
+      content: "Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap"
+    },
     {
       name: "description",
     content: "Toko Kamera Tangerang Depok Jakarta Online Terpercaya dan Terlengkap Garansi Harga Terbaik. Jual Kamera DSLR, Mirrorless, dan Aksesoris Kamera lainnya. Canon, Sony, DJI, Nikon dll"
@@ -953,7 +954,7 @@ export const meta = ({data}) => {
 
   {
     property: "og:title",
-    content: "Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap dan Terpercaya",
+    content: "Galaxy Camera Store : Toko Kamera Tangerang Depok Terlengkap",
   },
 
   {
@@ -974,50 +975,6 @@ export const meta = ({data}) => {
   // banner.metaobjects.nodes[0].fields[0].reference.image.url
 
 
-  {
-    "script:ld+json": {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "image": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678",
-      "url": "https://www.galaxy.co.id",
-      "sameAs": ["https://galaxycamera.id",
-      "https://twitter.com/galaxycamera99",
-      "https://www.facebook.com/galaxycamera99",
-      "https://www.instagram.com/galaxycamera99"],
-      "logo": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo_galaxy_web_new.png?v=1698859678",
-      "name": "Galaxy Camera Store",
-      "description": "Galaxy Camera merupakan Toko Kamera Online Offline menjual berbagai peralatan fotografi dan videografi terlengkap dan termurah.",
-      "email": "sales@galaxycamera.id",
-      "telephone": "+6282111311131",
-      "address": {
-        "streetAddress": "Ruko Mall Metropolis Townsquare, Blok Gm3 No.6, Kelapa Indah, Tangerang",
-        "postalCode": "15117",
-        "addressLocality": "TANGERANG",
-        "addressCountry": "ID"
-      },
-    }
-  },
-  {
-    "script:ld+json": {
-      "@context": "http://schema.org",
-      "@type": "Website",
-      "name": "Galaxy Camera Store",
-      "url": "https://galaxy.co.id",
-      "sameAs": [
-        "https://galaxycamera.id",
-        "https://twitter.com/galaxycamera99",
-        "https://www.facebook.com/galaxycamera99",
-        "https://www.instagram.com/galaxycamera99"
-      ],
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Ruko Mall Metropolis Townsquare, Blok Gm3 No.6, Kelapa Indah, Tangerang",
-        "addressRegion": "Tangerang Banten",
-        "postalCode": "15117",
-        "addressCountry": "INA"
-      }
-    }
-  },
 ];
 };
 

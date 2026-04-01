@@ -39,23 +39,26 @@ if(isvalidBreadcrumbType){
             break;
 
 
-        case 'product':
+        case 'product': {
             pages.push({
                 href:'/collections',
                 name: 'Collections'
             });
-            
-            const collection = deepestRoute?.data?.product.collections.nodes.at(0)
-            pages.push({
-                href:`/collections/${collection.handle}`,
-                name: `${collection.title}`,
-            });
+
+            const collection = deepestRoute?.data?.product?.collections?.nodes?.at(0);
+            if (collection) {
+                pages.push({
+                    href:`/collections/${collection.handle}`,
+                    name: `${collection.title}`,
+                });
+            }
 
             pages.push({
-                href:`/collections/${deepestRoute?.data.product.handle}`,
-                name: `${deepestRoute?.data.product.title}`,
+                href:`/products/${deepestRoute?.data?.product?.handle}`,
+                name: `${deepestRoute?.data?.product?.title}`,
             });
             break;
+        }
 
             default:
                 break;

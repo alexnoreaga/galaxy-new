@@ -5,10 +5,9 @@ import ProductOptions from '~/components/ProductOptions';
 import {Image, Money, ShopPayButton} from '@shopify/hydrogen-react';
 import {CartForm} from '@shopify/hydrogen';
 import { ProductGallery } from '~/components/ProductGallery';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ProductCard from '~/components/ProductCard';
 import { Accordion } from '~/components/Accordion';
-import { useHistory ,useLocation } from 'react-router-dom';
 import { HitunganPersen } from '~/components/HitunganPersen';
 import {InfoProduk} from '~/components/InfoProduk';
 import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
@@ -167,8 +166,20 @@ export async function loader({params, context, request}) {
     
 
       // Set a default variant so you always have an "orderable" product selected
+      // variantBySelectedOptions returns null for out-of-stock variants in some API versions,
+      // so fall back to manually matching from variants.nodes before defaulting to nodes[0]
       const selectedVariant =
-      product.selectedVariant ?? product?.variants?.nodes[0];
+        product.selectedVariant ??
+        (selectedOptions.length > 0
+          ? product?.variants?.nodes?.find((v) =>
+              selectedOptions.every((opt) =>
+                v.selectedOptions?.some(
+                  (so) => so.name === opt.name && so.value === opt.value,
+                ),
+              ),
+            )
+          : null) ??
+        product?.variants?.nodes[0];
       
       const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value
 
@@ -360,6 +371,198 @@ DP : 0
   
 
 
+
+
+  const ImageGallery = ({ productData, selectedVariant }) => {
+    const images = productData.images.edges.map((e) => e.node);
+
+    // displayUrl is the source of truth for the main image
+    // It is set directly from selectedVariant or from manual navigation
+    const [displayUrl, setDisplayUrl] = useState(selectedVariant || images[0]?.src);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const touchStartXRef = useRef(null);
+    const touchEndXRef = useRef(null);
+    const thumbRef = useRef(null);
+
+    // When variant changes from parent, show its image directly — no matching needed
+    useEffect(() => {
+      if (selectedVariant) {
+        setIsTransitioning(true);
+        setDisplayUrl(selectedVariant);
+        setTimeout(() => setIsTransitioning(false), 300);
+      }
+    }, [selectedVariant]);
+
+    const goTo = (idx) => {
+      setIsTransitioning(true);
+      setDisplayUrl(images[idx]?.src);
+      setTimeout(() => setIsTransitioning(false), 300);
+      if (thumbRef.current) {
+        const thumbEl = thumbRef.current.children[idx];
+        if (thumbEl) thumbEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    };
+
+    const baseUrl = (url) => url?.split('?')[0];
+    const currentIndex = images.findIndex((img) => baseUrl(img.src) === baseUrl(displayUrl));
+
+    const goNext = () => {
+      const nextIdx = currentIndex >= 0 ? (currentIndex + 1) % images.length : 0;
+      goTo(nextIdx);
+    };
+    const goPrev = () => {
+      const prevIdx = currentIndex >= 0 ? (currentIndex - 1 + images.length) % images.length : 0;
+      goTo(prevIdx);
+    };
+
+    const handleTouchStart = (e) => {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchEndXRef.current = null;
+    };
+    const handleTouchMove = (e) => {
+      touchEndXRef.current = e.touches[0].clientX;
+    };
+    const handleTouchEnd = () => {
+      if (touchStartXRef.current === null || touchEndXRef.current === null) return;
+      const dist = touchStartXRef.current - touchEndXRef.current;
+      if (dist > 50) goNext();
+      else if (dist < -50) goPrev();
+      touchStartXRef.current = null;
+      touchEndXRef.current = null;
+    };
+
+    const currentImg = { src: displayUrl, altText: productData?.title };
+
+    const THUMBS_PER_PAGE = 4;
+    const totalThumbPages = Math.ceil(images.length / THUMBS_PER_PAGE);
+    const thumbPage = currentIndex >= 0 ? Math.floor(currentIndex / THUMBS_PER_PAGE) : 0;
+    const visibleThumbs = images.slice(thumbPage * THUMBS_PER_PAGE, thumbPage * THUMBS_PER_PAGE + THUMBS_PER_PAGE);
+
+    return (
+      <div className="flex flex-col gap-2 select-none w-full md:max-w-xl md:mx-auto lg:max-w-2xl">
+
+        {/* Main image */}
+        <div
+          className="relative w-full bg-white rounded-xl overflow-hidden"
+          style={{ touchAction: 'pan-y' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="aspect-square w-full">
+            <img
+              src={currentImg?.src}
+              alt={currentImg?.altText || productData?.title}
+              loading="eager"
+              decoding="async"
+              width={600}
+              height={600}
+              className={`w-full h-full object-contain transition-opacity duration-300 ${
+                isTransitioning ? 'opacity-40' : 'opacity-100'
+              }`}
+              style={{ pointerEvents: 'none', userSelect: 'none' }}
+            />
+          </div>
+
+          {/* Prev / Next buttons — desktop only */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={goPrev}
+                onTouchStart={(e) => e.stopPropagation()}
+                aria-label="Previous image"
+                className="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-full bg-white/90 hover:bg-white shadow-md transition-all active:scale-95"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-gray-700">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button
+                onClick={goNext}
+                onTouchStart={(e) => e.stopPropagation()}
+                aria-label="Next image"
+                className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-full bg-white/90 hover:bg-white shadow-md transition-all active:scale-95"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-gray-700">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* Counter badge — mobile only */}
+          {images.length > 1 && currentIndex >= 0 && (
+            <div className="md:hidden absolute bottom-2 right-2 bg-black/50 text-white text-xs font-medium px-2 py-0.5 rounded-full pointer-events-none">
+              {currentIndex + 1}/{images.length}
+            </div>
+          )}
+        </div>
+
+        {/* Thumbnail row — desktop only */}
+        {images.length > 1 && (
+          <div className="hidden md:flex items-center gap-2">
+            {/* Prev thumb page */}
+            <button
+              onClick={() => goTo(Math.max(0, thumbPage * THUMBS_PER_PAGE - 1))}
+              disabled={thumbPage === 0}
+              aria-label="Previous thumbnails"
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-600">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+
+            {/* 4 thumbnails */}
+            <div ref={thumbRef} className="flex gap-2 flex-1 py-1">
+              {visibleThumbs.map((img, i) => {
+                const realIdx = thumbPage * THUMBS_PER_PAGE + i;
+                const isActive = realIdx === currentIndex;
+                return (
+                  <button
+                    key={img.src}
+                    onClick={() => goTo(realIdx)}
+                    aria-label={`View image ${realIdx + 1}`}
+                    className={`flex-1 aspect-square rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'ring-2 ring-rose-500 opacity-100'
+                        : 'opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="w-full h-full rounded-lg overflow-hidden bg-gray-50">
+                      <img
+                        src={img.src}
+                        alt={img.altText || productData?.title}
+                        loading="lazy"
+                        width={72}
+                        height={72}
+                        className="w-full h-full object-contain p-1"
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+              {Array.from({ length: THUMBS_PER_PAGE - visibleThumbs.length }).map((_, i) => (
+                <div key={`empty-${i}`} className="flex-1 aspect-square" />
+              ))}
+            </div>
+
+            {/* Next thumb page */}
+            <button
+              onClick={() => goTo(Math.min(images.length - 1, (thumbPage + 1) * THUMBS_PER_PAGE))}
+              disabled={thumbPage >= totalThumbPages - 1}
+              aria-label="Next thumbnails"
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 bg-white disabled:opacity-30 hover:border-rose-400 transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-600">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
 
   export default function ProductHandle() {
@@ -659,31 +862,38 @@ DP : 0
         
 
 
-            <div className='p-2 flex flex-row items-center gap-3 border rounded-lg w-36'>
-              <div className='pl-1 text-sm text-slate-600'>Share</div>
+            <div className='flex items-center gap-1.5'>
+              <span className='text-xs text-gray-400 font-medium mr-1'>Share</span>
 
-              <div className='flex flex-row gap-3'>
+              {/* Copy link */}
+              <button
+                onClick={() => copyToClipboard(canonicalUrl)}
+                title="Copy link"
+                className='w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-all active:scale-95'
+              >
+                <FaLink size={13} />
+              </button>
 
-              <div className='text-slate-600 w-4 h-4 m-auto flex items-center justify-center cursor-pointer' onClick={()=>copyToClipboard(canonicalUrl)}>
-              <FaLink />
-              </div>
-
-
-              <a href={`https://api.whatsapp.com/send?text=${canonicalUrl}`}  data-action="share/whatsapp/share" target="_blank"> 
-              <div className='w-5 h-5 flex items-center justify-center'>
-             
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="#25d366" d="M92.1 254.6c0 24.9 7 49.2 20.2 70.1l3.1 5-13.3 48.6L152 365.2l4.8 2.9c20.2 12 43.4 18.4 67.1 18.4h.1c72.6 0 133.3-59.1 133.3-131.8c0-35.2-15.2-68.3-40.1-93.2c-25-25-58-38.7-93.2-38.7c-72.7 0-131.8 59.1-131.9 131.8zM274.8 330c-12.6 1.9-22.4 .9-47.5-9.9c-36.8-15.9-61.8-51.5-66.9-58.7c-.4-.6-.7-.9-.8-1.1c-2-2.6-16.2-21.5-16.2-41c0-18.4 9-27.9 13.2-32.3c.3-.3 .5-.5 .7-.8c3.6-4 7.9-5 10.6-5c2.6 0 5.3 0 7.6 .1c.3 0 .5 0 .8 0c2.3 0 5.2 0 8.1 6.8c1.2 2.9 3 7.3 4.9 11.8c3.3 8 6.7 16.3 7.3 17.6c1 2 1.7 4.3 .3 6.9c-3.4 6.8-6.9 10.4-9.3 13c-3.1 3.2-4.5 4.7-2.3 8.6c15.3 26.3 30.6 35.4 53.9 47.1c4 2 6.3 1.7 8.6-1c2.3-2.6 9.9-11.6 12.5-15.5c2.6-4 5.3-3.3 8.9-2s23.1 10.9 27.1 12.9c.8 .4 1.5 .7 2.1 1c2.8 1.4 4.7 2.3 5.5 3.6c.9 1.9 .9 9.9-2.4 19.1c-3.3 9.3-19.1 17.7-26.7 18.8zM448 96c0-35.3-28.7-64-64-64H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96zM148.1 393.9L64 416l22.5-82.2c-13.9-24-21.2-51.3-21.2-79.3C65.4 167.1 136.5 96 223.9 96c42.4 0 82.2 16.5 112.2 46.5c29.9 30 47.9 69.8 47.9 112.2c0 87.4-72.7 158.5-160.1 158.5c-26.6 0-52.7-6.7-75.8-19.3z"/></svg>              
-                
-              </div>
+              {/* WhatsApp */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${canonicalUrl}`}
+                data-action="share/whatsapp/share"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share via WhatsApp"
+                className='w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-[#25d366]/20 transition-all active:scale-95'
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='w-4 h-4'><path fill="#25d366" d="M92.1 254.6c0 24.9 7 49.2 20.2 70.1l3.1 5-13.3 48.6L152 365.2l4.8 2.9c20.2 12 43.4 18.4 67.1 18.4h.1c72.6 0 133.3-59.1 133.3-131.8c0-35.2-15.2-68.3-40.1-93.2c-25-25-58-38.7-93.2-38.7c-72.7 0-131.8 59.1-131.9 131.8zM274.8 330c-12.6 1.9-22.4 .9-47.5-9.9c-36.8-15.9-61.8-51.5-66.9-58.7c-.4-.6-.7-.9-.8-1.1c-2-2.6-16.2-21.5-16.2-41c0-18.4 9-27.9 13.2-32.3c.3-.3 .5-.5 .7-.8c3.6-4 7.9-5 10.6-5c2.6 0 5.3 0 7.6 .1c.3 0 .5 0 .8 0c2.3 0 5.2 0 8.1 6.8c1.2 2.9 3 7.3 4.9 11.8c3.3 8 6.7 16.3 7.3 17.6c1 2 1.7 4.3 .3 6.9c-3.4 6.8-6.9 10.4-9.3 13c-3.1 3.2-4.5 4.7-2.3 8.6c15.3 26.3 30.6 35.4 53.9 47.1c4 2 6.3 1.7 8.6-1c2.3-2.6 9.9-11.6 12.5-15.5c2.6-4 5.3-3.3 8.9-2s23.1 10.9 27.1 12.9c.8 .4 1.5 .7 2.1 1c2.8 1.4 4.7 2.3 5.5 3.6c.9 1.9 .9 9.9-2.4 19.1c-3.3 9.3-19.1 17.7-26.7 18.8zM448 96c0-35.3-28.7-64-64-64H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96zM148.1 393.9L64 416l22.5-82.2c-13.9-24-21.2-51.3-21.2-79.3C65.4 167.1 136.5 96 223.9 96c42.4 0 82.2 16.5 112.2 46.5c29.9 30 47.9 69.8 47.9 112.2c0 87.4-72.7 158.5-160.1 158.5c-26.6 0-52.7-6.7-75.8-19.3z"/></svg>
               </a>
-            
-            
-              <div className='w-4 h-4 m-auto flex items-center justify-center cursor-pointer' onClick={()=>copyToClipboard(product.title)}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="#94a3b8" d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/></svg>
-              </div>
 
-              </div>
-
+              {/* Copy title */}
+              <button
+                onClick={() => copyToClipboard(product.title)}
+                title="Copy product name"
+                className='w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-all active:scale-95'
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='w-3.5 h-3.5'><path fill="currentColor" d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/></svg>
+              </button>
             </div>
 
 
@@ -1025,102 +1235,6 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
     const formattedDate = date.toLocaleDateString('en-US', options);
     return formattedDate
   }
-  
-
-
-  const ImageGallery = ({ productData, selectedVariant }) => {
-    const [selectedImage, setSelectedImage] = useState(
-      selectedVariant || productData.images.edges[0].node.src
-    );
-  
-    useEffect(() => {
-      if (selectedVariant) {
-        setSelectedImage(selectedVariant);
-      } else {
-        setSelectedImage(productData.images.edges[0].node.src);
-      }
-    }, [selectedVariant, productData]);
-  
-    const [startIndex, setStartIndex] = useState(0);
-  
-    const handleImageChange = (newImageSrc) => {
-      setSelectedImage(newImageSrc);
-    };
-  
-    const nextImages = () => {
-      const nextStartIndex = startIndex + 4;
-      if (nextStartIndex < productData.images.edges.length) {
-        setStartIndex(nextStartIndex);
-        handleImageChange(productData.images.edges[nextStartIndex].node.src);
-      }
-    };
-  
-    const previousImages = () => {
-      const previousStartIndex = startIndex - 4;
-      if (previousStartIndex >= 0) {
-        setStartIndex(previousStartIndex);
-        handleImageChange(productData.images.edges[previousStartIndex].node.src);
-      }
-    };
-  
-    const displayedImages = productData.images.edges.slice(startIndex, startIndex + 4);
-  
-    return (
-      <div>
-        <div className="flex flex-col space-y-4">
-          <div className="mx-auto">
-            <img
-              src={selectedImage}
-              alt={productData?.title}
-              loading="eager"
-              decoding="async"
-              width="400"
-              height="400"
-              className="w-full max-w-sm md:max-w-lg mx-auto h-auto rounded-lg"
-            />
-          </div>
-          <div className="md:w-5/5 mx-auto">
-            <div className="grid grid-cols-4 sm:gap-3 md:gap-4 md:mt-4 sm:w-5/5 md:w-3/5 mx-auto">
-              {displayedImages.map((image) => (
-                <div
-                  key={image.node.src}
-                  onClick={() => handleImageChange(image.node.src)}
-                  className={`rounded-lg cursor-pointer transition-opacity duration-300 hover:opacity-75`}
-                >
-                  <img
-                    src={image.node.src}
-                    alt={productData?.title}
-                    loading="lazy"
-                    decoding="async"
-                    width="100"
-                    height="100"
-                    className={`w-full max-w-xs h-auto md:mx-auto p-1 rounded-lg ${
-                    selectedImage === image.node.src && 'border-2 border-red-700'
-                  }`}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-4">
-              {startIndex > 0 && (
-                <button onClick={previousImages} className="text-blue-500 hover:text-blue-700">
-                  Previous
-                </button>
-              )}
-              {startIndex + 4 < productData.images.edges.length && (
-                <button onClick={nextImages} className="text-blue-500 hover:text-blue-700">
-                  Next
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-
-
 
 function TombolWa({product,canonicalUrl}){
   // const infoChat = `Hi admin Galaxy saya berminat tentang produk ${namaProduk}. Boleh dibantu untuk info lebih lanjut`
@@ -1451,8 +1565,6 @@ query BrandQuery($first:Int!){
 
 
 export const meta = ({data}) => {
-  const lokasi = useLocation()
-  const urlSekarang = lokasi.pathname
 
   
 
@@ -1511,20 +1623,6 @@ export const meta = ({data}) => {
       name: "keywords",
       content: productKeywords, // Enhanced keywords
     },
-    {
-      name: "og:image",
-      content: data?.product?.images.edges[0].node.src, 
-    },
-
-    {
-      name: "og:image:width",
-      content: "500",
-    },
-
-    {
-      name: "og:image:height",
-      content: "500",
-    },
 
 
 
@@ -1574,7 +1672,7 @@ export const meta = ({data}) => {
     },
     {
       property: "og:url",
-      content: 'https://galaxy.co.id'+urlSekarang,
+      content: data.canonicalUrl,
     },
 
     // ENHANCED - Changed to summary_large_image for better display

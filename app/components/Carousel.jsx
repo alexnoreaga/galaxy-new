@@ -90,7 +90,7 @@ export const Carousel = ({ images }) => {
                 width={'1280'}
                 height={'543'}
                 src={`${resolvedImages.nodes[currentIndex].fields[0].reference.image.url}&width=800`}
-                alt={`Image ${currentIndex + 1}`} 
+                alt={`Promo ${(resolvedImages.nodes[currentIndex].fields[1].value || '').split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Galaxy Camera'}`}
                 loading={currentIndex === 0 ? 'eager' : 'lazy'}
                 fetchpriority={currentIndex === 0 ? 'high' : 'auto'}
                 style={{ 

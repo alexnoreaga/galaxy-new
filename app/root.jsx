@@ -167,7 +167,7 @@ dangerouslySetInnerHTML={{__html:`
         <link rel="canonical" href="https://galaxy.co.id" />
 
         {/* Open Graph / Facebook */}
-        <meta property="og:type" content="business.business" />
+        <meta property="og:type" content="website" />
         <meta property="og:url" content="https://galaxy.co.id" />
         <meta property="og:title" content="Galaxy Camera - Toko Kamera Online Terpercaya | Harga Terbaik" />
         <meta property="og:description" content="Belanja kamera, drone, lensa dengan garansi resmi. Cicilan 0%, gratis ongkir, terpercaya sejak 2012." />
@@ -259,7 +259,22 @@ dangerouslySetInnerHTML={{__html:`
           ],
           "areaServed": "ID",
           "paymentAccepted": "Cash, Credit Card, Bank Transfer, Kredivo, ShopeePay",
-          "currenciesAccepted": "IDR"
+          "currenciesAccepted": "IDR",
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+              "opens": "10:00",
+              "closes": "19:00"
+            }
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "1067",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
         })}} />
 
         {/* LocalBusiness Schema JSON-LD - Depok Branch */}
@@ -296,7 +311,22 @@ dangerouslySetInnerHTML={{__html:`
           ],
           "areaServed": "ID",
           "paymentAccepted": "Cash, Credit Card, Bank Transfer, Kredivo, ShopeePay",
-          "currenciesAccepted": "IDR"
+          "currenciesAccepted": "IDR",
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+              "opens": "10:00",
+              "closes": "20:00"
+            }
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "1067",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
         })}} />
 
         {/* Organization Schema */}
