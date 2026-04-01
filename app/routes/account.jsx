@@ -93,42 +93,57 @@ export default function Acccount() {
 function AccountLayout({customer, children}) {
   const heading = customer
     ? customer.firstName
-      ? `Welcome, ${customer.firstName}`
-      : `Welcome to your account.`
-    : 'Account Details';
+      ? `Halo, ${customer.firstName}`
+      : `Akun Saya`
+    : 'Akun';
 
   return (
-    <div className="account">
-      <h1>{heading}</h1>
-      <br />
-      <AccountMenu />
-      {children}
+    <div className="min-h-[80vh] bg-gray-50 py-8 px-4">
+      <div className="max-w-3xl mx-auto">
+
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{heading}</h1>
+          {customer?.email && (
+            <p className="text-sm text-gray-400 mt-0.5">{customer.email}</p>
+          )}
+        </div>
+
+        {/* Nav tabs */}
+        <AccountMenu />
+
+        {/* Content */}
+        <div className="mt-6">
+          {children}
+        </div>
+
+      </div>
     </div>
   );
 }
 
 function AccountMenu() {
-  function isActiveStyle({isActive, isPending}) {
-    return {
-      fontWeight: isActive ? 'bold' : undefined,
-      color: isPending ? 'grey' : 'black',
-    };
-  }
-
   return (
-    <nav role="navigation">
-      <NavLink to="/account/orders" style={isActiveStyle}>
-        Orders &nbsp;
-      </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/profile" style={isActiveStyle}>
-        &nbsp; Profile &nbsp;
-      </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/addresses" style={isActiveStyle}>
-        &nbsp; Addresses &nbsp;
-      </NavLink>
-      &nbsp;|&nbsp;
+    <nav role="navigation" className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 shadow-sm p-1 w-fit">
+      {[
+        { to: '/account/orders', label: 'Pesanan' },
+        { to: '/account/profile', label: 'Profil' },
+        { to: '/account/addresses', label: 'Alamat' },
+      ].map(({ to, label }) => (
+        <NavLink
+          key={to}
+          to={to}
+          className={({ isActive }) =>
+            `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+              isActive
+                ? 'bg-gray-900 text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+            }`
+          }
+        >
+          {label}
+        </NavLink>
+      ))}
       <Logout />
     </nav>
   );
@@ -136,8 +151,13 @@ function AccountMenu() {
 
 function Logout() {
   return (
-    <Form className="account-logout" method="POST" action="/account/logout">
-      &nbsp;<button type="submit">Sign out</button>
+    <Form method="POST" action="/account/logout">
+      <button
+        type="submit"
+        className="px-4 py-2 rounded-lg text-sm font-medium text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-150"
+      >
+        Keluar
+      </button>
     </Form>
   );
 }

@@ -48,145 +48,137 @@ export async function loader({params, context}) {
   });
 }
 
+const STATUS_COLORS = {
+  FULFILLED: 'bg-emerald-50 text-emerald-700',
+  UNFULFILLED: 'bg-amber-50 text-amber-700',
+  PARTIALLY_FULFILLED: 'bg-blue-50 text-blue-700',
+  CANCELLED: 'bg-red-50 text-red-700',
+};
+
 export default function OrderRoute() {
   const {order, lineItems, discountValue, discountPercentage} = useLoaderData();
+  const statusColor = STATUS_COLORS[order.fulfillmentStatus] || 'bg-gray-100 text-gray-600';
+
   return (
-    <div className="account-order">
-      <h2>Order {order.name}</h2>
-      <p>Placed on {new Date(order.processedAt).toDateString()}</p>
-      <br />
-      <div>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Product</th>
-              <th scope="col">Price</th>
-              <th scope="col">Quantity</th>
-              <th scope="col">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lineItems.map((lineItem, lineItemIndex) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <OrderLineRow key={lineItemIndex} lineItem={lineItem} />
-            ))}
-          </tbody>
-          <tfoot>
-            {((discountValue && discountValue.amount) ||
-              discountPercentage) && (
-              <tr>
-                <th scope="row" colSpan={3}>
-                  <p>Discounts</p>
-                </th>
-                <th scope="row">
-                  <p>Discounts</p>
-                </th>
-                <td>
-                  {discountPercentage ? (
-                    <span>-{discountPercentage}% OFF</span>
-                  ) : (
-                    discountValue && <Money data={discountValue} />
-                  )}
-                </td>
-              </tr>
-            )}
-            <tr>
-              <th scope="row" colSpan={3}>
-                <p>Subtotal</p>
-              </th>
-              <th scope="row">
-                <p>Subtotal</p>
-              </th>
-              <td>
-                <Money data={order.subtotalPriceV2} />
-              </td>
-            </tr>
-            <tr>
-              <th scope="row" colSpan={3}>
-                Tax
-              </th>
-              <th scope="row">
-                <p>Tax</p>
-              </th>
-              <td>
-                <Money data={order.totalTaxV2} />
-              </td>
-            </tr>
-            <tr>
-              <th scope="row" colSpan={3}>
-                Total
-              </th>
-              <th scope="row">
-                <p>Total</p>
-              </th>
-              <td>
-                <Money data={order.totalPriceV2} />
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+    <div className="max-w-3xl mx-auto px-4 py-8">
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h3>Shipping Address</h3>
-          {order?.shippingAddress ? (
-            <address>
-              <p>
-                {order.shippingAddress.firstName &&
-                  order.shippingAddress.firstName + ' '}
-                {order.shippingAddress.lastName}
-              </p>
-              {order?.shippingAddress?.formatted ? (
-                order.shippingAddress.formatted.map((line) => (
-                  <p key={line}>{line}</p>
-                ))
-              ) : (
-                <></>
-              )}
-            </address>
-          ) : (
-            <p>No shipping address defined</p>
+          <Link to="/account/orders" className="text-xs text-gray-400 hover:text-gray-600 transition-colors mb-1 inline-flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Semua Pesanan
+          </Link>
+          <h2 className="text-xl font-bold text-gray-900">{order.name}</h2>
+          <p className="text-sm text-gray-400 mt-0.5">{new Date(order.processedAt).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+        </div>
+        <span className={`text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap ${statusColor}`}>
+          {order.fulfillmentStatus.replace(/_/g, ' ')}
+        </span>
+      </div>
+
+      {/* Line items */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Produk</p>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {lineItems.map((lineItem, i) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <OrderLineRow key={i} lineItem={lineItem} />
+          ))}
+        </div>
+
+        {/* Totals */}
+        <div className="border-t border-gray-100 px-4 py-3 flex flex-col gap-2">
+          {((discountValue && discountValue.amount) || discountPercentage) && (
+            <div className="flex justify-between text-sm text-emerald-600">
+              <span>Diskon</span>
+              <span>
+                {discountPercentage ? `-${discountPercentage}%` : discountValue && <Money data={discountValue} />}
+              </span>
+            </div>
           )}
-          <h3>Status</h3>
-          <div>
-            <p>{order.fulfillmentStatus}</p>
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Subtotal</span>
+            <Money data={order.subtotalPriceV2} />
+          </div>
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Pajak</span>
+            <Money data={order.totalTaxV2} />
+          </div>
+          <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-100">
+            <span>Total</span>
+            <Money data={order.totalPriceV2} />
           </div>
         </div>
       </div>
-      <br />
-      <p>
-        <a target="_blank" href={order.statusUrl} rel="noreferrer">
-          View Order Status →
-        </a>
-      </p>
+
+      {/* Shipping address */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 mb-6">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Alamat Pengiriman</p>
+        {order?.shippingAddress ? (
+          <address className="not-italic text-sm text-gray-700 leading-relaxed">
+            <p className="font-semibold text-gray-900">
+              {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+            </p>
+            {order.shippingAddress.formatted?.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </address>
+        ) : (
+          <p className="text-sm text-gray-400">Tidak ada alamat pengiriman</p>
+        )}
+      </div>
+
+      {/* CTA */}
+      <a
+        target="_blank"
+        href={order.statusUrl}
+        rel="noreferrer"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors duration-200"
+      >
+        Lihat Status Pesanan
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+        </svg>
+      </a>
     </div>
   );
 }
 
 function OrderLineRow({lineItem}) {
   return (
-    <tr key={lineItem.variant.id}>
-      <td>
-        <div>
-          <Link to={`/products/${lineItem.variant.product.handle}`}>
-            {lineItem?.variant?.image && (
-              <div>
-                <Image data={lineItem.variant.image} width={96} height={96} />
-              </div>
-            )}
-          </Link>
-          <div>
-            <p>{lineItem.title}</p>
-            <small>{lineItem.variant.title}</small>
+    <div className="flex items-center gap-3 px-4 py-3">
+      <Link to={`/products/${lineItem.variant.product.handle}`} className="flex-shrink-0">
+        {lineItem?.variant?.image ? (
+          <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
+            <Image data={lineItem.variant.image} width={56} height={56} className="w-full h-full object-contain" />
           </div>
-        </div>
-      </td>
-      <td>
-        <Money data={lineItem.variant.price} />
-      </td>
-      <td>{lineItem.quantity}</td>
-      <td>
-        <Money data={lineItem.discountedTotalPrice} />
-      </td>
-    </tr>
+        ) : (
+          <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-300">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909" />
+            </svg>
+          </div>
+        )}
+      </Link>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 truncate">{lineItem.title}</p>
+        {lineItem.variant.title !== 'Default Title' && (
+          <p className="text-xs text-gray-400 mt-0.5">{lineItem.variant.title}</p>
+        )}
+        <p className="text-xs text-gray-400 mt-0.5">Qty: {lineItem.quantity}</p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-sm font-semibold text-gray-900"><Money data={lineItem.discountedTotalPrice} /></p>
+        {lineItem.quantity > 1 && (
+          <p className="text-xs text-gray-400"><Money data={lineItem.variant.price} /> / item</p>
+        )}
+      </div>
+    </div>
   );
 }
 

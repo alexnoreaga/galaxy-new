@@ -113,126 +113,103 @@ export async function action({request, context}) {
   }
 }
 
+const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition";
+const labelClass = "text-sm font-medium text-gray-700";
+
 export default function AccountProfile() {
   const account = useOutletContext();
   const {state} = useNavigation();
   const action = useActionData();
   const customer = action?.customer ?? account?.customer;
 
-  // console.log('Ini adalah customer ',customer.email)
-
   return (
-    <div className="account-profile">
-      <h2>My profile</h2>
-      <br />
-      <Form method="PUT">
-        <legend>Personal information</legend>
-        <fieldset>
-          <label htmlFor="firstName">First name</label>
-          <input
-            id="firstName"
-            name="firstName"
-            type="text"
-            autoComplete="given-name"
-            placeholder="First name"
-            aria-label="First name"
-            defaultValue={customer.firstName ?? ''}
-            minLength={2}
-          />
-          <label htmlFor="lastName">Last name</label>
-          <input
-            id="lastName"
-            name="lastName"
-            type="text"
-            autoComplete="family-name"
-            placeholder="Last name"
-            aria-label="Last name"
-            defaultValue={customer.lastName ?? ''}
-            minLength={2}
-          />
-          <label htmlFor="phone">Mobile</label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            placeholder="Mobile"
-            aria-label="Mobile"
-            defaultValue={customer.phone ?? ''}
-          />
-          <label htmlFor="email">Email address</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            placeholder="Email address"
-            aria-label="Email address"
-            defaultValue={customer.email ?? ''}
-          />
-          <div className="account-profile-marketing">
-            <input
-              id="acceptsMarketing"
-              name="acceptsMarketing"
-              type="checkbox"
-              placeholder="Accept marketing"
-              aria-label="Accept marketing"
-              defaultChecked={customer.acceptsMarketing}
-            />
-            <label htmlFor="acceptsMarketing">
-              &nbsp; Subscribed to marketing communications
-            </label>
+    <div className="flex flex-col gap-4">
+
+      {/* Personal info card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-5">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Informasi Pribadi</h2>
+        <Form method="PUT" className="flex flex-col gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="firstName" className={labelClass}>Nama Depan</label>
+              <input id="firstName" name="firstName" type="text" autoComplete="given-name"
+                placeholder="Nama depan" aria-label="First name"
+                defaultValue={customer.firstName ?? ''} minLength={2} className={inputClass} />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="lastName" className={labelClass}>Nama Belakang</label>
+              <input id="lastName" name="lastName" type="text" autoComplete="family-name"
+                placeholder="Nama belakang" aria-label="Last name"
+                defaultValue={customer.lastName ?? ''} minLength={2} className={inputClass} />
+            </div>
           </div>
-        </fieldset>
-        <br />
-        <legend>Change password (optional)</legend>
-        <fieldset>
-          <label htmlFor="currentPassword">Current password</label>
-          <input
-            id="currentPassword"
-            name="currentPassword"
-            type="password"
-            autoComplete="current-password"
-            placeholder="Current password"
-            aria-label="Current password"
-            minLength={8}
-          />
 
-          <label htmlFor="newPassword">New password</label>
-          <input
-            id="newPassword"
-            name="newPassword"
-            type="password"
-            placeholder="New password"
-            aria-label="New password"
-            minLength={8}
-          />
+          <div className="flex flex-col gap-1">
+            <label htmlFor="phone" className={labelClass}>Nomor HP</label>
+            <input id="phone" name="phone" type="tel" autoComplete="tel"
+              placeholder="+6281234567890" aria-label="Mobile"
+              defaultValue={customer.phone ?? ''} className={inputClass} />
+          </div>
 
-          <label htmlFor="newPasswordConfirm">New password (confirm)</label>
-          <input
-            id="newPasswordConfirm"
-            name="newPasswordConfirm"
-            type="password"
-            placeholder="New password (confirm)"
-            aria-label="New password confirm"
-            minLength={8}
-          />
-          <small>Passwords must be at least 8 characters.</small>
-        </fieldset>
-        {action?.error ? (
-          <p>
-            <mark>
-              <small>{action.error}</small>
-            </mark>
-          </p>
-        ) : (
-          <br />
-        )}
-        <button type="submit" disabled={state !== 'idle'}>
-          {state !== 'idle' ? 'Updating' : 'Update'}
-        </button>
-      </Form>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="email" className={labelClass}>Email</label>
+            <input id="email" name="email" type="email" autoComplete="email" required
+              placeholder="Email address" aria-label="Email address"
+              defaultValue={customer.email ?? ''} className={inputClass} />
+          </div>
+
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input id="acceptsMarketing" name="acceptsMarketing" type="checkbox"
+              aria-label="Accept marketing" defaultChecked={customer.acceptsMarketing}
+              className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900" />
+            <span className="text-sm text-gray-600">Terima info promo & penawaran terbaru</span>
+          </label>
+
+          <div className="border-t border-gray-100 pt-4 mt-1">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Ganti Password <span className="text-gray-400 normal-case font-normal">(opsional)</span></h3>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="currentPassword" className={labelClass}>Password Saat Ini</label>
+                <input id="currentPassword" name="currentPassword" type="password"
+                  autoComplete="current-password" placeholder="Password saat ini"
+                  aria-label="Current password" minLength={8} className={inputClass} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="newPassword" className={labelClass}>Password Baru</label>
+                  <input id="newPassword" name="newPassword" type="password"
+                    placeholder="Password baru" aria-label="New password"
+                    minLength={8} className={inputClass} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="newPasswordConfirm" className={labelClass}>Konfirmasi Password</label>
+                  <input id="newPasswordConfirm" name="newPasswordConfirm" type="password"
+                    placeholder="Ulangi password baru" aria-label="New password confirm"
+                    minLength={8} className={inputClass} />
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">Password minimal 8 karakter.</p>
+            </div>
+          </div>
+
+          {action?.error && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <span>{action.error?.message || action.error}</span>
+            </div>
+          )}
+
+          <button type="submit" disabled={state !== 'idle'}
+            className="w-full sm:w-auto sm:self-end bg-gray-900 hover:bg-gray-700 disabled:opacity-60 text-white font-semibold py-2.5 px-6 rounded-xl text-sm transition-colors duration-200 active:scale-[0.98]">
+            {state !== 'idle' ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </button>
+        </Form>
+      </div>
+
     </div>
   );
 }
