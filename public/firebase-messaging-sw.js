@@ -16,13 +16,25 @@ const messaging = firebase.messaging();
 // Handle background messages (app closed or in background)
 messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload?.notification?.title || 'Galaxy Camera';
+
+  // Firebase Console puts the link in fcmOptions.link or notification.click_action
+  // NOT in payload.data.url — so we extract it from the right place
+  const clickUrl =
+    payload?.fcmOptions?.link ||
+    payload?.notification?.click_action ||
+    payload?.data?.url ||
+    'https://galaxy.co.id/';
+
   const notificationOptions = {
     body: payload?.notification?.body || 'New notification',
     icon: payload?.notification?.icon || '/icon-512x512.png',
     badge: '/apple-icon-72x72.png',
     tag: 'galaxy-notification',
     requireInteraction: false,
-    data: payload?.data || {},
+    data: {
+      ...payload?.data,
+      url: clickUrl, // ensure notificationclick handler always has the correct URL
+    },
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
