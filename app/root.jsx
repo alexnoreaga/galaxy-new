@@ -136,6 +136,86 @@ export default function App() {
     };
   }, []);
 
+  // Google One Tap — load dynamically after hydration to avoid SSR conflicts
+  useEffect(() => {
+    if (data.isLoggedIn) return;
+
+    window.handleGoogleOneTap = function (response) {
+      fetch('/api/google-auth', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({credential: response.credential}),
+      })
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.success) {
+            window.location.href = '/account';
+          } else {
+            window.location.href =
+              '/account/login?google_error=' + encodeURIComponent(result.error || 'Google login failed');
+          }
+        })
+        .catch(() => {
+          window.location.href =
+            '/account/login?google_error=' + encodeURIComponent('Terjadi kesalahan, coba lagi.');
+        });
+    };
+
+    const existing = document.getElementById('google-gsi-script');
+    if (existing) {
+      // Script already loaded — just initialize
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: '178369001961-1044kg73e0tdvetg8lhni93m0djvagv8.apps.googleusercontent.com',
+          callback: window.handleGoogleOneTap,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          itp_support: true,
+        });
+        window.google.accounts.id.prompt();
+      }
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = 'google-gsi-script';
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: '178369001961-1044kg73e0tdvetg8lhni93m0djvagv8.apps.googleusercontent.com',
+          callback: window.handleGoogleOneTap,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          itp_support: true,
+        });
+        window.__googleGsiReady = true;
+        // Render the button if the login page container exists
+        const btnContainer = document.getElementById('google-btn-container');
+        if (btnContainer) {
+          window.google.accounts.id.renderButton(btnContainer, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            width: btnContainer.offsetWidth || 400,
+            text: 'signin_with',
+            logo_alignment: 'left',
+          });
+        }
+        window.google.accounts.id.prompt((notification) => {
+          console.log('Google One Tap notification:', notification.getMomentType(), notification.getNotDisplayedReason?.() || notification.getSkippedReason?.() || '');
+        });
+      }
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      delete window.handleGoogleOneTap;
+    };
+  }, [data.isLoggedIn]);
+
 
 
 
@@ -689,6 +769,7 @@ export function ErrorBoundary() {
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <LiveReload nonce={nonce} />
+
 
       </body>
     </html>

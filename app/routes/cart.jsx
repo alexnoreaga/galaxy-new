@@ -84,17 +84,16 @@ export default function Cart() {
   const [root] = useMatches();
   const cart = root.data?.cart;
 
-
   return (
-    <div className="cart">
-      <h1>Cart</h1>
-      <Suspense fallback={<p>Loading cart ...</p>}>
-        <Await errorElement={<div>An error occurred</div>} resolve={cart}>
-          {(cart) => {
-            return <CartMain layout="page" cart={cart} />;
-          }}
-        </Await>
-      </Suspense>
+    <div className="min-h-[70vh] bg-gray-50 py-8 px-4">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Keranjang Belanja</h1>
+        <Suspense fallback={<p className="text-gray-500 text-sm">Memuat keranjang...</p>}>
+          <Await errorElement={<div className="text-red-500 text-sm">Terjadi kesalahan.</div>} resolve={cart}>
+            {(cart) => <CartMain layout="page" cart={cart} />}
+          </Await>
+        </Suspense>
+      </div>
     </div>
   );
 }

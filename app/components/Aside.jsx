@@ -1,13 +1,3 @@
-/**
- * A side bar component with Overlay that works without JavaScript.
- * @example
- * ```jsx
- * <Aside id="search-aside" heading="SEARCH">
- *  <input type="search" />
- *  ...
- * </Aside>
- * ```
- */
 export function Aside({children, heading, id = 'aside'}) {
   return (
     <div aria-modal className="overlay" id={id} role="dialog">
@@ -19,11 +9,11 @@ export function Aside({children, heading, id = 'aside'}) {
         }}
       />
       <aside>
-        <header className="mx-auto container">
-          <h3>{heading}</h3>
+        <header className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+          <h2 className="text-base font-semibold text-gray-900 uppercase tracking-wider">{heading}</h2>
           <CloseAside />
         </header>
-        <main className="mx-auto container">{children}</main>
+        <main className="flex-1 overflow-hidden flex flex-col min-h-0">{children}</main>
       </aside>
     </div>
   );
@@ -31,9 +21,15 @@ export function Aside({children, heading, id = 'aside'}) {
 
 function CloseAside() {
   return (
-    /* eslint-disable-next-line jsx-a11y/anchor-is-valid */
-    <a className="close" href="#" onChange={() => history.go(-1)}>
-      &times;
+    <a
+      href="#"
+      onClick={() => history.go(-1)}
+      className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-800 transition-colors no-underline"
+      aria-label="Close"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </svg>
     </a>
   );
 }

@@ -1,5 +1,6 @@
 import {json, redirect} from '@shopify/remix-oxygen';
-import {Form, Link, useActionData} from '@remix-run/react';
+import {Form, Link, useActionData, useSearchParams} from '@remix-run/react';
+import {useEffect} from 'react';
 
 export const meta = () => {
   return [{title: 'Login'}];
@@ -60,7 +61,26 @@ export async function action({request, context}) {
 
 export default function Login() {
   const data = useActionData();
+  const [searchParams] = useSearchParams();
   const error = data?.error || null;
+  const googleError = searchParams.get('google_error');
+
+  // If GSI script already loaded (client-side nav), render the button now
+  useEffect(() => {
+    if (window.__googleGsiReady && window.google?.accounts?.id) {
+      const container = document.getElementById('google-btn-container');
+      if (container && !container.hasChildNodes()) {
+        window.google.accounts.id.renderButton(container, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          width: container.offsetWidth || 400,
+          text: 'signin_with',
+          logo_alignment: 'left',
+        });
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gray-50">
@@ -123,6 +143,22 @@ export default function Login() {
               />
             </div>
 
+            {googleError && (
+              <div className="flex items-start gap-2 bg-orange-50 border border-orange-200 text-orange-700 text-sm rounded-xl px-4 py-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+                <div>
+                  <p className="font-medium">Login Google gagal</p>
+                  <p className="text-orange-600 mt-0.5">
+                    {googleError.includes('find or create')
+                      ? 'Email ini sudah terdaftar secara manual. Silakan masuk dengan email & password terlebih dahulu.'
+                      : googleError}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {error && (
               <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -140,7 +176,17 @@ export default function Login() {
             </button>
           </Form>
 
-          <div className="mt-5 text-center text-sm text-gray-500">
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-gray-100" />
+            <span className="text-xs text-gray-400">atau</span>
+            <div className="flex-1 h-px bg-gray-100" />
+          </div>
+
+          {/* Google Sign In Button — rendered by Google GSI for reliability */}
+          <div id="google-btn-container" className="w-full flex justify-center" />
+
+          <div className="mt-4 text-center text-sm text-gray-500">
             Belum punya akun?{' '}
             <Link to="/account/register" className="font-semibold text-gray-900 hover:underline">
               Daftar sekarang

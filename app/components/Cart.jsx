@@ -4,15 +4,11 @@ import {useVariantUrl} from '~/utils';
 
 export function CartMain({layout, cart}) {
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
-  const withDiscount =
-    cart &&
-    Boolean(cart.discountCodes.filter((code) => code.applicable).length);
-  const className = `cart-main ${withDiscount ? 'with-discount' : ''}`;
 
   return (
-    <div className={className}>
-      <CartEmpty hidden={linesCount} layout={layout} />
-      <CartDetails cart={cart} layout={layout} />
+    <div className="flex flex-col flex-1 min-h-0">
+      {!linesCount && <CartEmpty layout={layout} />}
+      {linesCount && <CartDetails cart={cart} layout={layout} />}
     </div>
   );
 }
@@ -20,8 +16,28 @@ export function CartMain({layout, cart}) {
 function CartDetails({layout, cart}) {
   const cartHasItems = !!cart && cart.totalQuantity > 0;
 
+  if (layout === 'page') {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Items */}
+        <div className="lg:col-span-2">
+          <CartLines lines={cart?.lines} layout={layout} />
+        </div>
+        {/* Summary */}
+        {cartHasItems && (
+          <div className="lg:col-span-1">
+            <CartSummary cost={cart.cost} layout={layout}>
+              <CartDiscounts discountCodes={cart.discountCodes} />
+              <CartCheckoutActions checkoutUrl={cart.checkoutUrl} />
+            </CartSummary>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="cart-details m-2">
+    <div className="flex flex-col flex-1 min-h-0">
       <CartLines lines={cart?.lines} layout={layout} />
       {cartHasItems && (
         <CartSummary cost={cart.cost} layout={layout}>
@@ -36,9 +52,21 @@ function CartDetails({layout, cart}) {
 function CartLines({lines, layout}) {
   if (!lines) return null;
 
+  if (layout === 'page') {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <ul className="divide-y divide-gray-100">
+          {lines.nodes.map((line) => (
+            <CartLineItem key={line.id} line={line} layout={layout} />
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
   return (
-    <div aria-labelledby="cart-lines">
-      <ul>
+    <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
+      <ul className="flex flex-col gap-4">
         {lines.nodes.map((line) => (
           <CartLineItem key={line.id} line={line} layout={layout} />
         ))}
@@ -48,49 +76,53 @@ function CartLines({lines, layout}) {
 }
 
 function CartLineItem({layout, line}) {
-  const {id, merchandise} = line;
+  const {merchandise} = line;
   const {product, title, image, selectedOptions} = merchandise;
   const lineItemUrl = useVariantUrl(product.handle, selectedOptions);
+  const isPage = layout === 'page';
 
   return (
-    <li key={id} className="cart-line">
+    <li className={`flex gap-4 ${isPage ? 'p-4 sm:p-5' : 'pb-4 border-b border-gray-100 last:border-0'}`}>
       {image && (
-        <Image
-          alt={title}
-          aspectRatio="1/1"
-          data={image}
-          height={100}
-          loading="lazy"
-          width={100}
-        />
+        <div className={`flex-shrink-0 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 ${isPage ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-20 h-20'}`}>
+          <Image
+            alt={title}
+            aspectRatio="1/1"
+            data={image}
+            height={isPage ? 112 : 80}
+            loading="lazy"
+            width={isPage ? 112 : 80}
+            className="w-full h-full object-cover"
+          />
+        </div>
       )}
 
-      <div>
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
         <Link
           prefetch="intent"
           to={lineItemUrl}
           onClick={() => {
-            if (layout === 'aside') {
-              // close the drawer
-              window.location.href = lineItemUrl;
-            }
+            if (layout === 'aside') window.location.href = lineItemUrl;
           }}
+          className="no-underline hover:underline"
         >
-          <p>
-            <strong>{product.title}</strong>
+          <p className={`font-semibold text-gray-900 leading-tight line-clamp-2 ${isPage ? 'text-sm sm:text-base' : 'text-sm'}`}>
+            {product.title}
           </p>
         </Link>
-        <CartLinePrice line={line} as="span" />
-        <ul>
+
+        <ul className="flex flex-wrap gap-x-2 gap-y-0.5">
           {selectedOptions.map((option) => (
-            <li key={option.name}>
-              <small className='text-gray-500'>
-                {option.name}: {option.value}
-              </small>
+            <li key={option.name} className="text-xs text-gray-500">
+              {option.name}: {option.value}
             </li>
           ))}
         </ul>
-        <CartLineQuantity line={line} />
+
+        <div className={`flex items-center justify-between mt-auto ${isPage ? 'pt-2' : 'pt-1'}`}>
+          <CartLinePrice line={line} />
+          <CartLineQuantity line={line} />
+        </div>
       </div>
     </li>
   );
@@ -100,32 +132,42 @@ function CartCheckoutActions({checkoutUrl}) {
   if (!checkoutUrl) return null;
 
   return (
-    <div className="mb-16 ">
-      <a href={checkoutUrl} target="_self" className='hover:underline'>
-        <p className='text-white bg-blue-600 py-3 m-auto text-center w-full font-semibold rounded-md no-underline hover:underline'>Continue to Checkout &rarr;</p>
-      </a>
-      <br />
-    </div>
+    <a
+      href={checkoutUrl}
+      target="_self"
+      className="block w-full bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold text-center py-3.5 rounded-xl transition-colors duration-200 no-underline active:scale-[0.98]"
+    >
+      Lanjut ke Pembayaran &rarr;
+    </a>
   );
 }
 
 export function CartSummary({cost, layout, children = null}) {
-  const className =
-    layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside bottom-10';
+  if (layout !== 'aside') {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:sticky lg:top-24 flex flex-col gap-4">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Ringkasan Pesanan</h2>
+        <div className="flex items-center justify-between py-3 border-t border-b border-gray-100">
+          <span className="text-sm text-gray-700">Subtotal</span>
+          <span className="font-bold text-lg text-gray-900">
+            {cost?.subtotalAmount?.amount ? <Money data={cost.subtotalAmount} /> : '-'}
+          </span>
+        </div>
+        <p className="text-xs text-gray-400">Ongkir & pajak dihitung saat checkout</p>
+        {children}
+      </div>
+    );
+  }
 
   return (
-    <div aria-labelledby="cart-summary" className={className}>
-      <h4 className='text-sm'>Totals</h4>
-      <dl className="cart-subtotal">
-        <dt className='text-sm'>Subtotal </dt>
-        <dd className='font-bold ml-2 text-lg'>
-          {cost?.subtotalAmount?.amount ? (
-            <Money data={cost?.subtotalAmount} />
-          ) : (
-            '-'
-          )}
-        </dd>
-      </dl>
+    <div className="flex-shrink-0 border-t border-gray-100 bg-white px-4 pt-3 pb-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500">Subtotal</span>
+        <span className="text-lg font-bold text-gray-900">
+          {cost?.subtotalAmount?.amount ? <Money data={cost.subtotalAmount} /> : '-'}
+        </span>
+      </div>
+      <p className="text-xs text-gray-400">Ongkir & pajak dihitung saat checkout</p>
       {children}
     </div>
   );
@@ -138,7 +180,13 @@ function CartLineRemoveButton({lineIds}) {
       action={CartForm.ACTIONS.LinesRemove}
       inputs={{lineIds}}
     >
-      <button type="submit" className='bg-rose-700 text-white px-2 text-sm rounded'>Hapus</button>
+      <button
+        type="submit"
+        className="text-xs text-gray-400 hover:text-red-500 transition-colors underline-offset-2 hover:underline"
+        aria-label="Hapus item"
+      >
+        Hapus
+      </button>
     </CartForm>
   );
 }
@@ -150,31 +198,28 @@ function CartLineQuantity({line}) {
   const nextQuantity = Number((quantity + 1).toFixed(0));
 
   return (
-    <div className="cart-line-quantiy items-center gap-1">
-      <small className='items-center font-semibold'>Jumlah : {quantity} &nbsp;&nbsp;</small>
+    <div className="flex items-center gap-1.5">
       <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
         <button
-          aria-label="Decrease quantity"
+          aria-label="Kurangi jumlah"
           disabled={quantity <= 1}
-          name="decrease-quantity"
-          value={prevQuantity}
-          className='border rounded-md px-1'
+          className="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
         >
-          <span>&#8722; </span>
+          &#8722;
         </button>
       </CartLineUpdateButton>
-      &nbsp;
+
+      <span className="w-5 text-center text-sm font-medium text-gray-800">{quantity}</span>
+
       <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
         <button
-          aria-label="Increase quantity"
-          name="increase-quantity"
-          value={nextQuantity}
-          className='border rounded-md px-1'
+          aria-label="Tambah jumlah"
+          className="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-400 transition-colors text-sm"
         >
-          <span>&#43;</span>
+          &#43;
         </button>
       </CartLineUpdateButton>
-      &nbsp;
+
       <CartLineRemoveButton lineIds={[lineId]} />
     </div>
   );
@@ -188,35 +233,33 @@ function CartLinePrice({line, priceType = 'regular', ...passthroughProps}) {
       ? line.cost.totalAmount
       : line.cost.compareAtAmountPerQuantity;
 
-  if (moneyV2 == null) {
-    return null;
-  }
+  if (moneyV2 == null) return null;
 
   return (
-    <div className='font-bold text-rose-700'>
+    <span className="text-sm font-bold text-gray-900">
       <Money withoutTrailingZeros {...passthroughProps} data={moneyV2} />
-    </div>
+    </span>
   );
 }
 
-export function CartEmpty({hidden = false, layout = 'aside'}) {
+export function CartEmpty({layout = 'aside'}) {
   return (
-    <div hidden={hidden}>
-      <br />
-      <p>
-        Looks like you haven&rsquo;t added anything yet, let&rsquo;s get you
-        started!
-      </p>
-      <br />
+    <div className="flex flex-col items-center justify-center h-full px-6 py-16 text-center">
+      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-400">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+        </svg>
+      </div>
+      <p className="text-sm font-semibold text-gray-900 mb-1">Keranjang kamu kosong</p>
+      <p className="text-sm text-gray-500 mb-6">Yuk mulai belanja produk kamera favoritmu!</p>
       <Link
         to="/collections"
         onClick={() => {
-          if (layout === 'aside') {
-            window.location.href = '/collections';
-          }
+          if (layout === 'aside') window.location.href = '/collections';
         }}
+        className="inline-block bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors no-underline"
       >
-        Continue shopping →
+        Mulai Belanja
       </Link>
     </div>
   );
@@ -229,27 +272,35 @@ function CartDiscounts({discountCodes}) {
       ?.map(({code}) => code) || [];
 
   return (
-    <div>
-      {/* Have existing discount, display it with a remove option */}
-      <dl hidden={!codes.length}>
-        <div>
-          <dt>Discount(s)</dt>
+    <div className="flex flex-col gap-2">
+      {codes.length > 0 && (
+        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-2 text-sm text-green-700">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span className="font-medium">{codes.join(', ')}</span>
+          </div>
           <UpdateDiscountForm>
-            <div className="cart-discount">
-              <code>{codes?.join(', ')}</code>
-              &nbsp;
-              <button>Remove</button>
-            </div>
+            <button className="text-xs text-green-600 hover:text-green-800 font-medium">Hapus</button>
           </UpdateDiscountForm>
         </div>
-      </dl>
+      )}
 
-      {/* Show an input to apply a discount */}
       <UpdateDiscountForm discountCodes={codes}>
-        <div>
-          <input type="text" name="discountCode" placeholder="Discount code" />
-          &nbsp;
-          <button type="submit" className='border rounded-md p-2'>Apply</button>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            name="discountCode"
+            placeholder="Kode diskon"
+            className="flex-1 h-9 border border-gray-200 rounded-xl px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          />
+          <button
+            type="submit"
+            className="h-9 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition-colors"
+          >
+            Pakai
+          </button>
         </div>
       </UpdateDiscountForm>
     </div>
@@ -261,9 +312,7 @@ function UpdateDiscountForm({discountCodes, children}) {
     <CartForm
       route="/cart"
       action={CartForm.ACTIONS.DiscountCodesUpdate}
-      inputs={{
-        discountCodes: discountCodes || [],
-      }}
+      inputs={{discountCodes: discountCodes || []}}
     >
       {children}
     </CartForm>

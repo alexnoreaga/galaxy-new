@@ -25,7 +25,8 @@ export default async function handleRequest(
       "'self'",
       'https://cdn.shopify.com',
       'https://shopify.com',
-      'https://www.gstatic.com'
+      'https://www.gstatic.com',
+      'https://accounts.google.com',
     ],
     connectSrc: [
       "'self'",
@@ -34,7 +35,9 @@ export default async function handleRequest(
       'https://fcmregistrations.googleapis.com',
       'https://firebaseinstallations.googleapis.com',
       'https://firebaselogging.googleapis.com',
-      'https://*.googleapis.com'
+      'https://*.googleapis.com',
+      'https://accounts.google.com',
+      'https://oauth2.googleapis.com',
     ],
     workerSrc: [
       "'self'",
@@ -46,8 +49,8 @@ export default async function handleRequest(
       'https://www.youtube.com',
       'https://www.googletagmanager.com',
       'https://tagmanager.google.com',
-      'https://analytics.google.com/'
-
+      'https://analytics.google.com/',
+      'https://accounts.google.com',
     ],
 
   });
