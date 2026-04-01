@@ -38,7 +38,7 @@ const scrollRef = useRef(null);
               <Link  
                 to={`/products/${relate?.handle}`}>
                 <div className="flex flex-row">
-                <img src={relate?.featuredImage?.url} className='h-28 w-28 rounded-md' alt={relate?.title}/>
+                <img src={relate?.featuredImage?.url} className='h-28 w-28 rounded-md' alt={relate?.title} width={112} height={112} loading="lazy" />
                 <div className="flex flex-col">
                     <div className='text-xs font-bold pt-1'>{relate?.title.length > 50 ? relate?.title.substring(0, 50) + '...' : relate.title}</div>
                     <div className="text-rose-700 font-bold text-sm mt-2">Rp{parseFloat(relate?.priceRange?.minVariantPrice?.amount).toLocaleString("id-ID")}</div>

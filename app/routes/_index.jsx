@@ -1,6 +1,6 @@
 import {defer} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link,useOutletContext} from '@remix-run/react';
-import {Suspense} from 'react';
+import {Suspense, lazy} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
 import {KategoriHalDepan} from '~/components/KategoriHalDepan';
@@ -10,15 +10,14 @@ import { BrandPopular } from '../components/BrandPopular';
 import {useRef} from "react";
 import { useLayoutEffect, useState } from 'react';
 import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
-import {YoutubeLink} from '~/components/YoutubeLink';
-
 
 import { Carousel } from '~/components/Carousel';
-import { Modal } from '~/components/Modal';
-import { AboutSeo } from '~/components/AboutSeo';
 import { TombolWa } from '~/components/TombolWa';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
-import { ModalBalasCepat } from '~/components/ModalBalasCepat';
+
+// Lazy-load heavy below-fold / conditional components
+const AboutSeo = lazy(() => import('~/components/AboutSeo').then(m => ({default: m.AboutSeo})));
+const ModalBalasCepat = lazy(() => import('~/components/ModalBalasCepat').then(m => ({default: m.ModalBalasCepat})));
 
 
 
@@ -114,7 +113,11 @@ export default function Homepage() {
   return (
     <div>
 
-      {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={data?.balasCepat?.metaobjects?.nodes}/>}
+      {bukaModalBalasCepat && (
+        <Suspense fallback={null}>
+          <ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={data?.balasCepat?.metaobjects?.nodes}/>
+        </Suspense>
+      )}
       
 
       
@@ -217,7 +220,9 @@ export default function Homepage() {
       <FeaturedBlogs blogs={data.blogs}/>
       </div>
 
-      <AboutSeo/>
+      <Suspense fallback={null}>
+        <AboutSeo/>
+      </Suspense>
 
       {foundAdmin && <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} />}
 
@@ -294,9 +299,10 @@ function BannerKecil({ images }) {
                       <img
                         src={image.fields[0].reference.image.url}
                         alt={`Banner ${index}`}
-                        width={'320'}
-                        height={'120'}
+                        width={320}
+                        height={120}
                         className='w-80 h-auto object-cover group-hover:scale-105 transition-transform duration-300'
+                        loading="lazy"
                       />
                     </div>
                   </a>
@@ -571,11 +577,12 @@ function FeaturedBlogs({ blogs }) {
                   <div className='mx-auto'>
                     <div className='h-60 w-80 mx-auto rounded-xl overflow-hidden bg-neutral-50 shadow-lg'>
                       <img
-                        width={'320'}
-                        height={'240'}
+                        width={320}
+                        height={240}
                         className='object-contain h-60 w-80 p-1 m-auto'
                         src={blog.node.image.url}
                         alt={blog.node.title}
+                        loading="lazy"
                       />
                     </div>
                     <div className='flex flex-row items-center text-neutral-500 gap-2 pt-2'>

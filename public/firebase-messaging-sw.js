@@ -13,10 +13,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Handle background messages
+// Handle background messages (app closed or in background)
 messaging.onBackgroundMessage((payload) => {
-  console.log('📩 Background message received:', payload);
-  
   const notificationTitle = payload?.notification?.title || 'Galaxy Camera';
   const notificationOptions = {
     body: payload?.notification?.body || 'New notification',
@@ -24,7 +22,31 @@ messaging.onBackgroundMessage((payload) => {
     badge: '/apple-icon-72x72.png',
     tag: 'galaxy-notification',
     requireInteraction: false,
+    data: payload?.data || {},
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification click — open/focus the site at the right URL
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || 'https://galaxy.co.id/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If the site is already open, focus it and navigate to the URL
+      for (const client of clientList) {
+        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
+        }
+      }
+      // Site is not open — open a new tab
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });

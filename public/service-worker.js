@@ -1,73 +1,7 @@
-// service-worker.js
+// service-worker.js — caching only
+// Firebase messaging is handled exclusively by firebase-messaging-sw.js
 
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU",
-  authDomain: "galaxypwa.firebaseapp.com",
-  projectId: "galaxypwa",
-  storageBucket: "galaxypwa.firebasestorage.app",
-  messagingSenderId: "1035942613391",
-  appId: "1:1035942613391:web:468294eff27a18ac00bbfa",
-};
-
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
-
-// Handle background messages
-messaging.onBackgroundMessage((payload) => {
-  console.log('📩 Message received (background):', payload);
-  
-  const notificationTitle = payload?.notification?.title || 'Galaxy Camera';
-  const notificationBody = payload?.notification?.body || 'You have a new message';
-  
-  console.log('Title:', notificationTitle);
-  console.log('Body:', notificationBody);
-  
-  const notificationOptions = {
-    body: notificationBody,
-    icon: payload?.notification?.icon || '/icon-512x512.png',
-    badge: '/apple-icon-72x72.png',
-    tag: 'galaxy-notification',
-    requireInteraction: false,
-    data: payload?.data || {},
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions)
-    .then(() => console.log('✅ Notification shown (background)'))
-    .catch(err => console.error('❌ Failed to show notification:', err));
-});
-
-// Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
-  console.log('📲 Notification clicked:', event.notification.tag);
-  
-  event.notification.close();
-  
-  // Get custom URL from notification data, fallback to home
-  const urlToOpen = event.notification.data?.url || 'https://www.galaxy.co.id/';
-  console.log('Opening URL:', urlToOpen);
-  
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if website is already open
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        if ('focus' in client) {
-          client.navigate(urlToOpen);
-          return client.focus();
-        }
-      }
-      // If not open, open new window
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
-});
-
-const CACHE_NAME = 'galaxy-cache-v1';
+const CACHE_NAME = 'galaxy-cache-v2';
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
@@ -85,6 +19,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
+      // Delete any old caches from previous versions
       caches.keys().then((cacheNames) =>
         Promise.all(
           cacheNames.map((cacheName) => {

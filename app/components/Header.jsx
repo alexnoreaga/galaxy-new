@@ -101,7 +101,7 @@ export function Header({header, isLoggedIn, cart}) {
         <div className='flex items-center gap-4 lg:gap-8 flex-1'>
           <HeaderMenuMobileToggle />
           <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className='flex-shrink-0 hover:opacity-80 transition-opacity'>
-            <img className='h-7 sm:h-7 md:h-9 lg:h-10 w-auto' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105" alt="Logo Galaxy Camera" />
+            <img className='h-7 sm:h-7 md:h-9 lg:h-10 w-auto' src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105" alt="Logo Galaxy Camera" width={160} height={40} loading="eager" fetchPriority="high" />
           </NavLink>
           <div className='hidden lg:block'>
             <HeaderMenu menu={menu} viewport="desktop" />

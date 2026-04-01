@@ -72,6 +72,9 @@ function CollectionItem({collection, index}) {
             src={collection.image.url}
             alt={collection.image.altText || collection.title}
             className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover rounded-xl mb-2 group-hover:scale-105 transition-transform duration-200 shadow-sm"
+            width={96}
+            height={96}
+            loading="lazy"
           />
         )}
         <div className="text-xs sm:text-base font-medium text-gray-800 text-center group-hover:text-blue-700 transition-colors duration-200 line-clamp-2">

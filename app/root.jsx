@@ -50,6 +50,12 @@ export function links() {
       href: 'https://shop.app',
     },
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    // Preload the logo (LCP element on all pages)
+    {
+      rel: 'preload',
+      as: 'image',
+      href: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105',
+    },
   ];
 }
 

@@ -58,6 +58,9 @@ export const BrandPopular = ({ brands }) => {
                         className="w-full h-auto object-contain aspect-square group-hover:scale-110 transition-transform duration-300"
                         src={brand.metaobject.fields[1].reference.image.url}
                         alt={brand.metaobject.fields[0].value}
+                        width={128}
+                        height={128}
+                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-blue-500/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                     </div>

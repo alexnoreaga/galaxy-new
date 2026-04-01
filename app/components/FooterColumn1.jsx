@@ -6,7 +6,7 @@ import { FaEnvelope } from "react-icons/fa6";
 export const FooterColumn1 = () => {
   return (
     <div className='py-3 m-1'>
-        <img height={50} width={110} src='https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-final-bw.webp?v=1707024717' alt='Logo Galaxy Camera'/>
+        <img height={50} width={110} src='https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-final-bw.webp?v=1707024717' alt='Logo Galaxy Camera' loading="lazy" />
 
 
         <div className='text-white text-sm mb-2'>Tangerang : Ruko Mall Metropolis Town Square, Blok GM3 No.6, Kelapa Indah, Tangerang</div>

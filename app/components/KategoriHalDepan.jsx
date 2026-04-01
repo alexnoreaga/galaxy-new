@@ -73,6 +73,9 @@ const scrollRef = useRef(null);
                     src={relate?.image?.url}
                     className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
                     alt={relate?.title}
+                    width={80}
+                    height={80}
+                    loading="lazy"
                   />
                 </div>
                 

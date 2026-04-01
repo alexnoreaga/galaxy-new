@@ -95,10 +95,13 @@ import {
                             ${isOutOfStock ? 'opacity-70' : ''}
                             ${isActive ? 'border-rose-300 ring-1 ring-rose-200' : 'border-gray-200'}
                           `}>
-                            <img 
-                              src={optionImage} 
+                            <img
+                              src={optionImage}
                               alt={value}
                               className={`w-full h-full object-cover ${isOutOfStock ? 'opacity-70' : ''}`}
+                              width={40}
+                              height={40}
+                              loading="lazy"
                             />
                           </div>
                           <span className={`
