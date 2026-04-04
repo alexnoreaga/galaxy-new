@@ -589,6 +589,18 @@ DP : 0
 
     const [bukaModalBalasCepat, setBukaModalBalasCepat] = useState(false)
 
+    const [visitorCount, setVisitorCount] = useState(() => Math.floor(Math.random() * 18) + 8);
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setVisitorCount(prev => {
+          const change = Math.random() < 0.5 ? 1 : -1;
+          const next = prev + change;
+          return Math.min(Math.max(next, 6), 35);
+        });
+      }, 3000);
+      return () => clearInterval(interval);
+    }, []);
+
     const foundAdmin = admgalaxy?.metaobjects?.edges.find(admin => admin?.node?.fields[0]?.value === custEmail?.customer?.email);
   // console.log('Admin ketemu ?', foundAdmin)
 
@@ -652,8 +664,17 @@ DP : 0
             <div className="grid gap-2 w-full">
 
               <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal mt-1 md:mt-5" onClick={()=>copyToClipboard(hargaCashCopy)}>
-                {product.title} 
+                {product.title}
               </h1>
+
+              {/* Live visitor count */}
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+                <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
+              </div>
 
           {/* <Suspense fallback={<p>Loading cart ...</p>}>
                   <Await errorElement={<div>An error occurred</div>} resolve={cart}>
