@@ -51,6 +51,7 @@ export default async function handleRequest(
       'https://tagmanager.google.com',
       'https://analytics.google.com/',
       'https://accounts.google.com',
+      'https://www.openstreetmap.org',
     ],
 
   });

@@ -4,6 +4,7 @@ import {FaInstagram, FaTiktok, FaYoutube, FaXTwitter, FaWhatsapp, FaFacebookF} f
 import {PredictiveSearchForm, PredictiveSearchResults} from '~/components/Search';
 import {useLocation} from '@remix-run/react';
 import {FaRegCircleUser} from 'react-icons/fa6';
+import {NearestStoreBar} from '~/components/NearestStoreBar';
 
 export function Header({header, isLoggedIn, cart}) {
   const routes = [
@@ -112,6 +113,9 @@ export function Header({header, isLoggedIn, cart}) {
           <SearchToggleMobile />
         </div>
       </div>
+
+      {/* Nearest store bar */}
+      <NearestStoreBar />
     </>
   );
 }

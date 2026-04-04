@@ -96,6 +96,10 @@ export async function loader({context}) {
     },
   });
 
+  const storeLocations = await storefront.query(STORE_LOCATIONS_QUERY, {
+    cache: storefront.CacheLong(),
+  });
+
   const analyticsData = {
     analytics: {
       // Hard-coded for demonstration purposes.
@@ -111,7 +115,8 @@ export async function loader({context}) {
       header: await headerPromise,
       isLoggedIn,
       publicStoreDomain,
-      footerSatu
+      footerSatu,
+      storeLocations,
     },
     {headers},
     {analyticsData},
@@ -888,6 +893,23 @@ const GET_FOOTER_SATU = `#graphql
       seo {
         description
         title
+      }
+    }
+  }
+`;
+
+const STORE_LOCATIONS_QUERY = `#graphql
+  query StoreLocations {
+    metaobjects(type: "store_location", first: 20) {
+      edges {
+        node {
+          id
+          handle
+          fields {
+            key
+            value
+          }
+        }
       }
     }
   }
