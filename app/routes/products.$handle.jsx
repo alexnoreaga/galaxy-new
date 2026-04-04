@@ -1101,56 +1101,49 @@ DP : 0
           && product?.metafields[12]?.value != "true" 
            && (
         
-        <div className='md:hidden border-t gap-2 px-2 backdrop-blur-sm bg-white w-full h-16 fixed left-0 bottom-16 grid grid-cols-6 items-center justify-between'>
-        
-          <a className='col-span-1' href="tel:082111311131" target="_blank" >
-          <button className='w-full col-span-1 bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-10 flex items-center justify-center'>
-          <FaPhone/>
-          </button>
-          </a>
-        
+        <div className='md:hidden fixed left-0 bottom-16 w-full z-50 bg-white border-t border-gray-200 px-3 py-2 grid grid-cols-6 gap-2 items-center'>
 
-          <a className='col-span-2' href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`} target="_blank" >
-          <button className='flex justify-center gap-2 flex-row items-center col-span-2 font-semibold bg-gray-200 text-center text-gray-800 p-1 px-2 rounded-lg h-10 w-full'>
-            <FaComment />
-            <>Nego</>
-          </button>
+          {/* Call */}
+          <a href="tel:082111311131" target="_blank" className='col-span-1'>
+            <button className='w-full h-11 flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold'>
+              <FaPhone className='text-sm' />
+              <span className='text-[9px]'>Call</span>
+            </button>
           </a>
 
+          {/* Nego */}
+          <a
+            href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`}
+            target="_blank"
+            className='col-span-2'
+          >
+            <button className='w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold'>
+              <FaWhatsapp className='text-base' />
+              Nego
+            </button>
+          </a>
+
+          {/* Beli Langsung */}
           <div className='col-span-3'>
           <CartForm
             route="/cart"
-            inputs={{
-              lines: [
-                {
-                  merchandiseId: selectedVariant.id,
-                },
-              ],
-            }}
+            inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
             action={CartForm.ACTIONS.LinesAdd}
           >
-          {(fetcher) => (
+            {(fetcher) => (
+              <button
+                type="submit"
+                onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                disabled={!selectedVariant.availableForSale ?? fetcher.state !== 'idle'}
+                className='w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-gray-900 text-white text-sm font-semibold'
+              >
+                <FaBagShopping className='text-base' />
+                {selectedVariant?.availableForSale ? 'Beli Langsung' : 'Sold Out'}
+              </button>
+            )}
+          </CartForm>
+          </div>
 
-          <button 
-            type="submit"
-              onClick={() => {
-                window.location.href = window.location.href + '#cart-aside';
-              }}
-              disabled={
-                !selectedVariant.availableForSale ??
-                fetcher.state !== 'idle'
-              }
-            className='flex justify-center gap-2 flex-row items-center col-span-3 font-semibold bg-gray-900 text-center text-white p-1 px-2 rounded-lg h-10 w-full'>
-            <FaBagShopping />
-            <span>
-            {selectedVariant?.availableForSale
-              ? 'Beli Langsung'
-              : 'Sold out'}
-              </span>
-          </button>
-        )}
-        </CartForm>
-        </div>
         </div>
       )}
 

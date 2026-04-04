@@ -72,9 +72,9 @@ export function Header({header, isLoggedIn, cart}) {
         </div>
       </div>
 
-      {/* Main header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto">
+      {/* Main header + sub-bars all sticky together */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg shadow-sm">
+        <div className="flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto border-b border-gray-100">
 
           {/* Left: hamburger + logo */}
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -105,17 +105,17 @@ export function Header({header, isLoggedIn, cart}) {
           {/* Right: account + cart */}
           <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
         </div>
-      </header>
 
-      {/* Mobile search bar — below header */}
-      <div className="sm:hidden w-full bg-white border-b">
-        <div className="px-4 py-2">
-          <SearchToggleMobile />
+        {/* Mobile search bar */}
+        <div className="sm:hidden w-full bg-white border-b border-gray-100">
+          <div className="px-4 py-2">
+            <SearchToggleMobile />
+          </div>
         </div>
-      </div>
 
-      {/* Nearest store bar */}
-      <NearestStoreBar />
+        {/* Nearest store bar */}
+        <NearestStoreBar />
+      </header>
     </>
   );
 }
