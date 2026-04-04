@@ -108,7 +108,7 @@ export function NearestStoreBar() {
           )}
 
           {/* Text */}
-          <span className="text-sm font-semibold text-gray-800">
+          <span className="text-xs sm:text-sm font-semibold text-gray-800">
             {status === 'idle' && 'Aktifkan lokasimu untuk melihat toko terdekat'}
             {status === 'loading' && 'Mendeteksi lokasi...'}
             {status === 'found' && nearestStore && (
