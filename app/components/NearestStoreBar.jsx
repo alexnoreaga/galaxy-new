@@ -40,6 +40,25 @@ export function NearestStoreBar() {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Restore saved location from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('galaxy_user_location');
+    if (saved) {
+      try {
+        const { latitude, longitude } = JSON.parse(saved);
+        const withDistance = rawStores.map(store => ({
+          ...store,
+          distance: haversine(latitude, longitude, store.latitude, store.longitude),
+        })).sort((a, b) => a.distance - b.distance);
+        setSortedStores(withDistance);
+        setNearestStore(withDistance[0]);
+        setStatus('found');
+      } catch {
+        localStorage.removeItem('galaxy_user_location');
+      }
+    }
+  }, [rawStores.length]);
+
   // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e) {
@@ -63,6 +82,8 @@ export function NearestStoreBar() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
+        // Save to localStorage so it persists across page navigations
+        localStorage.setItem('galaxy_user_location', JSON.stringify({ latitude, longitude }));
         const withDistance = rawStores.map(store => ({
           ...store,
           distance: haversine(latitude, longitude, store.latitude, store.longitude),
@@ -86,7 +107,7 @@ export function NearestStoreBar() {
   }
 
   return (
-    <div className="relative w-full bg-white border-b border-gray-200" ref={dropdownRef}>
+    <div className="relative w-full bg-gray-50 border-b border-gray-200" ref={dropdownRef}>
       <div className="max-w-7xl mx-auto px-4">
         <button
           onClick={handleActivate}
@@ -99,12 +120,16 @@ export function NearestStoreBar() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
           ) : (
-            <div className="flex-shrink-0 p-1 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"
-                className="w-4 h-4 text-white">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016 2.993 2.993 0 002.25-1.016 3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
-              </svg>
-            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="url(#iconGradient)" className="w-5 h-5 flex-shrink-0">
+              <defs>
+                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#2563eb" />
+                  <stop offset="50%" stopColor="#4f46e5" />
+                  <stop offset="100%" stopColor="#9333ea" />
+                </linearGradient>
+              </defs>
+              <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.013 3.5-4.667 3.5-8.077A8.78 8.78 0 0012 2.25a8.78 8.78 0 00-8.79 8.001c0 3.41 1.555 6.064 3.499 8.077a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+            </svg>
           )}
 
           {/* Text */}
