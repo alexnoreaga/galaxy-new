@@ -4,11 +4,12 @@ import { useState } from 'react';
 export const InfoProduk = ({deskripsi,specs,isibox}) => {
 
     const [selectedContent, setSelectedContent] = useState("description");
+    const [descExpanded, setDescExpanded] = useState(false);
 
     const handleContentChange = (content) => {
       setSelectedContent(content);
     };
-  
+
     return (
       <div>
         {/* Tabs */}
@@ -34,7 +35,39 @@ export const InfoProduk = ({deskripsi,specs,isibox}) => {
 
         {/* Content */}
         <div>
-          {selectedContent === 'description' && deskripsi}
+          {selectedContent === 'description' && (
+            <div>
+              <div
+                className="relative overflow-hidden transition-all duration-300"
+                style={{ maxHeight: descExpanded ? 'none' : '320px' }}
+              >
+                {deskripsi}
+                {!descExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                )}
+              </div>
+              <button
+                onClick={() => setDescExpanded(e => !e)}
+                className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                {descExpanded ? (
+                  <>
+                    Sembunyikan
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                      <path fillRule="evenodd" d="M9.47 6.47a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 1 1-1.06 1.06L10 8.06l-3.72 3.72a.75.75 0 0 1-1.06-1.06l4.25-4.25Z" clipRule="evenodd" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    Baca Selengkapnya
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                      <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
           {selectedContent === 'box content' && isibox && (
             <ul className="flex flex-col gap-1.5">
               {isibox.split('\n').filter(Boolean).map((str) => (

@@ -10,6 +10,7 @@ import ProductCard from '~/components/ProductCard';
 import { Accordion } from '~/components/Accordion';
 import { HitunganPersen } from '~/components/HitunganPersen';
 import {InfoProduk} from '~/components/InfoProduk';
+import {PertanyaanUmum} from '~/components/PertanyaanUmum';
 import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
@@ -163,6 +164,22 @@ export async function loader({params, context, request}) {
 
 
       const canonicalUrl = request.url
+
+      // Fetch cached FAQ from Firestore REST API for SEO schema injection
+      let cachedFaqs = null;
+      try {
+        const productNumId = product?.id?.split('/').pop();
+        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents/product_faqs/faq_${productNumId}`;
+        const faqRes = await fetch(firestoreUrl);
+        if (faqRes.ok) {
+          const faqDoc = await faqRes.json();
+          const faqValues = faqDoc.fields?.faqs?.arrayValue?.values || [];
+          cachedFaqs = faqValues.map(item => ({
+            question: item.mapValue?.fields?.question?.stringValue || '',
+            answer: item.mapValue?.fields?.answer?.stringValue || '',
+          })).filter(f => f.question && f.answer);
+        }
+      } catch (_) {}
     
 
       // Set a default variant so you always have an "orderable" product selected
@@ -206,6 +223,7 @@ export async function loader({params, context, request}) {
           discountVouchers,
           customerAccessToken,
           canonicalUrl,
+          cachedFaqs,
           analytics: {
             pageType: AnalyticsPageType.product,
             products: [product],
@@ -229,11 +247,11 @@ export async function loader({params, context, request}) {
           discountVouchers,
           customerAccessToken,
           canonicalUrl,
+          cachedFaqs,
           analytics: {
             pageType: AnalyticsPageType.product,
             products: [product],
           }
-
         });
 
 
@@ -566,7 +584,7 @@ DP : 0
 
 
   export default function ProductHandle() {
-    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace,discountVouchers} = useLoaderData();
+    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs} = useLoaderData();
 
     const [root] = useMatches();
     const cart = root.data?.cart;
@@ -1001,6 +1019,35 @@ DP : 0
 
           
         </div>
+
+        {/* FAQ Schema for Google rich results — server-rendered so Googlebot sees it */}
+        {cachedFaqs && cachedFaqs.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'FAQPage',
+                mainEntity: cachedFaqs.map(faq => ({
+                  '@type': 'Question',
+                  name: faq.question,
+                  acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+                })),
+              }),
+            }}
+          />
+        )}
+
+        {/* Pertanyaan Umum — exclude certain collections and low-price items */}
+        {(() => {
+          const EXCLUDED_COLLECTIONS = ['aksesoris', 'accessories', 'used', 'bekas', 'spare-part'];
+          const MIN_PRICE = 500000;
+          const productCollections = product.collections?.nodes?.map(c => c.handle) || [];
+          const isExcludedCollection = productCollections.some(h => EXCLUDED_COLLECTIONS.includes(h));
+          const price = parseFloat(selectedVariant?.price?.amount || 0);
+          if (isExcludedCollection || price < MIN_PRICE) return null;
+          return <PertanyaanUmum product={product} isAdmin={!!foundAdmin} initialFaqs={cachedFaqs} />;
+        })()}
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
         

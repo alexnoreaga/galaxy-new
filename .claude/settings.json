@@ -2,6 +2,9 @@
   "permissions": {
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
+    ],
+    "allow": [
+      "Bash(ls app/routes/api*)"
     ]
   }
 }
