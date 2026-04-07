@@ -8,7 +8,7 @@ export async function action({ request, context }) {
   try {
     const { productTitle, productDescription, productVendor, productType, metafields } = await request.json();
 
-    const geminiApiKey = context.env.GEMINI_API_KEY;
+    const geminiApiKey = context.env?.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
     if (!geminiApiKey) {
       return json({ error: 'Gemini API key not configured' }, { status: 500 });
     }

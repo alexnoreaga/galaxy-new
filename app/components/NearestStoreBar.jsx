@@ -30,34 +30,41 @@ function parseStore(node) {
   };
 }
 
+function calcSorted(latitude, longitude, stores) {
+  return stores.map(store => ({
+    ...store,
+    distance: haversine(latitude, longitude, store.latitude, store.longitude),
+  })).sort((a, b) => a.distance - b.distance);
+}
+
+// Unique gradient ID to avoid conflicts with other SVGs on the page
+const GRADIENT_ID = 'nearestStoreIconGradient';
+
 export function NearestStoreBar() {
   const [root] = useMatches();
   const rawStores = root?.data?.storeLocations?.metaobjects?.edges?.map(e => parseStore(e.node)) || [];
 
-  const [status, setStatus] = useState('idle'); // idle | loading | found | denied | error
+  const [status, setStatus] = useState('idle'); // idle | loading | found | denied | unsupported | error
   const [nearestStore, setNearestStore] = useState(null);
   const [sortedStores, setSortedStores] = useState([]);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Restore saved location from localStorage on mount
+  // Bug 2 fix: dependency is [] — only restore on mount, not on every stores-length change
   useEffect(() => {
     const saved = localStorage.getItem('galaxy_user_location');
-    if (saved) {
+    if (saved && rawStores.length > 0) {
       try {
         const { latitude, longitude } = JSON.parse(saved);
-        const withDistance = rawStores.map(store => ({
-          ...store,
-          distance: haversine(latitude, longitude, store.latitude, store.longitude),
-        })).sort((a, b) => a.distance - b.distance);
-        setSortedStores(withDistance);
-        setNearestStore(withDistance[0]);
+        const sorted = calcSorted(latitude, longitude, rawStores);
+        setSortedStores(sorted);
+        setNearestStore(sorted[0]);
         setStatus('found');
       } catch {
         localStorage.removeItem('galaxy_user_location');
       }
     }
-  }, [rawStores.length]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -72,9 +79,10 @@ export function NearestStoreBar() {
 
   if (!rawStores.length) return null;
 
-  function handleActivate() {
-    if (status === 'found') {
-      setOpen(o => !o);
+  function detectLocation() {
+    // Bug 4 fix: check if geolocation is supported before calling
+    if (!navigator?.geolocation) {
+      setStatus('unsupported');
       return;
     }
 
@@ -82,15 +90,10 @@ export function NearestStoreBar() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        // Save to localStorage so it persists across page navigations
         localStorage.setItem('galaxy_user_location', JSON.stringify({ latitude, longitude }));
-        const withDistance = rawStores.map(store => ({
-          ...store,
-          distance: haversine(latitude, longitude, store.latitude, store.longitude),
-        })).sort((a, b) => a.distance - b.distance);
-
-        setSortedStores(withDistance);
-        setNearestStore(withDistance[0]);
+        const sorted = calcSorted(latitude, longitude, rawStores);
+        setSortedStores(sorted);
+        setNearestStore(sorted[0]);
         setStatus('found');
         setOpen(true);
       },
@@ -99,6 +102,24 @@ export function NearestStoreBar() {
       },
       { timeout: 10000 }
     );
+  }
+
+  function handleActivate() {
+    if (status === 'found') {
+      setOpen(o => !o);
+      return;
+    }
+    detectLocation();
+  }
+
+  // Bug 1 fix: refresh clears saved location and re-detects
+  function handleRefresh() {
+    localStorage.removeItem('galaxy_user_location');
+    setOpen(false);
+    setStatus('idle');
+    setSortedStores([]);
+    setNearestStore(null);
+    detectLocation();
   }
 
   function formatDistance(km) {
@@ -120,9 +141,10 @@ export function NearestStoreBar() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="url(#iconGradient)" className="w-5 h-5 flex-shrink-0">
+            // Bug 3 fix: unique gradient ID
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={`url(#${GRADIENT_ID})`} className="w-5 h-5 flex-shrink-0">
               <defs>
-                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id={GRADIENT_ID} x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#2563eb" />
                   <stop offset="50%" stopColor="#4f46e5" />
                   <stop offset="100%" stopColor="#9333ea" />
@@ -146,6 +168,9 @@ export function NearestStoreBar() {
             {status === 'denied' && (
               <>Izin lokasi ditolak — <a href="/stores" className="text-blue-600 underline hover:opacity-80">lihat semua toko</a></>
             )}
+            {status === 'unsupported' && (
+              <>Browser tidak mendukung lokasi — <a href="/stores" className="text-blue-600 underline hover:opacity-80">lihat semua toko</a></>
+            )}
             {status === 'error' && 'Gagal mendeteksi lokasi'}
           </span>
 
@@ -164,7 +189,20 @@ export function NearestStoreBar() {
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Toko Terdekat</p>
-              <a href="/stores" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Lihat Semua →</a>
+              <div className="flex items-center gap-3">
+                {/* Bug 1 fix: refresh location button */}
+                <button
+                  onClick={handleRefresh}
+                  className="flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-blue-600 transition-colors"
+                  title="Perbarui lokasi"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                    <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clipRule="evenodd" />
+                  </svg>
+                  Perbarui lokasi
+                </button>
+                <a href="/stores" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Lihat Semua →</a>
+              </div>
             </div>
             <div className="flex flex-col divide-y divide-gray-100">
               {sortedStores.map((store) => (
