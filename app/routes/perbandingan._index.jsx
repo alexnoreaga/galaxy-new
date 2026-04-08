@@ -2,7 +2,7 @@ import { json } from '@shopify/remix-oxygen';
 import { useLoaderData, useNavigate } from '@remix-run/react';
 import { useState, useRef, useEffect } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, setDoc, doc } from 'firebase/firestore';
+import { getFirestore, setDoc, doc, getDocs, collection, query, orderBy, limit } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU",
@@ -27,37 +27,7 @@ const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents`;
 
 export async function loader() {
-  let popular = [];
-  let all = [];
-
-  try {
-    // Fetch all comparisons (max 100), sorted by generatedAt desc
-    const res = await fetch(
-      `${FIRESTORE_BASE}/comparisons?pageSize=100&key=${FIRESTORE_KEY}`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      const docs = (data.documents || []).map(doc => {
-        const f = doc.fields || {};
-        return {
-          slug: doc.name.split('/').pop(),
-          titleA: f.titleA?.stringValue || '',
-          titleB: f.titleB?.stringValue || '',
-          imageA: f.imageA?.stringValue || '',
-          imageB: f.imageB?.stringValue || '',
-          viewCount: parseInt(f.viewCount?.integerValue || 0),
-          generatedAt: f.generatedAt?.stringValue || '',
-        };
-      }).filter(c => c.titleA && c.titleB);
-
-      // Popular = top 6 by viewCount
-      popular = [...docs].sort((a, b) => b.viewCount - a.viewCount).slice(0, 6);
-      // All = sorted by newest first
-      all = [...docs].sort((a, b) => b.generatedAt.localeCompare(a.generatedAt));
-    }
-  } catch (_) {}
-
-  return json({ popular, all });
+  return json({ });
 }
 
 // Product search input component
@@ -178,12 +148,36 @@ function ProductSearchInput({ label, selected, onSelect, placeholder }) {
 }
 
 export default function PerbandinganIndex() {
-  const { popular, all } = useLoaderData();
+  useLoaderData();
   const navigate = useNavigate();
   const [productA, setProductA] = useState(null);
   const [productB, setProductB] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [popular, setPopular] = useState([]);
+  const [all, setAll] = useState([]);
+
+  useEffect(() => {
+    async function fetchList() {
+      try {
+        const db = getDb();
+        const snap = await getDocs(collection(db, 'comparisons'));
+        const docs = snap.docs.map(d => ({
+          slug: d.id,
+          titleA: d.data().titleA || '',
+          titleB: d.data().titleB || '',
+          imageA: d.data().imageA || '',
+          imageB: d.data().imageB || '',
+          viewCount: d.data().viewCount || 0,
+          generatedAt: d.data().generatedAt || '',
+        })).filter(c => c.titleA && c.titleB);
+
+        setPopular([...docs].sort((a, b) => b.viewCount - a.viewCount).slice(0, 6));
+        setAll([...docs].sort((a, b) => b.generatedAt.localeCompare(a.generatedAt)));
+      } catch (_) {}
+    }
+    fetchList();
+  }, []);
 
   function buildSlug(handleA, handleB) {
     return [handleA, handleB].sort().join('-vs-');
@@ -200,12 +194,24 @@ export default function PerbandinganIndex() {
     // Check Firestore cache first
     try {
       const firestoreRes = await fetch(
-        `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents/comparisons/${slug}?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU`
+        `${FIRESTORE_BASE}/comparisons/${slug}?key=${FIRESTORE_KEY}`
       );
       if (firestoreRes.ok) {
-        const doc = await firestoreRes.json();
-        if (doc.fields?.article) {
-          navigate(`/perbandingan/${slug}`);
+        const cachedDoc = await firestoreRes.json();
+        const articleRaw = cachedDoc.fields?.article?.stringValue;
+        if (articleRaw) {
+          // Pass cached data as state so result page renders instantly
+          navigate(`/perbandingan/${slug}`, {
+            state: {
+              comparison: JSON.parse(articleRaw),
+              titleA: cachedDoc.fields?.titleA?.stringValue || productA.title,
+              titleB: cachedDoc.fields?.titleB?.stringValue || productB.title,
+              handleA: cachedDoc.fields?.handleA?.stringValue || productA.handle,
+              handleB: cachedDoc.fields?.handleB?.stringValue || productB.handle,
+              imageA: cachedDoc.fields?.imageA?.stringValue || productA.image?.url || '',
+              imageB: cachedDoc.fields?.imageB?.stringValue || productB.image?.url || '',
+            },
+          });
           return;
         }
       }
