@@ -1351,6 +1351,29 @@ DP : 0
 
         {/* DESKTOP STICKY CHECKOUT END HERE */}
 
+      {/* DESKTOP — slim Bandingkan bar for out-of-stock / discontinued */}
+      {(!selectedVariant?.availableForSale || product?.metafields[12]?.value == "true") && (
+        <div className='hidden md:flex fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white/95 backdrop-blur-sm shadow-[0_-2px_12px_rgba(0,0,0,0.06)]'>
+          <div className='max-w-5xl mx-auto w-full px-4 md:px-8 py-2.5 flex items-center justify-between gap-4'>
+            <div className='flex items-center gap-2.5 min-w-0'>
+              <span className='text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full flex-shrink-0'>
+                {product?.metafields[12]?.value == "true" ? 'Discontinued' : 'Sold Out'}
+              </span>
+              <p className='text-sm text-gray-500 truncate'>{product.title}</p>
+            </div>
+            <button
+              onClick={() => setBukaModalBandingkan(true)}
+              className='flex-shrink-0 inline-flex items-center gap-2 px-5 py-2 rounded-xl border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-800 text-sm font-semibold transition-colors'
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-500">
+                <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.918Z" clipRule="evenodd" />
+              </svg>
+              Bandingkan dengan Produk Lain
+            </button>
+          </div>
+        </div>
+      )}
+
       </section>
 
      
@@ -1423,6 +1446,21 @@ DP : 0
           </CartForm>
           </div>
 
+        </div>
+      )}
+
+      {/* MOBILE — slim Bandingkan bar for out-of-stock / discontinued */}
+      {(!selectedVariant?.availableForSale || product?.metafields[12]?.value == "true") && (
+        <div className='md:hidden fixed left-0 bottom-16 w-full z-50 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-3 py-2'>
+          <button
+            onClick={() => setBukaModalBandingkan(true)}
+            className='w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-gray-800 text-sm font-semibold active:bg-gray-50 transition-colors'
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-500">
+              <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.918Z" clipRule="evenodd" />
+            </svg>
+            Bandingkan dengan Produk Lain
+          </button>
         </div>
       )}
 
