@@ -72,38 +72,33 @@ export async function loader({context}) {
   );
 
   // defer the cart query by not awaiting it
-  const cartPromise = cart.get();
+  const cartPromise = cart.get().catch(() => null);
 
-  // defer the footer query (below the fold)
-  const footerPromise = storefront.query(FOOTER_QUERY, {
-    cache: storefront.CacheLong(),
-    variables: {
-      footerMenuHandle: 'footer', // Adjust to your footer menu handle
-    },
-  });
+  // Run non-critical queries in parallel with individual fallbacks
+  // so one failure never crashes the whole page
+  const [header, footer, footerSatu, storeLocations] = await Promise.all([
+    storefront.query(HEADER_QUERY, {
+      cache: storefront.CacheLong(),
+      variables: { headerMenuHandle: 'main-menu' },
+    }).catch(() => ({ menu: { items: [] } })),
 
-  // await the header query (above the fold)
-  const headerPromise = storefront.query(HEADER_QUERY, {
-    cache: storefront.CacheLong(),
-    variables: {
-      headerMenuHandle: 'main-menu', // Adjust to your header menu handle
-    },
-  });
+    storefront.query(FOOTER_QUERY, {
+      cache: storefront.CacheShort(),
+      variables: { footerMenuHandle: 'footer-menu' },
+    }).catch(() => ({ menu: { items: [] } })),
 
-  const footerSatu = await storefront.query(GET_FOOTER_SATU, {
-    variables: {
-      handle: "contact",
-    },
-  });
+    storefront.query(GET_FOOTER_SATU, {
+      cache: storefront.CacheLong(),
+      variables: { handle: 'contact' },
+    }).catch(() => null),
 
-  const storeLocations = await storefront.query(STORE_LOCATIONS_QUERY, {
-    cache: storefront.CacheLong(),
-  });
+    storefront.query(STORE_LOCATIONS_QUERY, {
+      cache: storefront.CacheLong(),
+    }).catch(() => ({ metaobjects: { edges: [] } })),
+  ]);
 
   const analyticsData = {
     analytics: {
-      // Hard-coded for demonstration purposes.
-      // In production, retrieve this value from the Storefront API.
       shopId: "gid://shopify/Shop/67238068470",
     },
   };
@@ -111,8 +106,8 @@ export async function loader({context}) {
   return defer(
     {
       cart: cartPromise,
-      footer: footerPromise,
-      header: await headerPromise,
+      footer,
+      header,
       isLoggedIn,
       publicStoreDomain,
       footerSatu,
@@ -210,7 +205,6 @@ export default function App() {
           });
         }
         window.google.accounts.id.prompt((notification) => {
-          console.log('Google One Tap notification:', notification.getMomentType(), notification.getNotDisplayedReason?.() || notification.getSkippedReason?.() || '');
         });
       }
     };
@@ -647,6 +641,17 @@ export function ErrorBoundary() {
     errorMessage = error.message;
   }
 
+  // Auto-retry once on transient network errors (fetch failed, timeout)
+  const isNetworkError = errorMessage?.toLowerCase().includes('fetch failed')
+    || errorMessage?.toLowerCase().includes('network')
+    || errorMessage?.toLowerCase().includes('timeout');
+
+  useEffect(() => {
+    if (!isNetworkError) return;
+    const timer = setTimeout(() => window.location.reload(), 5000);
+    return () => clearTimeout(timer);
+  }, [isNetworkError]);
+
   return (
     <html lang="id">
       <head>
@@ -690,9 +695,15 @@ export function ErrorBoundary() {
                 </h1>
 
                 {/* Description */}
-                <p className="text-gray-600 text-lg mb-6 leading-relaxed text-center">
+                <p className="text-gray-600 text-lg mb-4 leading-relaxed text-center">
                   Mohon tunggu, Galaxy Camera sedang melakukan penyesuaian exposure. Kami akan segera kembali online.
                 </p>
+
+                {isNetworkError && (
+                  <p className="text-sm text-blue-600 text-center mb-6 font-medium">
+                    Koneksi bermasalah — halaman akan dimuat ulang otomatis dalam 5 detik...
+                  </p>
+                )}
 
                 {/* Toggle Button for Error Details */}
                 {errorMessage && (

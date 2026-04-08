@@ -29,8 +29,7 @@ async function initializeNotifications() {
   try {
     // Register both service workers
     await navigator.serviceWorker.register('/service-worker.js');
-    const firebaseRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    console.log('Service Workers registered:', firebaseRegistration.scope);
+    await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     
     // Wait for service worker to be ready
     await navigator.serviceWorker.ready;
@@ -128,9 +127,6 @@ if (document.readyState === 'loading') {
 
 // Listen for messages when app is open
 onMessage(messaging, (payload) => {
-  console.log('📩 Message received (foreground):', payload);
-  console.log('Title:', payload.notification?.title);
-  console.log('Body:', payload.notification?.body);
   
   // Show notification if app is in foreground
   if (Notification.permission === 'granted') {
@@ -140,7 +136,6 @@ onMessage(messaging, (payload) => {
         icon: payload.notification?.icon || '/icon-512x512.png',
         badge: '/apple-icon-72x72.png',
       });
-      console.log('✅ Notification shown (foreground)');
     } catch (error) {
       console.error('❌ Failed to show notification:', error);
     }

@@ -169,7 +169,7 @@ export async function loader({params, context, request}) {
       let cachedFaqs = null;
       try {
         const productNumId = product?.id?.split('/').pop();
-        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents/product_faqs/faq_${productNumId}`;
+        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents/product_faqs/faq_${productNumId}?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU`;
         const faqRes = await fetch(firestoreUrl);
         if (faqRes.ok) {
           const faqDoc = await faqRes.json();
@@ -697,7 +697,6 @@ DP : 0
           {/* <Suspense fallback={<p>Loading cart ...</p>}>
                   <Await errorElement={<div>An error occurred</div>} resolve={cart}>
                     {(cart) => {
-                      console.log("Resolved cart:", cart);
                       return <>Hello World</>;
                     }}
                   </Await>
@@ -1046,7 +1045,7 @@ DP : 0
           const isExcludedCollection = productCollections.some(h => EXCLUDED_COLLECTIONS.includes(h));
           const price = parseFloat(selectedVariant?.price?.amount || 0);
           if (isExcludedCollection || price < MIN_PRICE) return null;
-          return <PertanyaanUmum product={product} isAdmin={!!foundAdmin} initialFaqs={cachedFaqs} />;
+          return <PertanyaanUmum key={product.id} product={product} isAdmin={!!foundAdmin} initialFaqs={cachedFaqs} />;
         })()}
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
