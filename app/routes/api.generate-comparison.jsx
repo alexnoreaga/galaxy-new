@@ -22,7 +22,16 @@ Deskripsi: ${p.description || '-'}
 Spesifikasi: ${p.specs || '-'}
     `.trim();
 
-    const prompt = `Kamu adalah expert reviewer produk kamera, drone, dan aksesoris fotografi terpercaya di Indonesia. Tugasmu adalah membuat artikel perbandingan produk yang sangat informatif, jujur, dan membantu calon pembeli membuat keputusan terbaik.
+    const prompt = `Kamu adalah expert reviewer produk kamera, drone, dan aksesoris fotografi terpercaya di Indonesia. Tugasmu adalah membuat perbandingan produk yang sangat informatif, jujur, dan membantu calon pembeli membuat keputusan terbaik.
+
+PENTING: Gunakan Google Search untuk mencari informasi terbaru tentang kedua produk ini sebelum menjawab. Cari:
+- Spesifikasi resmi dan lengkap dari situs produsen
+- Review terbaru dari fotografer dan videografer profesional
+- Perbandingan real-world dari YouTube, DPReview, PetaPixel, atau media kamera terpercaya
+- Harga pasaran terkini di Indonesia
+- Keluhan atau keunggulan yang sering disebut pengguna nyata
+
+Jika salah satu atau kedua produk adalah produk BARU (rilis dalam 12 bulan terakhir), pastikan kamu mencari info terbaru karena data lama mungkin tidak akurat.
 
 Bandingkan dua produk berikut:
 
@@ -37,29 +46,29 @@ Buat perbandingan lengkap dalam format JSON berikut (hanya output JSON, tidak ad
 {
   "shortNameA": "Nama pendek UNIK untuk Produk A, maksimal 3 kata, harus bisa membedakannya dari Produk B. Contoh: jika A='Fujifilm Instax Mini Evo' dan B='Fujifilm Instax Mini Liplay', maka shortNameA='Mini Evo'. Jika A='Sony ZV-E10 II' dan B='Canon EOS M50 Mark II', maka shortNameA='ZV-E10 II'.",
   "shortNameB": "Nama pendek UNIK untuk Produk B, sama seperti aturan shortNameA.",
-  "intro": "2-3 kalimat pembuka yang menarik tentang kedua produk ini dan kenapa perbandingan ini penting",
+  "intro": "2-3 kalimat pembuka yang menarik tentang kedua produk ini dan kenapa perbandingan ini penting bagi pembeli di Indonesia",
   "categories": [
     {
-      "name": "Nama kategori (contoh: Kualitas Foto, Kemampuan Video, Portabilitas, Harga, Kemudahan Penggunaan, Build Quality)",
+      "name": "Nama kategori spesifik dan relevan (contoh: Sensor & Kualitas Foto, Kemampuan Video, Autofocus, Stabilisasi, Portabilitas, Daya Tahan Baterai, Harga & Value)",
       "winner": "A atau B",
-      "reason": "1-2 kalimat penjelasan singkat kenapa produk ini menang di kategori ini"
+      "reason": "1-2 kalimat penjelasan berdasarkan spesifikasi dan review nyata, bukan asumsi"
     }
   ],
   "verdict": {
-    "chooseA": ["alasan 1", "alasan 2", "alasan 3"],
-    "chooseB": ["alasan 1", "alasan 2", "alasan 3"]
+    "chooseA": ["alasan spesifik 1 berdasarkan fakta", "alasan 2", "alasan 3"],
+    "chooseB": ["alasan spesifik 1 berdasarkan fakta", "alasan 2", "alasan 3"]
   },
-  "conclusion": "1-2 kalimat kesimpulan keseluruhan yang membantu pembaca memutuskan"
+  "conclusion": "1-2 kalimat kesimpulan yang langsung dan membantu pembaca Indonesia memutuskan"
 }
 
-Aturan:
-- shortNameA dan shortNameB WAJIB berbeda satu sama lain dan mudah dibedakan
-- Gunakan pengetahuan umum yang akurat tentang produk ini
-- Jangan mengarang spesifikasi teknis yang tidak ada
-- Bahasa Indonesia yang natural, informatif, tidak kaku
-- categories harus antara 5-7 item
-- Jujur — jika satu produk jelas lebih baik, katakan itu
-- Hanya output JSON valid`;
+Aturan ketat:
+- shortNameA dan shortNameB WAJIB berbeda dan mudah dibedakan
+- Gunakan data aktual dari pencarian, bukan asumsi atau data lama
+- Jika ada spesifikasi yang kamu tidak yakin kebenarannya karena produk terlalu baru, katakan "berdasarkan informasi yang tersedia" — jangan mengarang
+- Bahasa Indonesia natural, tidak kaku, tidak terlalu formal
+- categories harus antara 5-7 item yang relevan dengan tipe produk ini
+- Jujur dan berani — jika satu produk jelas menang, katakan dengan tegas
+- Output HANYA JSON valid, tidak ada teks lain di luar JSON`;
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
@@ -68,7 +77,8 @@ Aturan:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4 },
+          tools: [{ google_search: {} }],
+          generationConfig: { temperature: 0.3 },
         }),
       }
     );

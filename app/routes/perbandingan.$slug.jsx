@@ -1,5 +1,6 @@
 import { json, redirect } from '@shopify/remix-oxygen';
 import { useLoaderData, Link, useLocation } from '@remix-run/react';
+import { useState, useEffect } from 'react';
 
 export async function loader({ params, context }) {
   const { slug } = params;
@@ -7,6 +8,7 @@ export async function loader({ params, context }) {
   // Fetch comparison from Firestore REST API
   let comparison = null;
   let titleA = '', titleB = '', handleA = '', handleB = '', imageA = '', imageB = '';
+  let votesA = 0, votesB = 0;
 
   try {
     const res = await fetch(
@@ -25,6 +27,8 @@ export async function loader({ params, context }) {
 
     const articleRaw = f.article?.stringValue || '';
     comparison = articleRaw ? JSON.parse(articleRaw) : null;
+    votesA = parseInt(f.votesA?.integerValue || 0);
+    votesB = parseInt(f.votesB?.integerValue || 0);
 
     // Increment view count (fire and forget) — updateMask ensures only viewCount is touched
     fetch(
@@ -45,14 +49,16 @@ export async function loader({ params, context }) {
   // comparison may be null if Firestore isn't set up yet —
   // the client will use navigation state as fallback
 
-  // Fetch real-time prices from Shopify for both products
+  // Fetch real-time prices + related comparisons in parallel
   let priceA = null, priceB = null, compareAtA = null, compareAtB = null;
   let realImageA = imageA, realImageB = imageB;
+  let related = [];
 
   try {
-    const [dataA, dataB] = await Promise.all([
+    const [dataA, dataB, relatedRes] = await Promise.all([
       handleA ? context.storefront.query(PRODUCT_PRICE_QUERY, { variables: { handle: handleA } }) : null,
       handleB ? context.storefront.query(PRODUCT_PRICE_QUERY, { variables: { handle: handleB } }) : null,
+      fetch(`https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents/comparisons?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU&pageSize=50`).catch(() => null),
     ]);
 
     if (dataA?.product) {
@@ -65,6 +71,28 @@ export async function loader({ params, context }) {
       compareAtB = dataB.product.variants?.nodes?.[0]?.compareAtPrice;
       realImageB = dataB.product.featuredImage?.url || imageB;
     }
+
+    if (relatedRes?.ok) {
+      const relatedData = await relatedRes.json();
+      related = (relatedData.documents || [])
+        .map(doc => {
+          const docSlug = doc.name.split('/').pop();
+          const f = doc.fields || {};
+          return {
+            slug: docSlug,
+            titleA: f.titleA?.stringValue || '',
+            titleB: f.titleB?.stringValue || '',
+            imageA: f.imageA?.stringValue || '',
+            imageB: f.imageB?.stringValue || '',
+          };
+        })
+        .filter(d =>
+          d.slug !== slug &&
+          d.titleA && d.titleB &&
+          (d.slug.includes(handleA) || d.slug.includes(handleB))
+        )
+        .slice(0, 4);
+    }
   } catch (_) {}
 
   return json({
@@ -72,7 +100,7 @@ export async function loader({ params, context }) {
     titleA, titleB, handleA, handleB,
     imageA: realImageA, imageB: realImageB,
     priceA, priceB, compareAtA, compareAtB,
-    comparison,
+    comparison, votesA, votesB, related,
   });
 }
 
@@ -157,6 +185,36 @@ export default function PerbandinganSlug() {
   const compareAtA = loaderData.compareAtA;
   const compareAtB = loaderData.compareAtB;
   const comparison = loaderData.comparison || navState.comparison;
+
+  const related = loaderData.related || [];
+
+  const [voteChoice, setVoteChoice] = useState(null);
+  const [votesA, setVotesA] = useState(loaderData.votesA || 0);
+  const [votesB, setVotesB] = useState(loaderData.votesB || 0);
+
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = '#080d1a';
+    return () => { document.body.style.backgroundColor = prev; };
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`vote_${loaderData.slug}`);
+    if (saved) setVoteChoice(saved);
+  }, [loaderData.slug]);
+
+  async function handleVote(side) {
+    if (voteChoice) return;
+    setVoteChoice(side);
+    localStorage.setItem(`vote_${loaderData.slug}`, side);
+    if (side === 'A') setVotesA(v => v + 1);
+    else setVotesB(v => v + 1);
+    fetch('/api/vote-comparison', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: loaderData.slug, side }),
+    }).catch(() => {});
+  }
 
   if (!comparison || !titleA || !titleB) {
     return (
@@ -335,6 +393,57 @@ export default function PerbandinganSlug() {
         </div>
       </div>
 
+      {/* ── VISITOR VOTE ── */}
+      {(() => {
+        const totalVotes = votesA + votesB;
+        const vPctA = totalVotes > 0 ? Math.round((votesA / totalVotes) * 100) : 50;
+        const vPctB = 100 - vPctA;
+        return (
+          <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-4 text-center">Pilihan Pengunjung</p>
+            {!voteChoice ? (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { side: 'A', short: shortA, accent: 'blue', color: '#2563eb' },
+                  { side: 'B', short: shortB, accent: 'orange', color: '#ea580c' },
+                ].map(p => (
+                  <button
+                    key={p.side}
+                    onClick={() => handleVote(p.side)}
+                    className="flex flex-col items-center gap-2 rounded-2xl px-4 py-5 font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    style={{ background: p.color + '22', border: `1.5px solid ${p.color}55` }}
+                  >
+                    <span className="text-2xl">👍</span>
+                    <span className="text-sm leading-snug text-center" style={{ color: p.accent === 'blue' ? '#93c5fd' : '#fdba74' }}>
+                      {p.short}
+                    </span>
+                    <span className="text-xs text-slate-500">{p.side === 'A' ? votesA : votesB} suara</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-sm font-bold text-blue-400 w-12 text-right tabular-nums">{vPctA}%</span>
+                  <div className="flex-1 h-4 rounded-full overflow-hidden flex" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div className="h-full rounded-l-full transition-all duration-700" style={{ width: `${vPctA}%`, background: 'linear-gradient(90deg,#2563eb,#3b82f6)' }} />
+                    <div className="h-full rounded-r-full transition-all duration-700" style={{ width: `${vPctB}%`, background: 'linear-gradient(90deg,#ea580c,#f97316)' }} />
+                  </div>
+                  <span className="text-sm font-bold text-orange-400 w-12 tabular-nums">{vPctB}%</span>
+                </div>
+                <div className="flex justify-between px-2">
+                  <p className="text-xs text-slate-500">{shortA} · {votesA} suara</p>
+                  <p className="text-xs text-slate-500">{votesB} suara · {shortB}</p>
+                </div>
+                <p className="text-center text-xs text-slate-600 mt-3">
+                  {voteChoice === 'A' ? `Kamu memilih ${shortA}` : `Kamu memilih ${shortB}`} · {totalVotes} total suara
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ── CATEGORIES GRID ── */}
       {comparison.categories?.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
@@ -420,6 +529,43 @@ export default function PerbandinganSlug() {
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-3">Kesimpulan</p>
             <h2 className="sr-only">Kesimpulan: {titleA} vs {titleB}</h2>
             <p className="text-base md:text-lg text-slate-300 leading-relaxed">"{comparison.conclusion}"</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── RELATED COMPARISONS ── */}
+      {related.length > 0 && (
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-4">Perbandingan Terkait</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {related.map(item => (
+              <a
+                key={item.slug}
+                href={`/perbandingan/${item.slug}`}
+                className="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+              >
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {item.imageA
+                    ? <img src={item.imageA} alt={item.titleA} className="w-10 h-10 object-contain rounded-lg bg-white/10" />
+                    : <div className="w-10 h-10 rounded-lg bg-white/10" />}
+                  <span className="text-[10px] font-black text-slate-600">VS</span>
+                  {item.imageB
+                    ? <img src={item.imageB} alt={item.titleB} className="w-10 h-10 object-contain rounded-lg bg-white/10" />
+                    : <div className="w-10 h-10 rounded-lg bg-white/10" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors line-clamp-2 leading-snug">
+                    {item.titleA} <span className="text-slate-600 font-normal">vs</span> {item.titleB}
+                  </p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-600 flex-shrink-0 group-hover:text-slate-400 transition-colors">
+                  <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
+                </svg>
+              </a>
+            ))}
           </div>
         </div>
       )}

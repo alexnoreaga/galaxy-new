@@ -1,5 +1,5 @@
 import { json } from '@shopify/remix-oxygen';
-import { useLoaderData, useNavigate } from '@remix-run/react';
+import { useLoaderData, useNavigate, useLocation } from '@remix-run/react';
 import { useState, useRef, useEffect } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, getDocs, collection, query, orderBy, limit, startAfter } from 'firebase/firestore';
@@ -241,6 +241,8 @@ function handleSelect(product) {
 export default function PerbandinganIndex() {
   const { collections, isAdmin, allowedCollections: initialAllowed } = useLoaderData();
   const navigate = useNavigate();
+  const location = useLocation();
+  const autoState = location.state || {};
 
   // Admin: allowed collections config state
   const [allowedCollections, setAllowedCollections] = useState(initialAllowed); // null = not configured
@@ -259,7 +261,26 @@ export default function PerbandinganIndex() {
   const [listError, setListError] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const lastDocRef = useRef(null);
+  const autoCompareRef = useRef(false);
+
+  // Pre-fill products from navigation state (coming from product page "Bandingkan" button)
+  useEffect(() => {
+    if (autoState.autoCompare && autoState.autoProductA && autoState.autoProductB) {
+      setProductA(autoState.autoProductA);
+      setProductB(autoState.autoProductB);
+      autoCompareRef.current = true;
+    }
+  }, []);
+
+  // Auto-trigger comparison once both products are set from navigation state
+  useEffect(() => {
+    if (autoCompareRef.current && productA && productB) {
+      autoCompareRef.current = false;
+      handleCompare();
+    }
+  }, [productA, productB]);
 
   const PAGE_SIZE = 12;
 
@@ -597,12 +618,35 @@ export default function PerbandinganIndex() {
 
       {/* All comparisons — always visible to show loading/error state */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             Semua Perbandingan
             {!listLoading && <span className="ml-2 bg-white/10 text-slate-400 text-[10px] px-2 py-0.5 rounded-full">{all.length}</span>}
           </p>
         </div>
+
+        {/* Search filter */}
+        {!listLoading && all.length > 0 && (
+          <div className="relative mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none">
+              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Cari perbandingan..."
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white/8 transition-all"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
 
         {listLoading && (
           <div className="flex items-center gap-2 text-slate-500 text-sm">
@@ -625,7 +669,13 @@ export default function PerbandinganIndex() {
         {!listLoading && all.length > 0 && (
           <>
             <div className="flex flex-col gap-2">
-              {all.map(item => (
+              {(searchQuery.trim()
+                ? all.filter(item => {
+                    const q = searchQuery.toLowerCase();
+                    return item.titleA.toLowerCase().includes(q) || item.titleB.toLowerCase().includes(q);
+                  })
+                : all
+              ).map(item => (
                 <div key={item.slug} className="group flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-3 transition-all">
                   <a href={`/perbandingan/${item.slug}`} className="flex items-center gap-4 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-shrink-0">

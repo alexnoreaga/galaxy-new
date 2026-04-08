@@ -1,4 +1,4 @@
-import {useLoaderData,Link} from '@remix-run/react';
+import {useLoaderData,Link,useNavigate} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 // import {Image} from '@shopify/hydrogen-react';
 import ProductOptions from '~/components/ProductOptions';
@@ -583,6 +583,182 @@ DP : 0
   };
 
 
+  const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+  const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+
+  function BandingkanModal({ productA, onClose }) {
+    const navigate = useNavigate();
+    const [allowedCollections, setAllowedCollections] = useState(null);
+    const [loadingConfig, setLoadingConfig] = useState(true);
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState([]);
+    const [searching, setSearching] = useState(false);
+    const [selected, setSelected] = useState(null);
+    const [comparing, setComparing] = useState(false);
+    const debounceRef = useRef(null);
+
+    useEffect(() => {
+      async function fetchConfig() {
+        try {
+          const res = await fetch(`${FIRESTORE_BASE}/perbandingan_config/settings?key=${FIRESTORE_KEY}`);
+          if (res.ok) {
+            const data = await res.json();
+            const raw = data?.fields?.allowedCollections?.stringValue;
+            if (raw) setAllowedCollections(JSON.parse(raw));
+          }
+        } catch (_) {}
+        setLoadingConfig(false);
+      }
+      fetchConfig();
+    }, []);
+
+    async function search(val) {
+      if (!val.trim()) { setResults([]); return; }
+      setSearching(true);
+      try {
+        let products = [];
+        if (allowedCollections && allowedCollections.length > 0) {
+          const fetches = allowedCollections.map(col => {
+            const fd = new FormData();
+            fd.append('q', val);
+            fd.append('collection', col.handle);
+            return fetch('/api/collection-search', { method: 'POST', body: fd })
+              .then(r => r.json()).then(d => d.products || []).catch(() => []);
+          });
+          const arrays = await Promise.all(fetches);
+          const seen = new Set();
+          products = arrays.flat().filter(p => { if (seen.has(p.id)) return false; seen.add(p.id); return true; }).slice(0, 8);
+        } else {
+          const fd = new FormData();
+          fd.append('q', val);
+          fd.append('limit', '8');
+          fd.append('type', 'PRODUCT');
+          const res = await fetch('/api/predictive-search', { method: 'POST', body: fd });
+          const data = await res.json();
+          products = data.searchResults?.results?.find(r => r.type === 'products')?.items || [];
+        }
+        setResults(products.filter(p => p.handle !== productA.handle));
+      } catch (_) {}
+      setSearching(false);
+    }
+
+    function handleInput(e) {
+      const val = e.target.value;
+      setQuery(val);
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => search(val), 300);
+    }
+
+    async function handleCompare() {
+      if (!selected) return;
+      setComparing(true);
+      const slug = [productA.handle, selected.handle].sort().join('-vs-');
+      try {
+        const res = await fetch(`${FIRESTORE_BASE}/comparisons/${slug}?key=${FIRESTORE_KEY}`);
+        if (res.ok) {
+          const doc = await res.json();
+          if (doc.fields?.article?.stringValue) {
+            navigate(`/perbandingan/${slug}`);
+            return;
+          }
+        }
+      } catch (_) {}
+      navigate('/perbandingan', {
+        state: {
+          autoProductA: productA,
+          autoProductB: selected,
+          autoCompare: true,
+        },
+      });
+    }
+
+    return (
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-6 max-h-[85vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-0.5">Bandingkan dengan</p>
+              <p className="text-sm font-bold text-gray-900 line-clamp-1">{productA.title}</p>
+            </div>
+            <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-500">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="relative mb-4">
+            <input
+              type="text"
+              value={query}
+              onChange={handleInput}
+              placeholder={loadingConfig ? 'Memuat...' : 'Cari produk untuk dibandingkan...'}
+              disabled={loadingConfig}
+              autoFocus
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 pr-10"
+            />
+            {searching && (
+              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+            )}
+          </div>
+
+          {selected ? (
+            <div className="flex items-center gap-3 border border-blue-200 bg-blue-50 rounded-xl p-3 mb-4">
+              {selected.image?.url && <img src={selected.image.url} alt={selected.title} className="w-12 h-12 object-contain rounded-lg bg-white flex-shrink-0" />}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug">{selected.title}</p>
+                {selected.productType && <p className="text-xs text-gray-400 mt-0.5">{selected.productType}</p>}
+              </div>
+              <button onClick={() => { setSelected(null); setQuery(''); setResults([]); }} className="flex-shrink-0 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                </svg>
+              </button>
+            </div>
+          ) : results.length > 0 && (
+            <div className="border border-gray-100 rounded-xl overflow-hidden mb-4 shadow-sm">
+              {results.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => { setSelected(p); setResults([]); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 last:border-0"
+                >
+                  {p.image?.url && <img src={p.image.url} alt={p.title} className="w-10 h-10 object-contain rounded-lg bg-gray-50 flex-shrink-0" />}
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 line-clamp-1">{p.title}</p>
+                    {p.productType && <p className="text-xs text-gray-400 mt-0.5">{p.productType}</p>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={handleCompare}
+            disabled={!selected || comparing}
+            className="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-colors"
+          >
+            {comparing ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Mengecek...
+              </>
+            ) : (
+              'Bandingkan Sekarang'
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   export default function ProductHandle() {
     const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs} = useLoaderData();
 
@@ -606,6 +782,7 @@ DP : 0
     // console.log('marketplace',marketplace)
 
     const [bukaModalBalasCepat, setBukaModalBalasCepat] = useState(false)
+    const [bukaModalBandingkan, setBukaModalBandingkan] = useState(false)
 
     const [visitorCount, setVisitorCount] = useState(() => Math.floor(Math.random() * 18) + 8);
     useEffect(() => {
@@ -666,6 +843,19 @@ DP : 0
     return (
       <>
       {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={balasCepat?.metaobjects?.nodes}/>}
+      {bukaModalBandingkan && (
+        <BandingkanModal
+          productA={{
+            id: product.id,
+            title: product.title,
+            handle: product.handle,
+            image: { url: product.featuredImage?.url || selectedVariant?.image?.url || '' },
+            price: selectedVariant.price,
+            productType: product.productType || '',
+          }}
+          onClose={() => setBukaModalBandingkan(false)}
+        />
+      )}
 
       <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
         <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -1113,6 +1303,17 @@ DP : 0
 
           {/* Actions */}
           <div className='flex items-center gap-2.5 flex-shrink-0 ml-auto'>
+
+            <button
+              onClick={() => setBukaModalBandingkan(true)}
+              className='inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors whitespace-nowrap'
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.918Z" clipRule="evenodd" />
+              </svg>
+              <span className='hidden lg:inline'>Bandingkan</span>
+            </button>
+
             <a
               href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`}
               target="_blank"
@@ -1170,6 +1371,17 @@ DP : 0
         
         <div className='md:hidden fixed left-0 bottom-16 w-full z-50 bg-white border-t border-gray-200 px-3 py-2 grid grid-cols-6 gap-2 items-center'>
 
+          {/* Bandingkan */}
+          <button
+            onClick={() => setBukaModalBandingkan(true)}
+            className='col-span-1 w-full h-11 flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gray-100 text-gray-700'
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.918Z" clipRule="evenodd" />
+            </svg>
+            <span className='text-[9px] font-semibold'>Banding</span>
+          </button>
+
           {/* Call */}
           <a href="tel:082111311131" target="_blank" className='col-span-1'>
             <button className='w-full h-11 flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold'>
@@ -1191,7 +1403,7 @@ DP : 0
           </a>
 
           {/* Beli Langsung */}
-          <div className='col-span-3'>
+          <div className='col-span-2'>
           <CartForm
             route="/cart"
             inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
@@ -1205,7 +1417,7 @@ DP : 0
                 className='w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-gray-900 text-white text-sm font-semibold'
               >
                 <FaBagShopping className='text-base' />
-                {selectedVariant?.availableForSale ? 'Beli Langsung' : 'Sold Out'}
+                {selectedVariant?.availableForSale ? 'Beli' : 'Sold Out'}
               </button>
             )}
           </CartForm>

@@ -23,22 +23,25 @@ Deskripsi Produk:
 ${productDescription || 'Tidak ada deskripsi.'}
     `.trim();
 
-    const prompt = `Kamu adalah expert reviewer produk kamera, drone, dan aksesoris fotografi yang sangat berpengalaman. Kamu tahu persis pertanyaan apa yang paling banyak dicari orang di Google, YouTube, forum kamera, dan marketplace sebelum membeli produk ini.
+    const prompt = `Kamu adalah expert reviewer produk kamera, drone, dan aksesoris fotografi yang sangat berpengalaman di Indonesia.
 
-Berdasarkan informasi produk di bawah, tentukan dulu KATEGORI produk ini (kamera mirrorless, kamera DSLR, drone, action camera, lensa, tripod, dll), lalu buat 10 pertanyaan yang paling SERING dan PALING PENTING ditanyakan calon pembeli untuk kategori tersebut.
+LANGKAH PERTAMA: Gunakan Google Search untuk mencari informasi terbaru tentang "${productTitle}" — cari spesifikasi resmi, review dari fotografer profesional, pertanyaan yang sering muncul di forum kamera Indonesia (Kaskus, Facebook Group kamera), YouTube, dan marketplace seperti Tokopedia/Shopee. Jika ini produk baru (rilis dalam 12 bulan terakhir), pastikan mencari info terbaru karena data lama mungkin tidak akurat.
+
+LANGKAH KEDUA: Tentukan KATEGORI produk ini (kamera mirrorless, DSLR, drone, action camera, lensa, tripod, dll), lalu buat 10 pertanyaan yang paling SERING dan PALING PENTING ditanyakan calon pembeli Indonesia untuk produk ini secara spesifik.
 
 Panduan pertanyaan berdasarkan kategori:
-- KAMERA (mirrorless/DSLR): ketahanan baterai (berapa foto per charge), performa low light, kemampuan video (4K/slow-mo), apakah cocok untuk pemula, kompatibilitas lensa, apakah body only atau kit
-- DRONE: durasi terbang per baterai, jangkauan sinyal, kestabilan di angin, kualitas kamera/gimbal, apakah butuh izin terbang di Indonesia, apakah foldable
-- ACTION CAMERA: waterproof/tahan air berapa meter, stabilisasi gambar (EIS/HyperSmooth), kapasitas baterai, kompatibilitas mount/aksesoris
-- LENSA: kompatibilitas mount kamera, apakah ada OIS/IS, sharpness di bukaan terbesar, apakah cocok untuk portrait/landscape/video
+- KAMERA (mirrorless/DSLR): ketahanan baterai (berapa foto per charge), performa low light, kemampuan video (4K/slow-mo/6K), apakah cocok untuk pemula, kompatibilitas lensa, apakah body only atau kit, fitur unggulan vs generasi sebelumnya
+- DRONE: durasi terbang per baterai, jangkauan sinyal, kestabilan di angin, kualitas kamera/gimbal, apakah butuh izin terbang di Indonesia, apakah foldable, obstacle avoidance
+- ACTION CAMERA: waterproof/tahan air berapa meter, stabilisasi gambar (EIS/HyperSmooth), kapasitas baterai, kompatibilitas mount/aksesoris, kemampuan live streaming
+- LENSA: kompatibilitas mount kamera, apakah ada OIS/IS, sharpness di bukaan terbesar, apakah cocok untuk portrait/landscape/video, autofocus speed
 - AKSESORIS LAIN: kompatibilitas, build quality, apakah worth it vs merek lain
 
 Aturan jawaban:
-- Jawab menggunakan pengetahuan umum yang akurat tentang produk/kategori ini — kamu boleh menjawab hal-hal yang sudah diketahui publik tentang produk ini
-- Jika ada info spesifik di deskripsi, prioritaskan itu
-- Jika benar-benar tidak tahu, jawab: "Untuk info lebih detail, silakan hubungi toko kami langsung"
+- Gunakan informasi dari hasil pencarian Google — jawaban harus akurat dan up-to-date
+- Prioritaskan info spesifik dari deskripsi produk yang diberikan
+- Jika produk terlalu baru dan info terbatas, jawab sejujurnya dan tambahkan "Untuk konfirmasi lebih lanjut, silakan hubungi toko kami"
 - Bahasa Indonesia yang natural, seperti orang yang benar-benar paham kamera berbicara ke temannya — tidak kaku, tidak terlalu formal
+- Jawaban harus spesifik untuk produk ini, bukan jawaban generik
 - Format output: JSON array dengan objek { "question": "...", "answer": "..." }
 - Hanya output JSON saja, tanpa teks lain
 
@@ -54,7 +57,8 @@ Output JSON:`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.3 },
+          tools: [{ google_search: {} }],
+          generationConfig: { temperature: 0.2 },
         }),
       }
     );
