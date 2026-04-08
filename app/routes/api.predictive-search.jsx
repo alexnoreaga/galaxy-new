@@ -138,6 +138,7 @@ export function normalizePredictiveSearchResults(predictiveSearch, locale) {
           id: product.id,
           image: product.variants?.nodes?.[0]?.image,
           title: product.title,
+          productType: product.productType || '',
           url: `${localePrefix}/products/${product.handle}${trackingParams}`,
           price: product.variants.nodes[0].price,
         };
@@ -247,6 +248,7 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
     id
     title
     handle
+    productType
     trackingParameters
     variants(first: 1) {
       nodes {

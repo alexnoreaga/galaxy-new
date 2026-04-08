@@ -2,7 +2,7 @@ import { json } from '@shopify/remix-oxygen';
 import { useLoaderData, useNavigate } from '@remix-run/react';
 import { useState, useRef, useEffect } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, setDoc, doc, getDocs, collection, query, orderBy, limit } from 'firebase/firestore';
+import { getFirestore, getDocs, collection, query, orderBy, limit, startAfter } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU",
@@ -26,18 +26,70 @@ export const meta = () => [
 const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents`;
 
-export async function loader() {
-  return json({ });
+// ↑ kept for cache-check fetch (single document lookup)
+
+export async function loader({ context }) {
+  const { session } = context;
+  const customerAccessToken = await session.get('customerAccessToken');
+  const token = customerAccessToken?.accessToken || '';
+
+  try {
+    const [{ collections }, custEmail, admgalaxy, configRes] = await Promise.all([
+      context.storefront.query(COLLECTIONS_QUERY, { variables: { first: 250 } }),
+      context.storefront.query(CUSTOMER_EMAIL_QUERY, { variables: { customertoken: token } }),
+      context.storefront.query(ADMIN_QUERY, { variables: { type: 'admin_galaxy', first: 20 } }),
+      fetch(`${FIRESTORE_BASE}/perbandingan_config/settings?key=${FIRESTORE_KEY}`).catch(() => null),
+    ]);
+
+    const isAdmin = !!(admgalaxy?.metaobjects?.edges?.find(
+      a => a?.node?.fields[0]?.value === custEmail?.customer?.email && custEmail?.customer?.email
+    ));
+
+    let allowedCollections = null; // null = not configured yet (allow all)
+    if (configRes?.ok) {
+      const configData = await configRes.json().catch(() => null);
+      const raw = configData?.fields?.allowedCollections?.stringValue;
+      if (raw) allowedCollections = JSON.parse(raw);
+    }
+
+    return json({ collections: collections.nodes, isAdmin, allowedCollections });
+  } catch (_) {
+    return json({ collections: [], isAdmin: false, allowedCollections: null });
+  }
 }
 
+const COLLECTIONS_QUERY = `#graphql
+  query MainCollections($first: Int!) {
+    collections(first: $first, sortKey: TITLE) {
+      nodes { handle title }
+    }
+  }
+`;
+const CUSTOMER_EMAIL_QUERY = `#graphql
+  query CustomerEmail($customertoken: String!) {
+    customer(customerAccessToken: $customertoken) { email }
+  }
+`;
+const ADMIN_QUERY = `#graphql
+  query AdminGalaxy($type: String!, $first: Int!) {
+    metaobjects(type: $type, first: $first) {
+      edges { node { fields { value } } }
+    }
+  }
+`;
+
+
 // Product search input component
-function ProductSearchInput({ label, selected, onSelect, placeholder }) {
+// allowedCollections: string[] of handles admin configured, or null = not set (open search)
+function ProductSearchInput({ label, selected, onSelect, placeholder, allowedCollections }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const debounceRef = useRef(null);
+
+  const hasCollectionFilter = allowedCollections && allowedCollections.length > 0;
 
   useEffect(() => {
     function handleClick(e) {
@@ -47,29 +99,57 @@ function ProductSearchInput({ label, selected, onSelect, placeholder }) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  async function fetchResults(val, collectionHandle) {
+    setLoading(true);
+    try {
+      let products = [];
+      if (hasCollectionFilter && collectionHandle) {
+        // Search within specific collection
+        const fd = new FormData();
+        fd.append('q', val);
+        fd.append('collection', collectionHandle);
+        const res = await fetch('/api/collection-search', { method: 'POST', body: fd });
+        const data = await res.json();
+        products = (data.products || []).map(p => ({ ...p, image: p.image }));
+      } else if (hasCollectionFilter && !collectionHandle) {
+        // Search across ALL allowed collections in parallel
+        const fetches = allowedCollections.map(col => {
+          const fd = new FormData();
+          fd.append('q', val);
+          fd.append('collection', col.handle);
+          return fetch('/api/collection-search', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(d => d.products || [])
+            .catch(() => []);
+        });
+        const arrays = await Promise.all(fetches);
+        const seen = new Set();
+        products = arrays.flat().filter(p => { if (seen.has(p.id)) return false; seen.add(p.id); return true; }).slice(0, 10);
+      } else {
+        // No collection filter configured — use predictive search
+        const fd = new FormData();
+        fd.append('q', val);
+        fd.append('limit', '10');
+        fd.append('type', 'PRODUCT');
+        const res = await fetch('/api/predictive-search', { method: 'POST', body: fd });
+        const data = await res.json();
+        products = data.searchResults?.results?.find(r => r.type === 'products')?.items || [];
+      }
+      setResults(products);
+      setOpen(true);
+    } catch (_) {}
+    setLoading(false);
+  }
+
   function handleInput(e) {
     const val = e.target.value;
     setQuery(val);
     if (!val.trim()) { setResults([]); setOpen(false); return; }
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const fd = new FormData();
-        fd.append('q', val);
-        fd.append('limit', '6');
-        fd.append('type', 'PRODUCT');
-        const res = await fetch('/api/predictive-search', { method: 'POST', body: fd });
-        const data = await res.json();
-        const products = data.searchResults?.results?.find(r => r.type === 'products')?.items || [];
-        setResults(products);
-        setOpen(true);
-      } catch (_) {}
-      setLoading(false);
-    }, 300);
+    debounceRef.current = setTimeout(() => fetchResults(val, ''), 300);
   }
 
-  function handleSelect(product) {
+function handleSelect(product) {
     onSelect(product);
     setQuery(product.title);
     setOpen(false);
@@ -86,6 +166,8 @@ function ProductSearchInput({ label, selected, onSelect, placeholder }) {
   return (
     <div className="relative" ref={ref}>
       <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{label}</label>
+
+
       {selected ? (
         <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl p-3">
           {selected.image?.url && (
@@ -124,23 +206,32 @@ function ProductSearchInput({ label, selected, onSelect, placeholder }) {
       )}
 
       {/* Dropdown results */}
-      {open && results.length > 0 && !selected && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-slate-800 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-          {results.map(product => (
-            <button
-              key={product.id}
-              onClick={() => handleSelect(product)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors text-left"
-            >
-              {product.image?.url && (
-                <img src={product.image.url} alt={product.title} className="w-10 h-10 object-contain rounded-lg bg-white/10 flex-shrink-0" />
-              )}
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-white line-clamp-1">{product.title}</p>
-                <p className="text-xs text-slate-400">Rp {parseFloat(product.price?.amount || 0).toLocaleString('id-ID')}</p>
-              </div>
-            </button>
-          ))}
+      {open && !selected && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-slate-800 border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto">
+          {results.length === 0 ? (
+            <p className="text-xs text-slate-500 px-4 py-3">Produk tidak ditemukan.</p>
+          ) : (
+            results.map(product => (
+              <button
+                key={product.id}
+                onClick={() => handleSelect(product)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors text-left"
+              >
+                {product.image?.url && (
+                  <img src={product.image.url} alt={product.title} className="w-10 h-10 object-contain rounded-lg bg-white/10 flex-shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-white line-clamp-1">{product.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-xs text-slate-400">Rp {parseFloat(product.price?.amount || 0).toLocaleString('id-ID')}</p>
+                    {product.productType && (
+                      <span className="text-[10px] text-slate-600 bg-white/5 px-1.5 py-0.5 rounded-full">{product.productType}</span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>
@@ -148,36 +239,82 @@ function ProductSearchInput({ label, selected, onSelect, placeholder }) {
 }
 
 export default function PerbandinganIndex() {
-  useLoaderData();
+  const { collections, isAdmin, allowedCollections: initialAllowed } = useLoaderData();
   const navigate = useNavigate();
+
+  // Admin: allowed collections config state
+  const [allowedCollections, setAllowedCollections] = useState(initialAllowed); // null = not configured
+  const [adminChecked, setAdminChecked] = useState(
+    () => new Set(initialAllowed ? initialAllowed.map(c => c.handle) : [])
+  );
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [configSaved, setConfigSaved] = useState(false);
   const [productA, setProductA] = useState(null);
   const [productB, setProductB] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [popular, setPopular] = useState([]);
   const [all, setAll] = useState([]);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState('');
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const lastDocRef = useRef(null);
+
+  const PAGE_SIZE = 12;
+
+  function mapDoc(d) {
+    const data = d.data();
+    return {
+      slug: d.id,
+      titleA: data.titleA || '',
+      titleB: data.titleB || '',
+      imageA: data.imageA || '',
+      imageB: data.imageB || '',
+      viewCount: data.viewCount || 0,
+      generatedAt: data.generatedAt || '',
+    };
+  }
 
   useEffect(() => {
     async function fetchList() {
       try {
         const db = getDb();
-        const snap = await getDocs(collection(db, 'comparisons'));
-        const docs = snap.docs.map(d => ({
-          slug: d.id,
-          titleA: d.data().titleA || '',
-          titleB: d.data().titleB || '',
-          imageA: d.data().imageA || '',
-          imageB: d.data().imageB || '',
-          viewCount: d.data().viewCount || 0,
-          generatedAt: d.data().generatedAt || '',
-        })).filter(c => c.titleA && c.titleB);
 
-        setPopular([...docs].sort((a, b) => b.viewCount - a.viewCount).slice(0, 6));
-        setAll([...docs].sort((a, b) => b.generatedAt.localeCompare(a.generatedAt)));
-      } catch (_) {}
+        // All: newest first, paginated
+        const allSnap = await getDocs(
+          query(collection(db, 'comparisons'), orderBy('generatedAt', 'desc'), limit(PAGE_SIZE))
+        );
+
+        const firstPage = allSnap.docs.map(mapDoc).filter(d => d.titleA && d.titleB);
+        lastDocRef.current = allSnap.docs[allSnap.docs.length - 1] || null;
+        setAll(firstPage);
+        // Popular: top 6 by viewCount, no extra query or index needed
+        setPopular([...firstPage].sort((a, b) => b.viewCount - a.viewCount).slice(0, 6));
+        setHasMore(allSnap.docs.length === PAGE_SIZE);
+      } catch (e) {
+        setListError(e.message);
+      } finally {
+        setListLoading(false);
+      }
     }
     fetchList();
   }, []);
+
+  async function loadMore() {
+    if (!lastDocRef.current || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const db = getDb();
+      const snap = await getDocs(
+        query(collection(db, 'comparisons'), orderBy('generatedAt', 'desc'), limit(PAGE_SIZE), startAfter(lastDocRef.current))
+      );
+      lastDocRef.current = snap.docs[snap.docs.length - 1] || null;
+      setAll(prev => [...prev, ...snap.docs.map(mapDoc).filter(d => d.titleA && d.titleB)]);
+      setHasMore(snap.docs.length === PAGE_SIZE);
+    } catch (_) {}
+    setLoadingMore(false);
+  }
 
   function buildSlug(handleA, handleB) {
     return [handleA, handleB].sort().join('-vs-');
@@ -200,16 +337,36 @@ export default function PerbandinganIndex() {
         const cachedDoc = await firestoreRes.json();
         const articleRaw = cachedDoc.fields?.article?.stringValue;
         if (articleRaw) {
-          // Pass cached data as state so result page renders instantly
+          // Backfill missing title/image fields on the cached doc (from old bug)
+          if (!cachedDoc.fields?.titleA?.stringValue) {
+            fetch(
+              `${FIRESTORE_BASE}/comparisons/${slug}?updateMask.fieldPaths=titleA&updateMask.fieldPaths=titleB&updateMask.fieldPaths=handleA&updateMask.fieldPaths=handleB&updateMask.fieldPaths=imageA&updateMask.fieldPaths=imageB&key=${FIRESTORE_KEY}`,
+              {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  fields: {
+                    titleA:  { stringValue: productA.title },
+                    titleB:  { stringValue: productB.title },
+                    handleA: { stringValue: productA.handle },
+                    handleB: { stringValue: productB.handle },
+                    imageA:  { stringValue: productA.image?.url || '' },
+                    imageB:  { stringValue: productB.image?.url || '' },
+                  },
+                }),
+              }
+            ).catch(() => {});
+          }
+
           navigate(`/perbandingan/${slug}`, {
             state: {
               comparison: JSON.parse(articleRaw),
-              titleA: cachedDoc.fields?.titleA?.stringValue || productA.title,
-              titleB: cachedDoc.fields?.titleB?.stringValue || productB.title,
-              handleA: cachedDoc.fields?.handleA?.stringValue || productA.handle,
-              handleB: cachedDoc.fields?.handleB?.stringValue || productB.handle,
-              imageA: cachedDoc.fields?.imageA?.stringValue || productA.image?.url || '',
-              imageB: cachedDoc.fields?.imageB?.stringValue || productB.image?.url || '',
+              titleA: productA.title,
+              titleB: productB.title,
+              handleA: productA.handle,
+              handleB: productB.handle,
+              imageA: productA.image?.url || '',
+              imageB: productB.image?.url || '',
             },
           });
           return;
@@ -247,24 +404,27 @@ export default function PerbandinganIndex() {
       const data = await res.json();
       if (!res.ok || !data.comparison) throw new Error(data.error || 'Gagal');
 
-      // Save to Firestore
+      // Save to Firestore via REST API (more reliable than client SDK with security rules)
       try {
-        const db = getDb();
-        await setDoc(doc(db, 'comparisons', slug), {
-          slug,
-          titleA: productA.title,
-          titleB: productB.title,
-          handleA: productA.handle,
-          handleB: productB.handle,
-          imageA: productA.image?.url || '',
-          imageB: productB.image?.url || '',
-          article: JSON.stringify(data.comparison),
-          generatedAt: new Date().toISOString(),
-          viewCount: 0,
+        await fetch(`${FIRESTORE_BASE}/comparisons/${slug}?key=${FIRESTORE_KEY}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fields: {
+              slug:        { stringValue: slug },
+              titleA:      { stringValue: productA.title },
+              titleB:      { stringValue: productB.title },
+              handleA:     { stringValue: productA.handle },
+              handleB:     { stringValue: productB.handle },
+              imageA:      { stringValue: productA.image?.url || '' },
+              imageB:      { stringValue: productB.image?.url || '' },
+              article:     { stringValue: JSON.stringify(data.comparison) },
+              generatedAt: { stringValue: new Date().toISOString() },
+              viewCount:   { integerValue: '0' },
+            },
+          }),
         });
-      } catch (e) {
-        console.error('Firestore save error:', e);
-      }
+      } catch (_) {}
 
       // Navigate and pass comparison data as state so result page works
       // even if Firestore isn't set up yet
@@ -285,11 +445,54 @@ export default function PerbandinganIndex() {
     }
   }
 
+  async function saveConfig() {
+    setSavingConfig(true);
+    const selected = collections.filter(c => adminChecked.has(c.handle));
+    try {
+      const res = await fetch(
+        `${FIRESTORE_BASE}/perbandingan_config/settings?updateMask.fieldPaths=allowedCollections&key=${FIRESTORE_KEY}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fields: { allowedCollections: { stringValue: JSON.stringify(selected) } },
+          }),
+        }
+      );
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('saveConfig failed:', errText);
+        alert('Gagal menyimpan pengaturan: ' + errText);
+        setSavingConfig(false);
+        return;
+      }
+      setAllowedCollections(selected.length > 0 ? selected : null);
+      setConfigSaved(true);
+    } catch (e) {
+      console.error('saveConfig error:', e);
+      alert('Gagal menyimpan pengaturan: ' + e.message);
+    }
+    setSavingConfig(false);
+  }
+
+  async function deleteComparison(slug) {
+    if (!confirm('Hapus perbandingan ini?')) return;
+    await fetch(`${FIRESTORE_BASE}/comparisons/${slug}?key=${FIRESTORE_KEY}`, { method: 'DELETE' });
+    setAll(prev => prev.filter(item => item.slug !== slug));
+    setPopular(prev => prev.filter(item => item.slug !== slug));
+  }
+
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = '#0f172a';
+    return () => { document.body.style.backgroundColor = prev; };
+  }, []);
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0f172a' }}>
+    <div className="min-h-screen w-full" style={{ backgroundColor: '#0f172a' }}>
       {/* Hero */}
       <div
-        className="relative overflow-hidden"
+        className="relative"
         style={{
           backgroundImage: `
             radial-gradient(ellipse at 20% 50%, rgba(37,99,235,0.2) 0%, transparent 60%),
@@ -299,8 +502,11 @@ export default function PerbandinganIndex() {
           backgroundSize: 'auto, auto, 40px 40px',
         }}
       >
-        <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-600 opacity-10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-indigo-500 opacity-10 rounded-full blur-2xl pointer-events-none" />
+        {/* Decorative blobs — clipped separately so they don't affect dropdown */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-600 opacity-10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-indigo-500 opacity-10 rounded-full blur-2xl" />
+        </div>
 
         <div className="relative max-w-4xl mx-auto px-6 pt-14 pb-16">
           <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3">Perbandingan Produk</p>
@@ -313,7 +519,8 @@ export default function PerbandinganIndex() {
               label="Produk Pertama"
               selected={productA}
               onSelect={setProductA}
-              placeholder="Cari kamera, drone..."
+              placeholder="Cari produk..."
+              allowedCollections={allowedCollections}
             />
 
             {/* VS divider */}
@@ -327,7 +534,8 @@ export default function PerbandinganIndex() {
               label="Produk Kedua"
               selected={productB}
               onSelect={setProductB}
-              placeholder="Cari kamera, drone..."
+              placeholder="Cari produk..."
+              allowedCollections={allowedCollections}
             />
           </div>
 
@@ -387,44 +595,140 @@ export default function PerbandinganIndex() {
         </div>
       )}
 
-      {/* All comparisons */}
-      {all.length > 0 && (
-        <div className="max-w-4xl mx-auto px-6 pb-16">
-          <div className="flex items-center justify-between mb-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              Semua Perbandingan
-              <span className="ml-2 bg-white/10 text-slate-400 text-[10px] px-2 py-0.5 rounded-full">{all.length}</span>
-            </p>
+      {/* All comparisons — always visible to show loading/error state */}
+      <div className="max-w-4xl mx-auto px-6 pb-16">
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            Semua Perbandingan
+            {!listLoading && <span className="ml-2 bg-white/10 text-slate-400 text-[10px] px-2 py-0.5 rounded-full">{all.length}</span>}
+          </p>
+        </div>
+
+        {listLoading && (
+          <div className="flex items-center gap-2 text-slate-500 text-sm">
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            </svg>
+            Memuat daftar...
           </div>
-          <div className="flex flex-col gap-2">
-            {all.map(item => (
-              <a
-                key={item.slug}
-                href={`/perbandingan/${item.slug}`}
-                className="group flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-3 transition-all"
-              >
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {item.imageA
-                    ? <img src={item.imageA} alt={item.titleA} className="w-10 h-10 object-contain rounded-lg bg-white/10" />
-                    : <div className="w-10 h-10 rounded-lg bg-white/10" />}
-                  <span className="text-[10px] font-black text-slate-600">VS</span>
-                  {item.imageB
-                    ? <img src={item.imageB} alt={item.titleB} className="w-10 h-10 object-contain rounded-lg bg-white/10" />
-                    : <div className="w-10 h-10 rounded-lg bg-white/10" />}
+        )}
+
+        {!listLoading && listError && (
+          <p className="text-xs text-rose-400 font-mono bg-rose-900/20 px-3 py-2 rounded-lg">{listError}</p>
+        )}
+
+        {!listLoading && !listError && all.length === 0 && (
+          <p className="text-sm text-slate-500">Belum ada perbandingan yang tersimpan.</p>
+        )}
+
+        {!listLoading && all.length > 0 && (
+          <>
+            <div className="flex flex-col gap-2">
+              {all.map(item => (
+                <div key={item.slug} className="group flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-3 transition-all">
+                  <a href={`/perbandingan/${item.slug}`} className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {item.imageA ? <img src={item.imageA} alt={item.titleA} className="w-10 h-10 object-contain rounded-lg bg-white/10" /> : <div className="w-10 h-10 rounded-lg bg-white/10" />}
+                      <span className="text-[10px] font-black text-slate-600">VS</span>
+                      {item.imageB ? <img src={item.imageB} alt={item.titleB} className="w-10 h-10 object-contain rounded-lg bg-white/10" /> : <div className="w-10 h-10 rounded-lg bg-white/10" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors line-clamp-1">
+                        {item.titleA} <span className="text-slate-600 font-normal">vs</span> {item.titleB}
+                      </p>
+                    </div>
+                    {item.viewCount > 0 && <p className="text-xs text-slate-600 flex-shrink-0">{item.viewCount}x dilihat</p>}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-600 group-hover:text-slate-400 flex-shrink-0 transition-colors">
+                      <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
+                    </svg>
+                  </a>
+                  {/* Admin delete button */}
+                  {isAdmin && (
+                    <button
+                      onClick={() => deleteComparison(item.slug)}
+                      className="flex-shrink-0 w-7 h-7 rounded-full bg-rose-500/10 hover:bg-rose-500/30 flex items-center justify-center transition-colors"
+                      title="Hapus perbandingan"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-rose-400">
+                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors line-clamp-1">
-                    {item.titleA} <span className="text-slate-600 font-normal">vs</span> {item.titleB}
-                  </p>
-                </div>
-                {item.viewCount > 0 && (
-                  <p className="text-xs text-slate-600 flex-shrink-0">{item.viewCount}x dilihat</p>
-                )}
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-600 group-hover:text-slate-400 flex-shrink-0 transition-colors">
-                  <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
-                </svg>
-              </a>
-            ))}
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-5 py-2.5 rounded-xl transition-all disabled:opacity-40"
+                >
+                  {loadingMore ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                      </svg>
+                      Memuat...
+                    </>
+                  ) : (
+                    'Muat Lebih Banyak'
+                  )}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── ADMIN PANEL ── */}
+      {isAdmin && (
+        <div className="max-w-4xl mx-auto px-6 pb-16">
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-amber-400">
+                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm font-bold text-amber-400">Panel Admin</p>
+            </div>
+
+            {/* Collection filter config */}
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              Koleksi yang bisa dicari di Bandingkan Produk
+            </p>
+            <p className="text-xs text-slate-500 mb-4">Centang koleksi yang boleh muncul di kotak pencarian. Jika tidak ada yang dicentang, semua produk bisa dicari.</p>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-5">
+              {collections.map(col => (
+                <label key={col.handle} className="flex items-center gap-2.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={adminChecked.has(col.handle)}
+                    onChange={() => {
+                      setAdminChecked(prev => {
+                        const next = new Set(prev);
+                        next.has(col.handle) ? next.delete(col.handle) : next.add(col.handle);
+                        return next;
+                      });
+                      setConfigSaved(false);
+                    }}
+                    className="w-4 h-4 rounded accent-blue-500"
+                  />
+                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">{col.title}</span>
+                </label>
+              ))}
+            </div>
+
+            <button
+              onClick={saveConfig}
+              disabled={savingConfig}
+              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-sm font-bold px-5 py-2.5 rounded-xl transition-colors"
+            >
+              {savingConfig ? 'Menyimpan...' : configSaved ? '✓ Tersimpan' : 'Simpan Pengaturan'}
+            </button>
           </div>
         </div>
       )}

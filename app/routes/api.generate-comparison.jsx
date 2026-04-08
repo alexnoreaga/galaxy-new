@@ -35,6 +35,8 @@ ${formatProduct(productB)}
 Buat perbandingan lengkap dalam format JSON berikut (hanya output JSON, tidak ada teks lain):
 
 {
+  "shortNameA": "Nama pendek UNIK untuk Produk A, maksimal 3 kata, harus bisa membedakannya dari Produk B. Contoh: jika A='Fujifilm Instax Mini Evo' dan B='Fujifilm Instax Mini Liplay', maka shortNameA='Mini Evo'. Jika A='Sony ZV-E10 II' dan B='Canon EOS M50 Mark II', maka shortNameA='ZV-E10 II'.",
+  "shortNameB": "Nama pendek UNIK untuk Produk B, sama seperti aturan shortNameA.",
   "intro": "2-3 kalimat pembuka yang menarik tentang kedua produk ini dan kenapa perbandingan ini penting",
   "categories": [
     {
@@ -43,8 +45,6 @@ Buat perbandingan lengkap dalam format JSON berikut (hanya output JSON, tidak ad
       "reason": "1-2 kalimat penjelasan singkat kenapa produk ini menang di kategori ini"
     }
   ],
-  "detailA": "3-4 paragraf review mendalam tentang Produk A — kelebihan, kekurangan, cocok untuk siapa",
-  "detailB": "3-4 paragraf review mendalam tentang Produk B — kelebihan, kekurangan, cocok untuk siapa",
   "verdict": {
     "chooseA": ["alasan 1", "alasan 2", "alasan 3"],
     "chooseB": ["alasan 1", "alasan 2", "alasan 3"]
@@ -53,6 +53,7 @@ Buat perbandingan lengkap dalam format JSON berikut (hanya output JSON, tidak ad
 }
 
 Aturan:
+- shortNameA dan shortNameB WAJIB berbeda satu sama lain dan mudah dibedakan
 - Gunakan pengetahuan umum yang akurat tentang produk ini
 - Jangan mengarang spesifikasi teknis yang tidak ada
 - Bahasa Indonesia yang natural, informatif, tidak kaku

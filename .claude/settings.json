@@ -1,10 +1,11 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(ls app/routes/api*)",
+      "Bash(ls c:\\\\Users\\\\user\\\\Desktop\\\\shopify-final\\\\galaxy\\\\app\\\\routes\\\\api.*.jsx)"
+    ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
-    ],
-    "allow": [
-      "Bash(ls app/routes/api*)"
     ]
   }
 }
