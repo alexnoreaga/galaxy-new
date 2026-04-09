@@ -1,4 +1,4 @@
-import { json, redirect } from '@shopify/remix-oxygen';
+import { json } from '@shopify/remix-oxygen';
 import { useLoaderData, Link, useLocation } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 
@@ -95,9 +95,14 @@ export async function loader({ params, context }) {
     }
   } catch (_) {}
 
+  const distinct = getDistinctShortName(titleA, titleB);
+  const shortNameA = comparison?.shortNameA || distinct.shortA;
+  const shortNameB = comparison?.shortNameB || distinct.shortB;
+
   return json({
     slug,
     titleA, titleB, handleA, handleB,
+    shortNameA, shortNameB,
     imageA: realImageA, imageB: realImageB,
     priceA, priceB, compareAtA, compareAtB,
     comparison, votesA, votesB, related,
@@ -106,8 +111,10 @@ export async function loader({ params, context }) {
 
 export const meta = ({ data }) => {
   if (!data || !data.titleA) return [{ title: 'Perbandingan | Galaxy Camera' }];
-  const title = `${data.titleA} vs ${data.titleB} — Perbandingan Lengkap | Galaxy Camera`;
-  const description = `Perbandingan lengkap ${data.titleA} vs ${data.titleB}. Analisis mendalam — kualitas foto, video, fitur, harga, dan kesimpulan akhir. Temukan produk terbaik untuk kebutuhanmu.`;
+  const shortA = data.shortNameA || data.titleA;
+  const shortB = data.shortNameB || data.titleB;
+  const title = `Perbandingan ${shortA} vs ${shortB} | Galaxy Camera`;
+  const description = `Perbandingan lengkap ${shortA} vs ${shortB}. Analisis mendalam — kualitas foto, video, fitur, harga, dan kesimpulan akhir. Temukan produk terbaik untuk kebutuhanmu.`;
   const url = `https://galaxy.co.id/perbandingan/${data.slug}`;
   const image = data.imageA || data.imageB || 'https://galaxy.co.id/icon-512x512.png';
 
