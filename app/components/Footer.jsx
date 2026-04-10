@@ -13,7 +13,7 @@ const socials = [
 
 export function Footer({menu}) {
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="text-white" style={{ background: 'linear-gradient(180deg, #0d1526 0%, #080d1a 100%)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
       {/* Main footer content */}
       <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
@@ -57,7 +57,7 @@ export function Footer({menu}) {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors no-underline"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition-colors no-underline" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
                     {icon}
                   </a>
@@ -69,10 +69,9 @@ export function Footer({menu}) {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} Galaxy Camera — PT Galaxy Digital Niaga. All rights reserved.</p>
-          <p>Toko Kamera Online Terpercaya Sejak 2014</p>
+      <div className="border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-7xl mx-auto px-4 py-2 text-center" style={{ fontSize: '9px', color: 'rgba(255,255,255,0.18)' }}>
+          <p>© {new Date().getFullYear()} Galaxy Camera — PT Galaxy Digital Niaga. All rights reserved. · Toko Kamera Online Terpercaya Sejak 2014</p>
         </div>
       </div>
     </footer>
