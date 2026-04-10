@@ -243,25 +243,38 @@ export default function RekomendasiSlug() {
 
       {/* Quick jump list */}
       <div className="max-w-3xl mx-auto px-4 md:px-8 mb-8">
-        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">Daftar Isi</p>
-          <ol className="space-y-1.5">
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="px-4 py-3" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Daftar Isi</p>
+          </div>
+          <ol className="divide-y" style={{ divideColor: 'rgba(255,255,255,0.05)' }}>
             {products.map((p, i) => {
               const cp = contentMap[p.handle];
               const vc = VERDICT_COLORS[cp?.verdictColor] || VERDICT_COLORS.blue;
               return (
-                <li key={p.handle}>
+                <li key={p.handle} style={{ borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                   <a
                     href={`#produk-${i + 1}`}
-                    className="flex items-center gap-3 group"
+                    className="flex items-center gap-3 px-4 py-2 group hover:bg-white/5 transition-colors"
                   >
-                    <span className="text-xs font-black tabular-nums text-slate-600 w-5">#{i + 1}</span>
-                    <span className="text-sm text-slate-400 group-hover:text-white transition-colors flex-1">{p.title}</span>
+                    <span
+                      className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black"
+                      style={{ background: 'rgba(255,255,255,0.06)', color: '#64748b' }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="text-sm text-slate-300 group-hover:text-white transition-colors flex-1 leading-snug line-clamp-1">{p.title}</span>
                     {cp?.verdict && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: vc.bg, color: vc.text, border: `1px solid ${vc.border}` }}>
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 hidden sm:inline-block"
+                        style={{ background: vc.bg, color: vc.text, border: `1px solid ${vc.border}` }}
+                      >
                         {cp.verdict}
                       </span>
                     )}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-slate-700 flex-shrink-0">
+                      <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 0 0 1.06 0l7.22-7.22v5.69a.75.75 0 0 0 1.5 0v-7.5a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0 0 1.5h5.69l-7.22 7.22a.75.75 0 0 0 0 1.06Z" clipRule="evenodd" />
+                    </svg>
                   </a>
                 </li>
               );

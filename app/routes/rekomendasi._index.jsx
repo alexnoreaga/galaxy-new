@@ -81,8 +81,19 @@ export default function RekomendasiIndex() {
     return () => { document.body.style.backgroundColor = prev; };
   }, []);
 
-  // Collect all unique tags across all items
-  const allTags = ['Semua', ...Array.from(new Set(items.flatMap(item => item.tags || [])))];
+  const [showAllTags, setShowAllTags] = useState(false);
+  const MAX_VISIBLE_TAGS = 6;
+
+  // Sort tags by frequency (most used first)
+  const tagCounts = items.flatMap(item => item.tags || []).reduce((acc, tag) => {
+    acc[tag] = (acc[tag] || 0) + 1;
+    return acc;
+  }, {});
+  const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
+  const allTags = ['Semua', ...sortedTags];
+  const visibleTags = showAllTags ? allTags : allTags.slice(0, MAX_VISIBLE_TAGS + 1);
+  const hiddenCount = allTags.length - (MAX_VISIBLE_TAGS + 1);
+
   const filtered = activeTag === 'Semua' ? items : items.filter(item => item.tags?.includes(activeTag));
 
   const jsonLd = {
@@ -123,7 +134,7 @@ export default function RekomendasiIndex() {
         {/* Tag filter */}
         {allTags.length > 1 && (
           <div className="flex flex-wrap gap-2 mb-7">
-            {allTags.map(tag => (
+            {visibleTags.map(tag => (
               <button
                 key={tag}
                 onClick={() => setActiveTag(tag)}
@@ -136,12 +147,28 @@ export default function RekomendasiIndex() {
               >
                 {tag}
                 {tag !== 'Semua' && (
-                  <span className="ml-1.5 opacity-60">
-                    {items.filter(i => i.tags?.includes(tag)).length}
-                  </span>
+                  <span className="ml-1.5 opacity-60">{tagCounts[tag]}</span>
                 )}
               </button>
             ))}
+            {!showAllTags && hiddenCount > 0 && (
+              <button
+                onClick={() => setShowAllTags(true)}
+                className="text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#64748b', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                +{hiddenCount} lainnya
+              </button>
+            )}
+            {showAllTags && hiddenCount > 0 && (
+              <button
+                onClick={() => setShowAllTags(false)}
+                className="text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#64748b', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                Lebih sedikit ↑
+              </button>
+            )}
           </div>
         )}
 
