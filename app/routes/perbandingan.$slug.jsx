@@ -300,7 +300,7 @@ export default function PerbandinganSlug() {
             Kembali
           </Link>
 
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">Perbandingan Produk · AI Analysis</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">Perbandingan Produk · Galaxy Camera</p>
           <h1 className="text-xl md:text-3xl font-black text-white mb-6 leading-snug">
             {shortA} <span className="text-slate-600 font-normal text-base md:text-xl mx-1">vs</span> {shortB}
           </h1>
