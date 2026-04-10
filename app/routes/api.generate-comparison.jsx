@@ -70,11 +70,15 @@ Aturan ketat:
 - Jujur dan berani — jika satu produk jelas menang, katakan dengan tegas
 - Output HANYA JSON valid, tidak ada teks lain di luar JSON`;
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55000); // 55s timeout
+
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           tools: [{ google_search: {} }],
@@ -82,11 +86,12 @@ Aturan ketat:
         }),
       }
     );
+    clearTimeout(timeout);
 
     if (!res.ok) {
       const errText = await res.text();
       console.error('Gemini API error:', errText);
-      return json({ error: 'Gemini API error' }, { status: 500 });
+      return json({ error: 'Gemini API error', detail: errText }, { status: 500 });
     }
 
     const geminiData = await res.json();

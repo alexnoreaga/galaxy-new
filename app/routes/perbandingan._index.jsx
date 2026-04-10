@@ -395,34 +395,36 @@ export default function PerbandinganIndex() {
       }
     } catch (_) {}
 
-    // Generate new comparison
-    try {
+    // Generate new comparison (with 1 auto-retry)
+    const payload = {
+      productA: {
+        title: productA.title, handle: productA.handle, vendor: productA.vendor,
+        productType: productA.productType, description: productA.description,
+        specs: productA.specs, garansi: productA.garansi,
+      },
+      productB: {
+        title: productB.title, handle: productB.handle, vendor: productB.vendor,
+        productType: productB.productType, description: productB.description,
+        specs: productB.specs, garansi: productB.garansi,
+      },
+    };
+
+    const fetchWithRetry = async (attempt = 1) => {
       const res = await fetch('/api/generate-comparison', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productA: {
-            title: productA.title,
-            handle: productA.handle,
-            vendor: productA.vendor,
-            productType: productA.productType,
-            description: productA.description,
-            specs: productA.specs,
-            garansi: productA.garansi,
-          },
-          productB: {
-            title: productB.title,
-            handle: productB.handle,
-            vendor: productB.vendor,
-            productType: productB.productType,
-            description: productB.description,
-            specs: productB.specs,
-            garansi: productB.garansi,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
-
       const data = await res.json();
+      if ((!res.ok || !data.comparison) && attempt < 2) {
+        await new Promise(r => setTimeout(r, 1500));
+        return fetchWithRetry(2);
+      }
+      return { res, data };
+    };
+
+    try {
+      const { res, data } = await fetchWithRetry();
       if (!res.ok || !data.comparison) throw new Error(data.error || 'Gagal');
 
       // Save to Firestore via REST API (more reliable than client SDK with security rules)
@@ -461,7 +463,7 @@ export default function PerbandinganIndex() {
         },
       });
     } catch (e) {
-      setError('Gagal membuat perbandingan. Coba lagi.');
+      setError('AI membutuhkan waktu lebih lama dari biasa. Silakan coba lagi.');
       setLoading(false);
     }
   }
@@ -574,7 +576,7 @@ export default function PerbandinganIndex() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
-                  Membuat Perbandingan...
+                  AI sedang riset & menulis... (30-60 detik)
                 </>
               ) : (
                 <>
