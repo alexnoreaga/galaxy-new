@@ -8,7 +8,7 @@ export async function loader({ params, context }) {
   // Fetch comparison from Firestore REST API
   let comparison = null;
   let titleA = '', titleB = '', handleA = '', handleB = '', imageA = '', imageB = '';
-  let votesA = 0, votesB = 0;
+  let votesA = 0, votesB = 0, generatedAt = '';
 
   try {
     const res = await fetch(
@@ -29,6 +29,7 @@ export async function loader({ params, context }) {
     comparison = articleRaw ? JSON.parse(articleRaw) : null;
     votesA = parseInt(f.votesA?.integerValue || 0);
     votesB = parseInt(f.votesB?.integerValue || 0);
+    generatedAt = f.generatedAt?.stringValue || '';
 
     // Increment view count (fire and forget) — updateMask ensures only viewCount is touched
     fetch(
@@ -106,6 +107,7 @@ export async function loader({ params, context }) {
     imageA: realImageA, imageB: realImageB,
     priceA, priceB, compareAtA, compareAtB,
     comparison, votesA, votesB, related,
+    generatedAt,
   });
 }
 
@@ -260,10 +262,14 @@ export default function PerbandinganSlug() {
               '@context': 'https://schema.org',
               '@type': 'Article',
               mainEntityOfPage: { '@type': 'WebPage', '@id': `https://galaxy.co.id/perbandingan/${loaderData.slug}` },
-              headline: `${titleA} vs ${titleB} — Perbandingan Lengkap`,
+              headline: `Perbandingan ${shortA} vs ${shortB}`,
               description: comparison.intro,
-              image: imageA || imageB || '',
-              datePublished: new Date().toISOString().split('T')[0],
+              image: (imageA || imageB) ? {
+                '@type': 'ImageObject',
+                url: imageA || imageB,
+              } : 'https://galaxy.co.id/icon-512x512.png',
+              datePublished: loaderData.generatedAt || new Date().toISOString(),
+              dateModified: loaderData.generatedAt || new Date().toISOString(),
               author: { '@type': 'Organization', name: 'Galaxy Camera', url: 'https://galaxy.co.id' },
               publisher: {
                 '@type': 'Organization',
@@ -278,7 +284,7 @@ export default function PerbandinganSlug() {
               itemListElement: [
                 { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://galaxy.co.id' },
                 { '@type': 'ListItem', position: 2, name: 'Bandingkan Produk', item: 'https://galaxy.co.id/perbandingan' },
-                { '@type': 'ListItem', position: 3, name: `${titleA} vs ${titleB}`, item: `https://galaxy.co.id/perbandingan/${loaderData.slug}` },
+                { '@type': 'ListItem', position: 3, name: `Perbandingan ${shortA} vs ${shortB}`, item: `https://galaxy.co.id/perbandingan/${loaderData.slug}` },
               ],
             },
           ]),

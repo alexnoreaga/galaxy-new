@@ -4,5 +4,4 @@ Disallow: /admin/*
 Disallow: /account
 Disallow: /cart
 
-User-agent: *
-Allow: /
+Sitemap: https://galaxy.co.id/sitemap.xml

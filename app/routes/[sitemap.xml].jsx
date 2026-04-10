@@ -6,6 +6,9 @@ import {flattenConnection} from '@shopify/hydrogen';
  */
 const MAX_URLS = 250;
 
+const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+
 export async function loader({request, context: {storefront}}) {
   const data = await storefront.query(SITEMAP_QUERY, {
     variables: {
@@ -18,16 +21,38 @@ export async function loader({request, context: {storefront}}) {
     throw new Response('No data found', {status: 404});
   }
 
-  // Fetch brand category data for sitemap
-  const brandCategoryData = await storefront.query(BRAND_CATEGORIES_QUERY, {
-    variables: {
-      first: 250,
-    },
-  });
+  // Fetch brand category data + Firestore comparisons in parallel
+  const [brandCategoryData, comparisonRes] = await Promise.all([
+    storefront.query(BRAND_CATEGORIES_QUERY, { variables: { first: 250 } }),
+    fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'comparisons' }],
+          select: { fields: [{ fieldPath: 'generatedAt' }] },
+          orderBy: [{ field: { fieldPath: 'generatedAt' }, direction: 'DESCENDING' }],
+          limit: 500,
+        },
+      }),
+    }).catch(() => null),
+  ]);
+
+  let comparisons = [];
+  if (comparisonRes?.ok) {
+    const compData = await comparisonRes.json().catch(() => []);
+    comparisons = (compData || [])
+      .filter(r => r.document)
+      .map(r => ({
+        slug: r.document.name.split('/').pop(),
+        generatedAt: r.document.fields?.generatedAt?.stringValue || new Date().toISOString(),
+      }));
+  }
 
   const sitemap = generateSitemap({
-    data, 
+    data,
     brandCategoryData,
+    comparisons,
     baseUrl: new URL(request.url).origin
   });
 
@@ -44,7 +69,7 @@ function xmlEncode(string) {
   return string.replace(/[&<>'"]/g, (char) => `&#${char.charCodeAt(0)};`);
 }
 
-function generateSitemap({data, brandCategoryData, baseUrl}) {
+function generateSitemap({data, brandCategoryData, comparisons, baseUrl}) {
   // Add homepage - MOST IMPORTANT!
   const homepage = {
     url: baseUrl,
@@ -154,7 +179,21 @@ function generateSitemap({data, brandCategoryData, baseUrl}) {
     });
   }
 
-  const urls = [homepage, ...products, ...collections, ...pages, ...brandCategories];
+  // Perbandingan index + individual pages from Firestore
+  const perbandinganIndex = {
+    url: `${baseUrl}/perbandingan`,
+    lastMod: new Date().toISOString(),
+    changeFreq: 'daily',
+    priority: 0.8,
+  };
+  const perbandinganPages = (comparisons || []).map(c => ({
+    url: `${baseUrl}/perbandingan/${c.slug}`,
+    lastMod: c.generatedAt,
+    changeFreq: 'weekly',
+    priority: 0.7,
+  }));
+
+  const urls = [homepage, ...products, ...collections, ...pages, ...brandCategories, perbandinganIndex, ...perbandinganPages];
 
   return `
     <urlset
