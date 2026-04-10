@@ -6,6 +6,7 @@ const links = [
   {to: '/blogs', label: 'Blog & Artikel'},
   {to: '/pengadaan', label: 'Pengadaan Instansi'},
   {to: '/perbandingan', label: 'Bandingkan Produk'},
+  {to: '/rekomendasi', label: 'Rekomendasi Produk'},
 ];
 
 export const FooterColumn2 = () => {

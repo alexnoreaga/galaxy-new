@@ -22,7 +22,7 @@ export async function loader({request, context: {storefront}}) {
   }
 
   // Fetch brand category data + Firestore comparisons in parallel
-  const [brandCategoryData, comparisonRes] = await Promise.all([
+  const [brandCategoryData, comparisonRes, rekomendasiRes] = await Promise.all([
     storefront.query(BRAND_CATEGORIES_QUERY, { variables: { first: 250 } }),
     fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
       method: 'POST',
@@ -32,6 +32,18 @@ export async function loader({request, context: {storefront}}) {
           from: [{ collectionId: 'comparisons' }],
           select: { fields: [{ fieldPath: 'generatedAt' }] },
           orderBy: [{ field: { fieldPath: 'generatedAt' }, direction: 'DESCENDING' }],
+          limit: 500,
+        },
+      }),
+    }).catch(() => null),
+    fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'rekomendasi' }],
+          select: { fields: [{ fieldPath: 'createdAt' }] },
+          orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
           limit: 500,
         },
       }),
@@ -49,10 +61,22 @@ export async function loader({request, context: {storefront}}) {
       }));
   }
 
+  let rekomendasiList = [];
+  if (rekomendasiRes?.ok) {
+    const rekData = await rekomendasiRes.json().catch(() => []);
+    rekomendasiList = (rekData || [])
+      .filter(r => r.document)
+      .map(r => ({
+        slug: r.document.name.split('/').pop(),
+        createdAt: r.document.fields?.createdAt?.stringValue || new Date().toISOString(),
+      }));
+  }
+
   const sitemap = generateSitemap({
     data,
     brandCategoryData,
     comparisons,
+    rekomendasiList,
     baseUrl: new URL(request.url).origin
   });
 
@@ -69,7 +93,7 @@ function xmlEncode(string) {
   return string.replace(/[&<>'"]/g, (char) => `&#${char.charCodeAt(0)};`);
 }
 
-function generateSitemap({data, brandCategoryData, comparisons, baseUrl}) {
+function generateSitemap({data, brandCategoryData, comparisons, rekomendasiList, baseUrl}) {
   // Add homepage - MOST IMPORTANT!
   const homepage = {
     url: baseUrl,
@@ -193,7 +217,20 @@ function generateSitemap({data, brandCategoryData, comparisons, baseUrl}) {
     priority: 0.7,
   }));
 
-  const urls = [homepage, ...products, ...collections, ...pages, ...brandCategories, perbandinganIndex, ...perbandinganPages];
+  const rekomendasiIndex = {
+    url: `${baseUrl}/rekomendasi`,
+    lastMod: new Date().toISOString(),
+    changeFreq: 'daily',
+    priority: 0.8,
+  };
+  const rekomendasiPages = (rekomendasiList || []).map(r => ({
+    url: `${baseUrl}/rekomendasi/${r.slug}`,
+    lastMod: r.createdAt,
+    changeFreq: 'weekly',
+    priority: 0.75,
+  }));
+
+  const urls = [homepage, ...products, ...collections, ...pages, ...brandCategories, perbandinganIndex, ...perbandinganPages, rekomendasiIndex, ...rekomendasiPages];
 
   return `
     <urlset
