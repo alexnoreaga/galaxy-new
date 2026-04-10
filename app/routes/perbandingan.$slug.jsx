@@ -251,6 +251,10 @@ export default function PerbandinganSlug() {
   const pctA = Math.round((countA / total) * 100);
   const pctB = 100 - pctA;
 
+  const totalVotes = votesA + votesB;
+  const vPctA = totalVotes > 0 ? Math.round((votesA / totalVotes) * 100) : 50;
+  const vPctB = 100 - vPctA;
+
   return (
     <div style={{ backgroundColor: '#080d1a', minHeight: '100vh', color: 'white' }}>
       {/* JSON-LD Schema */}
@@ -264,19 +268,11 @@ export default function PerbandinganSlug() {
               mainEntityOfPage: { '@type': 'WebPage', '@id': `https://galaxy.co.id/perbandingan/${loaderData.slug}` },
               headline: `Perbandingan ${shortA} vs ${shortB}`,
               description: comparison.intro,
-              image: (imageA || imageB) ? {
-                '@type': 'ImageObject',
-                url: imageA || imageB,
-              } : 'https://galaxy.co.id/icon-512x512.png',
+              image: (imageA || imageB) ? { '@type': 'ImageObject', url: imageA || imageB } : 'https://galaxy.co.id/icon-512x512.png',
               datePublished: loaderData.generatedAt || new Date().toISOString(),
               dateModified: loaderData.generatedAt || new Date().toISOString(),
               author: { '@type': 'Organization', name: 'Galaxy Camera', url: 'https://galaxy.co.id' },
-              publisher: {
-                '@type': 'Organization',
-                name: 'Galaxy Camera',
-                url: 'https://galaxy.co.id',
-                logo: { '@type': 'ImageObject', url: 'https://galaxy.co.id/icon-512x512.png' },
-              },
+              publisher: { '@type': 'Organization', name: 'Galaxy Camera', url: 'https://galaxy.co.id', logo: { '@type': 'ImageObject', url: 'https://galaxy.co.id/icon-512x512.png' } },
             },
             {
               '@context': 'https://schema.org',
@@ -293,196 +289,178 @@ export default function PerbandinganSlug() {
 
       {/* ── HERO ── */}
       <div style={{ background: 'linear-gradient(180deg,#0f172a 0%,#080d1a 100%)' }} className="relative overflow-hidden pb-6">
-        <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-600 opacity-10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -top-10 -left-16 w-56 h-56 bg-orange-500 opacity-10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-600 opacity-10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 -left-16 w-72 h-72 bg-orange-500 opacity-10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-4xl mx-auto px-4 md:px-8 pt-8">
-          <Link to="/perbandingan" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 mb-6 transition-colors">
+        <div className="relative max-w-4xl mx-auto px-4 md:px-8 pt-6">
+          <Link to="/perbandingan" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 mb-5 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path fillRule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L4.862 9.25H16.25A.75.75 0 0 1 17 10Z" clipRule="evenodd" />
             </svg>
-            Kembali ke Perbandingan
+            Kembali
           </Link>
 
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">Perbandingan Produk</p>
-          <h1 className="text-xl md:text-3xl font-bold text-slate-300 mb-8 leading-snug">
-            <span className="text-white">{shortA}</span>
-            <span className="text-slate-600 mx-3 font-normal">vs</span>
-            <span className="text-white">{shortB}</span>
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">Perbandingan Produk · AI Analysis</p>
+          <h1 className="text-xl md:text-3xl font-black text-white mb-6 leading-snug">
+            {shortA} <span className="text-slate-600 font-normal text-base md:text-xl mx-1">vs</span> {shortB}
           </h1>
 
-          {/* Product cards side by side */}
-          <div className="grid grid-cols-2 gap-4 md:gap-8 relative">
+          {/* ── PRODUCT CARDS ── */}
+          <div className="grid grid-cols-2 gap-3 md:gap-6 relative mb-2">
             {[
               { title: titleA, short: shortA, image: imageA, price: priceA, compareAt: compareAtA, handle: handleA, side: 'A', disc: discA, wins: countA, accent: 'blue' },
               { title: titleB, short: shortB, image: imageB, price: priceB, compareAt: compareAtB, handle: handleB, side: 'B', disc: discB, wins: countB, accent: 'orange' },
             ].map((p) => {
               const isWinner = overallWinner === p.side;
+              const accentColor = p.accent === 'blue' ? { main: '#3b82f6', dark: '#2563eb', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.4)', text: '#93c5fd' }
+                                                       : { main: '#f97316', dark: '#ea580c', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.4)', text: '#fdba74' };
               return (
                 <div
                   key={p.side}
-                  className="relative rounded-2xl p-5 md:p-8 flex flex-col items-center text-center"
+                  className="relative rounded-2xl flex flex-col items-center text-center overflow-hidden"
                   style={{
-                    background: isWinner
-                      ? p.accent === 'blue' ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.12)'
-                      : 'rgba(255,255,255,0.04)',
-                    border: isWinner
-                      ? p.accent === 'blue' ? '1.5px solid rgba(59,130,246,0.5)' : '1.5px solid rgba(249,115,22,0.5)'
-                      : '1.5px solid rgba(255,255,255,0.08)',
+                    background: isWinner ? accentColor.bg : 'rgba(255,255,255,0.04)',
+                    border: `1.5px solid ${isWinner ? accentColor.border : 'rgba(255,255,255,0.08)'}`,
                   }}
                 >
                   {isWinner && (
-                    <div
-                      className="absolute -top-3 left-1/2 -translate-x-1/2 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap"
-                      style={{ background: p.accent === 'blue' ? '#3b82f6' : '#ea580c' }}
-                    >
+                    <div className="w-full py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-white" style={{ background: accentColor.dark }}>
                       ✓ Pilihan Terbaik
                     </div>
                   )}
-
-                  {p.image
-                    ? <img src={p.image} alt={p.title} className="w-28 h-28 md:w-40 md:h-40 object-contain mb-4" />
-                    : <div className="w-28 h-28 md:w-40 md:h-40 rounded-xl bg-white/5 mb-4" />
-                  }
-
-                  <p className="text-sm md:text-base font-bold text-white leading-snug line-clamp-2 mb-3">{p.title}</p>
-
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <div
-                      className="text-xs font-black px-2.5 py-1 rounded-full"
-                      style={{
-                        background: p.accent === 'blue' ? 'rgba(59,130,246,0.2)' : 'rgba(249,115,22,0.2)',
-                        color: p.accent === 'blue' ? '#93c5fd' : '#fdba74',
-                      }}
+                  <div className="p-3 md:p-6 flex flex-col items-center w-full">
+                    {p.image
+                      ? <img src={p.image} alt={p.title} className="w-20 h-20 md:w-36 md:h-36 object-contain mb-3" />
+                      : <div className="w-20 h-20 md:w-36 md:h-36 rounded-xl bg-white/5 mb-3" />
+                    }
+                    <p className="text-xs md:text-sm font-bold text-white leading-snug line-clamp-2 mb-2">{p.title}</p>
+                    <span className="text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full mb-2" style={{ background: accentColor.bg, color: accentColor.text, border: `1px solid ${accentColor.border}` }}>
+                      {p.wins} menang
+                    </span>
+                    {p.disc && <p className="text-[10px] text-rose-400 font-bold mb-0.5">-{p.disc}%</p>}
+                    <p className="text-sm md:text-lg font-black text-white mb-3">{formatPrice(p.price) || '—'}</p>
+                    <Link
+                      to={`/products/${p.handle}`}
+                      className="w-full inline-flex items-center justify-center text-white text-xs md:text-sm font-bold px-3 py-2 rounded-xl transition-colors"
+                      style={{ background: accentColor.dark }}
                     >
-                      {p.wins} kategori menang
-                    </div>
+                      Beli →
+                    </Link>
                   </div>
-
-                  {p.disc && <p className="text-xs text-rose-400 font-bold mb-1">Hemat {p.disc}%</p>}
-                  <p className="text-lg md:text-xl font-black text-white mb-4">{formatPrice(p.price) || '—'}</p>
-
-                  <Link
-                    to={`/products/${p.handle}`}
-                    className="w-full inline-flex items-center justify-center text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
-                    style={{ background: p.accent === 'blue' ? '#2563eb' : '#ea580c' }}
-                  >
-                    Beli Sekarang
-                  </Link>
                 </div>
               );
             })}
-
             {/* VS pill */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center" style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.15)' }}>
-              <span className="text-xs font-black text-slate-500">VS</span>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#0f172a', border: '1.5px solid rgba(255,255,255,0.15)' }}>
+              <span className="text-[10px] font-black text-slate-500">VS</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── SCORE BAR ── */}
-      <div className="max-w-4xl mx-auto px-4 md:px-8 py-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-5 text-center">Skor Perbandingan</p>
-
-        <div className="flex items-center gap-4 mb-3">
-          <span className="text-4xl md:text-5xl font-black text-blue-400 tabular-nums w-10 text-right">{countA}</span>
-          <div className="flex-1 h-5 rounded-full overflow-hidden flex" style={{ background: 'rgba(255,255,255,0.06)' }}>
-            <div
-              className="h-full rounded-l-full transition-all duration-700"
-              style={{ width: `${pctA}%`, background: 'linear-gradient(90deg,#2563eb,#3b82f6)' }}
-            />
-            <div
-              className="h-full rounded-r-full transition-all duration-700"
-              style={{ width: `${pctB}%`, background: 'linear-gradient(90deg,#ea580c,#f97316)' }}
-            />
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-6">
+        <div className="rounded-2xl p-4 md:p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-4 text-center">Skor Keseluruhan</p>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-3xl md:text-4xl font-black text-blue-400 tabular-nums w-8 text-right">{countA}</span>
+            <div className="flex-1 h-4 rounded-full overflow-hidden flex" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div className="h-full rounded-l-full transition-all duration-700" style={{ width: `${pctA}%`, background: 'linear-gradient(90deg,#2563eb,#3b82f6)' }} />
+              <div className="h-full rounded-r-full transition-all duration-700" style={{ width: `${pctB}%`, background: 'linear-gradient(90deg,#ea580c,#f97316)' }} />
+            </div>
+            <span className="text-3xl md:text-4xl font-black text-orange-400 tabular-nums w-8">{countB}</span>
           </div>
-          <span className="text-4xl md:text-5xl font-black text-orange-400 tabular-nums w-10">{countB}</span>
-        </div>
-
-        <div className="flex justify-between px-14">
-          <p className="text-xs text-slate-500 font-medium truncate max-w-[40%]">{shortA}</p>
-          <p className="text-xs text-slate-500 font-medium truncate max-w-[40%] text-right">{shortB}</p>
+          <div className="flex justify-between px-11">
+            <p className="text-[11px] text-blue-400 font-semibold truncate max-w-[40%]">{shortA}</p>
+            <p className="text-[11px] text-orange-400 font-semibold truncate max-w-[40%] text-right">{shortB}</p>
+          </div>
         </div>
       </div>
 
       {/* ── VISITOR VOTE ── */}
-      {(() => {
-        const totalVotes = votesA + votesB;
-        const vPctA = totalVotes > 0 ? Math.round((votesA / totalVotes) * 100) : 50;
-        const vPctB = 100 - vPctA;
-        return (
-          <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-4 text-center">Pilihan Pengunjung</p>
+      <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="px-4 py-3 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Pilihan Pengunjung</p>
+          </div>
+          <div className="p-4">
             {!voteChoice ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {[
-                  { side: 'A', short: shortA, accent: 'blue', color: '#2563eb' },
-                  { side: 'B', short: shortB, accent: 'orange', color: '#ea580c' },
+                  { side: 'A', short: shortA, color: '#2563eb', textColor: '#93c5fd', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' },
+                  { side: 'B', short: shortB, color: '#ea580c', textColor: '#fdba74', bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.25)' },
                 ].map(p => (
                   <button
                     key={p.side}
                     onClick={() => handleVote(p.side)}
-                    className="flex flex-col items-center gap-2 rounded-2xl px-4 py-5 font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    style={{ background: p.color + '22', border: `1.5px solid ${p.color}55` }}
+                    className="flex flex-col items-center gap-1.5 rounded-xl px-3 py-4 transition-all active:scale-95"
+                    style={{ background: p.bg, border: `1.5px solid ${p.border}` }}
                   >
-                    <span className="text-2xl">👍</span>
-                    <span className="text-sm leading-snug text-center" style={{ color: p.accent === 'blue' ? '#93c5fd' : '#fdba74' }}>
-                      {p.short}
-                    </span>
-                    <span className="text-xs text-slate-500">{p.side === 'A' ? votesA : votesB} suara</span>
+                    <span className="text-xl">👍</span>
+                    <span className="text-xs font-bold leading-snug text-center line-clamp-2" style={{ color: p.textColor }}>{p.short}</span>
+                    <span className="text-[10px] text-slate-600">{p.side === 'A' ? votesA : votesB} suara</span>
                   </button>
                 ))}
               </div>
             ) : (
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-sm font-bold text-blue-400 w-12 text-right tabular-nums">{vPctA}%</span>
-                  <div className="flex-1 h-4 rounded-full overflow-hidden flex" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-bold text-blue-400 w-9 text-right tabular-nums">{vPctA}%</span>
+                  <div className="flex-1 h-3 rounded-full overflow-hidden flex" style={{ background: 'rgba(255,255,255,0.06)' }}>
                     <div className="h-full rounded-l-full transition-all duration-700" style={{ width: `${vPctA}%`, background: 'linear-gradient(90deg,#2563eb,#3b82f6)' }} />
                     <div className="h-full rounded-r-full transition-all duration-700" style={{ width: `${vPctB}%`, background: 'linear-gradient(90deg,#ea580c,#f97316)' }} />
                   </div>
-                  <span className="text-sm font-bold text-orange-400 w-12 tabular-nums">{vPctB}%</span>
+                  <span className="text-xs font-bold text-orange-400 w-9 tabular-nums">{vPctB}%</span>
                 </div>
-                <div className="flex justify-between px-2">
-                  <p className="text-xs text-slate-500">{shortA} · {votesA} suara</p>
-                  <p className="text-xs text-slate-500">{votesB} suara · {shortB}</p>
+                <div className="flex justify-between px-1 mb-1">
+                  <p className="text-[10px] text-slate-600">{shortA} · {votesA} suara</p>
+                  <p className="text-[10px] text-slate-600">{votesB} suara · {shortB}</p>
                 </div>
-                <p className="text-center text-xs text-slate-600 mt-3">
-                  {voteChoice === 'A' ? `Kamu memilih ${shortA}` : `Kamu memilih ${shortB}`} · {totalVotes} total suara
+                <p className="text-center text-[10px] text-slate-700">
+                  Kamu memilih {voteChoice === 'A' ? shortA : shortB} · {totalVotes} total suara
                 </p>
               </div>
             )}
           </div>
-        );
-      })()}
+        </div>
+      </div>
 
-      {/* ── CATEGORIES GRID ── */}
+      {/* ── INTRO ── */}
+      {comparison.intro && (
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
+          <p className="text-sm md:text-base text-slate-400 leading-relaxed">{comparison.intro}</p>
+        </div>
+      )}
+
+      {/* ── CATEGORIES ── */}
       {comparison.categories?.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-4">Perbandingan Kategori</p>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Perbandingan Kategori</p>
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
             {comparison.categories.map((cat, i) => {
               const isA = cat.winner === 'A';
-              const accent = isA ? { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.25)', text: '#93c5fd' }
-                                 : { bg: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.25)', text: '#fdba74' };
+              const accent = isA
+                ? { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.2)', text: '#93c5fd', pill: 'rgba(59,130,246,0.15)' }
+                : { bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.2)', text: '#fdba74', pill: 'rgba(249,115,22,0.15)' };
               return (
                 <div
                   key={i}
-                  className="rounded-xl p-4"
-                  style={{ background: accent.bg, border: `1px solid ${accent.border}` }}
+                  className="flex items-start gap-3 px-4 py-3"
+                  style={{
+                    borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    background: i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent',
+                  }}
                 >
-                  <p className="text-sm text-slate-400 font-medium mb-2 leading-snug">{cat.name}</p>
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span style={{ color: accent.text }}>✓</span>
-                    <span className="text-sm font-bold truncate" style={{ color: accent.text }}>
-                      {isA ? shortA : shortB}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-400 mb-1">{cat.name}</p>
+                    {cat.reason && <p className="text-[11px] text-slate-600 leading-relaxed">{cat.reason}</p>}
                   </div>
-                  {cat.reason && (
-                    <p className="text-xs text-slate-500 leading-relaxed mt-1">{cat.reason}</p>
-                  )}
+                  <span
+                    className="flex-shrink-0 text-[10px] font-black px-2.5 py-1 rounded-full mt-0.5"
+                    style={{ background: accent.pill, color: accent.text, border: `1px solid ${accent.border}` }}
+                  >
+                    {isA ? shortA : shortB}
+                  </span>
                 </div>
               );
             })}
@@ -490,91 +468,79 @@ export default function PerbandinganSlug() {
         </div>
       )}
 
-      {/* ── VERDICT: PILIH YANG MANA ── */}
+      {/* ── VERDICT ── */}
       {comparison.verdict && (
-        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-4">Pilih Yang Mana?</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Pilih Yang Mana?</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
               { short: shortA, choose: comparison.verdict.chooseA, handle: handleA, accent: 'blue', side: 'A' },
               { short: shortB, choose: comparison.verdict.chooseB, handle: handleB, accent: 'orange', side: 'B' },
-            ].map((p) => (
-              <div
-                key={p.side}
-                className="rounded-2xl p-5 md:p-6 flex flex-col"
-                style={{
-                  background: p.accent === 'blue' ? 'rgba(37,99,235,0.08)' : 'rgba(234,88,12,0.08)',
-                  border: p.accent === 'blue' ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(249,115,22,0.2)',
-                }}
-              >
-                <p
-                  className="text-sm md:text-base font-bold mb-4 leading-snug"
-                  style={{ color: p.accent === 'blue' ? '#60a5fa' : '#fb923c' }}
-                >
-                  Pilih {p.short} jika...
-                </p>
-                <ul className="space-y-3 flex-1 mb-5">
-                  {(p.choose || []).slice(0, 3).map((reason, j) => (
-                    <li key={j} className="flex items-start gap-2 text-sm text-slate-300 leading-snug">
-                      <span className="flex-shrink-0 mt-0.5 font-bold" style={{ color: p.accent === 'blue' ? '#3b82f6' : '#f97316' }}>✓</span>
-                      {reason}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  to={`/products/${p.handle}`}
-                  className="w-full inline-flex items-center justify-center text-white text-sm font-bold px-4 py-3 rounded-xl transition-all"
-                  style={{ background: p.accent === 'blue' ? '#2563eb' : '#ea580c' }}
-                >
-                  Lihat Produk →
-                </Link>
-              </div>
-            ))}
+            ].map((p) => {
+              const ac = p.accent === 'blue'
+                ? { bg: 'rgba(37,99,235,0.08)', border: 'rgba(59,130,246,0.2)', text: '#60a5fa', btn: '#2563eb', check: '#3b82f6' }
+                : { bg: 'rgba(234,88,12,0.08)', border: 'rgba(249,115,22,0.2)', text: '#fb923c', btn: '#ea580c', check: '#f97316' };
+              return (
+                <div key={p.side} className="rounded-2xl p-4 md:p-5 flex flex-col" style={{ background: ac.bg, border: `1px solid ${ac.border}` }}>
+                  <p className="text-sm font-bold mb-3" style={{ color: ac.text }}>Pilih {p.short} jika...</p>
+                  <ul className="space-y-2 flex-1 mb-4">
+                    {(p.choose || []).slice(0, 3).map((reason, j) => (
+                      <li key={j} className="flex items-start gap-2 text-xs md:text-sm text-slate-300 leading-snug">
+                        <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" style={{ color: ac.check }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {reason}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    to={`/products/${p.handle}`}
+                    className="w-full inline-flex items-center justify-center text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-all"
+                    style={{ background: ac.btn }}
+                  >
+                    Lihat Produk →
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
       {/* ── CONCLUSION ── */}
       {comparison.conclusion && (
-        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
-          <div className="rounded-2xl p-6 md:p-8 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-3">Kesimpulan</p>
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
+          <div className="rounded-2xl p-5 md:p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Kesimpulan</p>
             <h2 className="sr-only">Kesimpulan: {titleA} vs {titleB}</h2>
-            <p className="text-base md:text-lg text-slate-300 leading-relaxed">"{comparison.conclusion}"</p>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed">"{comparison.conclusion}"</p>
           </div>
         </div>
       )}
 
-      {/* ── RELATED COMPARISONS ── */}
+      {/* ── RELATED ── */}
       {related.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-4">Perbandingan Terkait</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Perbandingan Terkait</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {related.map(item => (
               <a
                 key={item.slug}
                 href={`/perbandingan/${item.slug}`}
-                className="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                className="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; }}
               >
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {item.imageA
-                    ? <img src={item.imageA} alt={item.titleA} className="w-10 h-10 object-contain rounded-lg bg-white/10" />
-                    : <div className="w-10 h-10 rounded-lg bg-white/10" />}
-                  <span className="text-[10px] font-black text-slate-600">VS</span>
-                  {item.imageB
-                    ? <img src={item.imageB} alt={item.titleB} className="w-10 h-10 object-contain rounded-lg bg-white/10" />
-                    : <div className="w-10 h-10 rounded-lg bg-white/10" />}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {item.imageA ? <img src={item.imageA} alt={item.titleA} className="w-9 h-9 object-contain rounded-lg bg-white/10" /> : <div className="w-9 h-9 rounded-lg bg-white/10" />}
+                  <span className="text-[9px] font-black text-slate-700">VS</span>
+                  {item.imageB ? <img src={item.imageB} alt={item.titleB} className="w-9 h-9 object-contain rounded-lg bg-white/10" /> : <div className="w-9 h-9 rounded-lg bg-white/10" />}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors line-clamp-2 leading-snug">
-                    {item.titleA} <span className="text-slate-600 font-normal">vs</span> {item.titleB}
-                  </p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-600 flex-shrink-0 group-hover:text-slate-400 transition-colors">
+                <p className="text-xs font-semibold text-slate-400 group-hover:text-white transition-colors line-clamp-2 leading-snug flex-1">
+                  {item.titleA} <span className="text-slate-700 font-normal">vs</span> {item.titleB}
+                </p>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-slate-700 flex-shrink-0">
                   <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
                 </svg>
               </a>
@@ -584,20 +550,19 @@ export default function PerbandinganSlug() {
       )}
 
       {/* ── FOOTER CTA ── */}
-      <div className="max-w-4xl mx-auto px-4 md:px-8 pb-14 text-center">
-        <p className="text-sm text-slate-600 mb-6">
-          Analisis AI berdasarkan data produk.{' '}
-          <a href="https://wa.me/6282111311131" className="text-blue-500 hover:underline">Tanya toko kami</a> untuk saran lebih lanjut.
-        </p>
-        <Link
-          to="/perbandingan"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-6 py-3 rounded-xl transition-all"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-            <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clipRule="evenodd" />
-          </svg>
-          Bandingkan Produk Lain
-        </Link>
+      <div className="max-w-4xl mx-auto px-4 md:px-8 pb-16 pt-2">
+        <div className="rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-xs text-slate-600 text-center sm:text-left">
+            Analisis AI berdasarkan data produk.{' '}
+            <a href="https://wa.me/6282111311131" className="text-blue-500 hover:underline">Tanya toko kami</a> untuk saran personal.
+          </p>
+          <Link
+            to="/perbandingan"
+            className="flex-shrink-0 inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap"
+          >
+            Bandingkan Produk Lain →
+          </Link>
+        </div>
       </div>
     </div>
   );
