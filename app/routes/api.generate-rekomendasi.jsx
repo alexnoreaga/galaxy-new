@@ -13,45 +13,37 @@ export async function action({ request, context }) {
       `${i + 1}. ${p.title} (Harga: ${p.price ? `Rp ${parseFloat(p.price).toLocaleString('id-ID')}` : 'lihat di toko'}, Handle: ${p.handle})`
     ).join('\n');
 
-    const prompt = `Kamu adalah editor konten ahli di bidang kamera, drone, dan aksesoris fotografi untuk pasar Indonesia. Tugasmu adalah menulis artikel rekomendasi produk yang informatif, menarik, dan sangat membantu calon pembeli.
+    const prompt = `Kamu editor majalah kamera Indonesia. Tulis artikel rekomendasi produk dalam JSON. Output HANYA JSON valid, tanpa teks lain.
 
-Judul artikel rekomendasi: "${title}"
-
-Produk yang direkomendasikan:
+Judul: "${title}"
+Produk:
 ${productList}
 
-Tulis artikel rekomendasi dalam format JSON berikut (hanya output JSON, tidak ada teks lain):
-
+Format JSON:
 {
-  "intro": "2-3 paragraf pembuka yang menarik — jelaskan konteks artikel, siapa target pembaca, dan apa yang akan mereka temukan. Tulis seperti editor majalah kamera profesional, bukan robot. Gunakan bahasa Indonesia natural.",
+  "intro": "2 paragraf pembuka menarik tentang konteks artikel ini, bahasa Indonesia natural",
   "products": [
     {
-      "handle": "handle produk persis seperti di input",
-      "verdict": "Label singkat 2-4 kata yang menggambarkan keunggulan utama produk ini dalam konteks daftar ini. Contoh: Terbaik untuk Pemula, Nilai Terbaik, Pilihan Pro, Paling Ringkas, Terkuat di Kelasnya",
-      "verdictColor": "Pilih salah satu: blue, green, amber, purple, rose, orange — sesuai karakter produk (blue=andalan, green=value, amber=budget, purple=pro, rose=lifestyle, orange=action/sport)",
-      "tagline": "1 kalimat yang langsung menjelaskan kenapa produk ini masuk daftar ini",
-      "editorial": "3-4 paragraf editorial yang mendalam tentang produk ini. Jelaskan: siapa yang cocok menggunakannya, apa keunggulan utamanya, pengalaman real-world penggunaannya, dan posisinya dibandingkan pilihan lain dalam daftar ini. Tulis dengan gaya jurnalisme kamera yang engaging.",
-      "pros": ["keunggulan spesifik 1", "keunggulan spesifik 2", "keunggulan spesifik 3"],
-      "cons": ["kelemahan jujur 1", "kelemahan jujur 2"],
-      "whoFor": "1 kalimat spesifik: produk ini paling cocok untuk siapa"
+      "handle": "handle persis dari input",
+      "verdict": "2-4 kata keunggulan utama (cth: Terbaik untuk Pemula, Nilai Terbaik, Pilihan Pro)",
+      "verdictColor": "blue|green|amber|purple|rose|orange",
+      "tagline": "1 kalimat kenapa produk ini masuk daftar",
+      "editorial": "2 paragraf tentang produk: siapa cocok menggunakannya, keunggulan utama, posisi vs produk lain di daftar ini",
+      "pros": ["keunggulan 1", "keunggulan 2", "keunggulan 3"],
+      "cons": ["kelemahan 1", "kelemahan 2"],
+      "whoFor": "1 kalimat: paling cocok untuk siapa"
     }
   ],
-  "conclusion": "2-3 paragraf penutup yang merangkum keseluruhan daftar, memberikan panduan akhir untuk memilih, dan mendorong pembaca untuk mengambil keputusan. Jujur dan membantu."
+  "conclusion": "1-2 paragraf penutup dengan panduan memilih"
 }
 
-Aturan ketat:
-- Setiap editorial harus unik dan spesifik — jangan copy-paste struktur yang sama
-- Pros dan cons harus jujur dan berdasarkan fakta nyata, bukan generik
-- Bahasa Indonesia yang natural, hangat, tidak kaku — seperti tulisan di majalah kamera
-- Jika produk sangat baru dan data terbatas, sebutkan dengan jujur
-- Output HANYA JSON valid, tidak ada teks lain di luar JSON
-- Handle di output harus persis sama dengan handle di input`;
+Aturan: handle di output harus sama persis dengan input. Bahasa Indonesia natural. Output HANYA JSON.`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 55000);
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
