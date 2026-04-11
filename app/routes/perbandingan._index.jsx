@@ -129,7 +129,7 @@ function ProductSearchInput({ label, selected, onSelect, placeholder, allowedCol
         // No collection filter configured — use predictive search
         const fd = new FormData();
         fd.append('q', val);
-        fd.append('limit', '10');
+        fd.append('limit', '20');
         fd.append('type', 'PRODUCT');
         const res = await fetch('/api/predictive-search', { method: 'POST', body: fd });
         const data = await res.json();
