@@ -15,12 +15,6 @@ export async function action({ request, context }) {
 
     const prompt = `Kamu adalah editor konten ahli di bidang kamera, drone, dan aksesoris fotografi untuk pasar Indonesia. Tugasmu adalah menulis artikel rekomendasi produk yang informatif, menarik, dan sangat membantu calon pembeli.
 
-PENTING: Gunakan Google Search untuk mencari informasi terbaru tentang setiap produk sebelum menulis. Cari:
-- Spesifikasi resmi dari situs produsen
-- Review dari fotografer/videografer profesional
-- Keunggulan dan kelemahan nyata dari pengguna
-- Posisi produk di pasar Indonesia
-
 Judul artikel rekomendasi: "${title}"
 
 Produk yang direkomendasikan:
@@ -64,7 +58,6 @@ Aturan ketat:
         signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
           generationConfig: { temperature: 0.4 },
         }),
       }
