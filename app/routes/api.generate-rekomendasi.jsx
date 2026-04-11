@@ -43,14 +43,14 @@ Aturan: handle di output harus sama persis dengan input. Bahasa Indonesia natura
     const timeout = setTimeout(() => controller.abort(), 55000);
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4 },
+          generationConfig: { temperature: 0.2 },
         }),
       }
     );
@@ -59,7 +59,7 @@ Aturan: handle di output harus sama persis dengan input. Bahasa Indonesia natura
     if (!res.ok) {
       const errText = await res.text();
       console.error('Gemini API error:', errText);
-      return json({ error: 'Gemini API error' }, { status: 500 });
+      return json({ error: 'Gemini API error: ' + errText }, { status: 500 });
     }
 
     const geminiData = await res.json();
