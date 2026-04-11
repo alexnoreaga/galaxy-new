@@ -645,7 +645,7 @@ function RekomendasiCreator() {
     setSelectedProducts(arr);
   }
 
-  async function handleGenerate() {
+  async function handleGenerate(attempt = 1) {
     if (!rekTitle.trim()) { alert('Isi judul rekomendasi dulu.'); return; }
     if (selectedProducts.length < 2) { alert('Pilih minimal 2 produk.'); return; }
     setGenerating(true);
@@ -656,12 +656,34 @@ function RekomendasiCreator() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: rekTitle, products: selectedProducts }),
       });
-      const data = await res.json();
-      if (!res.ok || data.error) { alert('Gagal generate: ' + (data.error || 'unknown error')); setGenerating(false); return; }
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch (_) {
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 2000));
+          return handleGenerate(2);
+        }
+        alert('AI membutuhkan waktu lebih lama. Silakan coba lagi.');
+        setGenerating(false);
+        return;
+      }
+      if (!res.ok || data.error) {
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 2000));
+          return handleGenerate(2);
+        }
+        alert('Gagal generate: ' + (data.error || 'unknown error'));
+        setGenerating(false);
+        return;
+      }
       setGeneratedContent(data.rekomendasi);
       setEditingContent(JSON.stringify(data.rekomendasi, null, 2));
       setStep(2);
     } catch (e) {
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 2000));
+        return handleGenerate(2);
+      }
       alert('Error: ' + e.message);
     }
     setGenerating(false);

@@ -53,11 +53,15 @@ Aturan ketat:
 - Output HANYA JSON valid, tidak ada teks lain di luar JSON
 - Handle di output harus persis sama dengan handle di input`;
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55000);
+
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           tools: [{ google_search: {} }],
@@ -65,6 +69,7 @@ Aturan ketat:
         }),
       }
     );
+    clearTimeout(timeout);
 
     if (!res.ok) {
       const errText = await res.text();
