@@ -1,6 +1,5 @@
 import { json } from '@shopify/remix-oxygen';
 
-const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 const SECRET = 'galaxy-backfill-2026';
 
@@ -10,11 +9,25 @@ export async function loader({ request, context }) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const storeDomain = context.env?.PUBLIC_STORE_DOMAIN || process.env.PUBLIC_STORE_DOMAIN;
-  const adminToken = context.env?.PUBLIC_STOREFRONT_API_TOKEN || process.env.PUBLIC_STOREFRONT_API_TOKEN;
-  const storefrontToken = context.env?.PUBLIC_STOREFRONT_API_TOKEN || process.env.PUBLIC_STOREFRONT_API_TOKEN;
+  const e = context.env || process.env;
+  const storeDomain = e.PUBLIC_STORE_DOMAIN || '41a7e9-3.myshopify.com';
+  const CLIENT_ID = e.SHOPIFY_APP_CLIENT_ID;
+  const CLIENT_SECRET = e.SHOPIFY_APP_CLIENT_SECRET;
+  const FIRESTORE_KEY = e.FIRESTORE_API_KEY;
+  const storefrontToken = e.PUBLIC_STOREFRONT_API_TOKEN;
 
   try {
+    // Get Admin API token via OAuth client credentials
+    const tokenRes = await fetch(`https://${storeDomain}/admin/oauth/access_token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`,
+    });
+    if (!tokenRes.ok) {
+      const t = await tokenRes.text();
+      return json({ error: 'Token fetch failed', status: tokenRes.status, body: t });
+    }
+    const { access_token: adminToken } = await tokenRes.json();
     // ── Step 1: Fetch ALL paid orders (paginated) ──────────────────────────────
     const productQtyMap = {}; // gid → total qty
     let nextUrl = `https://${storeDomain}/admin/api/2024-01/orders.json?status=any&limit=250&fields=id,line_items`;

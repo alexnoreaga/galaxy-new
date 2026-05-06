@@ -1,12 +1,14 @@
 import { json } from '@shopify/remix-oxygen';
 import crypto from 'crypto';
 
-const WEBHOOK_SECRET = '88cca6efd9b1580651e472ee3398a927d3f57e79eed0eda5e689c430ecced940';
-const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
 export async function action({ request, context }) {
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
+
+  const e = context.env || process.env;
+  const WEBHOOK_SECRET = e.SHOPIFY_WEBHOOK_SECRET;
+  const FIRESTORE_KEY = e.FIRESTORE_API_KEY;
 
   const rawBody = await request.text();
 
@@ -25,8 +27,8 @@ export async function action({ request, context }) {
     const order = JSON.parse(rawBody);
     const lineItems = order.line_items || [];
 
-    const storeDomain = context.env?.PUBLIC_STORE_DOMAIN || process.env.PUBLIC_STORE_DOMAIN;
-    const storefrontToken = context.env?.PRIVATE_STOREFRONT_API_TOKEN || process.env.PRIVATE_STOREFRONT_API_TOKEN;
+    const storeDomain = '41a7e9-3.myshopify.com';
+    const storefrontToken = context.env?.PUBLIC_STOREFRONT_API_TOKEN || process.env.PUBLIC_STOREFRONT_API_TOKEN;
 
     // Deduplicate product IDs and sum quantities
     const productQtyMap = {};
