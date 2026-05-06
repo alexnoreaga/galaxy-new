@@ -1,6 +1,6 @@
 import { json, redirect } from '@shopify/remix-oxygen';
 import { useLoaderData, Link } from '@remix-run/react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
@@ -545,6 +545,10 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
+        {/* ── REVIEW MODERATION ── */}
+        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4 mt-4">Moderasi Ulasan Produk</p>
+        <ReviewModerator />
+
         {/* ── REKOMENDASI CREATOR ── */}
         <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4 mt-4">Buat Rekomendasi Baru</p>
         <RekomendasiCreator />
@@ -554,6 +558,134 @@ export default function AdminDashboard() {
           Halaman ini hanya bisa diakses oleh admin · Data dari Firebase Firestore
         </p>
       </div>
+    </div>
+  );
+}
+
+// ── REVIEW MODERATOR COMPONENT ───────────────────────────────────────────────
+
+const REVIEW_FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+const REVIEW_FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+
+function ReviewModerator() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('pending');
+  const [processing, setProcessing] = useState(null);
+
+  async function fetchReviews(status) {
+    setLoading(true);
+    try {
+      const res = await fetch(`${REVIEW_FIRESTORE_BASE}:runQuery?key=${REVIEW_FIRESTORE_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          structuredQuery: {
+            from: [{ collectionId: 'reviews' }],
+            where: { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: status } } },
+            orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
+            limit: 50,
+          },
+        }),
+      });
+      const data = res.ok ? await res.json() : [];
+      setReviews((data || []).filter(r => r.document).map(r => {
+        const f = r.document.fields || {};
+        return {
+          id: r.document.name.split('/').pop(),
+          productHandle: f.productHandle?.stringValue || '',
+          productTitle: f.productTitle?.stringValue || '',
+          customerName: f.customerName?.stringValue || '',
+          rating: parseInt(f.rating?.integerValue || 5),
+          reviewText: f.reviewText?.stringValue || '',
+          verifiedPurchase: f.verifiedPurchase?.booleanValue || false,
+          source: f.source?.stringValue || 'online',
+          status: f.status?.stringValue || 'pending',
+          createdAt: f.createdAt?.stringValue || '',
+        };
+      }));
+    } catch (_) {}
+    setLoading(false);
+  }
+
+  useEffect(() => { fetchReviews(filter); }, [filter]);
+
+  async function handleApprove(id) {
+    setProcessing(id + '_approve');
+    try {
+      await fetch(`${REVIEW_FIRESTORE_BASE}/reviews/${id}?updateMask.fieldPaths=status&key=${REVIEW_FIRESTORE_KEY}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { status: { stringValue: 'approved' } } }),
+      });
+      setReviews(prev => prev.filter(r => r.id !== id));
+    } catch (_) {}
+    setProcessing(null);
+  }
+
+  async function handleDelete(id) {
+    if (!confirm('Hapus ulasan ini?')) return;
+    setProcessing(id + '_delete');
+    try {
+      await fetch(`${REVIEW_FIRESTORE_BASE}/reviews/${id}?key=${REVIEW_FIRESTORE_KEY}`, { method: 'DELETE' });
+      setReviews(prev => prev.filter(r => r.id !== id));
+    } catch (_) {}
+    setProcessing(null);
+  }
+
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 mb-6">
+      <div className="flex gap-2 mb-4">
+        {['pending', 'approved'].map(s => (
+          <button key={s} onClick={() => setFilter(s)}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all"
+            style={filter === s ? { background: 'rgba(59,130,246,0.8)', color: 'white' } : { background: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
+            {s === 'pending' ? 'Menunggu' : 'Disetujui'}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-slate-500 py-4 text-center">Memuat...</p>
+      ) : reviews.length === 0 ? (
+        <p className="text-sm text-slate-500 py-4 text-center">Tidak ada ulasan {filter === 'pending' ? 'yang menunggu' : 'yang disetujui'}.</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {reviews.map(r => (
+            <div key={r.id} className="rounded-xl p-4 border border-white/8 bg-white/3">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <p className="text-sm font-semibold text-white">{r.customerName}</p>
+                  <p className="text-xs text-amber-400">{stars(r.rating)}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {r.productTitle || r.productHandle}
+                    {r.verifiedPurchase && <span className="ml-2 text-green-400">✓ Terverifikasi</span>}
+                    {r.source === 'toko' && <span className="ml-2 text-blue-400">🏪 Toko</span>}
+                  </p>
+                </div>
+                <span className="text-[10px] text-slate-600 whitespace-nowrap">
+                  {r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                </span>
+              </div>
+              <p className="text-sm text-slate-300 mb-3 leading-relaxed">{r.reviewText}</p>
+              <div className="flex gap-2">
+                {filter === 'pending' && (
+                  <button onClick={() => handleApprove(r.id)} disabled={!!processing}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600/80 hover:bg-green-600 text-white transition-colors disabled:opacity-50">
+                    {processing === r.id + '_approve' ? '...' : 'Setujui'}
+                  </button>
+                )}
+                <button onClick={() => handleDelete(r.id)} disabled={!!processing}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600/60 hover:bg-red-600 text-white transition-colors disabled:opacity-50">
+                  {processing === r.id + '_delete' ? '...' : 'Hapus'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

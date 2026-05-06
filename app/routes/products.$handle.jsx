@@ -165,6 +165,66 @@ export async function loader({params, context, request}) {
 
       const canonicalUrl = request.url
 
+      const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+      const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+
+      // Fetch reviews + sold count in parallel
+      let productReviews = [];
+      let soldCount = 0;
+      await Promise.all([
+        // Approved reviews (SSR for Google indexing)
+        fetch(
+          `${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              structuredQuery: {
+                from: [{ collectionId: 'reviews' }],
+                where: {
+                  compositeFilter: {
+                    op: 'AND',
+                    filters: [
+                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: handle } } },
+                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
+                    ],
+                  },
+                },
+                limit: 50,
+              },
+            }),
+          }
+        ).then(async res => {
+          if (!res.ok) return;
+          const reviewData = await res.json();
+          productReviews = (reviewData || [])
+            .filter(r => r.document)
+            .map(r => {
+              const f = r.document.fields || {};
+              return {
+                id: r.document.name.split('/').pop(),
+                customerName: f.customerName?.stringValue || '',
+                rating: parseInt(f.rating?.integerValue || 5),
+                reviewText: f.reviewText?.stringValue || '',
+                verifiedPurchase: f.verifiedPurchase?.booleanValue || false,
+                source: f.source?.stringValue || 'online',
+                photoUrl: f.photoUrl?.stringValue || '',
+                createdAt: f.createdAt?.stringValue || '',
+              };
+            })
+            .filter(r => r.customerName && r.reviewText)
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        }).catch(() => {}),
+
+        // Sold count
+        fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
+          .then(async res => {
+            if (!res.ok) return;
+            const doc = await res.json();
+            soldCount = parseInt(doc.fields?.count?.integerValue || 0);
+          }).catch(() => {}),
+      ]);
+
       // Fetch cached FAQ from Firestore REST API for SEO schema injection
       let cachedFaqs = null;
       try {
@@ -224,6 +284,8 @@ export async function loader({params, context, request}) {
           customerAccessToken,
           canonicalUrl,
           cachedFaqs,
+          productReviews,
+          soldCount,
           analytics: {
             pageType: AnalyticsPageType.product,
             products: [product],
@@ -248,6 +310,8 @@ export async function loader({params, context, request}) {
           customerAccessToken,
           canonicalUrl,
           cachedFaqs,
+          productReviews,
+          soldCount,
           analytics: {
             pageType: AnalyticsPageType.product,
             products: [product],
@@ -586,6 +650,299 @@ DP : 0
   const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
   const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
+  function StarRating({ value, onChange, size = 'md' }) {
+    const s = size === 'lg' ? 'w-8 h-8' : 'w-5 h-5';
+    return (
+      <div className="flex gap-1">
+        {[1,2,3,4,5].map(star => (
+          <button key={star} type="button" onClick={() => onChange?.(star)} className={`${s} ${onChange ? 'cursor-pointer' : 'cursor-default'}`}>
+            <svg viewBox="0 0 20 20" fill={star <= value ? '#f59e0b' : '#e5e7eb'} xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  const STORAGE_BUCKET = 'galaxypwa.firebasestorage.app';
+  const STORAGE_API_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+
+  async function compressImage(file, maxWidth = 1200, quality = 0.82) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const ratio = Math.min(maxWidth / img.width, 1);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * ratio);
+          canvas.height = Math.round(img.height * ratio);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(resolve, 'image/jpeg', quality);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadPhoto(file) {
+    const compressed = await compressImage(file);
+    const filename = `reviews/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
+    const encoded = encodeURIComponent(filename);
+    const res = await fetch(
+      `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o?name=${encoded}&key=${STORAGE_API_KEY}`,
+      { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: compressed }
+    );
+    if (!res.ok) throw new Error('Upload gagal');
+    return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encoded}?alt=media`;
+  }
+
+  function ReviewSection({ product, initialReviews }) {
+    const [reviews, setReviews] = useState(initialReviews || []);
+    const [showForm, setShowForm] = useState(false);
+    const [rating, setRating] = useState(5);
+    const [name, setName] = useState('');
+    const [text, setText] = useState('');
+    const [orderNumber, setOrderNumber] = useState('');
+    const [verifying, setVerifying] = useState(false);
+    const [verified, setVerified] = useState(false);
+    const [photoFile, setPhotoFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
+
+    const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
+    const source = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('source');
+
+    function handlePhotoChange(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) { setError('Foto maksimal 10MB.'); return; }
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      setError('');
+    }
+
+    function removePhoto() {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+    }
+
+    async function handleVerifyOrder() {
+      if (!orderNumber.trim()) return;
+      setVerifying(true);
+      try {
+        const fd = new FormData();
+        fd.append('orderNumber', orderNumber);
+        const res = await fetch('/api/verify-order', { method: 'POST', body: fd });
+        const data = await res.json();
+        setVerified(data.verified);
+        if (!data.verified) setError('Nomor order tidak ditemukan. Review tetap bisa dikirim tanpa badge terverifikasi.');
+        else setError('');
+      } catch (_) {}
+      setVerifying(false);
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      if (!name.trim() || !text.trim()) { setError('Nama dan review wajib diisi.'); return; }
+      if (text.trim().length < 10) { setError('Review terlalu singkat.'); return; }
+      setSubmitting(true);
+      setError('');
+      try {
+        let photoUrl = '';
+        if (photoFile) {
+          setUploading(true);
+          try {
+            photoUrl = await uploadPhoto(photoFile);
+          } catch (_) {
+            setError('Gagal upload foto. Coba lagi atau kirim tanpa foto.');
+            setSubmitting(false);
+            setUploading(false);
+            return;
+          }
+          setUploading(false);
+        }
+        const fd = new FormData();
+        fd.append('productHandle', product.handle);
+        fd.append('productTitle', product.title);
+        fd.append('customerName', name.trim());
+        fd.append('rating', String(rating));
+        fd.append('reviewText', text.trim());
+        fd.append('orderNumber', orderNumber.trim());
+        fd.append('verifiedPurchase', String(verified));
+        fd.append('source', source === 'toko' ? 'toko' : 'online');
+        fd.append('photoUrl', photoUrl);
+        const res = await fetch('/api/submit-review', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok || data.error) { setError(data.error || 'Gagal mengirim review.'); setSubmitting(false); return; }
+        setSubmitted(true);
+        setShowForm(false);
+      } catch (_) {
+        setError('Terjadi kesalahan. Coba lagi.');
+      }
+      setSubmitting(false);
+    }
+
+    return (
+      <div className="mt-8 border-t pt-6" id="review">
+        {/* JSON-LD Review schema for Google */}
+        {reviews.length > 0 && (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: product.title,
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: avg,
+              reviewCount: reviews.length,
+              bestRating: '5',
+              worstRating: '1',
+            },
+            review: reviews.slice(0, 5).map(r => ({
+              '@type': 'Review',
+              author: { '@type': 'Person', name: r.customerName },
+              reviewRating: { '@type': 'Rating', ratingValue: String(r.rating) },
+              reviewBody: r.reviewText,
+              datePublished: r.createdAt?.split('T')[0] || '',
+            })),
+          })}} />
+        )}
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Ulasan Pelanggan</h2>
+            {avg && (
+              <div className="flex items-center gap-2 mt-1">
+                <StarRating value={Math.round(parseFloat(avg))} />
+                <span className="text-sm font-semibold text-gray-700">{avg}</span>
+                <span className="text-xs text-gray-400">({reviews.length} ulasan)</span>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-2 items-end">
+            {!submitted && (
+              <button onClick={() => setShowForm(f => !f)}
+                className="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-700 transition-colors">
+                {showForm ? 'Batal' : '+ Tulis Ulasan'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Success message */}
+        {submitted && (
+          <div className="mb-4 p-4 rounded-xl bg-green-50 border border-green-200 text-sm text-green-700 font-medium">
+            Terima kasih! Ulasan Anda sedang ditinjau dan akan tampil setelah disetujui.
+          </div>
+        )}
+
+        {/* Review Form */}
+        {showForm && (
+          <form onSubmit={handleSubmit} className="mb-6 p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <p className="text-sm font-semibold text-gray-800 mb-3">Tulis Ulasan untuk {product.title}</p>
+
+            <div className="mb-3">
+              <p className="text-xs text-gray-500 mb-1">Rating</p>
+              <StarRating value={rating} onChange={setRating} size="lg" />
+            </div>
+
+            <div className="mb-3">
+              <label className="text-xs text-gray-500 block mb-1">Nama Anda</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Nama lengkap" required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-400" />
+            </div>
+
+            <div className="mb-3">
+              <label className="text-xs text-gray-500 block mb-1">Ulasan</label>
+              <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Ceritakan pengalaman Anda dengan produk ini..." required rows={4}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-400 resize-none" />
+            </div>
+
+            <div className="mb-4">
+              <label className="text-xs text-gray-500 block mb-1">Nomor Order (opsional — untuk badge Pembelian Terverifikasi)</label>
+              <div className="flex gap-2">
+                <input value={orderNumber} onChange={e => { setOrderNumber(e.target.value); setVerified(false); }} placeholder="#12345"
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-400" />
+                <button type="button" onClick={handleVerifyOrder} disabled={verifying || !orderNumber.trim()}
+                  className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors">
+                  {verifying ? '...' : verified ? '✓ Terverifikasi' : 'Verifikasi'}
+                </button>
+              </div>
+              {verified && <p className="text-xs text-green-600 mt-1">✓ Pembelian terverifikasi</p>}
+            </div>
+
+            <div className="mb-4">
+              <label className="text-xs text-gray-500 block mb-1">Foto Produk (opsional, maks 10MB)</label>
+              {photoPreview ? (
+                <div className="relative w-fit">
+                  <img src={photoPreview} alt="preview" className="h-28 rounded-lg object-cover border border-gray-200" />
+                  <button type="button" onClick={removePhoto}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-800 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors">
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 cursor-pointer w-fit px-3 py-2 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                  Upload Foto
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                </label>
+              )}
+            </div>
+
+            {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
+
+            <button type="submit" disabled={submitting || uploading}
+              className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+              {uploading ? 'Mengupload foto...' : submitting ? 'Mengirim...' : 'Kirim Ulasan'}
+            </button>
+          </form>
+        )}
+
+        {/* Reviews list */}
+        {reviews.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4">Belum ada ulasan. Jadilah yang pertama!</p>
+        ) : (
+          <div className="flex flex-col divide-y divide-gray-100">
+            {reviews.map(r => (
+              <div key={r.id} className="py-4">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <div>
+                    <span className="text-sm font-semibold text-gray-800">{r.customerName}</span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <StarRating value={r.rating} />
+                      {r.verifiedPurchase && (
+                        <span className="text-[10px] font-semibold text-green-600 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">✓ Terverifikasi</span>
+                      )}
+                      {!r.verifiedPurchase && r.source === 'toko' && (
+                        <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full">🏪 Pembeli Toko</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-gray-400 whitespace-nowrap">
+                    {r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 leading-relaxed mt-2">{r.reviewText}</p>
+                {r.photoUrl && (
+                  <img src={r.photoUrl} alt="foto review" className="mt-2 rounded-lg max-h-40 object-cover" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   function BandingkanModal({ productA, onClose }) {
     const navigate = useNavigate();
     const [allowedCollections, setAllowedCollections] = useState(null);
@@ -760,7 +1117,7 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs} = useLoaderData();
+    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount} = useLoaderData();
 
     const [root] = useMatches();
     const cart = root.data?.cart;
@@ -875,13 +1232,38 @@ DP : 0
                 {product.title}
               </h1>
 
-              {/* Live visitor count */}
-              <div className="flex items-center gap-1.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                </span>
-                <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
+              {/* Star summary */}
+              {productReviews?.length > 0 && (() => {
+                const avg = (productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length).toFixed(1);
+                return (
+                  <button onClick={() => { window.location.hash = '#review'; }}
+                    className="flex items-center gap-1.5 w-fit">
+                    <div className="flex">
+                      {[1,2,3,4,5].map(s => (
+                        <svg key={s} viewBox="0 0 20 20" className="w-3.5 h-3.5" fill={s <= Math.round(parseFloat(avg)) ? '#f59e0b' : '#e5e7eb'}>
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500 underline underline-offset-2">{avg} ({productReviews.length} ulasan)</span>
+                  </button>
+                );
+              })()}
+
+              {/* Terjual + Live visitor count */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {soldCount > 0 && (
+                  <span className="text-xs text-gray-500">
+                    <span className="font-semibold text-gray-700">{soldCount.toLocaleString('id-ID')}</span> terjual
+                  </span>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                  <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
+                </div>
               </div>
 
           {/* <Suspense fallback={<p>Loading cart ...</p>}>
@@ -1196,10 +1578,11 @@ DP : 0
         <InfoProduk
         deskripsi={(<div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-ul:my-2 prose-ol:my-2 pt-2"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
-
         isibox={product.metafields[2]?.value}
         specs={(<div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-semibold prose-table:text-sm pt-2"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
+        ulasan={<ReviewSection product={product} initialReviews={productReviews} />}
+        reviewCount={productReviews?.length || 0}
         />
 
           </div>
@@ -1239,11 +1622,6 @@ DP : 0
         })()}
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
-        
-
-
-           
-
 
 
 

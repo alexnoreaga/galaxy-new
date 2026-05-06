@@ -1,28 +1,40 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export const InfoProduk = ({deskripsi,specs,isibox}) => {
+export const InfoProduk = ({deskripsi, specs, isibox, ulasan, reviewCount = 0}) => {
 
     const [selectedContent, setSelectedContent] = useState("description");
     const [descExpanded, setDescExpanded] = useState(false);
 
-    const handleContentChange = (content) => {
-      setSelectedContent(content);
-    };
+    // Auto-switch to Ulasan tab when URL has #review (QR code flow or star click)
+    useEffect(() => {
+      function handleHash() {
+        if (window.location.hash === '#review') {
+          setSelectedContent('reviews');
+          setTimeout(() => {
+            document.getElementById('infoproduk-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 50);
+        }
+      }
+      handleHash();
+      window.addEventListener('hashchange', handleHash);
+      return () => window.removeEventListener('hashchange', handleHash);
+    }, []);
 
     return (
       <div>
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 mb-4">
+        <div id="infoproduk-tabs" className="flex gap-1 border-b border-gray-200 mb-4 overflow-x-auto scrollbar-hide">
           {[
             {key: 'description', label: 'Deskripsi', show: true},
             {key: 'specs', label: 'Spesifikasi', show: !!specs.props.dangerouslySetInnerHTML?.__html},
             {key: 'box content', label: 'Isi Box', show: !!isibox, extraClass: 'sm:hidden md:flex lg:hidden'},
+            {key: 'reviews', label: reviewCount > 0 ? `Ulasan (${reviewCount})` : 'Ulasan', show: true},
           ].filter(t => t.show).map(({key, label, extraClass = ''}) => (
             <button
               key={key}
-              onClick={() => handleContentChange(key)}
-              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${extraClass} ${
+              onClick={() => setSelectedContent(key)}
+              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${extraClass} ${
                 selectedContent === key
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -79,9 +91,8 @@ export const InfoProduk = ({deskripsi,specs,isibox}) => {
             </ul>
           )}
           {selectedContent === 'specs' && specs}
+          {selectedContent === 'reviews' && ulasan}
         </div>
       </div>
     );
   }
-  
-
