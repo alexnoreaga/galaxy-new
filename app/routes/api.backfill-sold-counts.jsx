@@ -24,7 +24,10 @@ export async function loader({ request, context }) {
       const res = await fetch(nextUrl, {
         headers: { 'X-Shopify-Access-Token': adminToken },
       });
-      if (!res.ok) break;
+      if (!res.ok) {
+        const errText = await res.text();
+        return json({ error: 'Admin API failed', status: res.status, body: errText, storeDomain, hasAdminToken: !!adminToken });
+      }
 
       const data = await res.json();
       for (const order of data.orders || []) {
