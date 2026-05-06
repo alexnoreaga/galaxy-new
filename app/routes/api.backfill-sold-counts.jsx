@@ -17,7 +17,7 @@ export async function loader({ request, context }) {
   try {
     // ── Step 1: Fetch ALL paid orders (paginated) ──────────────────────────────
     const productQtyMap = {}; // gid → total qty
-    let nextUrl = `https://${storeDomain}/admin/api/2024-01/orders.json?status=any&financial_status=paid&limit=250&fields=id,line_items`;
+    let nextUrl = `https://${storeDomain}/admin/api/2024-01/orders.json?status=any&limit=250&fields=id,line_items`;
 
     let pageCount = 0;
     while (nextUrl) {
