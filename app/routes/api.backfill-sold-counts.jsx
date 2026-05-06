@@ -11,7 +11,7 @@ export async function loader({ request, context }) {
   }
 
   const storeDomain = context.env?.PUBLIC_STORE_DOMAIN || process.env.PUBLIC_STORE_DOMAIN;
-  const adminToken = context.env?.PRIVATE_STOREFRONT_API_TOKEN || process.env.PRIVATE_STOREFRONT_API_TOKEN;
+  const adminToken = context.env?.PUBLIC_STOREFRONT_API_TOKEN || process.env.PUBLIC_STOREFRONT_API_TOKEN;
   const storefrontToken = context.env?.PUBLIC_STOREFRONT_API_TOKEN || process.env.PUBLIC_STOREFRONT_API_TOKEN;
 
   try {
