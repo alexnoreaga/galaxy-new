@@ -26,7 +26,7 @@ export async function action({ request, context }) {
     const lineItems = order.line_items || [];
 
     const storeDomain = context.env?.PUBLIC_STORE_DOMAIN || process.env.PUBLIC_STORE_DOMAIN;
-    const storefrontToken = context.env?.PUBLIC_STOREFRONT_API_TOKEN || process.env.PUBLIC_STOREFRONT_API_TOKEN;
+    const storefrontToken = context.env?.PRIVATE_STOREFRONT_API_TOKEN || process.env.PRIVATE_STOREFRONT_API_TOKEN;
 
     // Deduplicate product IDs and sum quantities
     const productQtyMap = {};
