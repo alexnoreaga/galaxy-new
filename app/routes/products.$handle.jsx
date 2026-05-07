@@ -168,9 +168,11 @@ export async function loader({params, context, request}) {
       const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
       const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
-      // Fetch reviews + sold count in parallel
+      // Fetch reviews, sold count, and FAQ in parallel
       let productReviews = [];
       let soldCount = 0;
+      let cachedFaqs = null;
+      const productNumId = product?.id?.split('/').pop();
       await Promise.all([
         // Approved reviews (SSR for Google indexing)
         fetch(
@@ -209,6 +211,7 @@ export async function loader({params, context, request}) {
                 verifiedPurchase: f.verifiedPurchase?.booleanValue || false,
                 source: f.source?.stringValue || 'online',
                 photoUrl: f.photoUrl?.stringValue || '',
+                photoUrls: (f.photoUrls?.arrayValue?.values || []).map(v => v.stringValue).filter(Boolean),
                 createdAt: f.createdAt?.stringValue || '',
               };
             })
@@ -223,23 +226,20 @@ export async function loader({params, context, request}) {
             const doc = await res.json();
             soldCount = parseInt(doc.fields?.count?.integerValue || 0);
           }).catch(() => {}),
-      ]);
 
-      // Fetch cached FAQ from Firestore REST API for SEO schema injection
-      let cachedFaqs = null;
-      try {
-        const productNumId = product?.id?.split('/').pop();
-        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents/product_faqs/faq_${productNumId}?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU`;
-        const faqRes = await fetch(firestoreUrl);
-        if (faqRes.ok) {
-          const faqDoc = await faqRes.json();
-          const faqValues = faqDoc.fields?.faqs?.arrayValue?.values || [];
-          cachedFaqs = faqValues.map(item => ({
-            question: item.mapValue?.fields?.question?.stringValue || '',
-            answer: item.mapValue?.fields?.answer?.stringValue || '',
-          })).filter(f => f.question && f.answer);
-        }
-      } catch (_) {}
+        // Cached FAQ for SEO schema
+        fetch(`${FIRESTORE_BASE}/product_faqs/faq_${productNumId}?key=${FIRESTORE_KEY}`)
+          .then(async res => {
+            if (!res.ok) return;
+            const faqDoc = await res.json();
+            const faqValues = faqDoc.fields?.faqs?.arrayValue?.values || [];
+            const parsed = faqValues.map(item => ({
+              question: item.mapValue?.fields?.question?.stringValue || '',
+              answer: item.mapValue?.fields?.answer?.stringValue || '',
+            })).filter(f => f.question && f.answer);
+            if (parsed.length) cachedFaqs = parsed;
+          }).catch(() => {}),
+      ]);
     
 
       // Set a default variant so you always have an "orderable" product selected
@@ -668,7 +668,7 @@ DP : 0
   const STORAGE_BUCKET = 'galaxypwa.firebasestorage.app';
   const STORAGE_API_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 
-  async function compressImage(file, maxWidth = 1200, quality = 0.82) {
+  async function compressImage(file, maxWidth = 800, quality = 0.82) {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -708,8 +708,8 @@ DP : 0
     const [orderNumber, setOrderNumber] = useState('');
     const [verifying, setVerifying] = useState(false);
     const [verified, setVerified] = useState(false);
-    const [photoFile, setPhotoFile] = useState(null);
-    const [photoPreview, setPhotoPreview] = useState(null);
+    const [photoFiles, setPhotoFiles] = useState([]);
+    const [photoPreviews, setPhotoPreviews] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -719,17 +719,22 @@ DP : 0
     const source = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('source');
 
     function handlePhotoChange(e) {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      if (file.size > 10 * 1024 * 1024) { setError('Foto maksimal 10MB.'); return; }
-      setPhotoFile(file);
-      setPhotoPreview(URL.createObjectURL(file));
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      const remaining = 3 - photoFiles.length;
+      const toAdd = files.slice(0, remaining);
+      for (const file of toAdd) {
+        if (file.size > 10 * 1024 * 1024) { setError('Foto maksimal 10MB per gambar.'); return; }
+      }
+      setPhotoFiles(prev => [...prev, ...toAdd]);
+      setPhotoPreviews(prev => [...prev, ...toAdd.map(f => URL.createObjectURL(f))]);
       setError('');
+      e.target.value = '';
     }
 
-    function removePhoto() {
-      setPhotoFile(null);
-      setPhotoPreview(null);
+    function removePhoto(idx) {
+      setPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+      setPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
     }
 
     async function handleVerifyOrder() {
@@ -754,11 +759,11 @@ DP : 0
       setSubmitting(true);
       setError('');
       try {
-        let photoUrl = '';
-        if (photoFile) {
+        let photoUrls = [];
+        if (photoFiles.length > 0) {
           setUploading(true);
           try {
-            photoUrl = await uploadPhoto(photoFile);
+            photoUrls = await Promise.all(photoFiles.map(f => uploadPhoto(f)));
           } catch (_) {
             setError('Gagal upload foto. Coba lagi atau kirim tanpa foto.');
             setSubmitting(false);
@@ -776,7 +781,7 @@ DP : 0
         fd.append('orderNumber', orderNumber.trim());
         fd.append('verifiedPurchase', String(verified));
         fd.append('source', source === 'toko' ? 'toko' : 'online');
-        fd.append('photoUrl', photoUrl);
+        fd.append('photoUrls', JSON.stringify(photoUrls));
         const res = await fetch('/api/submit-review', { method: 'POST', body: fd });
         const data = await res.json();
         if (!res.ok || data.error) { setError(data.error || 'Gagal mengirim review.'); setSubmitting(false); return; }
@@ -878,31 +883,34 @@ DP : 0
             </div>
 
             <div className="mb-4">
-              <label className="text-xs text-gray-500 block mb-1">Foto Produk (opsional, maks 10MB)</label>
-              {photoPreview ? (
-                <div className="relative w-fit">
-                  <img src={photoPreview} alt="preview" className="h-28 rounded-lg object-cover border border-gray-200" />
-                  <button type="button" onClick={removePhoto}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-800 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors">
-                    ×
-                  </button>
-                </div>
-              ) : (
-                <label className="flex items-center gap-2 cursor-pointer w-fit px-3 py-2 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 text-xs text-gray-500 hover:text-gray-700 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                  </svg>
-                  Upload Foto
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-                </label>
-              )}
+              <label className="text-xs text-gray-500 block mb-1">Foto Produk (opsional, maks 3 foto, 10MB per foto)</label>
+              <div className="flex items-center gap-2 flex-wrap">
+                {photoPreviews.map((src, idx) => (
+                  <div key={idx} className="relative">
+                    <img src={src} alt={`preview ${idx + 1}`} className="h-20 w-20 rounded-lg object-cover border border-gray-200" />
+                    <button type="button" onClick={() => removePhoto(idx)}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-800 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors">
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {photoFiles.length < 3 && (
+                  <label className="flex flex-col items-center justify-center gap-1 cursor-pointer h-20 w-20 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span className="text-[10px]">{photoPreviews.length === 0 ? 'Tambah Foto' : 'Tambah Lagi'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} multiple />
+                  </label>
+                )}
+              </div>
             </div>
 
             {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
 
             <button type="submit" disabled={submitting || uploading}
               className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
-              {uploading ? 'Mengupload foto...' : submitting ? 'Mengirim...' : 'Kirim Ulasan'}
+              {uploading ? `Mengupload foto (${photoFiles.length})...` : submitting ? 'Mengirim...' : 'Kirim Ulasan'}
             </button>
           </form>
         )}
@@ -932,8 +940,12 @@ DP : 0
                   </span>
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed mt-2">{r.reviewText}</p>
-                {r.photoUrl && (
-                  <img src={r.photoUrl} alt="foto review" className="mt-2 rounded-lg max-h-40 object-cover" />
+                {(r.photoUrls?.length > 0 || r.photoUrl) && (
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {(r.photoUrls?.length > 0 ? r.photoUrls : [r.photoUrl]).map((url, i) => (
+                      <img key={i} src={url} alt={`foto review ${i + 1}`} className="rounded-lg max-h-36 object-cover" loading="lazy" decoding="async" />
+                    ))}
+                  </div>
                 )}
               </div>
             ))}
@@ -1214,7 +1226,7 @@ DP : 0
         />
       )}
 
-      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
+      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 overflow-x-hidden">
         <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
           <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
             <div className="md:col-span-2 md:w-full lg:w-full">
@@ -1366,19 +1378,11 @@ DP : 0
 
               <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={` text-xl font-bold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
 
+              {/* CICILAN MULAI DARI */}
+              <div className='text-[13px] text-gray-700 mt-1 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
 
               {/* DISCOUNT VOUCHER SECTION */}
               <DiscountVoucherSection voucherData={discountVouchers} product={product} selectedVariant={selectedVariant} canonicalUrl={canonicalUrl} copyToClipboard={copyToClipboard} />
-
-              {/* CICILAN MULAI DARI START */}
-
-              <div className='hidden md:block'>
-
-          <div className='text-sm text-gray-700 mt-3 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
-
-      </div>
-
-  {/* CICILAN MULAI DARI END */}
 
 
 

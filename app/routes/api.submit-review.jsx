@@ -16,7 +16,7 @@ export async function action({ request }) {
     const orderNumber = String(formData.get('orderNumber') || '').trim();
     const verifiedPurchase = formData.get('verifiedPurchase') === 'true';
     const source = String(formData.get('source') || 'online').trim(); // 'online' | 'toko'
-    const photoUrl = String(formData.get('photoUrl') || '').trim();
+    const photoUrls = JSON.parse(formData.get('photoUrls') || '[]').filter(u => typeof u === 'string' && u);
 
     if (!productHandle || !customerName || !reviewText || rating < 1 || rating > 5) {
       return json({ error: 'Data tidak lengkap' }, { status: 400 });
@@ -39,7 +39,7 @@ export async function action({ request }) {
         orderNumber: { stringValue: orderNumber },
         verifiedPurchase: { booleanValue: verifiedPurchase },
         source: { stringValue: source },
-        photoUrl: { stringValue: photoUrl },
+        photoUrls: { arrayValue: { values: photoUrls.map(u => ({ stringValue: u })) } },
         status: { stringValue: 'pending' },
         createdAt: { stringValue: createdAt },
       },
