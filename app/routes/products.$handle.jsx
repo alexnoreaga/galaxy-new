@@ -219,12 +219,10 @@ export async function loader({params, context, request}) {
         // Sold count
         fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
           .then(async res => {
-            const text = await res.text();
-            console.log('[soldCount]', handle, res.status, text.slice(0, 200));
             if (!res.ok) return;
-            const doc = JSON.parse(text);
+            const doc = await res.json();
             soldCount = parseInt(doc.fields?.count?.integerValue || 0);
-          }).catch((e) => { console.log('[soldCount error]', e); }),
+          }).catch(() => {}),
       ]);
 
       // Fetch cached FAQ from Firestore REST API for SEO schema injection
