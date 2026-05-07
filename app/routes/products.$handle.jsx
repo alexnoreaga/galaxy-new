@@ -943,7 +943,15 @@ DP : 0
                 {(r.photoUrls?.length > 0 || r.photoUrl) && (
                   <div className="flex gap-2 mt-2 flex-wrap">
                     {(r.photoUrls?.length > 0 ? r.photoUrls : [r.photoUrl]).map((url, i) => (
-                      <img key={i} src={url} alt={`foto review ${i + 1}`} className="rounded-lg max-h-36 object-cover" loading="lazy" decoding="async" />
+                      <img
+                        key={i}
+                        src={url}
+                        alt={`foto review ${i + 1}`}
+                        className="h-24 w-24 rounded-lg object-cover cursor-pointer active:opacity-75 transition-opacity"
+                        loading="lazy"
+                        decoding="async"
+                        onClick={() => window.open(url, '_blank')}
+                      />
                     ))}
                   </div>
                 )}
@@ -1583,11 +1591,11 @@ DP : 0
 
         
         <InfoProduk
-        deskripsi={(<div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-ul:my-2 prose-ol:my-2 pt-2"
-              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/>)}
+        deskripsi={(<div className="overflow-x-auto w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-img:max-w-full prose-ul:my-2 prose-ol:my-2 pt-2"
+              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/></div>)}
         isibox={product.metafields[2]?.value}
-        specs={(<div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-semibold prose-table:text-sm pt-2"
-              dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/>)}
+        specs={(<div className="overflow-x-auto w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-semibold prose-table:text-sm pt-2"
+              dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/></div>)}
         ulasan={<ReviewSection product={product} initialReviews={productReviews} />}
         reviewCount={productReviews?.length || 0}
         />
@@ -1772,58 +1780,56 @@ DP : 0
           && product?.metafields[12]?.value != "true" 
            && (
         
-        <div className='md:hidden fixed left-0 bottom-16 w-full z-50 bg-white border-t border-gray-200 px-3 py-2 grid grid-cols-6 gap-2 items-center'>
+        <div className='md:hidden fixed left-0 bottom-16 w-full z-50 bg-white border-t border-gray-200 px-3 py-2 flex items-center gap-2'>
 
-          {/* Bandingkan */}
+          {/* Bandingkan — icon only */}
           <button
             onClick={() => setBukaModalBandingkan(true)}
-            className='col-span-1 w-full h-11 flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gray-100 text-gray-700'
+            className='flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 text-gray-700'
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
               <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.918Z" clipRule="evenodd" />
             </svg>
-            <span className='text-[9px] font-semibold'>Banding</span>
           </button>
 
-          {/* Call */}
-          <a href="tel:082111311131" target="_blank" className='col-span-1'>
-            <button className='w-full h-11 flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold'>
-              <FaPhone className='text-sm' />
-              <span className='text-[9px]'>Call</span>
-            </button>
+          {/* Call — icon only */}
+          <a href="tel:082111311131" target="_blank" className='flex-shrink-0'>
+            <div className='w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 text-gray-700'>
+              <FaPhone className='text-base' />
+            </div>
           </a>
 
           {/* Nego */}
           <a
             href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20" ${canonicalUrl}`}
             target="_blank"
-            className='col-span-2'
+            className='flex-1'
           >
-            <button className='w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold'>
+            <div className='w-full h-11 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold'>
               <FaWhatsapp className='text-base' />
               Nego
-            </button>
+            </div>
           </a>
 
-          {/* Beli Langsung */}
-          <div className='col-span-2'>
-          <CartForm
-            route="/cart"
-            inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
-            action={CartForm.ACTIONS.LinesAdd}
-          >
-            {(fetcher) => (
-              <button
-                type="submit"
-                onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
-                disabled={!selectedVariant.availableForSale ?? fetcher.state !== 'idle'}
-                className='w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-gray-900 text-white text-sm font-semibold'
-              >
-                <FaBagShopping className='text-base' />
-                {selectedVariant?.availableForSale ? 'Beli' : 'Sold Out'}
-              </button>
-            )}
-          </CartForm>
+          {/* Beli */}
+          <div className='flex-1'>
+            <CartForm
+              route="/cart"
+              inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
+              action={CartForm.ACTIONS.LinesAdd}
+            >
+              {(fetcher) => (
+                <button
+                  type="submit"
+                  onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                  disabled={!selectedVariant.availableForSale ?? fetcher.state !== 'idle'}
+                  className='w-full h-11 flex items-center justify-center gap-1.5 rounded-xl bg-gray-900 text-white text-sm font-semibold'
+                >
+                  <FaBagShopping className='text-base' />
+                  {selectedVariant?.availableForSale ? 'Beli' : 'Sold Out'}
+                </button>
+              )}
+            </CartForm>
           </div>
 
         </div>
