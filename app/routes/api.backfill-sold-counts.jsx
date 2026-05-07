@@ -196,7 +196,13 @@ export async function action({ request, context }) {
     );
 
     results.sort((a, b) => b.qty - a.qty);
-    return json({ ok: true, orders: orderCount, products: results.length, totals: results });
+
+    const unmatched = Object.keys(nameTotals)
+      .filter(n => !handleMap[n.toLowerCase()])
+      .slice(0, 20);
+    const sampleShopify = Object.keys(handleMap).slice(0, 10);
+
+    return json({ ok: true, orders: orderCount, products: results.length, totals: results, debug: { unmatched, sampleShopify } });
 
   } catch (err) {
     console.error('Backfill error:', err);
