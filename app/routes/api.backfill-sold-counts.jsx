@@ -1,6 +1,5 @@
 import { json } from '@shopify/remix-oxygen';
 
-const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 const SECRET = 'galaxy-backfill-2026';
 
@@ -34,13 +33,16 @@ export async function loader({ request }) {
   <p>Export orders from Shopify Admin → Orders → Export (All orders, CSV), then upload below.</p>
 
   <div class="drop" id="drop" onclick="document.getElementById('file').click()">
-    <div id="dropLabel">📁 Click or drag & drop your Shopify orders CSV here</div>
+    <div id="dropLabel">📁 Click or drag &amp; drop your Shopify orders CSV here</div>
     <input type="file" id="file" accept=".csv">
   </div>
   <button id="btn" disabled onclick="run()">Process CSV</button>
   <div id="status"></div>
 
   <script>
+    const FIRESTORE_KEY = '${FIRESTORE_KEY}';
+    const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+
     const drop = document.getElementById('drop');
     const fileInput = document.getElementById('file');
     const btn = document.getElementById('btn');
@@ -60,7 +62,7 @@ export async function loader({ request }) {
       const reader = new FileReader();
       reader.onload = e => {
         csvText = e.target.result;
-        document.getElementById('dropLabel').textContent = '✅ ' + f.name + ' loaded (' + (csvText.split('\\n').length - 1) + ' rows)';
+        document.getElementById('dropLabel').textContent = '\\u2705 ' + f.name + ' loaded (' + (csvText.split('\\n').length - 1) + ' rows)';
         btn.disabled = false;
       };
       reader.readAsText(f);
@@ -69,7 +71,7 @@ export async function loader({ request }) {
     async function run() {
       if (!csvText) return;
       btn.disabled = true;
-      status.innerHTML = '<p>⏳ Processing...</p>';
+      status.innerHTML = '<p>\\u23f3 Step 1/2: Computing sold counts (matching products)...</p>';
 
       const res = await fetch(location.href, {
         method: 'POST',
@@ -80,10 +82,51 @@ export async function loader({ request }) {
       const data = await res.json();
       if (data.error) {
         status.innerHTML = '<p style="color:red">Error: ' + data.error + '</p>';
+        btn.disabled = false;
+        return;
+      }
+
+      status.innerHTML = '<p>\\u23f3 Step 2/2: Writing ' + data.writes.length + ' products to Firestore (0/' + data.writes.length + ')...</p>';
+
+      // Use individual PATCH requests in parallel batches of 20
+      const now = new Date().toISOString();
+      const BATCH = 20;
+      let success = 0;
+      let firstError = null;
+
+      for (let i = 0; i < data.writes.length; i += BATCH) {
+        const chunk = data.writes.slice(i, i + BATCH);
+        await Promise.all(chunk.map(async ({ handle, qty }) => {
+          const url = FIRESTORE_BASE + '/sold_counts/' + handle +
+            '?key=' + FIRESTORE_KEY +
+            '&updateMask.fieldPaths=count&updateMask.fieldPaths=updatedAt';
+          const r = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fields: {
+                count: { integerValue: String(qty) },
+                updatedAt: { stringValue: now },
+              },
+            }),
+          });
+          if (r.ok) {
+            success++;
+          } else if (!firstError) {
+            firstError = { status: r.status, body: await r.text() };
+          }
+        }));
+        status.innerHTML = '<p>\\u23f3 Writing to Firestore... ' + Math.min(i + BATCH, data.writes.length) + '/' + data.writes.length + '</p>';
+      }
+
+      if (firstError) {
+        status.innerHTML =
+          '<p style="color:red">\\u274c Firestore PATCH error ' + firstError.status + ': ' + firstError.body + '</p>' +
+          '<p>' + success + '/' + data.writes.length + ' succeeded before first error</p>';
       } else {
         status.innerHTML =
-          '<p>✅ Done — <strong>' + data.products + ' products</strong> updated from <strong>' + data.orders + ' orders</strong></p>' +
-          '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+          '<p>\\u2705 Done \\u2014 <strong>' + success + ' products</strong> written from <strong>' + data.orders + ' orders</strong></p>' +
+          '<pre>' + JSON.stringify(data.totals.slice(0, 30), null, 2) + '</pre>';
       }
       btn.disabled = false;
     }
@@ -92,7 +135,7 @@ export async function loader({ request }) {
 </html>`, { headers: { 'Content-Type': 'text/html' } });
 }
 
-// ── POST: process CSV ────────────────────────────────────────────────────────
+// ── POST: compute totals only (no Firestore write — browser does that) ───────
 export async function action({ request, context }) {
   const url = new URL(request.url);
   if (url.searchParams.get('secret') !== SECRET) {
@@ -101,7 +144,6 @@ export async function action({ request, context }) {
 
   const { csv } = await request.json();
   if (!csv) return json({ error: 'No CSV data' }, { status: 400 });
-
 
   try {
     // ── Parse CSV ──────────────────────────────────────────────────────────
@@ -115,9 +157,7 @@ export async function action({ request, context }) {
       return json({ error: 'CSV missing "Lineitem name" or "Lineitem quantity" columns. Make sure you exported from Shopify Orders.' });
     }
 
-    // Sum quantities per product name (strip variant suffix after " - ")
     const nameTotals = {};
-    let orderCount = 0;
     const seenOrders = new Set();
 
     for (let i = 1; i < lines.length; i++) {
@@ -127,7 +167,6 @@ export async function action({ request, context }) {
       const qty = parseInt(cols[qtyIdx] || '0');
       if (!rawName || !qty) continue;
 
-      // Track unique orders
       const orderNameIdx = headers.indexOf('name');
       if (orderNameIdx !== -1 && cols[orderNameIdx]) seenOrders.add(cols[orderNameIdx]);
 
@@ -135,13 +174,12 @@ export async function action({ request, context }) {
       const productName = rawName.includes(' - ') ? rawName.split(' - ').slice(0, -1).join(' - ') : rawName;
       nameTotals[productName] = (nameTotals[productName] || 0) + qty;
     }
-    orderCount = seenOrders.size;
 
-    const productNames = Object.keys(nameTotals);
-    if (productNames.length === 0) return json({ error: 'No line items found in CSV.' });
+    const orderCount = seenOrders.size;
+    if (Object.keys(nameTotals).length === 0) return json({ error: 'No line items found in CSV.' });
 
     // ── Fetch all products from Storefront to build name→handle map ──────────
-    const handleMap = {}; // productName (lowercase) → handle
+    const handleMap = {};
     let after = null;
 
     do {
@@ -155,7 +193,6 @@ export async function action({ request, context }) {
     } while (after);
 
     // ── Match product names → handles ────────────────────────────────────────
-    // Normalize: lowercase, strip common suffixes, collapse spaces
     function normalize(s) {
       return s.toLowerCase()
         .replace(/\bgaransi resmi\b/g, '')
@@ -165,19 +202,15 @@ export async function action({ request, context }) {
         .trim();
     }
 
-    // Build a normalized map for fuzzy fallback
     const normalizedHandleMap = {};
     for (const [title, handle] of Object.entries(handleMap)) {
       normalizedHandleMap[normalize(title)] = handle;
     }
 
-    const handleTotals = {}; // handle → qty
+    const handleTotals = {};
     for (const [name, qty] of Object.entries(nameTotals)) {
-      // 1. Exact match
       let handle = handleMap[name.toLowerCase()];
-      // 2. Normalized match
       if (!handle) handle = normalizedHandleMap[normalize(name)];
-      // 3. Partial match: CSV name starts with Shopify title (or vice versa)
       if (!handle) {
         const normName = normalize(name);
         for (const [normTitle, h] of Object.entries(normalizedHandleMap)) {
@@ -190,46 +223,15 @@ export async function action({ request, context }) {
       handleTotals[handle] = (handleTotals[handle] || 0) + qty;
     }
 
-    // ── Write to Firestore in one batchWrite request ──────────────────────────
-    const results = [];
-    const writes = Object.entries(handleTotals).map(([handle, qty]) => {
-      results.push({ handle, qty });
-      return {
-        update: {
-          name: `projects/galaxypwa/databases/(default)/documents/sold_counts/${handle}`,
-          fields: {
-            count: { integerValue: String(qty) },
-            updatedAt: { stringValue: new Date().toISOString() },
-          },
-        },
-        updateMask: { fieldPaths: ['count', 'updatedAt'] },
-      };
-    });
-
-    if (writes.length > 0) {
-      await fetch(`${FIRESTORE_BASE.replace('/documents', '')}:batchWrite?key=${FIRESTORE_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ writes }),
-      });
-    }
-
-    results.sort((a, b) => b.qty - a.qty);
+    const writes = Object.entries(handleTotals)
+      .map(([handle, qty]) => ({ handle, qty }))
+      .sort((a, b) => b.qty - a.qty);
 
     return json({
       ok: true,
       orders: orderCount,
-      products: results.length,
-      totals: results,
-      debug: {
-        headers,
-        nameIdx,
-        qtyIdx,
-        nameTotalsSample: Object.entries(nameTotals).slice(0, 10),
-        handleMapSize: Object.keys(handleMap).length,
-        sampleShopify: Object.keys(handleMap).slice(0, 10),
-        unmatched: Object.keys(nameTotals).filter(n => !handleTotals[handleMap[n.toLowerCase()]] && !handleTotals[normalizedHandleMap[normalize(n)]]),
-      },
+      writes,
+      totals: writes,
     });
 
   } catch (err) {
@@ -238,7 +240,6 @@ export async function action({ request, context }) {
   }
 }
 
-// Handles quoted fields with commas inside
 function parseCSVLine(line) {
   const result = [];
   let cur = '';
