@@ -27,7 +27,7 @@ export const InfoProduk = ({deskripsi, specs, isibox, ulasan, reviewCount = 0}) 
         <div id="infoproduk-tabs" className="flex gap-1 border-b border-gray-200 mb-4 overflow-x-auto scrollbar-hide">
           {[
             {key: 'description', label: 'Deskripsi', show: true},
-            {key: 'specs', label: 'Spesifikasi', show: !!specs.props.dangerouslySetInnerHTML?.__html},
+            {key: 'specs', label: 'Spesifikasi', show: !!specs.props.dangerouslySetInnerHTML?.__html || !!specs.props.children?.props?.dangerouslySetInnerHTML?.__html},
             {key: 'box content', label: 'Isi Box', show: !!isibox, extraClass: 'sm:hidden md:flex lg:hidden'},
             {key: 'reviews', label: reviewCount > 0 ? `Ulasan (${reviewCount})` : 'Ulasan', show: true},
           ].filter(t => t.show).map(({key, label, extraClass = ''}) => (

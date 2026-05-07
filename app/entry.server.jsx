@@ -53,6 +53,13 @@ export default async function handleRequest(
       'https://accounts.google.com',
       'https://www.openstreetmap.org',
     ],
+    imgSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://firebasestorage.googleapis.com',
+      'data:',
+      'blob:',
+    ],
 
   });
 

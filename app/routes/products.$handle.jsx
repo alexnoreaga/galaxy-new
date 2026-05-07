@@ -671,15 +671,23 @@ DP : 0
   async function compressImage(file, maxWidth = 800, quality = 0.82) {
     return new Promise((resolve) => {
       const reader = new FileReader();
+      reader.onerror = () => resolve(file);
       reader.onload = (e) => {
-        const img = new Image();
+        const img = new window.Image();
+        img.onerror = () => resolve(file);
         img.onload = () => {
-          const ratio = Math.min(maxWidth / img.width, 1);
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.round(img.width * ratio);
-          canvas.height = Math.round(img.height * ratio);
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob(resolve, 'image/jpeg', quality);
+          try {
+            const ratio = Math.min(maxWidth / img.width, 1);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * ratio);
+            canvas.height = Math.round(img.height * ratio);
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { resolve(file); return; }
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+          } catch (_) {
+            resolve(file);
+          }
         };
         img.src = e.target.result;
       };
@@ -691,10 +699,17 @@ DP : 0
     const compressed = await compressImage(file);
     const filename = `reviews/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
     const encoded = encodeURIComponent(filename);
-    const res = await fetch(
-      `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o?name=${encoded}&key=${STORAGE_API_KEY}`,
-      { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: compressed }
-    );
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    let res;
+    try {
+      res = await fetch(
+        `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o?name=${encoded}&key=${STORAGE_API_KEY}`,
+        { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: compressed, signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) throw new Error('Upload gagal');
     return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encoded}?alt=media`;
   }
@@ -714,22 +729,30 @@ DP : 0
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState('');
+    const [expandedPhoto, setExpandedPhoto] = useState(null);
 
     const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
     const source = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('source');
 
-    function handlePhotoChange(e) {
+    async function handlePhotoChange(e) {
       const files = Array.from(e.target.files || []);
+      e.target.value = '';
       if (!files.length) return;
       const remaining = 3 - photoFiles.length;
       const toAdd = files.slice(0, remaining);
       for (const file of toAdd) {
         if (file.size > 10 * 1024 * 1024) { setError('Foto maksimal 10MB per gambar.'); return; }
       }
-      setPhotoFiles(prev => [...prev, ...toAdd]);
-      setPhotoPreviews(prev => [...prev, ...toAdd.map(f => URL.createObjectURL(f))]);
+      const previews = await Promise.all(toAdd.map(file => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      })));
+      const valid = toAdd.map((f, i) => ({ file: f, preview: previews[i] })).filter(x => x.preview);
+      setPhotoFiles(prev => [...prev, ...valid.map(x => x.file)]);
+      setPhotoPreviews(prev => [...prev, ...valid.map(x => x.preview)]);
       setError('');
-      e.target.value = '';
     }
 
     function removePhoto(idx) {
@@ -794,6 +817,7 @@ DP : 0
     }
 
     return (
+      <>
       <div className="mt-8 border-t pt-6" id="review">
         {/* JSON-LD Review schema for Google */}
         {reviews.length > 0 && (
@@ -950,7 +974,7 @@ DP : 0
                         className="h-24 w-24 rounded-lg object-cover cursor-pointer active:opacity-75 transition-opacity"
                         loading="lazy"
                         decoding="async"
-                        onClick={() => window.open(url, '_blank')}
+                        onClick={() => setExpandedPhoto(url)}
                       />
                     ))}
                   </div>
@@ -960,6 +984,17 @@ DP : 0
           </div>
         )}
       </div>
+
+      {expandedPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.85)' }}
+          onClick={() => setExpandedPhoto(null)}
+        >
+          <img src={expandedPhoto} alt="foto ulasan" className="max-w-full max-h-full rounded-2xl object-contain" />
+        </div>
+      )}
+      </>
     );
   }
 
