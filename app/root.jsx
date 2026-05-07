@@ -236,7 +236,7 @@ dangerouslySetInnerHTML={{__html:`
 
         {/* Primary Meta Tags */}
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
         <meta name="description" content="Galaxy Camera - Toko Kamera Online Terlengkap dan Bergaransi Resmi. Jual Kamera Mirrorless, DSLR, Drone, Lensa dengan Harga Terbaik. Cicilan 0% tanpa kartu kredit. Gratis ongkir ke seluruh Indonesia." />
         <meta name="keywords" content="toko kamera online, jual kamera, kamera mirrorless, kamera dslr, drone, lensa kamera, kamera murah, galaxy camera" />
         <meta name="author" content="PT Galaxy Digital Niaga" />
@@ -658,7 +658,7 @@ export function ErrorBoundary() {
         <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.1.1/flowbite.min.css"  rel="stylesheet" />
 
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
         <Meta />
         <Links />
       </head>
