@@ -83,7 +83,7 @@ export async function loader({ request }) {
       } else {
         status.innerHTML =
           '<p>✅ Done — <strong>' + data.products + ' products</strong> updated from <strong>' + data.orders + ' orders</strong></p>' +
-          '<pre>' + JSON.stringify(data.totals, null, 2) + '</pre>';
+          '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
       }
       btn.disabled = false;
     }
@@ -102,9 +102,6 @@ export async function action({ request, context }) {
   const { csv } = await request.json();
   if (!csv) return json({ error: 'No CSV data' }, { status: 400 });
 
-  const e = context.env || process.env;
-  const storeDomain = e.PUBLIC_STORE_DOMAIN || '41a7e9-3.myshopify.com';
-  const storefrontToken = e.PUBLIC_STOREFRONT_API_TOKEN;
 
   try {
     // ── Parse CSV ──────────────────────────────────────────────────────────
@@ -144,24 +141,13 @@ export async function action({ request, context }) {
     if (productNames.length === 0) return json({ error: 'No line items found in CSV.' });
 
     // ── Fetch all products from Storefront to build name→handle map ──────────
-    const handleMap = {}; // productName → handle
+    const handleMap = {}; // productName (lowercase) → handle
     let after = null;
 
     do {
-      const query = `{
-        products(first: 250${after ? `, after: "${after}"` : ''}) {
-          pageInfo { hasNextPage endCursor }
-          nodes { handle title }
-        }
-      }`;
-      const res = await fetch(`https://${storeDomain}/api/2024-01/graphql.json`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': storefrontToken },
-        body: JSON.stringify({ query }),
+      const { products } = await context.storefront.query(PRODUCTS_QUERY, {
+        variables: { after },
       });
-      if (!res.ok) break;
-      const data = await res.json();
-      const products = data?.data?.products;
       for (const p of products?.nodes || []) {
         handleMap[p.title.toLowerCase()] = p.handle;
       }
@@ -169,40 +155,82 @@ export async function action({ request, context }) {
     } while (after);
 
     // ── Match product names → handles ────────────────────────────────────────
+    // Normalize: lowercase, strip common suffixes, collapse spaces
+    function normalize(s) {
+      return s.toLowerCase()
+        .replace(/\bgaransi resmi\b/g, '')
+        .replace(/\bresmi\b/g, '')
+        .replace(/\boriginal\b/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    // Build a normalized map for fuzzy fallback
+    const normalizedHandleMap = {};
+    for (const [title, handle] of Object.entries(handleMap)) {
+      normalizedHandleMap[normalize(title)] = handle;
+    }
+
     const handleTotals = {}; // handle → qty
     for (const [name, qty] of Object.entries(nameTotals)) {
-      const handle = handleMap[name.toLowerCase()];
+      // 1. Exact match
+      let handle = handleMap[name.toLowerCase()];
+      // 2. Normalized match
+      if (!handle) handle = normalizedHandleMap[normalize(name)];
+      // 3. Partial match: CSV name starts with Shopify title (or vice versa)
+      if (!handle) {
+        const normName = normalize(name);
+        for (const [normTitle, h] of Object.entries(normalizedHandleMap)) {
+          if (normName.startsWith(normTitle) || normTitle.startsWith(normName)) {
+            handle = h; break;
+          }
+        }
+      }
       if (!handle) continue;
       handleTotals[handle] = (handleTotals[handle] || 0) + qty;
     }
 
-    // ── Write to Firestore ────────────────────────────────────────────────────
+    // ── Write to Firestore in one batchWrite request ──────────────────────────
     const results = [];
-    await Promise.all(
-      Object.entries(handleTotals).map(async ([handle, qty]) => {
-        const docUrl = `${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`;
-        await fetch(`${docUrl}&updateMask.fieldPaths=count&updateMask.fieldPaths=updatedAt`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fields: {
-              count: { integerValue: String(qty) },
-              updatedAt: { stringValue: new Date().toISOString() },
-            },
-          }),
-        });
-        results.push({ handle, qty });
-      })
-    );
+    const writes = Object.entries(handleTotals).map(([handle, qty]) => {
+      results.push({ handle, qty });
+      return {
+        update: {
+          name: `projects/galaxypwa/databases/(default)/documents/sold_counts/${handle}`,
+          fields: {
+            count: { integerValue: String(qty) },
+            updatedAt: { stringValue: new Date().toISOString() },
+          },
+        },
+        updateMask: { fieldPaths: ['count', 'updatedAt'] },
+      };
+    });
+
+    if (writes.length > 0) {
+      await fetch(`${FIRESTORE_BASE.replace('/documents', '')}:batchWrite?key=${FIRESTORE_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ writes }),
+      });
+    }
 
     results.sort((a, b) => b.qty - a.qty);
 
-    const unmatched = Object.keys(nameTotals)
-      .filter(n => !handleMap[n.toLowerCase()])
-      .slice(0, 20);
-    const sampleShopify = Object.keys(handleMap).slice(0, 10);
-
-    return json({ ok: true, orders: orderCount, products: results.length, totals: results, debug: { unmatched, sampleShopify } });
+    return json({
+      ok: true,
+      orders: orderCount,
+      products: results.length,
+      totals: results,
+      debug: {
+        headers,
+        nameIdx,
+        qtyIdx,
+        nameTotalsSample: Object.entries(nameTotals).slice(0, 10),
+        handleMapSize: Object.keys(handleMap).length,
+        sampleShopify: Object.keys(handleMap).slice(0, 10),
+        unmatched: Object.keys(nameTotals).filter(n => !handleTotals[handleMap[n.toLowerCase()]] && !handleTotals[normalizedHandleMap[normalize(n)]]),
+      },
+    });
 
   } catch (err) {
     console.error('Backfill error:', err);
@@ -229,3 +257,12 @@ function parseCSVLine(line) {
   result.push(cur);
   return result;
 }
+
+const PRODUCTS_QUERY = `#graphql
+  query BackfillProducts($after: String) {
+    products(first: 250, after: $after) {
+      pageInfo { hasNextPage endCursor }
+      nodes { handle title }
+    }
+  }
+`;
