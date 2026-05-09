@@ -50,8 +50,8 @@ export const InfoProduk = ({deskripsi, specs, isibox, ulasan, reviewCount = 0}) 
           {selectedContent === 'description' && (
             <div>
               <div
-                className="relative overflow-hidden transition-all duration-300"
-                style={{ maxHeight: descExpanded ? 'none' : '320px' }}
+                className="relative transition-all duration-300"
+                style={{ maxHeight: descExpanded ? 'none' : '320px', overflowY: 'hidden', overflowX: 'auto' }}
               >
                 {deskripsi}
                 {!descExpanded && (

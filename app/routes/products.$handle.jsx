@@ -1269,16 +1269,16 @@ DP : 0
         />
       )}
 
-      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12">
-        <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3">
-          <div className="grid md:grid-flow-row  md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2">
-            <div className="md:col-span-2 md:w-full lg:w-full">
+      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 overflow-x-hidden">
+        <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3 min-w-0">
+          <div className="grid md:grid-flow-row md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2 min-w-0">
+            <div className="md:col-span-2 md:w-full lg:w-full min-w-0">
               
               <ImageGallery productData={product} selectedVariant={selectedVariant?.image?.url}/>
             </div>
           </div>
-          <div>
-          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 p-2 md:p-2 lg:p-4 md:px-2 ">
+          <div className="min-w-0">
+          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 px-4 py-2 md:px-2 md:py-2 lg:p-4 min-w-0">
 
 
             <div className="grid gap-2 w-full">
@@ -1538,7 +1538,7 @@ DP : 0
         
 
 
-            <div className='p-1 flex items-center gap-1.5'>
+            <div className='px-4 py-1 md:px-0 flex items-center gap-1.5'>
               <span className='text-xs text-gray-400 font-medium mr-1'>Share</span>
 
               {/* Copy link */}
@@ -1576,7 +1576,7 @@ DP : 0
 
 
       
-    <div className='p-1 text-sm flex flex-col md:flex-row sm:gap-8'>
+    <div className='px-4 py-1 md:px-0 text-sm flex flex-col md:flex-row sm:gap-8'>
 
 
         {metaobject?.metaobject?.field?.value &&
@@ -1620,9 +1620,9 @@ DP : 0
 
             {/* <div className="w-full prose md:border-t md:border-gray-200 pt-2 text-black text-md"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/> */}
-        <div>
-        
-        <div className='sm:grid sm:grid-cols-2 md:grid md:grid-cols-2'>
+        <div className='px-4 md:px-0 min-w-0'>
+
+        <div className='w-full'>
 
         
         <InfoProduk
