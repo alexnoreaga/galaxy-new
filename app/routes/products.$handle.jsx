@@ -843,25 +843,24 @@ DP : 0
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="min-w-0">
             <h2 className="text-base font-bold text-gray-900">Ulasan Pelanggan</h2>
             {avg && (
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                 <StarRating value={Math.round(parseFloat(avg))} />
                 <span className="text-sm font-semibold text-gray-700">{avg}</span>
-                <span className="text-xs text-gray-400">({reviews.length} ulasan)</span>
+                <span className="text-xs text-gray-400">({reviews.length})</span>
               </div>
             )}
           </div>
-          <div className="flex flex-col gap-2 items-end">
-            {!submitted && (
-              <button onClick={() => setShowForm(f => !f)}
-                className="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-700 transition-colors">
-                {showForm ? 'Batal' : '+ Tulis Ulasan'}
-              </button>
-            )}
-          </div>
+          {!submitted && (
+            <button onClick={() => setShowForm(f => !f)}
+              className="flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
+              style={{ background: showForm ? '#f3f4f6' : '#111827', color: showForm ? '#374151' : '#ffffff' }}>
+              {showForm ? 'Batal' : '+ Ulasan'}
+            </button>
+          )}
         </div>
 
         {/* Success message */}
@@ -1278,7 +1277,7 @@ DP : 0
             </div>
           </div>
           <div className="min-w-0">
-          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 px-4 py-2 md:px-2 md:py-2 lg:p-4 min-w-0">
+          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 px-4 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
 
 
             <div className="grid gap-2 w-full">
