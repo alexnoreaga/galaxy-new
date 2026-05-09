@@ -1277,10 +1277,10 @@ DP : 0
             </div>
           </div>
           <div className="min-w-0">
-          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] grid gap-2 px-4 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
+          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] flex flex-col gap-2 px-4 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
 
 
-            <div className="grid gap-2 w-full">
+            <div className="flex flex-col gap-2 w-full">
 
               <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal mt-1 md:mt-5" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title}
