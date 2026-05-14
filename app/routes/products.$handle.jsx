@@ -1945,7 +1945,7 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
   return (
     <div className='mt-3 mb-1'>
       {/* Header */}
-      <div className='flex items-center gap-1.5 mb-2'>
+      <div className='flex items-center gap-1.5 mb-2.5'>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-rose-500">
           <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
           <path d="M6 6h.008v.008H6V6z" />
@@ -1953,34 +1953,38 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
         <span className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>Voucher Diskon</span>
       </div>
 
-      <div className='flex flex-col gap-2'>
+      <div className='flex flex-col gap-2.5'>
         {voucherArray.map((voucher, index) => (
-          <div
-            key={index}
-            className='flex items-stretch rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm'
-          >
-            {/* Left: colored discount pill */}
-            <div className='flex flex-col items-center justify-center bg-rose-500 px-3 py-3 min-w-[60px] text-white'>
-              <span className='text-lg font-black leading-none'>
+          <div key={index} className='flex items-stretch rounded-2xl border border-rose-100 shadow-sm'
+            style={{ background: 'linear-gradient(115deg, #fff1f2 0%, #ffffff 55%)' }}>
+
+            {/* Left: discount badge */}
+            <div className='flex-shrink-0 flex flex-col items-center justify-center rounded-l-2xl px-4 py-4 text-white'
+              style={{ background: 'linear-gradient(155deg, #fb7185, #e11d48)', minWidth: '72px' }}>
+              <span className='font-black leading-none text-center'
+                style={{ fontSize: voucher.discountType === 'percentage' ? '1.45rem' : '0.8rem', lineHeight: 1 }}>
                 {voucher.discountType === 'percentage'
                   ? `${voucher.discount}%`
                   : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
               </span>
-              <span className='text-[9px] font-semibold uppercase tracking-widest opacity-80 mt-0.5'>OFF</span>
+              <span className='text-[8px] font-bold uppercase tracking-widest mt-1.5' style={{ color: 'rgba(255,255,255,0.65)' }}>OFF</span>
             </div>
 
-            {/* Middle: code + desc */}
-            <div className='flex-1 flex flex-col justify-center px-3 py-2.5 border-l border-dashed border-gray-300 min-w-0'>
-              <div className='flex items-center gap-1.5 mb-0.5'>
-                <span className='font-mono font-bold text-gray-900 text-sm tracking-wider'>{voucher.code}</span>
-              </div>
+            {/* Middle: code + details */}
+            <div className='flex-1 flex flex-col justify-center px-3.5 py-3 min-w-0'
+              style={{ borderLeft: '1.5px dashed #fecdd3' }}>
+              <span className='font-mono font-black text-gray-900 text-sm tracking-widest leading-none'>
+                {voucher.code}
+              </span>
               {voucher.description && (
-                <p className='text-[11px] text-gray-500 leading-tight truncate'>{voucher.description}</p>
+                <p className='text-[11px] text-gray-500 leading-tight truncate mt-1'>{voucher.description}</p>
               )}
               {(voucher.minPurchase || voucher.expiryDate) && (
-                <div className='flex items-center gap-2 mt-1'>
+                <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5'>
                   {voucher.minPurchase && (
-                    <span className='text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded'>{voucher.minPurchase}</span>
+                    <span className='text-[10px] font-medium text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full'>
+                      {voucher.minPurchase}
+                    </span>
                   )}
                   {voucher.expiryDate && (
                     <span className='text-[10px] text-gray-400'>
@@ -1994,23 +1998,22 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
             {/* Right: copy button */}
             <button
               onClick={() => handleCopyCode(voucher.code)}
-              className={`flex-shrink-0 flex flex-col items-center justify-center w-16 text-[10px] font-bold border-l transition-all duration-200 active:scale-95 ${
-                copiedCode === voucher.code
-                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200'
-              }`}
+              className='flex-shrink-0 self-stretch flex flex-col items-center justify-center w-[58px] text-[10px] font-bold rounded-r-2xl transition-all duration-200 active:scale-95'
+              style={copiedCode === voucher.code
+                ? { borderLeft: '1.5px dashed #fecdd3', background: 'rgba(16,185,129,0.08)', color: '#059669' }
+                : { borderLeft: '1.5px dashed #fecdd3', background: 'rgba(244,63,94,0.05)', color: '#e11d48' }}
             >
               {copiedCode === voucher.code ? (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mb-0.5">
                     <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
                   </svg>
-                  Tersalin!
+                  Disalin
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4 mb-0.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 mb-0.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 0 0-9-9Z" />
                   </svg>
                   Salin
                 </>

@@ -31,7 +31,62 @@ export async function loader({context,request}) {
 
   const featuredCollection = collections.nodes[0];
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
-  const mirrorlessProducts = storefront.query(MIRRORLESS_PRODUCTS_QUERY);
+
+  const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+  const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+  const mirrorlessProducts = storefront.query(MIRRORLESS_PRODUCTS_QUERY).then(async (data) => {
+    const nodes = data?.collection?.products?.nodes || [];
+    const [soldEntries, reviewEntries] = await Promise.all([
+      Promise.all(
+        nodes.map(p =>
+          fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(doc => [p.handle, parseInt(doc?.fields?.count?.integerValue || 0)])
+            .catch(() => [p.handle, 0])
+        )
+      ),
+      Promise.all(
+        nodes.map(p =>
+          fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              structuredQuery: {
+                from: [{ collectionId: 'reviews' }],
+                where: {
+                  compositeFilter: {
+                    op: 'AND',
+                    filters: [
+                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: p.handle } } },
+                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
+                    ],
+                  },
+                },
+                select: { fields: [{ fieldPath: 'rating' }] },
+                limit: 100,
+              },
+            }),
+          })
+            .then(res => res.ok ? res.json() : null)
+            .then(rows => {
+              const ratings = (rows || [])
+                .filter(r => r.document)
+                .map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
+              const count = ratings.length;
+              const avg = count > 0 ? parseFloat((ratings.reduce((s, r) => s + r, 0) / count).toFixed(1)) : 0;
+              return [p.handle, count > 0 ? { count, avg } : null];
+            })
+            .catch(() => [p.handle, null])
+        )
+      ),
+    ]);
+    return {
+      ...data,
+      soldCounts: Object.fromEntries(soldEntries),
+      reviewSummaries: Object.fromEntries(reviewEntries),
+    };
+  });
+
   const hasilCollection =  collections2;
 
   const banner = await storefront.query(BANNER_QUERY);
@@ -182,8 +237,8 @@ export default function Homepage() {
 
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <VouchersSection vouchers={data.vouchers} />
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+        <VouchersSection vouchers={data.vouchers} />
       </div>
 
       
@@ -467,7 +522,7 @@ function MirrorlessProducts({products}) {
         </Link>
       </div>
       
-      <Suspense fallback={<div className="text-center py-8">Loading products...</div>}>
+      <Suspense fallback={<MirrorlessSkeleton />}>
         <Await resolve={products}>
           {(response) => {
             const productsList = response?.collection?.products;
@@ -475,9 +530,13 @@ function MirrorlessProducts({products}) {
               return <div className="text-center py-8 text-gray-500">No products found</div>;
             }
             
+            const soldCounts = response.soldCounts || {};
+            const reviewSummaries = response.reviewSummaries || {};
             return (
               <div className="flex overflow-x-auto gap-3 pb-4 snap-x snap-mandatory scroll-smooth sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:gap-4 hide-scroll-bar">
-                {productsList.nodes.map((product) => (
+                {productsList.nodes.map((product) => {
+                  const sold = soldCounts[product?.handle] || 0;
+                  return (
                   <Link
                     key={product?.id}
                     className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex-shrink-0 w-32 sm:w-auto snap-start"
@@ -492,37 +551,62 @@ function MirrorlessProducts({products}) {
                         className="group-hover:scale-105 transition-transform duration-300"
                       />
                       {parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) && (
-                        <div className="absolute top-1 right-1 bg-red-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold shadow-md">
-                          <HitunganPersen 
-                            hargaSebelum={product?.compareAtPriceRange?.minVariantPrice?.amount || 0} 
+                        <div className="absolute top-1.5 right-1.5 flex items-center text-white text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-lg shadow-lg"
+                          style={{ background: 'linear-gradient(135deg, #f97316, #dc2626)' }}>
+                          <HitunganPersen
+                            hargaSebelum={product?.compareAtPriceRange?.minVariantPrice?.amount || 0}
                             hargaSesudah={product?.priceRange?.minVariantPrice?.amount || 0}
                           />
                         </div>
                       )}
                       {product?.metafields?.find(m => m?.key === 'free')?.value && (
-                        <div className="absolute top-1 left-1 bg-blue-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold shadow-md">
-                          Free
+                        <div className="absolute top-1.5 left-1.5 flex items-center gap-0.5 text-white text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-lg shadow-lg"
+                          style={{ background: 'linear-gradient(135deg, #a855f7, #7c3aed)' }}>
+                          FREE
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-2.5 h-2.5 flex-shrink-0">
+                            <path d="M7.25 3.688a8.035 8.035 0 0 0-1.128-.702C5.236 2.504 4.456 2.25 3.75 2.25a2 2 0 0 0-1.5 3.32V6h2.322a9.383 9.383 0 0 0 2.078-1.264 1 1 0 0 1 .6-.198V3.688ZM8.75 4.524V3.688a9.372 9.372 0 0 1 1.128-.702c.886-.482 1.666-.736 2.372-.736a2 2 0 0 1 1.5 3.32V6h-2.322A9.383 9.383 0 0 1 9.35 4.736a1 1 0 0 0-.6-.212ZM7.25 7.5H2.25v.75A2.75 2.75 0 0 0 5 11h2.25V7.5ZM8.75 11H11A2.75 2.75 0 0 0 13.75 8.25V7.5H8.75V11ZM7.25 12.5H5A4.243 4.243 0 0 1 2.25 11.5V13a1 1 0 0 0 1 1h4V12.5ZM8.75 14h4a1 1 0 0 0 1-1v-1.5A4.243 4.243 0 0 1 11 12.5H8.75V14Z" />
+                          </svg>
                         </div>
                       )}
                     </div>
-                    
+
                     <div className='p-2 sm:p-3'>
                       <h3 className='text-xs sm:text-sm font-medium text-gray-800 mb-1 sm:mb-2 line-clamp-2 min-h-[32px] sm:min-h-[40px]'>
                         {product?.title || 'Nama Produk'}
                       </h3>
-                      
+
                       {parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) && (
                         <div className='text-[10px] sm:text-xs text-gray-400 line-through mb-0.5 sm:mb-1'>
                           Rp{parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
                         </div>
                       )}
-                      
+
                       <div className={`text-xs sm:text-base font-bold ${parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) ? 'text-red-600' : 'text-gray-900'}`}>
                         Rp{parseFloat(product?.priceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
                       </div>
+
+                      {(reviewSummaries[product?.handle] || sold > 0) && (
+                        <div className='flex items-center justify-between mt-1 gap-1'>
+                          {reviewSummaries[product?.handle] ? (
+                            <div className='flex items-center gap-0.5'>
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-yellow-400 flex-shrink-0">
+                                <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clipRule="evenodd" />
+                              </svg>
+                              <span className='text-[10px] sm:text-xs font-semibold text-gray-700'>{reviewSummaries[product.handle].avg}</span>
+                              <span className='text-[10px] sm:text-xs text-gray-400'>({reviewSummaries[product.handle].count})</span>
+                            </div>
+                          ) : <span />}
+                          {sold > 0 && (
+                            <div className='text-[10px] sm:text-xs text-gray-400'>
+                              Terjual <span className='font-semibold text-gray-500'>{sold.toLocaleString('id-ID')}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             );
           }}
@@ -532,6 +616,51 @@ function MirrorlessProducts({products}) {
   );
 }
 
+
+function MirrorlessSkeleton() {
+  return (
+    <div className="flex overflow-x-auto gap-3 pb-4 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:gap-4 hide-scroll-bar">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="bg-white rounded-xl border border-gray-100 overflow-hidden flex-shrink-0 w-32 sm:w-auto"
+        >
+          {/* image placeholder */}
+          <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
+            <div className="absolute inset-0 -translate-x-full animate-shimmer"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animationDelay: `${i * 0.1}s` }} />
+          </div>
+
+          <div className="p-2 sm:p-3 flex flex-col gap-2">
+            {/* title lines */}
+            <div className="flex flex-col gap-1.5">
+              <div className="relative h-3 rounded-full bg-gray-100 overflow-hidden w-full">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer"
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animationDelay: `${i * 0.1}s` }} />
+              </div>
+              <div className="relative h-3 rounded-full bg-gray-100 overflow-hidden w-3/4">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer"
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animationDelay: `${i * 0.1}s` }} />
+              </div>
+            </div>
+
+            {/* price */}
+            <div className="relative h-4 rounded-full bg-gray-100 overflow-hidden w-2/3">
+              <div className="absolute inset-0 -translate-x-full animate-shimmer"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animationDelay: `${i * 0.1}s` }} />
+            </div>
+
+            {/* rating + terjual */}
+            <div className="relative h-3 rounded-full bg-gray-100 overflow-hidden w-full">
+              <div className="absolute inset-0 -translate-x-full animate-shimmer"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animationDelay: `${i * 0.1}s` }} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function FeaturedBlogs({ blogs }) {
   const [articlesToShow, setArticlesToShow] = useState(1);
@@ -1001,81 +1130,155 @@ query GetVouchers($first: Int!) {
 
 // Compact Vouchers Section Component
 function VouchersSection({ vouchers }) {
+  const [copiedCode, setCopiedCode] = useState(null);
+
+  function handleCopyCode(code) {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  }
+
   return (
-    <Suspense fallback={<div>Loading vouchers...</div>}>
+    <Suspense fallback={
+      <div className='py-2 mb-4'>
+        <div className='flex items-center justify-between mb-3'>
+          <div className='h-5 w-36 bg-gray-100 rounded-full overflow-hidden relative'>
+            <div className='absolute inset-0 -translate-x-full animate-shimmer' style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)' }} />
+          </div>
+        </div>
+        <div className='flex gap-3'>
+          {[1,2,3].map(i => (
+            <div key={i} className='flex-shrink-0 w-72 h-20 rounded-2xl bg-gray-100 overflow-hidden relative'>
+              <div className='absolute inset-0 -translate-x-full animate-shimmer' style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animationDelay: `${i * 0.1}s` }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
       <Await resolve={vouchers}>
         {(resolvedVouchers) => {
           const voucherArray = resolvedVouchers?.metaobjects?.nodes?.map((node) => {
             const fields = node.fields;
             return {
-              code: fields.find(f => f.key === 'kode')?.value || fields.find(f => f.key === 'code')?.value || 'PROMO',
-              discount: fields.find(f => f.key === 'discount')?.value || fields.find(f => f.key === 'diskon')?.value || '0%',
-              discountType: fields.find(f => f.key === 'discount_type')?.value || 'percentage',
-              description: fields.find(f => f.key === 'description')?.value || fields.find(f => f.key === 'deskripsi')?.value || 'Berlaku untuk pembelian tertentu',
+              code: fields.find(f => f.key === 'code')?.value || '',
+              discount: fields.find(f => f.key === 'discount_value')?.value || '',
+              discountType: fields.find(f => f.key === 'discount_type')?.value || 'fixed',
+              description: fields.find(f => f.key === 'description')?.value || '',
               minPurchase: fields.find(f => f.key === 'min_purchase')?.value || '',
               expiryDate: fields.find(f => f.key === 'expiry_date')?.value || '',
             };
           }) || [];
 
-          const handleCopyCode = (code) => {
-            navigator.clipboard.writeText(code);
-            alert('Kode disalin!');
-          };
+          if (!voucherArray.length) return null;
+
+          const COINS = [
+            { size: 40, top: '8%',  left: '1%',  blur: 0, opacity: 0.9,  rotate: -20, flipX: false, scaleY: 1.0 },
+            { size: 22, top: '60%', left: '5%',  blur: 5, opacity: 0.45, rotate:  18, flipX: true,  scaleY: 0.15 },
+            { size: 30, top: '18%', left: '24%', blur: 7, opacity: 0.28, rotate:  -6, flipX: true,  scaleY: 1.0 },
+            { size: 48, top: '4%',  right: '2%', blur: 0, opacity: 0.82, rotate:  28, flipX: false, scaleY: 0.25 },
+            { size: 20, top: '55%', right: '8%', blur: 4, opacity: 0.5,  rotate: -38, flipX: true,  scaleY: 0.12 },
+            { size: 34, bottom: '6%',  right: '22%', blur: 2, opacity: 0.6,  rotate: 12,  flipX: false, scaleY: 1.0 },
+            { size: 26, bottom: '12%', left: '42%', blur: 6, opacity: 0.32, rotate: -14, flipX: true,  scaleY: 0.2 },
+            { size: 18, top: '35%',   right: '38%', blur: 8, opacity: 0.22, rotate: 42,  flipX: false, scaleY: 1.0 },
+            { size: 32, bottom: '4%', left: '14%', blur: 1, opacity: 0.68, rotate: -9,  flipX: true,  scaleY: 0.18 },
+          ];
 
           return (
-            <div className='py-2 mb-4'>
-              {/* Header */}
-              <div className='flex items-center justify-between mb-3 gap-2'>
-                <div>
-                  <h2 className="text-gray-900 text-base sm:text-lg font-bold">🎁 Voucher Eksklusif</h2>
-                  <p className='text-gray-500 text-xs mt-0.5 hidden sm:block'>Dapatkan diskon spesial untuk pembelian hari ini</p>
-                </div>
-                <Link to="/promo">
-                  <button className='px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-orange-500 to-rose-600 text-white font-semibold text-xs rounded-full hover:shadow-lg hover:from-orange-600 hover:to-rose-700 transition-all duration-300 whitespace-nowrap'>
-                    Lihat Semua →
-                  </button>
-                </Link>
-              </div>
+            <div className='w-full rounded-2xl py-4 mb-4 relative overflow-hidden'
+              style={{ background: 'linear-gradient(120deg, #e11d48 0%, #f97316 100%)' }}>
 
-              {/* Vouchers Grid */}
-              <div className='overflow-x-auto md:overflow-visible hide-scroll-bar'>
-                <div className='flex md:grid md:grid-cols-4 gap-3 pb-2 md:pb-0 snap-x snap-mandatory md:snap-none'>
-                  {voucherArray && voucherArray.length > 0 ? (
-                    voucherArray.map((voucher, index) => (
-                      <div key={index} className='flex-shrink-0 w-64 md:w-auto snap-start bg-gradient-to-r from-orange-50 to-rose-50 border border-orange-200 rounded-lg p-3 hover:shadow-md transition-shadow duration-200'>
-                        <div className='flex flex-col gap-2'>
-                          <div className='flex-1'>
-                            <div className='flex items-center gap-2 mb-1'>
-                              <span className='font-bold text-orange-700 text-sm'>{voucher.code}</span>
-                              <span className='bg-gradient-to-r from-orange-500 to-rose-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold'>
-                                {voucher.discount}
-                              </span>
-                            </div>
-                            <p className='text-xs text-gray-700 line-clamp-2'>{voucher.description}</p>
-                            {(voucher.minPurchase || voucher.expiryDate) && (
-                              <div className='flex flex-col gap-0.5 text-[10px] text-gray-600 mt-1'>
-                                {voucher.minPurchase && <span>Min: {voucher.minPurchase}</span>}
-                                {voucher.expiryDate && <span>Hingga {new Date(voucher.expiryDate).toLocaleDateString('id-ID')}</span>}
-                              </div>
-                            )}
-                          </div>
+              {/* Dot texture */}
+              <div className='absolute inset-0 pointer-events-none' style={{
+                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.13) 1.5px, transparent 1.5px)',
+                backgroundSize: '18px 18px',
+              }} />
+
+              {/* Coins */}
+              {COINS.map((c, i) => (
+                <div key={i} className='absolute pointer-events-none select-none' style={{
+                  top: c.top, left: c.left, right: c.right, bottom: c.bottom,
+                  filter: `blur(${c.blur}px)`, opacity: c.opacity,
+                  transform: `rotate(${c.rotate}deg) scaleX(${c.flipX ? -1 : 1}) scaleY(${c.scaleY})`,
+                }}>
+                  <svg width={c.size} height={c.size} viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="19" fill="#d97706"/>
+                    <circle cx="20" cy="20" r="17" fill="#f59e0b"/>
+                    <circle cx="20" cy="20" r="13" fill="#fbbf24"/>
+                    <circle cx="20" cy="20" r="10" fill="none" stroke="#f59e0b" strokeWidth="1.5"/>
+                    <ellipse cx="14" cy="13" rx="5" ry="3" fill="rgba(255,255,255,0.32)" transform="rotate(-30 14 13)"/>
+                  </svg>
+                </div>
+              ))}
+
+              <div className='relative px-4'>
+                {/* Header */}
+                <div className='flex items-center justify-between mb-3 gap-2'>
+                  <div className='flex items-center gap-1.5'>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-white flex-shrink-0">
+                      <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path d="M6 6h.008v.008H6V6z" />
+                    </svg>
+                    <h2 className="text-white text-sm font-bold tracking-wide">Voucher Eksklusif</h2>
+                  </div>
+                  <Link to="/promo" className='text-[11px] font-semibold whitespace-nowrap' style={{ color: 'rgba(255,255,255,0.85)' }}>
+                    Lihat Semua →
+                  </Link>
+                </div>
+
+                {/* Voucher cards */}
+                <div className='flex overflow-x-auto gap-2.5 pb-1 hide-scroll-bar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible sm:pb-0'>
+                  {voucherArray.map((voucher, index) => (
+                    <div key={index} className='flex-shrink-0 w-44 sm:w-auto flex items-stretch rounded-xl overflow-hidden'
+                      style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+
+                      {/* Left: warm amber-brown panel */}
+                      <div className='flex flex-col items-center justify-center px-2 py-3 sm:px-3 sm:py-5'
+                        style={{ background: 'linear-gradient(160deg, #92400e, #431407)', width: '30%', minWidth: '52px', maxWidth: '96px' }}>
+                        <span className='font-black leading-none text-center'
+                          style={{
+                            color: '#fef08a',
+                            fontSize: voucher.discountType === 'percentage' ? 'clamp(0.9rem,3vw,1.7rem)' : 'clamp(0.55rem,1.5vw,0.9rem)',
+                          }}>
+                          {voucher.discountType === 'percentage'
+                            ? `${voucher.discount}%`
+                            : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
+                        </span>
+                        <span className='font-black uppercase mt-1' style={{ color: 'rgba(253,224,71,0.6)', fontSize: 'clamp(6px,1vw,9px)', letterSpacing: '0.18em' }}>OFF</span>
+                      </div>
+
+                      {/* Right: cream info panel */}
+                      <div className='flex-1 flex flex-col justify-center px-2.5 py-2.5 sm:px-4 sm:py-4 min-w-0'
+                        style={{ background: '#fffbeb', borderLeft: '1.5px dashed #d97706' }}>
+                        {/* Code + copy */}
+                        <div className='flex items-center gap-1.5 mb-1.5 sm:mb-2'>
+                          <span className='font-mono font-black text-[9.5px] sm:text-sm tracking-widest flex-1 truncate'
+                            style={{ color: '#1c1917' }}>
+                            {voucher.code}
+                          </span>
                           <button
                             onClick={() => handleCopyCode(voucher.code)}
-                            className='bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-200 flex items-center justify-center gap-1.5'
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" />
-                            </svg>
-                            Salin Kode
+                            className='flex-shrink-0 text-[8px] sm:text-xs font-black uppercase tracking-wide px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-white transition-all duration-200 active:scale-95'
+                            style={copiedCode === voucher.code
+                              ? { background: '#059669' }
+                              : { background: 'linear-gradient(135deg,#d97706,#b45309)' }}>
+                            {copiedCode === voucher.code ? '✓ OK' : 'Salin'}
                           </button>
                         </div>
+                        {/* Meta */}
+                        <div className='flex flex-wrap items-center gap-x-1.5 gap-y-0.5'>
+                          {voucher.minPurchase && (
+                            <span className='text-[7px] sm:text-[11px] font-semibold leading-none' style={{ color: '#92400e' }}>
+                              Min. {voucher.minPurchase}
+                            </span>
+                          )}
+                          {voucher.expiryDate && (
+                            <span className='text-[7px] sm:text-[11px] leading-none' style={{ color: '#a16207' }}>
+                              s/d {new Date(voucher.expiryDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className='w-full py-6 text-center text-gray-500'>
-                      <p className='text-sm'>Tidak ada voucher tersedia saat ini</p>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
             </div>
