@@ -16,6 +16,10 @@ export async function loader({context, request}) {
   const {collections} = await context.storefront.query(COLLECTIONS_QUERY, {
     variables: paginationVariables,
   });
+
+  const HIDDEN_HANDLES = ['flash-sale'];
+  collections.nodes = collections.nodes.filter(c => !HIDDEN_HANDLES.includes(c.handle));
+
   return json({collections});
 }
 
