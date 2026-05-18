@@ -1,4 +1,4 @@
-import {Form, NavLink, Outlet, useLoaderData} from '@remix-run/react';
+import {Form, NavLink, Outlet, useLoaderData, useNavigation} from '@remix-run/react';
 import {json, redirect} from '@shopify/remix-oxygen';
 
 export function shouldRevalidate() {
@@ -12,7 +12,7 @@ export async function loader({request, context}) {
   const isLoggedIn = !!customerAccessToken?.accessToken;
   const isAccountHome = pathname === '/account' || pathname === '/account/';
   const isPrivateRoute =
-    /^\/account\/(orders|orders\/.*|profile|addresses|addresses\/.*)$/.test(
+    /^\/account\/(orders|orders\/.*|profile|addresses|addresses\/.*|affiliate)$/.test(
       pathname,
     );
 
@@ -83,14 +83,15 @@ export default function Acccount() {
 
   return (
     <AccountLayout customer={customer}>
-      <br />
-      <br />
       <Outlet context={{customer}} />
     </AccountLayout>
   );
 }
 
 function AccountLayout({customer, children}) {
+  const navigation = useNavigation();
+  const isNavigating = navigation.state === 'loading';
+
   const heading = customer
     ? customer.firstName
       ? `Halo, ${customer.firstName}`
@@ -113,8 +114,8 @@ function AccountLayout({customer, children}) {
         <AccountMenu />
 
         {/* Content */}
-        <div className="mt-6">
-          {children}
+        <div className={`mt-6 transition-opacity duration-200 ${isNavigating ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+          {isNavigating ? <AccountSkeleton /> : children}
         </div>
 
       </div>
@@ -122,19 +123,43 @@ function AccountLayout({customer, children}) {
   );
 }
 
+function AccountSkeleton() {
+  return (
+    <div className="space-y-3 animate-pulse">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="h-4 bg-gray-100 rounded-full w-1/3 mb-4" />
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="h-3.5 bg-gray-200 rounded-full w-20" />
+                  <div className="h-3 bg-gray-100 rounded-full w-32" />
+                </div>
+                <div className="h-6 bg-gray-100 rounded-full w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AccountMenu() {
   return (
-    <nav role="navigation" className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 shadow-sm p-1 w-fit">
+    <nav role="navigation" className="flex items-stretch gap-0.5 bg-white rounded-xl border border-gray-100 shadow-sm p-1 w-full">
       {[
         { to: '/account/orders', label: 'Pesanan' },
         { to: '/account/profile', label: 'Profil' },
         { to: '/account/addresses', label: 'Alamat' },
+        { to: '/account/affiliate', label: 'Affiliate' },
       ].map(({ to, label }) => (
         <NavLink
           key={to}
           to={to}
           className={({ isActive }) =>
-            `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+            `flex-1 text-center py-2 px-1 sm:px-3 rounded-lg text-[11px] sm:text-sm font-medium transition-all duration-150 ${
               isActive
                 ? 'bg-gray-900 text-white shadow-sm'
                 : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
@@ -154,7 +179,7 @@ function Logout() {
     <Form method="POST" action="/account/logout">
       <button
         type="submit"
-        className="px-4 py-2 rounded-lg text-sm font-medium text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-150"
+        className="px-2 sm:px-4 py-2 rounded-lg text-[11px] sm:text-sm font-medium text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-150 whitespace-nowrap"
       >
         Keluar
       </button>

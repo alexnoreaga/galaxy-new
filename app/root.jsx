@@ -12,13 +12,53 @@ import {
   useLoaderData,
   ScrollRestoration,
   isRouteErrorResponse,
+  useLocation,
 } from '@remix-run/react';
 import favicon from '../public/favicon.svg';
 import resetStyles from './styles/reset.css';
 import appStyles from './styles/app.css';
 import {Layout} from '~/components/Layout';
 import tailwindCss from './styles/tailwind.css';
-import { useEffect, useState } from 'react'; 
+import { useEffect, useState } from 'react';
+
+// Affiliate ref tracker — captures ?ref= from URL, stores in localStorage (30 days)
+function AffiliateTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    // Clean expired ref
+    const exp = localStorage.getItem('galaxy_ref_exp');
+    if (exp && Date.now() > parseInt(exp)) {
+      localStorage.removeItem('galaxy_ref');
+      localStorage.removeItem('galaxy_ref_exp');
+    }
+
+    const params = new URLSearchParams(location.search);
+    const ref = params.get('ref');
+    if (!ref) return;
+
+    // Store ref with 30-day expiry
+    localStorage.setItem('galaxy_ref', ref);
+    localStorage.setItem('galaxy_ref_exp', String(Date.now() + 30 * 24 * 60 * 60 * 1000));
+
+    // Track click only once per browser session per ref code (prevents multi-page overcounting)
+    const sessionKey = `galaxy_click_${ref}`;
+    if (!sessionStorage.getItem(sessionKey)) {
+      sessionStorage.setItem(sessionKey, '1');
+      fetch('/api/affiliate-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refCode: ref, url: location.pathname }),
+      }).catch(() => {});
+    }
+
+    // Strip ?ref= from URL without reloading (keeps other params intact)
+    params.delete('ref');
+    const newSearch = params.toString();
+    const cleanUrl = location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl);
+  }, [location.search]);
+  return null;
+}
 
 
 // This is important to avoid re-fetching root queries on sub-navigations
@@ -615,6 +655,7 @@ dangerouslySetInnerHTML={{__html:`
               ))}
           </ol>
 
+        <AffiliateTracker />
         <Layout {...data}>
           <Outlet />
         </Layout>

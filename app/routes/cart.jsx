@@ -17,6 +17,7 @@ export async function action({request, context}) {
   ]);
 
   const {action, inputs} = CartForm.getFormInput(formData);
+  const affiliateRef = formData.get('affiliate_ref') || null;
 
   if (!action) {
     throw new Error('No action provided');
@@ -28,6 +29,10 @@ export async function action({request, context}) {
   switch (action) {
     case CartForm.ACTIONS.LinesAdd:
       result = await cart.addLines(inputs.lines);
+      // Attach affiliate ref to cart attributes if present
+      if (affiliateRef) {
+        await cart.updateAttributes([{ key: 'affiliate_ref', value: affiliateRef }]).catch(() => {});
+      }
       break;
     case CartForm.ACTIONS.LinesUpdate:
       result = await cart.updateLines(inputs.lines);

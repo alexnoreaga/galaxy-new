@@ -95,6 +95,96 @@ export async function action({ request, context }) {
       })
     );
 
+    // ── Affiliate commission logic ──────────────────────────────────────
+    const noteAttrs = order.note_attributes || [];
+    const affiliateAttr = noteAttrs.find(a => a.name === 'affiliate_ref');
+    const refCode = affiliateAttr?.value;
+
+    if (refCode) {
+      try {
+        // Fetch affiliate doc + config in parallel
+        const [affRes, configRes] = await Promise.all([
+          fetch(`${FIRESTORE_BASE}/affiliates/${refCode}?key=${FIRESTORE_KEY}`),
+          fetch(`${FIRESTORE_BASE}/affiliate_config/settings?key=${FIRESTORE_KEY}`),
+        ]);
+
+        const affDoc = affRes.ok ? await affRes.json() : null;
+        const configDoc = configRes.ok ? await configRes.json() : null;
+
+        if (affDoc && !affDoc.error && affDoc.fields?.status?.stringValue === 'approved') {
+          // Build commission rates from config — supports new dynamic map schema and old fixed fields
+          const cf = configDoc?.fields || {};
+          const rateDefault = parseFloat(cf.rateDefault?.doubleValue || cf.rateDefault?.integerValue || 2);
+          let rates = {};
+          if (cf.rates?.mapValue?.fields) {
+            for (const [k, v] of Object.entries(cf.rates.mapValue.fields)) {
+              rates[k] = parseFloat(v.doubleValue || v.integerValue || 0);
+            }
+          } else {
+            rates = {
+              Kamera: parseFloat(cf.rateKamera?.doubleValue || cf.rateKamera?.integerValue || 2),
+              Lensa: parseFloat(cf.rateLensa?.doubleValue || cf.rateLensa?.integerValue || 2.5),
+              Aksesoris: parseFloat(cf.rateAksesoris?.doubleValue || cf.rateAksesoris?.integerValue || 4),
+              Bundle: parseFloat(cf.rateBundle?.doubleValue || cf.rateBundle?.integerValue || 3),
+            };
+          }
+
+          // Calculate commission per line item
+          let totalCommission = 0;
+          const commissionItems = lineItems.map(item => {
+            const productType = item.product_type || '';
+            const rate = rates[productType] !== undefined ? rates[productType] : rateDefault;
+            const itemTotal = parseFloat(item.price) * (item.quantity || 1);
+            const commission = Math.round(itemTotal * (rate / 100));
+            totalCommission += commission;
+            return { title: item.title, productType, price: itemTotal, rate, commission };
+          });
+
+          const orderId = String(order.id);
+          const orderTotal = parseFloat(order.total_price || 0);
+
+          // Save commission record
+          await fetch(`${FIRESTORE_BASE}/affiliate_commissions/${orderId}?key=${FIRESTORE_KEY}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fields: {
+                refCode: { stringValue: refCode },
+                orderId: { stringValue: orderId },
+                orderNumber: { integerValue: String(order.order_number || 0) },
+                orderTotal: { doubleValue: orderTotal },
+                commissionAmount: { integerValue: String(totalCommission) },
+                status: { stringValue: 'pending' },
+                lineItems: { stringValue: JSON.stringify(commissionItems) },
+                createdAt: { stringValue: new Date().toISOString() },
+                paidAt: { nullValue: null },
+              },
+            }),
+          });
+
+          // Update affiliate totals
+          const curOrders = parseInt(affDoc.fields?.totalOrders?.integerValue || 0);
+          const curEarned = parseInt(affDoc.fields?.totalEarned?.integerValue || 0);
+          await fetch(
+            `${FIRESTORE_BASE}/affiliates/${refCode}?key=${FIRESTORE_KEY}&updateMask.fieldPaths=totalOrders&updateMask.fieldPaths=totalEarned`,
+            {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fields: {
+                  totalOrders: { integerValue: String(curOrders + 1) },
+                  totalEarned: { integerValue: String(curEarned + totalCommission) },
+                },
+              }),
+            }
+          );
+        }
+      } catch (affErr) {
+        console.error('Affiliate commission error:', affErr);
+      }
+    }
+    // ── End affiliate commission logic ──────────────────────────────────
+
     return json({ ok: true });
   } catch (error) {
     console.error('Webhook error:', error);
