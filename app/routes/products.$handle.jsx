@@ -1200,11 +1200,12 @@ DP : 0
     const [affiliateIsApproved, setAffiliateIsApproved] = useState(false);
     const [affiliateLinkCopied, setAffiliateLinkCopied] = useState(false);
     useEffect(() => {
+      if (!custEmail?.customer?.email) return;
       const ref = localStorage.getItem('galaxy_ref') || localStorage.getItem('galaxy_aff_code');
       const status = localStorage.getItem('galaxy_aff_status');
       if (ref) setAffiliateRef(ref);
       if (status === 'approved') setAffiliateIsApproved(true);
-    }, []);
+    }, [custEmail]);
 
     const [visitorCount, setVisitorCount] = useState(() => Math.floor(Math.random() * 18) + 8);
     useEffect(() => {
@@ -1297,7 +1298,7 @@ DP : 0
                 {product.title}
               </h1>
 
-              {/* Star summary + Terjual */}
+              {/* Star + Terjual + Live visitor — all on one line */}
               <div className="flex items-center gap-2 flex-wrap">
                 {productReviews?.length > 0 && (() => {
                   const avg = (productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length).toFixed(1);
@@ -1323,16 +1324,43 @@ DP : 0
                     </span>
                   </>
                 )}
-              </div>
-
-              {/* Live visitor count */}
-              <div className="flex items-center gap-1.5">
+                <span className="text-gray-300 text-xs">·</span>
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                 </span>
                 <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
               </div>
+
+              {/* Stock + Garansi badges */}
+              <div className='flex flex-row gap-2'>
+                {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
+                  <div className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold shadow-sm gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Stock Ready
+                  </div>
+                )}
+                {product.metafields[0]?.value && (
+                  <div className="inline-flex items-center px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold shadow-sm gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12l2 2 4-4" />
+                    </svg>
+                    Garansi Resmi
+                  </div>
+                )}
+              </div>
+
+              {/* Price — after title/social proof, Tokopedia/Shopee style */}
+              {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
+                <div className='flex flex-row items-center gap-2'>
+                  <div className='bg-rose-700 px-1.5 py-0.5 font-bold text-white text-xs rounded'><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
+                  <div className="text-sm line-through text-slate-400">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
+                </div>
+              )}
+              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className="text-xl font-bold text-rose-700">Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
 
           {/* <Suspense fallback={<p>Loading cart ...</p>}>
                   <Await errorElement={<div>An error occurred</div>} resolve={cart}>
@@ -1365,25 +1393,6 @@ DP : 0
                 </div>
               )}
 
-<div className='flex flex-row gap-2 sm:mb-2 md:4'>
-  {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
-    <div className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold shadow-sm gap-1">
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-      Stock Ready
-    </div>
-  )}
-  {product.metafields[0]?.value && (
-    <div className="inline-flex items-center px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold shadow-sm gap-1">
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12l2 2 4-4" />
-      </svg>
-      Garansi Resmi
-    </div>
-  )}
-</div>
 
 
  
@@ -1420,17 +1429,6 @@ DP : 0
                   </div>
               
               
-              {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                <div className='flex flex-row items-center gap-2 mb-0'>
-                <div className='bg-rose-700 p-1 ml-0 font-bold text-white text-xs rounded '><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
-                  <div className="text-base line-through text-slate-600">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
-                </div>
-              )}
-
-           
-
-              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className={` text-xl font-bold ${selectedVariant?.compareAtPrice?.amount ? 'text-rose-700' : 'text-rose-700'}`}>Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")} </div>
-
               {/* CICILAN MULAI DARI */}
               <div className='text-[13px] text-gray-700 mt-1 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
 

@@ -174,8 +174,8 @@ function ProductCard({ product, inventoryMap }) {
     <Link
       to={`/products/${product.handle}`}
       prefetch="intent"
-      className="group flex flex-col bg-white rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
-      style={{ border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+      className="group flex flex-col bg-white rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl no-underline"
+      style={{ border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textDecoration: 'none' }}
     >
       <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: '1/1' }}>
         {hasDiscount && (
