@@ -1292,7 +1292,7 @@ DP : 0
           <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] flex flex-col gap-2 px-4 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
 
 
-            <div className="flex flex-col gap-2 w-full">
+            <div className="flex flex-col gap-1 w-full">
 
               <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal mt-1 md:mt-5" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title}
@@ -1333,7 +1333,7 @@ DP : 0
               </div>
 
               {/* Stock + Garansi badges */}
-              <div className='flex flex-row gap-2'>
+              <div className='flex flex-row gap-2 mb-2'>
                 {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
                   <div className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold shadow-sm gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -1355,12 +1355,19 @@ DP : 0
 
               {/* Price — after title/social proof, Tokopedia/Shopee style */}
               {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                <div className='flex flex-row items-center gap-2'>
+                <div className='flex flex-row items-center gap-2 mt-3'>
                   <div className='bg-rose-700 px-1.5 py-0.5 font-bold text-white text-xs rounded'><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
                   <div className="text-sm line-through text-slate-400">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
                 </div>
               )}
               <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className="text-xl font-bold text-rose-700">Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
+
+
+         
+              {/* CICILAN MULAI DARI */}
+              <div className='text-[13px] text-gray-700 mt-1 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
+
+
 
           {/* <Suspense fallback={<p>Loading cart ...</p>}>
                   <Await errorElement={<div>An error occurred</div>} resolve={cart}>
@@ -1428,10 +1435,7 @@ DP : 0
                   )}
                   </div>
               
-              
-              {/* CICILAN MULAI DARI */}
-              <div className='text-[13px] text-gray-700 mt-1 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
-
+     
               {/* DISCOUNT VOUCHER SECTION */}
               <DiscountVoucherSection voucherData={discountVouchers} product={product} selectedVariant={selectedVariant} canonicalUrl={canonicalUrl} copyToClipboard={copyToClipboard} />
 

@@ -43,7 +43,7 @@ import {
           const currentOptionVal = searchParams.get(option.name);
           
           return (
-            <div key={option.name} className="flex flex-col gap-3">
+            <div key={option.name} className="flex flex-col">
               <div className="flex items-center justify-between">
                 <h5 className="text-xs font-medium text-gray-600 uppercase tracking-widest">
                   {option.name}
