@@ -1316,7 +1316,7 @@ DP : 0
               <div className='text-xs md:text-sm text-gray-700 md:text-gray-500 order-3 md:order-5'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold md:font-medium text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold md:font-medium cursor-pointer text-rose-700'>Lihat</span></div>
 
               {/* TITLE — position 4 mobile, 1 desktop */}
-              <h1 className="text-xl md:text-2xl font-bold md:leading-snug whitespace-normal my-0 md:mt-3 order-4 md:order-1" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              <h1 className="text-xl mt-2 md:text-2xl font-bold md:leading-snug whitespace-normal my-0 md:mt-3 order-4 md:order-1" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title}
               </h1>
 
@@ -1346,12 +1346,14 @@ DP : 0
                     </span>
                   </>
                 )}
-                <span className="text-gray-300 text-xs">·</span>
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                <span className="flex items-center gap-1.5">
+                  <span className="text-gray-300 text-xs">·</span>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                  <span className="text-xs md:text-sm text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
                 </span>
-                <span className="text-xs md:text-sm text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
               </div>
 
               {/* STOCK + GARANSI — position 6 mobile, 3 desktop */}
