@@ -1455,6 +1455,7 @@ DP : 0
         {/* Marketplace */}
         <Accordion
           title="Belanja Lewat Marketplace ?"
+          color="blue"
           content={(<MarketPlace link={product.metafields}/>)}
           icon={(
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -1466,6 +1467,7 @@ DP : 0
         {/* 14 Hari Tukar Baru — shield check icon */}
         <Accordion
           title="14 Hari Tukar Baru"
+          color="green"
           content="Jaminan penukaran kembali jika barang yang diterima tidak sesuai / cacat produksi atau salah ukuran."
           icon={(
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -1477,6 +1479,7 @@ DP : 0
         {/* Pengadaan — building/office icon */}
         <Accordion
           title="Pengadaan Barang ?"
+          color="orange"
           content="Untuk kebutuhan pengadaan barang silahkan langsung kontak Sales Marketing kami di 0821-1131-1131"
           icon={(
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">

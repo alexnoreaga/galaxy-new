@@ -1,43 +1,71 @@
 import React, { useState } from 'react';
 
-export const Accordion = ({ title, content, icon }) => {
-    const [isOpen, setIsOpen] = useState(false);
+const COLOR_MAP = {
+  blue: {
+    iconBg: 'from-blue-500 to-indigo-600',
+    hoverBg: 'hover:bg-blue-50 hover:border-blue-200',
+    chevronOpen: 'text-blue-500',
+    contentBg: 'bg-blue-50 border-blue-100',
+  },
+  green: {
+    iconBg: 'from-emerald-400 to-green-600',
+    hoverBg: 'hover:bg-emerald-50 hover:border-emerald-200',
+    chevronOpen: 'text-emerald-500',
+    contentBg: 'bg-emerald-50 border-emerald-100',
+  },
+  orange: {
+    iconBg: 'from-orange-400 to-amber-500',
+    hoverBg: 'hover:bg-orange-50 hover:border-orange-200',
+    chevronOpen: 'text-orange-500',
+    contentBg: 'bg-orange-50 border-amber-100',
+  },
+  purple: {
+    iconBg: 'from-violet-500 to-purple-600',
+    hoverBg: 'hover:bg-violet-50 hover:border-violet-200',
+    chevronOpen: 'text-violet-500',
+    contentBg: 'bg-violet-50 border-violet-100',
+  },
+  rose: {
+    iconBg: 'from-rose-400 to-pink-600',
+    hoverBg: 'hover:bg-rose-50 hover:border-rose-200',
+    chevronOpen: 'text-rose-500',
+    contentBg: 'bg-rose-50 border-rose-100',
+  },
+};
 
-    const toggleAccordion = () => {
-      setIsOpen(!isOpen);
-    };
-  
-    return (
-      <div className="group">
-        <div 
-          className="flex items-center justify-between p-3 sm:p-4 rounded-lg cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 bg-white border border-gray-100 hover:border-blue-200 shadow-sm hover:shadow-md"
-          onClick={toggleAccordion}
-        >
-          <div className='flex flex-row gap-2.5 items-center flex-1'>
-            <div className={`p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600 transition-all duration-300 ${isOpen ? 'scale-110' : 'group-hover:scale-105'}`}>
-              {icon}
-            </div>
-            <div className='flex-1'>
-              <h3 className='font-semibold text-gray-800 text-sm leading-snug'>{title}</h3>
-            </div>
+export const Accordion = ({ title, content, icon, color = 'blue' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const c = COLOR_MAP[color] ?? COLOR_MAP.blue;
+
+  return (
+    <div className="group">
+      <div
+        className={`flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 bg-white border border-gray-100 shadow-sm hover:shadow-md ${c.hoverBg}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className='flex flex-row gap-3 items-center flex-1'>
+          <div className={`flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${c.iconBg} flex items-center justify-center text-white shadow-sm transition-transform duration-200 ${isOpen ? 'scale-110' : 'group-hover:scale-105'}`}>
+            {icon}
           </div>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            strokeWidth={2} 
-            stroke="currentColor" 
-            className={`w-5 h-5 text-gray-400 transition-all duration-300 flex-shrink-0 ${isOpen ? 'rotate-180 text-blue-600' : ''}`}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
+          <h3 className='font-semibold text-gray-800 text-sm leading-snug'>{title}</h3>
         </div>
-        
-        {isOpen && (
-          <div className='mt-1 mx-1 p-3 sm:p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200'>
-            <div className='text-sm text-gray-700 leading-relaxed'>{content}</div>
-          </div>
-        )}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2.5}
+          stroke="currentColor"
+          className={`w-4 h-4 flex-shrink-0 transition-all duration-200 ${isOpen ? `rotate-180 ${c.chevronOpen}` : 'text-gray-400'}`}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
       </div>
-    );
-}
+
+      {isOpen && (
+        <div className={`mt-1 mx-1 p-3 rounded-xl border text-sm text-gray-700 leading-relaxed ${c.contentBg}`}>
+          {content}
+        </div>
+      )}
+    </div>
+  );
+};
