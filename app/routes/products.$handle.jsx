@@ -1292,14 +1292,36 @@ DP : 0
           <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] flex flex-col gap-2 px-4 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
 
 
-            <div className="flex flex-col gap-1 w-full">
+            <div className="flex flex-col gap-2 w-full">
 
-              <h1 className="text-2xl md:text-4xl font-bold md:leading-10 mb-1 whitespace-normal mt-1 md:mt-5" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              {/* OPTIONS — mobile only (position 1); desktop version rendered below outside this div */}
+              <div className='text-sm order-1 md:hidden'>
+                {product.options[0].values.length > 1 && (
+                  <ProductOptions options={product.options} selectedVariant={selectedVariant} product={product} />
+                )}
+              </div>
+
+              {/* PRICE + DISCOUNT — row on mobile (price first), stacked on desktop (discount top) */}
+              <div className="flex flex-row items-center gap-3 md:flex-col md:items-start md:gap-1 md:mt-4 order-2 md:order-4">
+                <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className="text-xl font-bold text-rose-700 order-1 md:order-2">Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
+                {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
+                  <div className='flex flex-row items-center gap-2 order-2 md:order-1'>
+                    <div className='bg-rose-700 px-1.5 py-0.5 font-bold text-white text-xs rounded'><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
+                    <div className="text-sm line-through text-slate-400">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* CICILAN — position 3 mobile, 5 desktop */}
+              <div className='text-xs md:text-sm text-gray-700 md:text-gray-500 order-3 md:order-5'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold md:font-medium text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold md:font-medium cursor-pointer text-rose-700'>Lihat</span></div>
+
+              {/* TITLE — position 4 mobile, 1 desktop */}
+              <h1 className="text-xl md:text-2xl font-bold md:leading-snug whitespace-normal my-0 md:mt-3 order-4 md:order-1" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title}
               </h1>
 
-              {/* Star + Terjual + Live visitor — all on one line */}
-              <div className="flex items-center gap-2 flex-wrap">
+              {/* SOCIAL PROOF — position 5 mobile, 2 desktop */}
+              <div className="flex items-center gap-2 flex-wrap order-5 md:order-2">
                 {productReviews?.length > 0 && (() => {
                   const avg = (productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length).toFixed(1);
                   return (
@@ -1312,14 +1334,14 @@ DP : 0
                           </svg>
                         ))}
                       </div>
-                      <span className="text-xs text-gray-500 underline underline-offset-2">{avg} ({productReviews.length} ulasan)</span>
+                      <span className="text-xs md:text-sm text-gray-500 underline underline-offset-2">{avg} ({productReviews.length} ulasan)</span>
                     </button>
                   );
                 })()}
                 {soldCount > 0 && (
                   <>
                     {productReviews?.length > 0 && <span className="text-gray-300 text-xs">·</span>}
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs md:text-sm text-gray-500">
                       Terjual <span className="font-semibold text-gray-700">{soldCount.toLocaleString('id-ID')}</span>
                     </span>
                   </>
@@ -1329,11 +1351,11 @@ DP : 0
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                 </span>
-                <span className="text-xs text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
+                <span className="text-xs md:text-sm text-gray-500"><span className="font-semibold text-gray-700">{visitorCount} orang</span> sedang melihat produk ini</span>
               </div>
 
-              {/* Stock + Garansi badges */}
-              <div className='flex flex-row gap-2 mb-2'>
+              {/* STOCK + GARANSI — position 6 mobile, 3 desktop */}
+              <div className='flex flex-row gap-2 order-6 md:order-3'>
                 {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
                   <div className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold shadow-sm gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -1353,32 +1375,7 @@ DP : 0
                 )}
               </div>
 
-              {/* Price — after title/social proof, Tokopedia/Shopee style */}
-              {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                <div className='flex flex-row items-center gap-2 mt-3'>
-                  <div className='bg-rose-700 px-1.5 py-0.5 font-bold text-white text-xs rounded'><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
-                  <div className="text-sm line-through text-slate-400">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
-                </div>
-              )}
-              <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className="text-xl font-bold text-rose-700">Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
-
-
-         
-              {/* CICILAN MULAI DARI */}
-              <div className='text-[13px] text-gray-700 mt-1 mb-2'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold cursor-pointer text-rose-700'>Lihat</span></div>
-
-
-
-          {/* <Suspense fallback={<p>Loading cart ...</p>}>
-                  <Await errorElement={<div>An error occurred</div>} resolve={cart}>
-                    {(cart) => {
-                      return <>Hello World</>;
-                    }}
-                  </Await>
-                </Suspense> */}
-
-
-              </div>
+            </div>
 
               {product?.metafields[12]?.value == "true" && (
                 <div className='relative rounded-2xl overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800/60 shadow-xl'>
@@ -1425,7 +1422,7 @@ DP : 0
 
             
 
-                <div className='text-sm'>
+                <div className='text-sm hidden md:block'>
                   {product.options[0].values.length > 1 && (
                   <ProductOptions
                     options={product.options}

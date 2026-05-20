@@ -33,7 +33,7 @@ import {
       : paramsWithDefaults;
   
     return (
-      <div className="grid gap-4 mb-6">
+      <div className="grid gap-4 mb-2">
         {options.map((option) => {
           if (!option.values.length) {
             return null;

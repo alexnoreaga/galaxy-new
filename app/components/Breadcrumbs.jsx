@@ -1,5 +1,4 @@
 import { useMatches,Link } from '@remix-run/react'
-import React from 'react'
 import {z} from 'zod';
 
 export const breadcrumbTypeSchema = z.enum(['collection','collections','product'])
@@ -74,7 +73,7 @@ if(isvalidBreadcrumbType){
 
 
 return (
-<nav className="flex flex-wrap mt-5 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl " aria-label="Breadcrumb">
+<nav className="hidden md:flex flex-wrap mt-5 relative mx-auto md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl" aria-label="Breadcrumb">
     <ol role="list" className="flex flex-wrap items-center space-x-4 ">
     {pages.map((page, idx) => {
         const currentPage= idx === pages.length - 1;
