@@ -476,6 +476,7 @@ DP : 0
               {currentIndex + 1}/{images.length}
             </div>
           )}
+
         </div>
 
         {/* Thumbnail row — desktop only */}
@@ -1553,6 +1554,24 @@ DP : 0
                   Pembayaran Aman
                 </span>
               </div>
+
+              {/* Brand authorized dealer row */}
+              {metaobject?.metaobject?.logo?.reference?.image?.url && (
+                <div className="flex items-center gap-2.5 pt-2 border-t border-gray-100">
+                  <img
+                    src={metaobject.metaobject.logo.reference.image.url}
+                    alt={metaobject?.metaobject?.field?.value || 'Brand'}
+                    className="w-20 h-12 object-contain flex-shrink-0"
+                    loading="lazy"
+                  />
+                  <div className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-xs font-semibold text-gray-600">Authorized Dealer</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1636,7 +1655,7 @@ DP : 0
         {metaobject?.metaobject?.field?.value &&
         <div className='flex flex-row gap-1 mb-1 pl-1'>
           <div className=' mr-3 '>Brand</div>
-          <Link 
+          <Link
           to={`/brands/${metaobject.metaobject.field?.value}`}>
           <div className='font-bold text-slate-600'>{metaobject.metaobject.field?.value}</div>
           </Link>
@@ -2269,8 +2288,15 @@ const METAOBJECT_QUERY = `#graphql
       field(key: "brand") {
         value
       }
-      field(key: "brand") {
-        value
+      logo: field(key: "logo") {
+        reference {
+          ... on MediaImage {
+            image {
+              url
+              altText
+            }
+          }
+        }
       }
     }
   }
