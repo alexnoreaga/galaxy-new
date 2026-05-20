@@ -1289,7 +1289,7 @@ DP : 0
             </div>
           </div>
           <div className="min-w-0">
-          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] flex flex-col gap-2 px-2 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
+          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] flex flex-col gap-2 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
 
 
             <div className="flex flex-col gap-2 w-full">
