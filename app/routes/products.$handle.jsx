@@ -1130,6 +1130,24 @@ DP : 0
 
 
     const [bukaModal, setBukaModal] = useState(false)
+    const [isiDalamBoxOpen, setIsiDalamBoxOpen] = useState(false)
+
+    const checkoutCardRef = useRef(null);
+    const [showStickyBar, setShowStickyBar] = useState(false);
+    useEffect(() => {
+      const el = checkoutCardRef.current;
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (window.innerWidth >= 1024) {
+            setShowStickyBar(!entry.isIntersecting);
+          }
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, []);
 
     const hargaCashCopy = `${product.title}${product?.selectedVariant?.title !== "Default Title" && product?.selectedVariant?.title !== undefined ? ' - ' + product?.selectedVariant?.title : ''}\n` +
       `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString("id-ID") + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString("id-ID") + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")+ '\n'}` +
@@ -1179,7 +1197,7 @@ DP : 0
       )}
 
       <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 overflow-x-hidden">
-        <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-2 min-w-0">
+        <div className="grid grid-cols-1 items-start gap-2 lg:gap-4 md:grid-cols-2 lg:grid-cols-[2fr_2fr_1fr] min-w-0">
           <div className="grid md:grid-flow-row md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full min-w-0">
             <div className="md:col-span-2 md:w-full lg:w-full min-w-0">
               
@@ -1187,7 +1205,7 @@ DP : 0
             </div>
           </div>
           <div className="min-w-0">
-          <div className="md:border md:shadow-xl rounded-lg w-full flex flex-col gap-2 py-2 md:px-4 md:py-4 lg:p-6 min-w-0 overflow-x-hidden">
+          <div className="rounded-lg w-full flex flex-col gap-2 py-2 md:px-4 md:py-4 min-w-0 overflow-x-hidden">
 
 
             <div className="flex flex-col gap-2 w-full">
@@ -1214,7 +1232,7 @@ DP : 0
               <div className='text-xs md:text-sm text-gray-700 md:text-gray-500 order-3 md:order-5'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold md:font-medium text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold md:font-medium cursor-pointer text-rose-700'>Lihat</span></div>
 
               {/* TITLE — position 4 mobile, 1 desktop */}
-              <h1 className="text-xl mt-2 md:text-2xl font-bold md:leading-snug whitespace-normal my-0 md:mt-3 order-4 md:order-1" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              <h1 className="text-xl mt-2 md:mt-0 mb-0 md:text-2xl font-bold md:leading-snug whitespace-normal order-4 md:order-1" onClick={()=>copyToClipboard(hargaCashCopy)}>
                 {product.title}
               </h1>
 
@@ -1302,18 +1320,18 @@ DP : 0
  
 
           {product.metafields[1] && (
-            <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 shadow-sm">
-              <div className="flex items-center gap-2 mb-2.5">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="border border-gray-200 rounded-xl mt-2 bg-white shadow-sm overflow-hidden">
+              <div className="flex items-center gap-3 px-3 py-2.5 border-b border-gray-100 bg-gray-50">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
                     <path d="M9.375 3a1.875 1.875 0 000 3.75h1.875v4.5H3.375A1.875 1.875 0 011.5 9.375v-.75a1.875 1.875 0 011.875-1.875h.375A3.75 3.75 0 019.375 3zM11.25 3.75v4.5h1.5v-4.5a3.75 3.75 0 016.375 2.625h.375a1.875 1.875 0 011.875 1.875v.75a1.875 1.875 0 01-1.875 1.875H12.75v-4.5H11.25zM2.625 12.75h8.625v8.625a2.625 2.625 0 01-2.625 2.625H5.25a2.625 2.625 0 01-2.625-2.625V12.75zM12.75 12.75v8.625a2.625 2.625 0 002.625 2.625h3.375a2.625 2.625 0 002.625-2.625V12.75H12.75z" />
                   </svg>
                 </div>
-                <span className="text-sm font-bold text-emerald-700 tracking-wide">BONUS GRATIS</span>
+                <span className="text-sm font-semibold text-gray-800">Bonus Gratis</span>
               </div>
-              <div className="flex flex-col gap-1.5">
+              <div className="px-3 py-2.5 flex flex-col gap-2">
                 {product.metafields[1]?.value.split('\n').map((str, i) => str.trim() && (
-                  <div key={i} className="flex items-start gap-2">
+                  <div key={i} className="flex items-start gap-2.5">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0">
                       <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
                     </svg>
@@ -1396,51 +1414,145 @@ DP : 0
     </div>
 
 
-
-
-
-          </div>
-
-
-
-
           {product.metafields[2]?.value &&
-          <div className='hidden border lg:block mx-auto w-full mt-2 lg:mr-7 sticky shadow-xl rounded-lg md:sticky p-1 md:p-2 lg:p-4 md:px-2'>
-            <div className='bg-gray-900 flex gap-1.5 justify-center text-white py-2.5 items-center font-semibold rounded-lg text-sm'>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-              </svg>
-              <span>Isi Dalam Box</span>
-            </div>
-            <ul
-              onClick={() => copyToClipboard(product.metafields[2]?.value)}
-              title="Klik untuk menyalin semua"
-              className='mt-3 flex flex-col gap-1 cursor-pointer group'
+          <div className='hidden lg:block w-full mt-2 border border-gray-200 rounded-xl shadow-sm overflow-hidden bg-white'>
+            <button
+              onClick={() => setIsiDalamBoxOpen(o => !o)}
+              className={`w-full flex items-center justify-between px-3 py-3 transition-all duration-200 hover:bg-gray-50 ${isiDalamBoxOpen ? 'border-b border-gray-100' : ''}`}
             >
-              {product.metafields[2]?.value.split('\n').filter(Boolean).map((str) => (
-                <li key={str} className='flex items-start gap-2 text-sm text-gray-700 leading-tight px-1 py-0'>
-                  <span className='mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0' />
-                  <span>{str}</span>
-                </li>
-              ))}
-              <div className='mt-2 flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-gray-600 transition-colors px-1'>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='w-3 h-3'>
-                  <path fill="currentColor" d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/>
-                </svg>
-                Klik untuk salin semua
+              <div className='flex items-center gap-3'>
+                <div className='w-9 h-9 rounded-xl bg-gradient-to-br from-slate-600 to-gray-800 flex items-center justify-center flex-shrink-0 shadow-sm'>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-white">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                  </svg>
+                </div>
+                <span className='font-semibold text-gray-800 text-sm'>Isi Dalam Box</span>
               </div>
-            </ul>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-4 h-4 flex-shrink-0 transition-all duration-200 ${isiDalamBoxOpen ? 'rotate-180 text-gray-600' : 'text-gray-400'}`}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            {isiDalamBoxOpen && (
+              <ul
+                onClick={() => copyToClipboard(product.metafields[2]?.value)}
+                title="Klik untuk menyalin semua"
+                className='px-4 py-3 flex flex-col gap-2 cursor-pointer group bg-white'
+              >
+                {product.metafields[2]?.value.split('\n').filter(Boolean).map((str) => (
+                  <li key={str} className='flex items-start gap-2.5 text-sm text-gray-700 leading-snug'>
+                    <span className='mt-2 w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0' />
+                    <span>{str}</span>
+                  </li>
+                ))}
+                <div className='mt-2 pt-2 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-gray-600 transition-colors'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='w-3 h-3'>
+                    <path fill="currentColor" d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/>
+                  </svg>
+                  Klik untuk salin semua
+                </div>
+              </ul>
+            )}
           </div>}
           
 
 
 
+          </div>
+
+
+
+
+          
+
+
 
           </div>
 
-          
+          {/* 3RD COLUMN — desktop checkout card, hidden on mobile/tablet */}
+          <div className="hidden lg:block">
+            <div
+              ref={checkoutCardRef}
+              className="sticky top-4 border border-gray-200 rounded-2xl shadow-lg bg-white p-4 flex flex-col gap-4"
+            >
+              {/* Subtotal */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-gray-500">Subtotal</span>
+                <span className="text-lg font-bold text-rose-700">
+                  Rp{parseFloat(selectedVariant.price.amount).toLocaleString('id-ID')}
+                </span>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col gap-2.5">
+                <a
+                  href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20"${canonicalUrl}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
+                >
+                  <FaWhatsapp className="text-base" />
+                  Order via WhatsApp
+                </a>
+
+                {selectedVariant?.availableForSale ? (
+                  <CartForm
+                    route="/cart"
+                    inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
+                    action={CartForm.ACTIONS.LinesAdd}
+                  >
+                    {(fetcher) => (
+                      <>
+                        {affiliateRef && <input type="hidden" name="affiliate_ref" value={affiliateRef} />}
+                        <button
+                          type="submit"
+                          onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                          disabled={fetcher.state !== 'idle'}
+                          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors shadow-sm"
+                        >
+                          <FaBagShopping className="text-base" />
+                          Beli Sekarang
+                        </button>
+                      </>
+                    )}
+                  </CartForm>
+                ) : (
+                  <button
+                    disabled
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-200 text-gray-400 text-sm font-semibold cursor-not-allowed"
+                  >
+                    Sold Out
+                  </button>
+                )}
+              </div>
+
+              {/* Trust badges */}
+              <div className="flex items-center justify-center gap-4 pt-1 border-t border-gray-100">
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
+                  </svg>
+                  Toko Sejak 2014
+                </span>
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500">
+                    <path fillRule="evenodd" d="M16.403 12.652a3 3 0 000-5.304 3 3 0 00-3.75-3.751 3 3 0 00-5.305 0 3 3 0 00-3.751 3.75 3 3 0 000 5.305 3 3 0 003.75 3.751 3 3 0 005.305 0 3 3 0 003.751-3.75zm-2.546-4.46a.75.75 0 00-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                  </svg>
+                  100% Original
+                </span>
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500">
+                    <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                  </svg>
+                  Pembayaran Aman
+                </span>
+              </div>
+            </div>
+          </div>
+
+
           {finalTebusMurah.length>0 &&
-            <div className='w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 pt-3 lg:col-span-2 rounded-md shadow-md mb-5'>
+            <div className='w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 pt-3 lg:col-span-3 rounded-md shadow-md mb-5'>
           <ProdukTebusMurah related={finalTebusMurah}/>
           </div>}
           
@@ -1633,7 +1745,7 @@ DP : 0
         && product?.metafields[12]?.value != "true" 
          && (
       
-      <div className='hidden md:flex fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)]'>
+      <div className={`hidden md:flex ${showStickyBar ? '' : 'lg:hidden'} fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)]`}>
         <div className='max-w-5xl mx-auto w-full px-4 md:px-8 py-3 flex items-center gap-6'>
 
           {/* Product info */}
@@ -1720,7 +1832,7 @@ DP : 0
 
       {/* DESKTOP — slim Bandingkan bar for out-of-stock / discontinued */}
       {(!selectedVariant?.availableForSale || product?.metafields[12]?.value == "true") && (
-        <div className='hidden md:flex fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white/95 backdrop-blur-sm shadow-[0_-2px_12px_rgba(0,0,0,0.06)]'>
+        <div className={`hidden md:flex ${showStickyBar ? '' : 'lg:hidden'} fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white/95 backdrop-blur-sm shadow-[0_-2px_12px_rgba(0,0,0,0.06)]`}>
           <div className='max-w-5xl mx-auto w-full px-4 md:px-8 py-2.5 flex items-center justify-between gap-4'>
             <p className='text-sm text-gray-500 truncate min-w-0'>{product.title}</p>
             <button
@@ -1896,9 +2008,9 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
         <span className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>Voucher Diskon</span>
       </div>
 
-      <div className='flex overflow-x-auto md:flex-wrap md:overflow-visible gap-2.5 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
+      <div className='flex overflow-x-auto md:flex-col md:overflow-visible gap-2.5 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
         {voucherArray.map((voucher, index) => (
-          <div key={index} className='flex items-stretch rounded-2xl border border-rose-100 shadow-sm shrink-0 w-[260px] md:flex-1 md:w-auto md:min-w-[240px]'
+          <div key={index} className='flex items-stretch rounded-2xl border border-rose-100 shadow-sm shrink-0 w-[260px] md:w-full md:shrink-0'
             style={{ background: 'linear-gradient(115deg, #fff1f2 0%, #ffffff 55%)' }}>
 
             {/* Left: discount badge */}
