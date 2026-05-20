@@ -1486,16 +1486,19 @@ DP : 0
               {/* Buttons */}
               <div className="flex flex-col gap-2.5">
                 <a
-                  href={`https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20"${product.title}"%20.%20Link%20Produk:%20"${canonicalUrl}`}
+                  href={selectedVariant?.availableForSale
+                    ? `https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20%22${encodeURIComponent(product.title)}%22%20.%20Link%20Produk%3A%20%22${encodeURIComponent(canonicalUrl)}`
+                    : `https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy%2C%20saya%20ingin%20menanyakan%20ketersediaan%20stok%20untuk%20produk%20%22${encodeURIComponent(product.title)}%22.%20Apakah%20masih%20tersedia%20atau%20kapan%20akan%20restock%3F%20Terima%20kasih%20%F0%9F%99%8F%20Link%20Produk%3A%20${encodeURIComponent(canonicalUrl)}`
+                  }
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
                 >
                   <FaWhatsapp className="text-base" />
-                  Order via WhatsApp
+                  {selectedVariant?.availableForSale ? 'Order via WhatsApp' : 'Tanya Ketersediaan'}
                 </a>
 
-                {selectedVariant?.availableForSale ? (
+                {selectedVariant?.availableForSale && (
                   <CartForm
                     route="/cart"
                     inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
@@ -1516,14 +1519,17 @@ DP : 0
                       </>
                     )}
                   </CartForm>
-                ) : (
-                  <button
-                    disabled
-                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-200 text-gray-400 text-sm font-semibold cursor-not-allowed"
-                  >
-                    Sold Out
-                  </button>
                 )}
+
+                <button
+                  onClick={() => setBukaModalBandingkan(true)}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.918Z" clipRule="evenodd" />
+                  </svg>
+                  Bandingkan Produk
+                </button>
               </div>
 
               {/* Trust badges */}
