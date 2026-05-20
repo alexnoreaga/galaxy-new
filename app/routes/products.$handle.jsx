@@ -1,4 +1,4 @@
-import {useLoaderData,Link,useNavigate} from '@remix-run/react';
+﻿import {useLoaderData,Link,useNavigate} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 // import {Image} from '@shopify/hydrogen-react';
 import ProductOptions from '~/components/ProductOptions';
@@ -40,289 +40,187 @@ export async function loader({params, context, request}) {
   const {session} = context;
   const customerAccessToken = await session.get('customerAccessToken');
 
-  
+  const {handle} = params;
+  const searchParams = new URL(request.url).searchParams;
+  const selectedOptions = [];
+  searchParams.forEach((value, name) => {
+    selectedOptions.push({name, value});
+  });
 
+  const canonicalUrl = request.url;
+  const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+  const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
-    const {handle} = params;
-    const searchParams = new URL(request.url).searchParams;
-    const selectedOptions = [];
+  let productReviews = [];
+  let soldCount = 0;
 
-    
-  
-    // set selected options from the query string
-    searchParams.forEach((value, name) => {
-      selectedOptions.push({name, value});
-    });
-  
-    const {shop, product} = await context.storefront.query(PRODUCT_QUERY, {
-        variables: {
-          handle,
-          selectedOptions,
-        },
-      });
-
-      // Run all non-critical queries in parallel using Promise.all()
-      const [liveshopee, custEmail, admgalaxy, balasCepat, marketplace, discountVouchers, related] = await Promise.all([
-        context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
-          variables: {
-            type: "live_shopee",
-            first: 4,
-          },
-        }),
-        context.storefront.query(CUSTOMER_EMAIL_QUERY, {
-          variables: {
-            customertoken: customerAccessToken?.accessToken ? customerAccessToken.accessToken : '',
-          },
-        }),
-        context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
-          variables: {
-            type: "admin_galaxy",
-            first: 20,
-          },
-        }),
-        context.storefront.query(BALAS_CEPAT, {
-          variables: {
-            first: 20,
-          },
-        }),
-        context.storefront.query(METAOBJECT_MARKETPLACE, {
-          variables: {
-            type: "marketplace",
-            first: 10,
-          },
-        }),
-        context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
-          variables: {
-            type: "discount_voucher",
-            first: 10,
-          },
-        }),
-        context.storefront.query(PRODUK_RELATED, {
-          variables: {
-            productId: product?.id,
-          },
-        }),
-      ]);
-
-      // const tebusMurah = await context.storefront.query(TEBUS_MURAH, {
-      //   variables: {
-      //     productId: product?.id, // Value for the 'type' variable
-      //   },
-      // });
-
-      const tebusMurah = product?.metafields[14]?.value
-      let finalTebusMurah;
-
-      if (tebusMurah){
-
-        const dataArray = JSON.parse(tebusMurah);
-        const hasilCekPromises = dataArray.map((item) => {
-          return context.storefront.query(TEBUS_MURAH, {
-            variables: {
-              id: item,
-            },
-          });
-        });
-        
-        const kumpulanTebusMurah = await Promise.all(hasilCekPromises);
-        const tebusMurah2 =  kumpulanTebusMurah.map((item)=>{
-          return context.storefront.query(TEBUS_MURAH_2,{
-            variables:{
-              id:item.metaobject?.fields[1]?.value
-            }
-          })
-
-
-
-          
-        })
-
-        const hasilTebusMurah = await Promise.all(tebusMurah2);
-
-        finalTebusMurah = [kumpulanTebusMurah,hasilTebusMurah]
-
-      }else{
-        finalTebusMurah = []
-      }
-
-      
-
-
-
-
-
-
-
-        
-
-
-
-    
-    
-
-      
-
-
-      const canonicalUrl = request.url
-
-      const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
-      const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
-
-      // Fetch reviews, sold count, and FAQ in parallel
-      let productReviews = [];
-      let soldCount = 0;
-      let cachedFaqs = null;
-      const productNumId = product?.id?.split('/').pop();
-      await Promise.all([
-        // Approved reviews (SSR for Google indexing)
-        fetch(
-          `${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              structuredQuery: {
-                from: [{ collectionId: 'reviews' }],
-                where: {
-                  compositeFilter: {
-                    op: 'AND',
-                    filters: [
-                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: handle } } },
-                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
-                    ],
-                  },
-                },
-                limit: 50,
+  // ROUND 1 - PRODUCT_QUERY + all independent queries in parallel
+  const [
+    {shop, product},
+    liveshopee,
+    custEmail,
+    admgalaxy,
+    balasCepat,
+    marketplace,
+    discountVouchers,
+  ] = await Promise.all([
+    context.storefront.query(PRODUCT_QUERY, {
+      variables: { handle, selectedOptions },
+    }),
+    context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
+      variables: { type: "live_shopee", first: 4 },
+    }),
+    context.storefront.query(CUSTOMER_EMAIL_QUERY, {
+      variables: { customertoken: customerAccessToken?.accessToken || '' },
+    }),
+    context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
+      variables: { type: "admin_galaxy", first: 20 },
+    }),
+    context.storefront.query(BALAS_CEPAT, {
+      variables: { first: 20 },
+    }),
+    context.storefront.query(METAOBJECT_MARKETPLACE, {
+      variables: { type: "marketplace", first: 10 },
+    }),
+    context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
+      variables: { type: "discount_voucher", first: 10 },
+    }),
+    fetch(
+      `${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          structuredQuery: {
+            from: [{ collectionId: 'reviews' }],
+            where: {
+              compositeFilter: {
+                op: 'AND',
+                filters: [
+                  { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: handle } } },
+                  { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
+                ],
               },
-            }),
-          }
-        ).then(async res => {
-          if (!res.ok) return;
-          const reviewData = await res.json();
-          productReviews = (reviewData || [])
-            .filter(r => r.document)
-            .map(r => {
-              const f = r.document.fields || {};
-              return {
-                id: r.document.name.split('/').pop(),
-                customerName: f.customerName?.stringValue || '',
-                rating: parseInt(f.rating?.integerValue || 5),
-                reviewText: f.reviewText?.stringValue || '',
-                verifiedPurchase: f.verifiedPurchase?.booleanValue || false,
-                source: f.source?.stringValue || 'online',
-                photoUrl: f.photoUrl?.stringValue || '',
-                photoUrls: (f.photoUrls?.arrayValue?.values || []).map(v => v.stringValue).filter(Boolean),
-                createdAt: f.createdAt?.stringValue || '',
-              };
-            })
-            .filter(r => r.customerName && r.reviewText)
-            .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        }).catch(() => {}),
-
-        // Sold count
-        fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
-          .then(async res => {
-            if (!res.ok) return;
-            const doc = await res.json();
-            soldCount = parseInt(doc.fields?.count?.integerValue || 0);
-          }).catch(() => {}),
-
-        // Cached FAQ for SEO schema
-        fetch(`${FIRESTORE_BASE}/product_faqs/faq_${productNumId}?key=${FIRESTORE_KEY}`)
-          .then(async res => {
-            if (!res.ok) return;
-            const faqDoc = await res.json();
-            const faqValues = faqDoc.fields?.faqs?.arrayValue?.values || [];
-            const parsed = faqValues.map(item => ({
-              question: item.mapValue?.fields?.question?.stringValue || '',
-              answer: item.mapValue?.fields?.answer?.stringValue || '',
-            })).filter(f => f.question && f.answer);
-            if (parsed.length) cachedFaqs = parsed;
-          }).catch(() => {}),
-      ]);
-    
-
-      // Set a default variant so you always have an "orderable" product selected
-      // variantBySelectedOptions returns null for out-of-stock variants in some API versions,
-      // so fall back to manually matching from variants.nodes before defaulting to nodes[0]
-      const selectedVariant =
-        product.selectedVariant ??
-        (selectedOptions.length > 0
-          ? product?.variants?.nodes?.find((v) =>
-              selectedOptions.every((opt) =>
-                v.selectedOptions?.some(
-                  (so) => so.name === opt.name && so.value === opt.value,
-                ),
-              ),
-            )
-          : null) ??
-        product?.variants?.nodes[0];
-      
-      const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value
-
-      if (brandValue) {
-        
-        const metaobject = await context.storefront.query(METAOBJECT_QUERY, {
-          variables: {
-            id: brandValue,
+            },
+            limit: 50,
           },
-        });
-
-        return json({
-          finalTebusMurah,
-          balasCepat,
-          custEmail,
-          related,
-          admgalaxy,
-          shop,
-          product,
-          selectedVariant,
-          metaobject,
-          liveshopee,
-          marketplace,
-          discountVouchers,
-          customerAccessToken,
-          canonicalUrl,
-          cachedFaqs,
-          productReviews,
-          soldCount,
-          analytics: {
-            pageType: AnalyticsPageType.product,
-            products: [product],
-          }
-        });
-
-      }else{
-        console.error('Brand value not found.');
-
-        return json({
-          finalTebusMurah,
-          balasCepat,
-          custEmail,
-          related,
-          admgalaxy,
-          shop,
-          product,
-          selectedVariant,
-          liveshopee,
-          marketplace,
-          discountVouchers,
-          customerAccessToken,
-          canonicalUrl,
-          cachedFaqs,
-          productReviews,
-          soldCount,
-          analytics: {
-            pageType: AnalyticsPageType.product,
-            products: [product],
-          }
-        });
-
-
+        }),
       }
+    ).then(async res => {
+      if (!res.ok) return;
+      const reviewData = await res.json();
+      productReviews = (reviewData || [])
+        .filter(r => r.document)
+        .map(r => {
+          const f = r.document.fields || {};
+          return {
+            id: r.document.name.split('/').pop(),
+            customerName: f.customerName?.stringValue || '',
+            rating: parseInt(f.rating?.integerValue || 5),
+            reviewText: f.reviewText?.stringValue || '',
+            verifiedPurchase: f.verifiedPurchase?.booleanValue || false,
+            source: f.source?.stringValue || 'online',
+            photoUrl: f.photoUrl?.stringValue || '',
+            photoUrls: (f.photoUrls?.arrayValue?.values || []).map(v => v.stringValue).filter(Boolean),
+            createdAt: f.createdAt?.stringValue || '',
+          };
+        })
+        .filter(r => r.customerName && r.reviewText)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }).catch(() => {}),
+    fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
+      .then(async res => {
+        if (!res.ok) return;
+        const doc = await res.json();
+        soldCount = parseInt(doc.fields?.count?.integerValue || 0);
+      }).catch(() => {}),
+  ]);
 
+  const productNumId = product?.id?.split('/').pop();
+  const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value;
+  const tebusMurahRaw = product?.metafields[14]?.value;
 
-  }
+  const selectedVariant =
+    product.selectedVariant ??
+    (selectedOptions.length > 0
+      ? product?.variants?.nodes?.find((v) =>
+          selectedOptions.every((opt) =>
+            v.selectedOptions?.some(
+              (so) => so.name === opt.name && so.value === opt.value,
+            ),
+          ),
+        )
+      : null) ??
+    product?.variants?.nodes[0];
+
+  // ROUND 2 - all parallel, depend on product.id
+  let related = null;
+  let metaobject = null;
+  let cachedFaqs = null;
+  let finalTebusMurah = [];
+
+  const tebusMurahTask = async () => {
+    if (!tebusMurahRaw) return;
+    const dataArray = JSON.parse(tebusMurahRaw);
+    const hasilCekPromises = dataArray.map((item) =>
+      context.storefront.query(TEBUS_MURAH, { variables: { id: item } })
+    );
+    const kumpulanTebusMurah = await Promise.all(hasilCekPromises);
+    const tebusMurah2 = kumpulanTebusMurah.map((item) =>
+      context.storefront.query(TEBUS_MURAH_2, {
+        variables: { id: item.metaobject?.fields[1]?.value },
+      })
+    );
+    const hasilTebusMurah = await Promise.all(tebusMurah2);
+    finalTebusMurah = [kumpulanTebusMurah, hasilTebusMurah];
+  };
+
+  await Promise.all([
+    context.storefront.query(PRODUK_RELATED, { variables: { productId: product?.id } })
+      .then(r => { related = r; }),
+    brandValue
+      ? context.storefront.query(METAOBJECT_QUERY, { variables: { id: brandValue } })
+          .then(r => { metaobject = r; })
+      : Promise.resolve(),
+    fetch(`${FIRESTORE_BASE}/product_faqs/faq_${productNumId}?key=${FIRESTORE_KEY}`)
+      .then(async res => {
+        if (!res.ok) return;
+        const faqDoc = await res.json();
+        const faqValues = faqDoc.fields?.faqs?.arrayValue?.values || [];
+        const parsed = faqValues.map(item => ({
+          question: item.mapValue?.fields?.question?.stringValue || '',
+          answer: item.mapValue?.fields?.answer?.stringValue || '',
+        })).filter(f => f.question && f.answer);
+        if (parsed.length) cachedFaqs = parsed;
+      }).catch(() => {}),
+    tebusMurahTask(),
+  ]);
+
+  return json({
+    finalTebusMurah,
+    balasCepat,
+    custEmail,
+    related,
+    admgalaxy,
+    shop,
+    product,
+    selectedVariant,
+    metaobject,
+    liveshopee,
+    marketplace,
+    discountVouchers,
+    customerAccessToken,
+    canonicalUrl,
+    cachedFaqs,
+    productReviews,
+    soldCount,
+    analytics: {
+      pageType: AnalyticsPageType.product,
+      products: [product],
+    }
+  });
+
+}
 
   const bungaHCI = 3.2
   const admKredivo = 2.6
@@ -1404,16 +1302,23 @@ DP : 0
  
 
           {product.metafields[1] && (
-            <div className="rounded-lg text-sm mb-2 bg-gradient-to-br from-pink-100 via-indigo-50 to-white p-3 border border-pink-200 flex flex-col items-start shadow-sm">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-pink-500 via-indigo-500 to-sky-500 text-white shadow">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  FREE
-                </span>
+            <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 shadow-sm">
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+                    <path d="M9.375 3a1.875 1.875 0 000 3.75h1.875v4.5H3.375A1.875 1.875 0 011.5 9.375v-.75a1.875 1.875 0 011.875-1.875h.375A3.75 3.75 0 019.375 3zM11.25 3.75v4.5h1.5v-4.5a3.75 3.75 0 016.375 2.625h.375a1.875 1.875 0 011.875 1.875v.75a1.875 1.875 0 01-1.875 1.875H12.75v-4.5H11.25zM2.625 12.75h8.625v8.625a2.625 2.625 0 01-2.625 2.625H5.25a2.625 2.625 0 01-2.625-2.625V12.75zM12.75 12.75v8.625a2.625 2.625 0 002.625 2.625h3.375a2.625 2.625 0 002.625-2.625V12.75H12.75z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-bold text-emerald-700 tracking-wide">BONUS GRATIS</span>
               </div>
-              <div className="pl-1 text-[13px] text-gray-700">
-                {product.metafields[1]?.value.split('\n').map(str => (
-                  <div key={str}>{str}</div>
+              <div className="flex flex-col gap-1.5">
+                {product.metafields[1]?.value.split('\n').map((str, i) => str.trim() && (
+                  <div key={i} className="flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm text-gray-700 leading-snug">{str}</span>
+                  </div>
                 ))}
               </div>
             </div>
