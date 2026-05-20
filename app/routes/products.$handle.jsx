@@ -1281,15 +1281,15 @@ DP : 0
       )}
 
       <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 overflow-x-hidden">
-        <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-3 min-w-0">
-          <div className="grid md:grid-flow-row md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full lg:col-span-2 min-w-0">
+        <div className="grid grid-cols-1 items-start gap-2 lg:gap-2 md:grid-cols-2 lg:grid-cols-2 min-w-0">
+          <div className="grid md:grid-flow-row md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full min-w-0">
             <div className="md:col-span-2 md:w-full lg:w-full min-w-0">
               
               <ImageGallery productData={product} selectedVariant={selectedVariant?.image?.url}/>
             </div>
           </div>
           <div className="min-w-0">
-          <div className="md:border md:shadow-xl rounded-lg md:mx-auto max-w-xl md:max-w-[26rem] flex flex-col gap-2 py-2 md:px-2 md:py-2 lg:p-4 min-w-0 overflow-x-hidden">
+          <div className="md:border md:shadow-xl rounded-lg w-full flex flex-col gap-2 py-2 md:px-4 md:py-4 lg:p-6 min-w-0 overflow-x-hidden">
 
 
             <div className="flex flex-col gap-2 w-full">
@@ -1497,7 +1497,7 @@ DP : 0
 
 
           {product.metafields[2]?.value &&
-          <div className='hidden border lg:block mx-auto w-full mt-2 lg:mr-7 sticky shadow-xl max-w-xl md:max-w-[26rem] rounded-lg md:sticky p-1 md:p-2 lg:p-4 md:px-2'>
+          <div className='hidden border lg:block mx-auto w-full mt-2 lg:mr-7 sticky shadow-xl rounded-lg md:sticky p-1 md:p-2 lg:p-4 md:px-2'>
             <div className='bg-gray-900 flex gap-1.5 justify-center text-white py-2.5 items-center font-semibold rounded-lg text-sm'>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
@@ -1988,9 +1988,9 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
         <span className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>Voucher Diskon</span>
       </div>
 
-      <div className='flex flex-col gap-2.5'>
+      <div className='flex overflow-x-auto md:flex-wrap md:overflow-visible gap-2.5 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
         {voucherArray.map((voucher, index) => (
-          <div key={index} className='flex items-stretch rounded-2xl border border-rose-100 shadow-sm'
+          <div key={index} className='flex items-stretch rounded-2xl border border-rose-100 shadow-sm shrink-0 w-[260px] md:flex-1 md:w-auto md:min-w-[240px]'
             style={{ background: 'linear-gradient(115deg, #fff1f2 0%, #ffffff 55%)' }}>
 
             {/* Left: discount badge */}

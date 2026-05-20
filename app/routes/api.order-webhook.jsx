@@ -3,6 +3,10 @@ import crypto from 'crypto';
 
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
+export async function loader() {
+  return json({ status: 'webhook endpoint active' });
+}
+
 export async function action({ request, context }) {
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
 
