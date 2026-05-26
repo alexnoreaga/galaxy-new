@@ -1074,6 +1074,7 @@ DP : 0
 
     const [root] = useMatches();
     const cart = root.data?.cart;
+
   
     // const { cart, applyDiscount } = useCart();
 

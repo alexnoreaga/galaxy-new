@@ -28,7 +28,7 @@ function CartDetails({layout, cart}) {
           <div className="lg:col-span-1">
             <CartSummary cost={cart.cost} layout={layout}>
               <CartDiscounts discountCodes={cart.discountCodes} />
-              <CartCheckoutActions checkoutUrl={cart.checkoutUrl} />
+              <CartCheckoutActions checkoutUrl={cart.checkoutUrl} lines={cart.lines} />
             </CartSummary>
           </div>
         )}
@@ -42,7 +42,7 @@ function CartDetails({layout, cart}) {
       {cartHasItems && (
         <CartSummary cost={cart.cost} layout={layout}>
           <CartDiscounts discountCodes={cart.discountCodes} />
-          <CartCheckoutActions checkoutUrl={cart.checkoutUrl} />
+          <CartCheckoutActions checkoutUrl={cart.checkoutUrl} lines={cart.lines} />
         </CartSummary>
       )}
     </div>
@@ -128,13 +128,39 @@ function CartLineItem({layout, line}) {
   );
 }
 
-function CartCheckoutActions({checkoutUrl}) {
+function CartCheckoutActions({checkoutUrl, lines}) {
   if (!checkoutUrl) return null;
+
+  const handleCheckout = () => {
+    const nodes = lines?.nodes ?? [];
+    if (!nodes.length) return;
+    const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+    nodes.forEach((line) => {
+      const handle = line.merchandise?.product?.handle;
+      if (!handle) return;
+      fetch(
+        `https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents:commit?key=${FIRESTORE_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            writes: [{
+              transform: {
+                document: `projects/galaxypwa/databases/(default)/documents/sold_counts/${handle}`,
+                fieldTransforms: [{ fieldPath: 'count', increment: { integerValue: String(line.quantity) } }],
+              },
+            }],
+          }),
+        }
+      ).catch(() => {});
+    });
+  };
 
   return (
     <a
       href={checkoutUrl}
       target="_self"
+      onClick={handleCheckout}
       className="block w-full bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold text-center py-3.5 rounded-xl transition-colors duration-200 no-underline active:scale-[0.98]"
     >
       Lanjut ke Pembayaran &rarr;
