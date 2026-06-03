@@ -82,7 +82,7 @@ export async function action({ request, context }) {
     });
 
     await fetch(
-      `${FIRESTORE_BASE}/review_tokens/${tokenId}?key=${key}&updateMask.fieldPaths=used&updateMask.fieldPaths=usedAt`,
+      `${FIRESTORE_BASE}/review_tokens/${tokenId}?key=${key}&updateMask.fieldPaths=used&updateMask.fieldPaths=usedAt&updateMask.fieldPaths=reviewHasPhoto`,
       {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -90,6 +90,8 @@ export async function action({ request, context }) {
           fields: {
             used: { booleanValue: true },
             usedAt: { stringValue: new Date().toISOString() },
+            // Drives the higher Google bonus for expensive products (bonus report).
+            reviewHasPhoto: { booleanValue: photoUrls.length > 0 },
           },
         }),
       }
