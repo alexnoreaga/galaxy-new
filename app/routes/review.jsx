@@ -74,6 +74,10 @@ export async function action({ request, context }) {
           verifiedPurchase: { booleanValue: false },
           source: { stringValue: 'toko' },
           branch: { stringValue: branch },
+          // tokenId links the review back to its token (which holds the sales name).
+          // Kept opaque on purpose — the sales name is NOT stored on the public review;
+          // the admin moderation page resolves it from review_tokens.
+          tokenId: { stringValue: tokenId },
           status: { stringValue: 'pending' },
           photoUrls: { arrayValue: { values: photoUrls.map(u => ({ stringValue: u })) } },
           createdAt: { stringValue: new Date().toISOString() },
