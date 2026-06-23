@@ -1,123 +1,154 @@
 import React from 'react'
 
-export const Modal = ({product,selectedVariant,canonicalUrl,perubahTanggal,statusOpen,setBukaModal,bungaHCI,admKredivo,adminFee3BulanKredivo,adminKartuKredit6Bulan,adminKartuKredit12Bulan}) => {
-  const handleCloseModal = () => {
-    setBukaModal(false);
-  };
+export const Modal = ({product, selectedVariant, canonicalUrl, perubahTanggal, statusOpen, setBukaModal, bungaHCI, admKredivo, adminFee3BulanKredivo, adminKartuKredit6Bulan, adminKartuKredit12Bulan}) => {
+  const handleCloseModal = () => setBukaModal(false);
 
-  const textToCopy = `${product.title}${product?.selectedVariant?.title? ' - ' + product?.selectedVariant?.title :''}\n` +
-      `Harga : Rp ${parseFloat(selectedVariant.price.amount).toLocaleString()}\n`+
-      `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
-      `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
-      `Link : ${canonicalUrl}`;
+  const harga = Number(parseFloat(selectedVariant.price.amount));
 
+  const bungaKredivo = (admKredivo * harga) / 100;
+  const adminFee3Bulan = (adminFee3BulanKredivo * harga) / 100;
+  const cicilanKredivo3Bulan = Math.ceil(((harga + adminFee3Bulan) / 3) / 10) * 10;
+  const cicilanKredivo6Bulan = Math.ceil(((harga / 6) + bungaKredivo) / 10) * 10;
+  const cicilanKredivo12Bulan = Math.ceil(((harga / 12) + bungaKredivo) / 10) * 10;
 
+  const bungaHci = (bungaHCI * harga) / 100;
+  const cicilanHci6Bulan = Math.ceil(((harga / 6) + bungaHci) / 10) * 10;
+  const cicilanHci9Bulan = Math.ceil(((harga / 9) + bungaHci) / 10) * 10;
+  const cicilanHci12Bulan = Math.ceil(((harga / 12) + bungaHci) / 10) * 10;
 
-let newHargaFinal = Number(parseFloat(selectedVariant.price.amount))
+  const biayaAdm6 = (adminKartuKredit6Bulan * harga) / 100;
+  const biayaAdm12 = (adminKartuKredit12Bulan * harga) / 100;
+  const cicilanKK3 = Math.ceil(harga / 3);
+  const cicilanKK6 = Math.ceil(((harga + biayaAdm6) / 6) / 10) * 10;
+  const cicilanKK12 = Math.ceil(((harga + biayaAdm12) / 12) / 10) * 10;
 
-let bungaKredivo = (admKredivo * newHargaFinal) / 100 
-let adminFee3Bulan = (adminFee3BulanKredivo * newHargaFinal) / 100
-let cicilanKredivo3Bulan = Math.ceil(((newHargaFinal + adminFee3Bulan) / 3) / 10) * 10;
-let cicilanKredivo6Bulan = Math.ceil(((newHargaFinal / 6) + bungaKredivo) / 10) * 10;
-let cicilanKredivo12Bulan = Math.ceil(((newHargaFinal / 12) + bungaKredivo) / 10) * 10;
-
-let bungaHci = (bungaHCI * newHargaFinal) / 100;
-let cicilanHci6Bulan = Math.ceil(((newHargaFinal / 6) + bungaHci) / 10) * 10;
-let cicilanHci9Bulan = Math.ceil(((newHargaFinal / 9) + bungaHci) / 10) * 10;
-let cicilanHci12Bulan = Math.ceil(((newHargaFinal / 12) + bungaHci) / 10) * 10;
-   
-      // HITUNGAN KARTU KREDIT START HERE
-let biayaAdmKartuKredit6Bln = (adminKartuKredit6Bulan * newHargaFinal) / 100
-let biayaAdmKartuKredit12Bln = (adminKartuKredit12Bulan * newHargaFinal) / 100
-  
-let cicilanKartuKredit3Bulan = (Math.ceil(newHargaFinal / 3))
-let cicilanKartuKredit6Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit6Bln) / 6)/10)*10)
-let cicilanKartuKredit12Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit12Bln) / 12)/10)*10)
-     
-
-    
+  const options = [
+    {
+      name: 'Kredivo',
+      accent: 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50',
+      badge: 'bg-emerald-100 text-emerald-700',
+      tenures: [
+        {label: '3x', value: cicilanKredivo3Bulan},
+        {label: '6x', value: cicilanKredivo6Bulan},
+        {label: '12x', value: cicilanKredivo12Bulan},
+      ],
+    },
+    {
+      name: 'Homecredit',
+      accent: 'border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50',
+      badge: 'bg-blue-100 text-blue-700',
+      tenures: [
+        {label: '6x', value: cicilanHci6Bulan},
+        {label: '9x', value: cicilanHci9Bulan},
+        {label: '12x', value: cicilanHci12Bulan},
+      ],
+    },
+    {
+      name: 'Kartu Kredit',
+      accent: 'border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50',
+      badge: 'bg-violet-100 text-violet-700',
+      tenures: [
+        {label: '3x', value: cicilanKK3},
+        {label: '6x', value: cicilanKK6},
+        {label: '12x', value: cicilanKK12},
+      ],
+    },
+  ];
 
   return (
-    <div>
-        <div className="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={handleCloseModal}
+      />
 
-  <div className="fixed inset-0 bg-gray-800 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
+      {/* Sheet / Modal */}
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
 
-  <div  className="fixed inset-0 z-10 w-screen overflow-y-auto ">
-    <div className="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
+        {/* Drag handle (mobile only) */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-gray-300" />
+        </div>
 
-      <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-        <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-          <div className="sm:flex sm:items-start">
-            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-blue-800">
-  <path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 0 8.835-2.535m0 0A23.74 23.74 0 0 0 18.795 3m.38 1.125a23.91 23.91 0 0 1 1.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 0 0 1.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 0 1 0 3.46" />
-</svg>
-
-            </div>
-            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-              <h3 className="text-base font-semibold leading-6 text-gray-900" id="modal-title">List Cicilan</h3>
-              <div className="mt-2">
-                {/* <p className="text-sm text-gray-500">Manfaatkan Cicilan Tanpa Kartu Kredit Promo DP Mulai dari 0%. Proses sekitar 15 menit ajukan segera hanya di Galaxy Camera Tangerang, Toko Buka setiap hari dari jam 10 sampai jam 9 malam</p> */}
-                {/* <p>{textToCopy}</p> */}
-                <div className='overflow-x-auto'>
-  <table className=" border-collapse border border-slate-300 text-sm ">
-    <thead>
-    <tr>
-      <th className='border border-slate-300 p-2'>Leasing</th>
-      <th className='border border-slate-300 p-2'>Dp</th>
-      <th className='border border-slate-300 p-2'>3x</th>
-      <th className='border border-slate-300 p-2'>6x</th>
-      <th className='border border-slate-300 p-2'>12x</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td className='border border-slate-300 p-2'>Kredivo</td>
-      <td className='border border-slate-300 p-2'>0</td>
-      <td className='border border-slate-300 p-2'>{cicilanKredivo3Bulan.toLocaleString("id-ID")}</td>
-      <td className='border border-slate-300 p-2'>{cicilanKredivo6Bulan.toLocaleString("id-ID")}</td>
-      <td className='border border-slate-300 p-2'>{cicilanKredivo12Bulan.toLocaleString("id-ID")}</td>
-    </tr>
-    <tr>
-      <td className='border border-slate-300 p-2'>Homecredit</td>
-      <td className='border border-slate-300 p-2'>0</td>
-      <td className='border border-slate-300 p-2'>-</td>
-      <td className='border border-slate-300 p-2'>{cicilanHci6Bulan.toLocaleString("id-ID")}</td>
-      <td className='border border-slate-300 p-2'>{cicilanHci12Bulan.toLocaleString("id-ID")}</td>
-    </tr>
-    <tr>
-      <td className='border border-slate-300 p-2'>Kartu Kredit</td>
-      <td className='border border-slate-300 p-2'>0</td>
-      <td className='border border-slate-300 p-2'>{cicilanKartuKredit3Bulan.toLocaleString("id-ID")}</td>
-      <td className='border border-slate-300 p-2'>{cicilanKartuKredit6Bulan.toLocaleString("id-ID")}</td>
-      <td className='border border-slate-300 p-2'>{cicilanKartuKredit12Bulan.toLocaleString("id-ID")}</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-<div className='bg-gray-100 mt-2 p-2 text-sm text-gray-800 rounded-md'>
-    <div>Tersedia juga leasing berikut :</div>
-    <div className='font-bold'>- Akulaku</div>
-    <div className='font-bold'>- Indodana</div>
-    <div className='font-bold'>- Shopee Paylater</div>
-    <div>Hubungi admin untuk info lebih lanjut.</div>
-</div>
-<div className='text-xs text-gray-500 p-2'>Cicilan diatas merupakan estimasi, dapat berubah sewaktu-waktu.</div>
-
+        {/* Header */}
+        <div className="px-5 pt-3 pb-4 sm:pt-5 border-b border-gray-100">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0 pr-10">
+              <div className="flex items-center gap-1.5 mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-rose-500 flex-shrink-0">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-6a.75.75 0 0 1 .75.75v.316a3.78 3.78 0 0 1 1.653.713c.426.33.744.74.925 1.2a.75.75 0 0 1-1.395.55 1.35 1.35 0 0 0-.447-.563 2.187 2.187 0 0 0-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 0 1-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 0 1 1.359-.636c.08.173.245.376.54.569.313.205.706.353 1.137.432v-2.748a3.782 3.782 0 0 1-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.806.4-1.558 1.097-2.096a3.78 3.78 0 0 1 1.653-.713V4.75A.75.75 0 0 1 10 4Z" clipRule="evenodd" />
+                </svg>
+                <span className="text-xs font-bold text-rose-600 uppercase tracking-wide">Opsi Cicilan</span>
               </div>
+              <p className="text-sm font-semibold text-gray-900 line-clamp-1">{product.title}</p>
+              <p className="text-lg font-bold text-rose-700 mt-0.5">
+                Rp{harga.toLocaleString('id-ID')}
+              </p>
             </div>
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-500">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+              </svg>
+            </button>
           </div>
         </div>
-        <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-          {/* <button type="button" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Deactivate</button> */}
-          <button onClick={(prev)=>setBukaModal(!prev)} type="button" className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Close</button>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-3">
+          {options.map((opt) => (
+            <div key={opt.name} className={`rounded-xl border ${opt.accent} p-4`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${opt.badge}`}>
+                  {opt.name}
+                </span>
+                <span className="text-[11px] text-gray-500 font-medium">DP 0%</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {opt.tenures.map((t) => (
+                  <div key={t.label} className="bg-white/80 rounded-xl p-2.5 text-center shadow-sm">
+                    <div className="text-[11px] font-semibold text-gray-400 mb-0.5">{t.label}</div>
+                    <div className="text-xs font-bold text-gray-900 leading-snug">
+                      Rp{t.value.toLocaleString('id-ID')}
+                    </div>
+                    <div className="text-[10px] text-gray-400">/bln</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Other leasings */}
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <p className="text-xs font-semibold text-gray-600 mb-2">Tersedia juga melalui:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {['Akulaku', 'Indodana', 'Shopee Paylater'].map((name) => (
+                <span key={name} className="px-2.5 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                  {name}
+                </span>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-2">Hubungi admin untuk info lebih lanjut.</p>
+          </div>
+
+          <p className="text-[10px] text-gray-400 text-center">
+            * Angka cicilan merupakan estimasi dan dapat berubah sewaktu-waktu.
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-gray-100">
+          <button
+            onClick={handleCloseModal}
+            className="w-full bg-gray-900 hover:bg-gray-700 active:scale-[0.98] text-white text-sm font-semibold py-3.5 rounded-xl transition-all"
+          >
+            Tutup
+          </button>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-    </div>
-  )
+  );
 }
