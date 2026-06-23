@@ -1,4 +1,4 @@
-﻿import {useLoaderData,Link,useNavigate} from '@remix-run/react';
+﻿import {useLoaderData,Link,useNavigate,useSearchParams} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 // import {Image} from '@shopify/hydrogen-react';
 import ProductOptions from '~/components/ProductOptions';
@@ -34,6 +34,12 @@ import {Suspense} from 'react';
 export const handle = {
   breadcrumbType: 'product',
 };
+
+// Skip full loader re-run when only variant search params change (same product)
+export function shouldRevalidate({currentUrl, nextUrl, defaultShouldRevalidate}) {
+  if (currentUrl.pathname === nextUrl.pathname) return false;
+  return defaultShouldRevalidate;
+}
 
 export async function loader({params, context, request}) {
 
@@ -1070,7 +1076,19 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount} = useLoaderData();
+    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount} = useLoaderData();
+
+    // Compute selected variant from URL params — all 50 variants are already in product.variants.nodes
+    // so this is instant, no server call needed on variant switch
+    const [searchParams] = useSearchParams();
+    const selectedVariant = (() => {
+      const opts = [];
+      searchParams.forEach((value, name) => opts.push({name, value}));
+      if (!opts.length) return loaderVariant;
+      return product.variants.nodes.find(v =>
+        opts.every(opt => v.selectedOptions.some(so => so.name === opt.name && so.value === opt.value))
+      ) ?? loaderVariant;
+    })();
 
     const [root] = useMatches();
     const cart = root.data?.cart;
