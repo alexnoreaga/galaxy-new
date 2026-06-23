@@ -7,6 +7,7 @@ import {KategoriHalDepan} from '~/components/KategoriHalDepan';
 import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 
 import { BrandPopular } from '../components/BrandPopular';
+import { RecentlyViewed } from '../components/RecentlyViewed';
 import {useRef} from "react";
 import { useLayoutEffect, useState } from 'react';
 import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
@@ -263,6 +264,10 @@ export default function Homepage() {
 
       
 
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+        <RecentlyViewed />
+      </div>
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <BannerKecil images={data.bannerKecil.metaobjects.nodes} />

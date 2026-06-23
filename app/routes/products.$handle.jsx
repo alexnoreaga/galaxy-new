@@ -1119,6 +1119,22 @@ DP : 0
       return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+      try {
+        const item = {
+          handle: product.handle,
+          title: product.title,
+          image: product.featuredImage?.url || selectedVariant?.image?.url || '',
+          price: parseFloat(selectedVariant.price.amount),
+          compareAtPrice: parseFloat(selectedVariant?.compareAtPrice?.amount || 0),
+          savedAt: Date.now(),
+        };
+        const existing = JSON.parse(localStorage.getItem('galaxy_recently_viewed') || '[]')
+          .filter(p => p.handle !== item.handle);
+        localStorage.setItem('galaxy_recently_viewed', JSON.stringify([item, ...existing].slice(0, 10)));
+      } catch (_) {}
+    }, [product.handle]);
+
     const foundAdmin = admgalaxy?.metaobjects?.edges.find(admin => admin?.node?.fields[0]?.value === custEmail?.customer?.email);
   // console.log('Admin ketemu ?', foundAdmin)
 
