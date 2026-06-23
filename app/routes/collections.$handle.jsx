@@ -124,11 +124,62 @@ export async function loader({request, params, context}) {
     throw new Response(`Collection ${handle} not found`, {status: 404});
   }
 
-  return json({collection, request, params, context});
+  const nodes = collection.products.nodes;
+  const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+  const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+
+  const [soldEntries, reviewEntries] = await Promise.all([
+    Promise.all(
+      nodes.map(p =>
+        fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(doc => [p.handle, parseInt(doc?.fields?.count?.integerValue || 0)])
+          .catch(() => [p.handle, 0])
+      )
+    ),
+    Promise.all(
+      nodes.map(p =>
+        fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            structuredQuery: {
+              from: [{collectionId: 'reviews'}],
+              where: {
+                fieldFilter: {
+                  field: {fieldPath: 'productHandle'},
+                  op: 'EQUAL',
+                  value: {stringValue: p.handle},
+                },
+              },
+              select: {fields: [{fieldPath: 'rating'}]},
+              limit: 100,
+            },
+          }),
+        })
+          .then(res => res.ok ? res.json() : null)
+          .then(rows => {
+            const ratings = (rows || [])
+              .filter(r => r.document)
+              .map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
+            const count = ratings.length;
+            const avg = count > 0 ? parseFloat((ratings.reduce((s, r) => s + r, 0) / count).toFixed(1)) : 0;
+            return [p.handle, count > 0 ? {count, avg} : null];
+          })
+          .catch(() => [p.handle, null])
+      )
+    ),
+  ]);
+
+  return json({
+    collection,
+    soldCounts: Object.fromEntries(soldEntries),
+    reviewSummaries: Object.fromEntries(reviewEntries),
+  });
 }
 
 export default function Collection() {
-  const {collection} = useLoaderData();
+  const {collection, soldCounts, reviewSummaries} = useLoaderData();
   const location = useLocation();
   const [formData, setFormData] = useState('');
   const submit = useSubmit();
@@ -209,7 +260,7 @@ export default function Collection() {
                 </div>
               </PreviousLink>
 
-              <ProductsGrid products={nodes} />
+              <ProductsGrid products={nodes} soldCounts={soldCounts} reviewSummaries={reviewSummaries} />
 
               <NextLink>
                 <div className="flex justify-center mt-8">
@@ -246,7 +297,7 @@ export default function Collection() {
   );
 }
 
-function ProductsGrid({products}) {
+function ProductsGrid({products, soldCounts, reviewSummaries}) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
       {products.map((product, index) => (
@@ -254,13 +305,15 @@ function ProductsGrid({products}) {
           key={product.id}
           product={product}
           loading={index < 8 ? 'eager' : undefined}
+          sold={soldCounts?.[product.handle] || 0}
+          review={reviewSummaries?.[product.handle] || null}
         />
       ))}
     </div>
   );
 }
 
-function ProductItem({product, loading}) {
+function ProductItem({product, loading, sold, review}) {
   const variant = product.variants.nodes[0];
   const variantUrl = useVariantUrl(product.handle, variant.selectedOptions);
 
@@ -344,6 +397,26 @@ function ProductItem({product, loading}) {
           <span className="self-start bg-sky-50 border border-sky-200 text-sky-700 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5">
             Free Item
           </span>
+        )}
+
+        {/* Rating + Terjual */}
+        {(review || sold > 0) && (
+          <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between gap-1 flex-wrap">
+            {review ? (
+              <div className="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-amber-400 flex-shrink-0">
+                  <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clipRule="evenodd" />
+                </svg>
+                <span className="text-xs font-bold text-gray-800">{review.avg}</span>
+                <span className="text-xs text-gray-400">({review.count})</span>
+              </div>
+            ) : <span />}
+            {sold > 0 && (
+              <span className="text-xs text-gray-400">
+                <span className="font-semibold text-gray-600">{sold.toLocaleString('id-ID')}</span> terjual
+              </span>
+            )}
+          </div>
         )}
       </div>
     </Link>
