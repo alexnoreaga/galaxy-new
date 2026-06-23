@@ -50,7 +50,7 @@ export function SearchForm({searchTerm}) {
   );
 }
 
-export function SearchResults({results}) {
+export function SearchResults({results, soldCounts = {}, reviewSummaries = {}}) {
   if (!results) {
     return null;
   }
@@ -74,6 +74,8 @@ export function SearchResults({results}) {
               <SearchResultsProductsGrid
                 key="products"
                 products={productResults}
+                soldCounts={soldCounts}
+                reviewSummaries={reviewSummaries}
               />
             ) : null;
           }
@@ -94,14 +96,16 @@ export function SearchResults({results}) {
   );
 }
 
-function SearchResultsProductsGrid({products}) {
-  // console.log('Hasil Gambar ini',products)
+function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries = {}}) {
   return (
     <div className="search-result py-8">
       <h2 className='text-2xl font-bold mb-6'>Produk</h2>
       <Pagination connection={products} >
         {({nodes, isLoading, NextLink, PreviousLink}) => {
-          const itemsMarkup = nodes.map((product) => (
+          const itemsMarkup = nodes.map((product) => {
+            const sold = soldCounts[product.handle] || 0;
+            const review = reviewSummaries[product.handle] || null;
+            return (
             <div className="search-results-item" key={product.id}>
               <Link prefetch="intent" to={`/products/${product.handle}`}>
                 <div className='flex flex-col gap-3 border border-gray-200 rounded-lg p-3 hover:shadow-lg hover:border-blue-300 transition-all duration-200 bg-white h-full'>
@@ -119,11 +123,30 @@ function SearchResultsProductsGrid({products}) {
                   <div className='flex flex-col gap-2 flex-grow'>
                     <span className='text-xs font-medium text-gray-700 line-clamp-2 h-8'>{product.title}</span>
                     <span className='text-base font-bold text-blue-600 mt-auto'>Rp {parseFloat(product?.variants?.nodes[0]?.price?.amount).toLocaleString("id-ID")}</span>
+                    {(review || sold > 0) && (
+                      <div className="mt-1 pt-1.5 border-t border-gray-100 flex items-center justify-between gap-1 flex-wrap">
+                        {review ? (
+                          <div className="flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-xs font-bold text-gray-800">{review.avg}</span>
+                            <span className="text-xs text-gray-400">({review.count})</span>
+                          </div>
+                        ) : <span />}
+                        {sold > 0 && (
+                          <span className="text-xs text-gray-400">
+                            <span className="font-semibold text-gray-600">{sold.toLocaleString('id-ID')}</span> terjual
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
             </div>
-          ));
+            );
+          });
           return (
             <div>
               <div className='flex justify-center mb-6'>
@@ -385,6 +408,24 @@ function SearchResultItem({item}) {
           {item?.price && (
             <div className='mt-auto'>
               <Money data={item.price} className='text-xs sm:text-sm font-bold text-blue-600' />
+            </div>
+          )}
+          {(item.review || item.sold > 0) && (
+            <div className="mt-1.5 pt-1.5 border-t border-gray-100 flex items-center justify-between gap-1 flex-wrap">
+              {item.review ? (
+                <div className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs font-bold text-gray-800">{item.review.avg}</span>
+                  <span className="text-xs text-gray-400">({item.review.count})</span>
+                </div>
+              ) : <span />}
+              {item.sold > 0 && (
+                <span className="text-xs text-gray-400">
+                  <span className="font-semibold text-gray-600">{item.sold.toLocaleString('id-ID')}</span> terjual
+                </span>
+              )}
             </div>
           )}
         </div>

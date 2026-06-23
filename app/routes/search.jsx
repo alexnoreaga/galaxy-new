@@ -210,11 +210,42 @@ export async function loader({request, context}) {
     totalResults,
   };
 
-  return defer({searchTerm, searchResults});
+  const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+  const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+  const productNodes = data.products?.nodes || [];
+
+  const [soldEntries, reviewEntries] = await Promise.all([
+    Promise.all(productNodes.map(p =>
+      fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(doc => [p.handle, parseInt(doc?.fields?.count?.integerValue || 0)])
+        .catch(() => [p.handle, 0])
+    )),
+    Promise.all(productNodes.map(p =>
+      fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({structuredQuery: {from: [{collectionId: 'reviews'}], where: {fieldFilter: {field: {fieldPath: 'productHandle'}, op: 'EQUAL', value: {stringValue: p.handle}}}, select: {fields: [{fieldPath: 'rating'}]}, limit: 100}}),
+      })
+      .then(res => res.ok ? res.json() : null)
+      .then(rows => {
+        const ratings = (rows || []).filter(r => r.document).map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
+        const count = ratings.length;
+        const avg = count > 0 ? parseFloat((ratings.reduce((s, r) => s + r, 0) / count).toFixed(1)) : 0;
+        return [p.handle, count > 0 ? {count, avg} : null];
+      })
+      .catch(() => [p.handle, null])
+    )),
+  ]);
+
+  const soldCounts = Object.fromEntries(soldEntries);
+  const reviewSummaries = Object.fromEntries(reviewEntries);
+
+  return defer({searchTerm, searchResults, soldCounts, reviewSummaries});
 }
 
 export default function SearchPage() {
-  const {searchTerm, searchResults} = useLoaderData();
+  const {searchTerm, searchResults, soldCounts = {}, reviewSummaries = {}} = useLoaderData();
   return (
     <div className="search relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <h1>Cari Produk</h1>
@@ -246,7 +277,7 @@ export default function SearchPage() {
       {!searchTerm || !searchResults.totalResults ? (
         <NoSearchResults />
       ) : (
-        <SearchResults results={searchResults.results} />
+        <SearchResults results={searchResults.results} soldCounts={soldCounts} reviewSummaries={reviewSummaries} />
       )}
     </div>
   );
