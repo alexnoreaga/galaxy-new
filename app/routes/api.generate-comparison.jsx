@@ -71,7 +71,7 @@ Aturan ketat:
 - Output HANYA JSON valid, tidak ada teks lain di luar JSON`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 55000); // 55s timeout
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
@@ -81,8 +81,7 @@ Aturan ketat:
         signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.3 },
+          generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
         }),
       }
     );
@@ -97,13 +96,25 @@ Aturan ketat:
     const geminiData = await res.json();
     const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('No JSON in Gemini response:', text);
-      return json({ error: 'Invalid AI response' }, { status: 500 });
+    if (!text) {
+      console.error('Empty Gemini response:', JSON.stringify(geminiData).slice(0, 300));
+      return json({ error: 'Empty AI response' }, { status: 500 });
     }
 
-    const comparison = JSON.parse(jsonMatch[0]);
+    let comparison;
+    try {
+      // responseMimeType:json gives clean JSON; fallback regex for safety
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      comparison = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    } catch (e) {
+      console.error('JSON parse error:', text.slice(0, 300));
+      return json({ error: 'Invalid AI response format' }, { status: 500 });
+    }
+
+    if (!comparison.categories?.length) {
+      return json({ error: 'Incomplete AI response' }, { status: 500 });
+    }
+
     return json({ comparison });
 
   } catch (error) {

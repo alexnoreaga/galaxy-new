@@ -410,17 +410,25 @@ export default function PerbandinganIndex() {
     };
 
     const fetchWithRetry = async (attempt = 1) => {
-      const res = await fetch('/api/generate-comparison', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if ((!res.ok || !data.comparison) && attempt < 2) {
-        await new Promise(r => setTimeout(r, 1500));
-        return fetchWithRetry(2);
+      try {
+        const res = await fetch('/api/generate-comparison', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if ((!res.ok || !data.comparison) && attempt < 3) {
+          await new Promise(r => setTimeout(r, 2000 * attempt));
+          return fetchWithRetry(attempt + 1);
+        }
+        return { res, data };
+      } catch (_) {
+        if (attempt < 3) {
+          await new Promise(r => setTimeout(r, 2000 * attempt));
+          return fetchWithRetry(attempt + 1);
+        }
+        throw _;
       }
-      return { res, data };
     };
 
     try {
@@ -562,7 +570,19 @@ export default function PerbandinganIndex() {
             />
           </div>
 
-          {error && <p className="text-rose-400 text-sm mb-4 text-center">{error}</p>}
+          {error && (
+            <div className="flex flex-col items-center gap-2 mb-4">
+              <p className="text-rose-400 text-sm text-center">{error}</p>
+              {productA && productB && (
+                <button
+                  onClick={() => { setError(''); handleCompare(); }}
+                  className="text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 px-4 py-2 rounded-xl transition-colors"
+                >
+                  Coba Lagi
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="flex justify-center">
             <button
