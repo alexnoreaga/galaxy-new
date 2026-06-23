@@ -8,6 +8,8 @@ import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 
 import { BrandPopular } from '../components/BrandPopular';
 import { RecentlyViewed } from '../components/RecentlyViewed';
+import { TrustBar } from '../components/TrustBar';
+import { MiniFaq } from '../components/MiniFaq';
 import {useRef} from "react";
 import { useLayoutEffect, useState } from 'react';
 import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
@@ -182,6 +184,10 @@ export default function Homepage() {
         <h1 className="sr-only">Toko Kamera Tangerang Depok Terlengkap — Galaxy Camera Store</h1>
       </div>
 
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+        <TrustBar />
+      </div>
+
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
         <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-md hover:shadow-lg transition-shadow duration-300">
           {/* Modern gradient overlay */}
@@ -279,6 +285,10 @@ export default function Homepage() {
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <FeaturedBlogs blogs={data.blogs}/>
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+        <MiniFaq />
       </div>
 
       <Suspense fallback={null}>
