@@ -1,4 +1,4 @@
-import {defer} from '@shopify/remix-oxygen';
+﻿import {defer} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link,useOutletContext} from '@remix-run/react';
 import {Suspense, lazy} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
@@ -25,18 +25,14 @@ const ModalBalasCepat = lazy(() => import('~/components/ModalBalasCepat').then(m
 
 
 
-export async function loader({context,request}) {
+export async function loader({context, request}) {
   const customerAccessToken = await context.session.get('customerAccessToken');
-  
   const {storefront} = context;
-  const {collections} = await storefront.query(FEATURED_COLLECTION_QUERY);
-  const collections2 = await storefront.query(COLLECTIONS_QUERY);
-
-  const featuredCollection = collections.nodes[0];
-  const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
 
   const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
   const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+
+  // Start deferred promises immediately — run in background while critical queries load
   const mirrorlessProducts = storefront.query(MIRRORLESS_PRODUCTS_QUERY).then(async (data) => {
     const nodes = data?.collection?.products?.nodes || [];
     const [soldEntries, reviewEntries] = await Promise.all([
@@ -90,69 +86,55 @@ export async function loader({context,request}) {
     };
   });
 
-  const hasilCollection =  collections2;
-
-  const banner = await storefront.query(BANNER_QUERY);
-  const bannerKecil = await storefront.query(BANNER_KECIL_QUERY);
-
-
-
-
-  const custEmail = await storefront.query(CUSTOMER_EMAIL_QUERY, {
-    variables: {
-      customertoken: customerAccessToken?.accessToken? customerAccessToken?.accessToken:'', // Value for the 'first' variable
-    }, 
+  // BrandPopular has <Await> — defer the 2-step chain (GET_BRANDS then N x GET_BRAND_IMAGE)
+  const kumpulanBrandPromise = storefront.query(GET_BRANDS).then(async (brands) => {
+    const hasilLoop = brands?.metaobjects?.nodes[0]?.fields[0]?.value;
+    const dataArray = JSON.parse(hasilLoop || '[]');
+    return Promise.all(
+      dataArray.map((item) => storefront.query(GET_BRAND_IMAGE, {variables: {id: item}}))
+    );
   });
 
-  const admgalaxy = await context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
-    variables: {
-      type: "admin_galaxy", // Value for the 'type' variable
-      first: 20, // Value for the 'first' variable
-    },
+  // VouchersSection has <Await> — defer vouchers
+  const vouchersPromise = storefront.query(GET_VOUCHERS, {variables: {first: 10}});
+
+  // All critical queries run in parallel — replaces 9+ sequential awaits
+  const [
+    collections2,
+    banner,
+    bannerKecil,
+    custEmail,
+    admgalaxy,
+    blogs,
+    balasCepat,
+  ] = await Promise.all([
+    storefront.query(COLLECTIONS_QUERY),
+    storefront.query(BANNER_QUERY),
+    storefront.query(BANNER_KECIL_QUERY),
+    storefront.query(CUSTOMER_EMAIL_QUERY, {
+      variables: {customertoken: customerAccessToken?.accessToken || ''},
+    }),
+    storefront.query(METAOBJECT_ADMIN_GALAXY, {variables: {type: 'admin_galaxy', first: 20}}),
+    storefront.query(GET_ARTIKEL, {variables: {first: 3, reverse: true}}),
+    storefront.query(BALAS_CEPAT, {variables: {first: 100}}),
+  ]);
+
+  const canonicalUrl = request.url;
+
+  return defer({
+    admgalaxy,
+    balasCepat,
+    vouchers: vouchersPromise,
+    custEmail,
+    customerAccessToken,
+    canonicalUrl,
+    bannerKecil,
+    blogs,
+    kumpulanBrand: kumpulanBrandPromise,
+    hasilCollection: collections2,
+    banner,
+    mirrorlessProducts,
   });
-
-
-
-  const blogs = await storefront.query(GET_ARTIKEL,{
-    variables:{
-      first:3,
-      reverse:true,
-    },
-  });
-
-  const balasCepat = await storefront.query(BALAS_CEPAT,{
-    variables:{
-      first:100,
-    },
-  });
-
-  const vouchers = await storefront.query(GET_VOUCHERS,{
-    variables:{
-      first:10,
-    },
-  });
-
-  const brands = await storefront.query(GET_BRANDS)
-  const hasilLoop =  brands?.metaobjects?.nodes[0]?.fields[0]?.value
-  const dataArray = JSON.parse(hasilLoop);
-  const canonicalUrl = request.url
-
-  const hasilCekPromises = dataArray.map((item) => {
-    return storefront.query(GET_BRAND_IMAGE, {
-      variables: {
-        id: item,
-      },
-    });
-  });
-  
-  const kumpulanBrand = await Promise.all(hasilCekPromises);
-
-
-
-
-
-  
-  return defer({admgalaxy,balasCepat,vouchers,custEmail,customerAccessToken,canonicalUrl,bannerKecil,blogs,kumpulanBrand,featuredCollection, recommendedProducts,mirrorlessProducts,hasilCollection,banner});
 }
 
 

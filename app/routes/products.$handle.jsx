@@ -1,5 +1,5 @@
 ﻿import {useLoaderData,Link,useNavigate,useSearchParams} from '@remix-run/react';
-import {json} from '@shopify/remix-oxygen';
+import {defer} from '@shopify/remix-oxygen';
 // import {Image} from '@shopify/hydrogen-react';
 import ProductOptions from '~/components/ProductOptions';
 import {Image, Money, ShopPayButton} from '@shopify/hydrogen-react';
@@ -61,21 +61,24 @@ export async function loader({params, context, request}) {
   let productReviews = [];
   let soldCount = 0;
 
-  // ROUND 1 - PRODUCT_QUERY + all independent queries in parallel
+  // Start non-critical queries immediately — do NOT block on them
+  const liveshopeePromise = context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
+    variables: { type: 'live_shopee', first: 4 },
+  });
+  const discountVouchersPromise = context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
+    variables: { type: 'discount_voucher', first: 10 },
+  });
+
+  // ROUND 1 — critical data only (blocks first byte)
   const [
     {shop, product},
-    liveshopee,
     custEmail,
     admgalaxy,
     balasCepat,
     marketplace,
-    discountVouchers,
   ] = await Promise.all([
     context.storefront.query(PRODUCT_QUERY, {
       variables: { handle, selectedOptions },
-    }),
-    context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
-      variables: { type: "live_shopee", first: 4 },
     }),
     context.storefront.query(CUSTOMER_EMAIL_QUERY, {
       variables: { customertoken: customerAccessToken?.accessToken || '' },
@@ -88,9 +91,6 @@ export async function loader({params, context, request}) {
     }),
     context.storefront.query(METAOBJECT_MARKETPLACE, {
       variables: { type: "marketplace", first: 10 },
-    }),
-    context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
-      variables: { type: "discount_voucher", first: 10 },
     }),
     fetch(
       `${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`,
@@ -160,71 +160,64 @@ export async function loader({params, context, request}) {
       : null) ??
     product?.variants?.nodes[0];
 
-  // ROUND 2 - all parallel, depend on product.id
-  let related = null;
-  let metaobject = null;
-  let cachedFaqs = null;
-  let finalTebusMurah = [];
+  // ROUND 2 — deferred promises, depend on product.id but do NOT block the response
+  const relatedPromise = context.storefront.query(PRODUK_RELATED, { variables: { productId: product?.id } });
 
-  const tebusMurahTask = async () => {
-    if (!tebusMurahRaw) return;
+  const metaobjectPromise = brandValue
+    ? context.storefront.query(METAOBJECT_QUERY, { variables: { id: brandValue } })
+    : Promise.resolve(null);
+
+  const cachedFaqsPromise = fetch(`${FIRESTORE_BASE}/product_faqs/faq_${productNumId}?key=${FIRESTORE_KEY}`)
+    .then(async res => {
+      if (!res.ok) return null;
+      const faqDoc = await res.json();
+      const faqValues = faqDoc.fields?.faqs?.arrayValue?.values || [];
+      const parsed = faqValues.map(item => ({
+        question: item.mapValue?.fields?.question?.stringValue || '',
+        answer: item.mapValue?.fields?.answer?.stringValue || '',
+      })).filter(f => f.question && f.answer);
+      return parsed.length ? parsed : null;
+    }).catch(() => null);
+
+  // tebusMurah is the slowest (sequential Shopify calls) — always deferred
+  const tebusMurahPromise = (async () => {
+    if (!tebusMurahRaw) return [];
     const dataArray = JSON.parse(tebusMurahRaw);
-    const hasilCekPromises = dataArray.map((item) =>
-      context.storefront.query(TEBUS_MURAH, { variables: { id: item } })
+    const kumpulanTebusMurah = await Promise.all(
+      dataArray.map(item => context.storefront.query(TEBUS_MURAH, { variables: { id: item } }))
     );
-    const kumpulanTebusMurah = await Promise.all(hasilCekPromises);
-    const tebusMurah2 = kumpulanTebusMurah.map((item) =>
-      context.storefront.query(TEBUS_MURAH_2, {
-        variables: { id: item.metaobject?.fields[1]?.value },
-      })
+    const hasilTebusMurah = await Promise.all(
+      kumpulanTebusMurah.map(item =>
+        context.storefront.query(TEBUS_MURAH_2, { variables: { id: item.metaobject?.fields[1]?.value } })
+      )
     );
-    const hasilTebusMurah = await Promise.all(tebusMurah2);
-    finalTebusMurah = [kumpulanTebusMurah, hasilTebusMurah];
-  };
+    return [kumpulanTebusMurah, hasilTebusMurah];
+  })();
 
-  await Promise.all([
-    context.storefront.query(PRODUK_RELATED, { variables: { productId: product?.id } })
-      .then(r => { related = r; }),
-    brandValue
-      ? context.storefront.query(METAOBJECT_QUERY, { variables: { id: brandValue } })
-          .then(r => { metaobject = r; })
-      : Promise.resolve(),
-    fetch(`${FIRESTORE_BASE}/product_faqs/faq_${productNumId}?key=${FIRESTORE_KEY}`)
-      .then(async res => {
-        if (!res.ok) return;
-        const faqDoc = await res.json();
-        const faqValues = faqDoc.fields?.faqs?.arrayValue?.values || [];
-        const parsed = faqValues.map(item => ({
-          question: item.mapValue?.fields?.question?.stringValue || '',
-          answer: item.mapValue?.fields?.answer?.stringValue || '',
-        })).filter(f => f.question && f.answer);
-        if (parsed.length) cachedFaqs = parsed;
-      }).catch(() => {}),
-    tebusMurahTask(),
-  ]);
-
-  return json({
-    finalTebusMurah,
+  return defer({
+    // Critical — resolved before first byte
     balasCepat,
     custEmail,
-    related,
     admgalaxy,
     shop,
     product,
     selectedVariant,
-    metaobject,
-    liveshopee,
     marketplace,
-    discountVouchers,
     customerAccessToken,
     canonicalUrl,
-    cachedFaqs,
     productReviews,
     soldCount,
     analytics: {
       pageType: AnalyticsPageType.product,
       products: [product],
-    }
+    },
+    // Deferred — stream in after page renders
+    related: relatedPromise,
+    metaobject: metaobjectPromise,
+    liveshopee: liveshopeePromise,
+    discountVouchers: discountVouchersPromise,
+    cachedFaqs: cachedFaqsPromise,
+    finalTebusMurah: tebusMurahPromise,
   });
 
 }
@@ -360,7 +353,7 @@ DP : 0
 
 
 
-  const ImageGallery = ({ productData, selectedVariant }) => {
+  const ImageGallery = ({ productData, selectedVariant, wishlistHandle, wishlistTitle, wishlistImage, wishlistPrice, wishlistEmail }) => {
     const images = productData.images.edges.map((e) => e.node);
 
     // displayUrl is the source of truth for the main image
@@ -483,6 +476,17 @@ DP : 0
               {currentIndex + 1}/{images.length}
             </div>
           )}
+
+          {/* Wishlist button — top right */}
+          <div className="absolute top-3 right-3 z-10 shadow-md rounded-full">
+            <WishlistButton
+              handle={wishlistHandle}
+              title={wishlistTitle}
+              image={wishlistImage}
+              price={wishlistPrice}
+              customerEmail={wishlistEmail}
+            />
+          </div>
 
         </div>
 
@@ -1238,7 +1242,15 @@ DP : 0
           <div className="grid md:grid-flow-row md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full min-w-0">
             <div className="md:col-span-2 md:w-full lg:w-full min-w-0">
               
-              <ImageGallery productData={product} selectedVariant={selectedVariant?.image?.url}/>
+              <ImageGallery
+                productData={product}
+                selectedVariant={selectedVariant?.image?.url}
+                wishlistHandle={product.handle}
+                wishlistTitle={product.title}
+                wishlistImage={selectedVariant?.image?.url || product.featuredImage?.url || ''}
+                wishlistPrice={String(selectedVariant?.price?.amount || '')}
+                wishlistEmail={custEmail?.customer?.email || null}
+              />
             </div>
           </div>
           <div className="min-w-0">
@@ -1396,7 +1408,11 @@ DP : 0
               
      
               {/* DISCOUNT VOUCHER SECTION */}
-              <DiscountVoucherSection voucherData={discountVouchers} product={product} selectedVariant={selectedVariant} canonicalUrl={canonicalUrl} copyToClipboard={copyToClipboard} />
+              <Suspense fallback={null}>
+                <Await resolve={discountVouchers}>
+                  {(vd) => <DiscountVoucherSection voucherData={vd} product={product} selectedVariant={selectedVariant} canonicalUrl={canonicalUrl} copyToClipboard={copyToClipboard} />}
+                </Await>
+              </Suspense>
 
 
 
@@ -1404,7 +1420,13 @@ DP : 0
   {product?.metafields[12]?.value == "true" && <TombolWaDiscontinue product={product} />}
 
 
-    {liveshopee.metaobjects?.edges[0]?.node?.fields[1].value == 'true' && <LiveShopee url={liveshopee.metaobjects?.edges[0]?.node?.fields[0].value}/>}
+    <Suspense fallback={null}>
+      <Await resolve={liveshopee}>
+        {(ls) => ls?.metaobjects?.edges[0]?.node?.fields[1]?.value === 'true'
+          ? <LiveShopee url={ls.metaobjects.edges[0].node.fields[0].value} />
+          : null}
+      </Await>
+    </Suspense>
 
   
     
@@ -1592,30 +1614,39 @@ DP : 0
               </div>
 
               {/* Brand authorized dealer row */}
-              {metaobject?.metaobject?.logo?.reference?.image?.url && (
-                <div className="flex items-center gap-2.5 pt-2 border-t border-gray-100">
-                  <img
-                    src={metaobject.metaobject.logo.reference.image.url}
-                    alt={metaobject?.metaobject?.field?.value || 'Brand'}
-                    className="w-20 h-12 object-contain flex-shrink-0"
-                    loading="lazy"
-                  />
-                  <div className="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-xs font-semibold text-gray-600">Authorized Dealer</span>
-                  </div>
-                </div>
-              )}
+              <Suspense fallback={null}>
+                <Await resolve={metaobject}>
+                  {(mo) => mo?.metaobject?.logo?.reference?.image?.url ? (
+                    <div className="flex items-center gap-2.5 pt-2 border-t border-gray-100">
+                      <img
+                        src={mo.metaobject.logo.reference.image.url}
+                        alt={mo?.metaobject?.field?.value || 'Brand'}
+                        className="w-20 h-12 object-contain flex-shrink-0"
+                        loading="lazy"
+                      />
+                      <div className="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-xs font-semibold text-gray-600">Authorized Dealer</span>
+                      </div>
+                    </div>
+                  ) : null}
+                </Await>
+              </Suspense>
             </div>
           </div>
 
 
-          {finalTebusMurah.length>0 &&
-            <div className='w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 pt-3 lg:col-span-3 rounded-md shadow-md mb-5'>
-          <ProdukTebusMurah related={finalTebusMurah}/>
-          </div>}
+          <Suspense fallback={null}>
+            <Await resolve={finalTebusMurah}>
+              {(tm) => tm?.length > 0 ? (
+                <div className='w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 pt-3 lg:col-span-3 rounded-md shadow-md mb-5'>
+                  <ProdukTebusMurah related={tm}/>
+                </div>
+              ) : null}
+            </Await>
+          </Suspense>
           
           
 
@@ -1631,14 +1662,7 @@ DP : 0
 
 
             <div className='px-4 py-1 md:px-0 flex items-center gap-1.5'>
-              <WishlistButton
-                handle={product.handle}
-                title={product.title}
-                image={selectedVariant?.image?.url || product.featuredImage?.url || ''}
-                price={String(selectedVariant?.price?.amount || '')}
-                customerEmail={custEmail?.customer?.email || null}
-              />
-              <span className='text-xs text-gray-400 font-medium mx-1'>Share</span>
+              <span className='text-xs text-gray-400 font-medium mr-1'>Share</span>
 
               {/* Copy link */}
               <button
@@ -1695,32 +1719,39 @@ DP : 0
     <div className='px-4 py-1 md:px-0 text-sm flex flex-col md:flex-row sm:gap-8'>
 
         {/* Brand authorized dealer — mobile/tablet only (lg has it in 3rd column) */}
-        {metaobject?.metaobject?.logo?.reference?.image?.url && (
-          <div className="lg:hidden flex items-center gap-2 mb-1 pl-1">
-            <img
-              src={metaobject.metaobject.logo.reference.image.url}
-              alt={metaobject?.metaobject?.field?.value || 'Brand'}
-              className="w-16 h-10 object-contain flex-shrink-0"
-              loading="lazy"
-            />
-            <div className="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-              </svg>
-              <span className="text-xs font-semibold text-gray-600">Authorized Dealer</span>
-            </div>
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <Await resolve={metaobject}>
+            {(mo) => mo?.metaobject?.logo?.reference?.image?.url ? (
+              <div className="lg:hidden flex items-center gap-2 mb-1 pl-1">
+                <img
+                  src={mo.metaobject.logo.reference.image.url}
+                  alt={mo?.metaobject?.field?.value || 'Brand'}
+                  className="w-16 h-10 object-contain flex-shrink-0"
+                  loading="lazy"
+                />
+                <div className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs font-semibold text-gray-600">Authorized Dealer</span>
+                </div>
+              </div>
+            ) : null}
+          </Await>
+        </Suspense>
 
-        {metaobject?.metaobject?.field?.value &&
-        <div className='flex flex-row gap-1 mb-1 pl-1'>
-          <div className=' mr-3 '>Brand</div>
-          <Link
-          to={`/brands/${metaobject.metaobject.field?.value}`}>
-          <div className='font-bold text-slate-600'>{metaobject.metaobject.field?.value}</div>
-          </Link>
-        </div>
-        }
+        <Suspense fallback={null}>
+          <Await resolve={metaobject}>
+            {(mo) => mo?.metaobject?.field?.value ? (
+              <div className='flex flex-row gap-1 mb-1 pl-1'>
+                <div className=' mr-3 '>Brand</div>
+                <Link to={`/brands/${mo.metaobject.field?.value}`}>
+                  <div className='font-bold text-slate-600'>{mo.metaobject.field?.value}</div>
+                </Link>
+              </div>
+            ) : null}
+          </Await>
+        </Suspense>
 
 
         {product.metafields[0]?.value &&
@@ -1775,34 +1806,40 @@ DP : 0
           
         </div>
 
-        {/* FAQ Schema for Google rich results — server-rendered so Googlebot sees it */}
-        {cachedFaqs && cachedFaqs.length > 0 && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'FAQPage',
-                mainEntity: cachedFaqs.map(faq => ({
-                  '@type': 'Question',
-                  name: faq.question,
-                  acceptedAnswer: { '@type': 'Answer', text: faq.answer },
-                })),
-              }),
+        {/* FAQ Schema + Pertanyaan Umum — deferred, streams in after critical content */}
+        <Suspense fallback={null}>
+          <Await resolve={cachedFaqs}>
+            {(faqs) => {
+              const EXCLUDED_COLLECTIONS = ['aksesoris', 'accessories', 'used', 'bekas', 'spare-part'];
+              const MIN_PRICE = 500000;
+              const productCollections = product.collections?.nodes?.map(c => c.handle) || [];
+              const isExcludedCollection = productCollections.some(h => EXCLUDED_COLLECTIONS.includes(h));
+              const price = parseFloat(selectedVariant?.price?.amount || 0);
+              if (isExcludedCollection || price < MIN_PRICE) return null;
+              return (
+                <>
+                  {faqs?.length > 0 && (
+                    <script
+                      type="application/ld+json"
+                      dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                          '@context': 'https://schema.org',
+                          '@type': 'FAQPage',
+                          mainEntity: faqs.map(faq => ({
+                            '@type': 'Question',
+                            name: faq.question,
+                            acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+                          })),
+                        }),
+                      }}
+                    />
+                  )}
+                  <PertanyaanUmum key={product.id} product={product} isAdmin={!!foundAdmin} initialFaqs={faqs} />
+                </>
+              );
             }}
-          />
-        )}
-
-        {/* Pertanyaan Umum — exclude certain collections and low-price items */}
-        {(() => {
-          const EXCLUDED_COLLECTIONS = ['aksesoris', 'accessories', 'used', 'bekas', 'spare-part'];
-          const MIN_PRICE = 500000;
-          const productCollections = product.collections?.nodes?.map(c => c.handle) || [];
-          const isExcludedCollection = productCollections.some(h => EXCLUDED_COLLECTIONS.includes(h));
-          const price = parseFloat(selectedVariant?.price?.amount || 0);
-          if (isExcludedCollection || price < MIN_PRICE) return null;
-          return <PertanyaanUmum key={product.id} product={product} isAdmin={!!foundAdmin} initialFaqs={cachedFaqs} />;
-        })()}
+          </Await>
+        </Suspense>
 
         {/* <ParseSpesifikasi jsonString={product.metafields[5]?.value}/> */}
 
@@ -1939,7 +1976,11 @@ DP : 0
 
         <div className="mt-2 mb-5 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 
-        <ProdukRelated related={related}/>
+        <Suspense fallback={null}>
+          <Await resolve={related}>
+            {(rel) => <ProdukRelated related={rel} />}
+          </Await>
+        </Suspense>
         </div>
 
  
