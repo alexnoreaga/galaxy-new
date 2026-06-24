@@ -14,6 +14,7 @@ import {PertanyaanUmum} from '~/components/PertanyaanUmum';
 import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
+import { WishlistButton } from '~/components/WishlistButton';
 import {AnalyticsPageType} from '@shopify/hydrogen';
 import { ProdukRelated } from '~/components/ProdukRelated';
 import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
@@ -1630,7 +1631,14 @@ DP : 0
 
 
             <div className='px-4 py-1 md:px-0 flex items-center gap-1.5'>
-              <span className='text-xs text-gray-400 font-medium mr-1'>Share</span>
+              <WishlistButton
+                handle={product.handle}
+                title={product.title}
+                image={selectedVariant?.image?.url || product.featuredImage?.url || ''}
+                price={String(selectedVariant?.price?.amount || '')}
+                customerEmail={custEmail?.customer?.email || null}
+              />
+              <span className='text-xs text-gray-400 font-medium mx-1'>Share</span>
 
               {/* Copy link */}
               <button

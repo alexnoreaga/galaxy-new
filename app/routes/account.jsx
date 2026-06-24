@@ -1,5 +1,6 @@
 import {Form, NavLink, Outlet, useLoaderData, useNavigation} from '@remix-run/react';
 import {json, redirect} from '@shopify/remix-oxygen';
+import {useEffect} from 'react';
 
 export function shouldRevalidate() {
   return true;
@@ -12,7 +13,7 @@ export async function loader({request, context}) {
   const isLoggedIn = !!customerAccessToken?.accessToken;
   const isAccountHome = pathname === '/account' || pathname === '/account/';
   const isPrivateRoute =
-    /^\/account\/(orders|orders\/.*|profile|addresses|addresses\/.*|affiliate)$/.test(
+    /^\/account\/(orders|orders\/.*|profile|addresses|addresses\/.*|affiliate|wishlist)$/.test(
       pathname,
     );
 
@@ -92,6 +93,18 @@ function AccountLayout({customer, children}) {
   const navigation = useNavigation();
   const isNavigating = navigation.state === 'loading';
 
+  // Merge guest localStorage wishlist into Firestore on login
+  useEffect(() => {
+    if (!customer?.email) return;
+    const saved = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    if (saved.length === 0) return;
+    fetch('/api/wishlist', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'merge', email: customer.email, items: saved}),
+    }).catch(() => {});
+  }, [customer?.email]);
+
   const heading = customer
     ? customer.firstName
       ? `Halo, ${customer.firstName}`
@@ -153,6 +166,7 @@ function AccountMenu() {
         { to: '/account/orders', label: 'Pesanan' },
         { to: '/account/profile', label: 'Profil' },
         { to: '/account/addresses', label: 'Alamat' },
+        { to: '/account/wishlist', label: 'Wishlist' },
         { to: '/account/affiliate', label: 'Affiliate' },
       ].map(({ to, label }) => (
         <NavLink
