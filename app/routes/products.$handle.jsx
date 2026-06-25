@@ -287,15 +287,6 @@ Cicilan Kartu Kredit (Via Blibli)
     let cicilanHci15Bulan = Math.ceil(((newHargaFinal / 15) + bungaHci) / 10) * 10;
     let cicilanHci18Bulan = Math.ceil(((newHargaFinal / 18) + bungaHci) / 10) * 10;
 
-    // PROMO BUNGA RENDAH HOMECREDIT START HERE
-    let biayaSubsidi5Bulan = ((5 * newHargaFinal) / 100) + 199000;
-    let hargaProdukSetelahSubsidi = newHargaFinal + biayaSubsidi5Bulan
-    let cicilanPromoHci5Bulan = (Math.ceil(((hargaProdukSetelahSubsidi / 5))  / 10) * 10)+8000;
-
-    let biayaSubsidi8Bulan = ((6 * newHargaFinal) / 100) + 199000;
-    let hargaProduk8BulanSetelahSubsidi = newHargaFinal + biayaSubsidi8Bulan
-    let cicilanPromoHci8Bulan = (Math.ceil(((hargaProduk8BulanSetelahSubsidi / 8))  / 10) * 10)+8000;
-    // PROMO BUNGA RENDAH HOMECREDIT END HERE
 
     
       
@@ -336,11 +327,6 @@ DP : 0
 12x : ${cicilanHci12Bulan.toLocaleString("id-ID")}
 15x : ${cicilanHci15Bulan.toLocaleString("id-ID")}
 18x : ${cicilanHci18Bulan.toLocaleString("id-ID")}
-    
-Promo Bunga Rendah Homecredit (Gratis 1 Kali Cicilan)
-DP : 0
-6x : ${cicilanPromoHci5Bulan.toLocaleString("id-ID")} (Cukup Bayar 5x)
-9x : ${cicilanPromoHci8Bulan.toLocaleString("id-ID")} (Cukup Bayar 8x)
 `
     return listCicilan
       
