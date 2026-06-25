@@ -1,5 +1,6 @@
 import {CartForm, Image, Money} from '@shopify/hydrogen';
 import {Link} from '@remix-run/react';
+import {useState, useEffect} from 'react';
 import {useVariantUrl} from '~/utils';
 
 export function CartMain({layout, cart}) {
@@ -76,10 +77,13 @@ function CartLines({lines, layout}) {
 }
 
 function CartLineItem({layout, line}) {
+  const [isRemoving, setIsRemoving] = useState(false);
   const {merchandise} = line;
   const {product, title, image, selectedOptions} = merchandise;
   const lineItemUrl = useVariantUrl(product.handle, selectedOptions);
   const isPage = layout === 'page';
+
+  if (isRemoving) return null;
 
   return (
     <li className={`flex gap-4 ${isPage ? 'p-4 sm:p-5' : 'pb-4 border-b border-gray-100 last:border-0'}`}>
@@ -121,7 +125,7 @@ function CartLineItem({layout, line}) {
 
         <div className={`flex items-center justify-between mt-auto ${isPage ? 'pt-2' : 'pt-1'}`}>
           <CartLinePrice line={line} />
-          <CartLineQuantity line={line} />
+          <CartLineQuantity line={line} onRemove={() => setIsRemoving(true)} />
         </div>
       </div>
     </li>
@@ -199,7 +203,7 @@ export function CartSummary({cost, layout, children = null}) {
   );
 }
 
-function CartLineRemoveButton({lineIds}) {
+function CartLineRemoveButton({lineIds, onRemove}) {
   return (
     <CartForm
       route="/cart"
@@ -208,6 +212,7 @@ function CartLineRemoveButton({lineIds}) {
     >
       <button
         type="submit"
+        onClick={onRemove}
         className="text-xs text-gray-400 hover:text-red-500 transition-colors underline-offset-2 hover:underline"
         aria-label="Hapus item"
       >
@@ -217,36 +222,39 @@ function CartLineRemoveButton({lineIds}) {
   );
 }
 
-function CartLineQuantity({line}) {
+function CartLineQuantity({line, onRemove}) {
   if (!line || typeof line?.quantity === 'undefined') return null;
-  const {id: lineId, quantity} = line;
-  const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0));
-  const nextQuantity = Number((quantity + 1).toFixed(0));
+  const {id: lineId, quantity: serverQty} = line;
+
+  const [qty, setQty] = useState(serverQty);
+  useEffect(() => { setQty(serverQty); }, [serverQty]);
 
   return (
     <div className="flex items-center gap-1.5">
-      <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
+      <CartLineUpdateButton lines={[{id: lineId, quantity: Math.max(0, qty - 1)}]}>
         <button
           aria-label="Kurangi jumlah"
-          disabled={quantity <= 1}
+          disabled={qty <= 1}
+          onClick={() => setQty((q) => Math.max(1, q - 1))}
           className="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
         >
           &#8722;
         </button>
       </CartLineUpdateButton>
 
-      <span className="w-5 text-center text-sm font-medium text-gray-800">{quantity}</span>
+      <span className="w-5 text-center text-sm font-medium text-gray-800">{qty}</span>
 
-      <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
+      <CartLineUpdateButton lines={[{id: lineId, quantity: qty + 1}]}>
         <button
           aria-label="Tambah jumlah"
+          onClick={() => setQty((q) => q + 1)}
           className="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-400 transition-colors text-sm"
         >
           &#43;
         </button>
       </CartLineUpdateButton>
 
-      <CartLineRemoveButton lineIds={[lineId]} />
+      <CartLineRemoveButton lineIds={[lineId]} onRemove={onRemove} />
     </div>
   );
 }
