@@ -1268,7 +1268,7 @@ DP : 0
 
               {/* PRICE + DISCOUNT — row on mobile (price first), stacked on desktop (discount top) */}
               <div className="flex flex-row items-center gap-3 md:flex-col md:items-start md:gap-1 md:mt-4 order-2 md:order-4">
-                <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className="text-xl font-bold text-rose-700 order-1 md:order-2">Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
+                <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className="text-2xl font-bold text-rose-700 order-1 md:order-2">Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
                 {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
                   <div className='flex flex-row items-center gap-2 order-2 md:order-1'>
                     <div className='bg-rose-700 px-1.5 py-0.5 font-bold text-white text-xs rounded'><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
