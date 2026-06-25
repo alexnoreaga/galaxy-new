@@ -83,10 +83,10 @@ function CartLineItem({layout, line}) {
   const lineItemUrl = useVariantUrl(product.handle, selectedOptions);
   const isPage = layout === 'page';
 
-  if (isRemoving) return null;
-
+  // Keep in DOM (don't return null) so CartForm's fetcher can finish the server request.
+  // Returning null unmounts CartForm which cancels the in-flight fetch.
   return (
-    <li className={`flex gap-4 ${isPage ? 'p-4 sm:p-5' : 'pb-4 border-b border-gray-100 last:border-0'}`}>
+    <li className={`flex gap-4 ${isRemoving ? 'hidden' : ''} ${isPage ? 'p-4 sm:p-5' : 'pb-4 border-b border-gray-100 last:border-0'}`}>
       {image && (
         <div className={`flex-shrink-0 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 ${isPage ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-20 h-20'}`}>
           <Image
