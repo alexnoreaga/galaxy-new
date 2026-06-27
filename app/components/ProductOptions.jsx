@@ -60,15 +60,23 @@ import {
                   const linkParams = new URLSearchParams(searchParams);
                   linkParams.set(option.name, value);
 
-                  // Check if this option value has an associated image from all product variants
-                  const variantForOption = product?.variants?.nodes?.find(
+                  // Context-aware lookup: matches this value + all other currently-selected options.
+                  // Used for accurate stock check on option 2, 3, etc.
+                  const contextVariant = product?.variants?.nodes?.find(variant =>
+                    variant.selectedOptions.every(opt => {
+                      if (opt.name === option.name) return opt.value === value;
+                      const selectedVal = searchParams.get(opt.name);
+                      return !selectedVal || opt.value === selectedVal;
+                    })
+                  );
+                  // Fallback: any variant with this value — used only for image on option 1
+                  const variantForImage = contextVariant ?? product?.variants?.nodes?.find(
                     variant => variant.selectedOptions.some(
                       opt => opt.name === option.name && opt.value === value
                     )
                   );
-                  
-                  const optionImage = variantForOption?.image?.url;
-                  const isOutOfStock = !variantForOption?.availableForSale;
+                  const optionImage = variantForImage?.image?.url;
+                  const isOutOfStock = contextVariant ? !contextVariant.availableForSale : false;
 
                   const isActive = currentOptionVal === value;
 
