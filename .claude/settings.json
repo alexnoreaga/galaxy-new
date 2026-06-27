@@ -5,7 +5,8 @@
       "Bash(ls c:\\\\Users\\\\user\\\\Desktop\\\\shopify-final\\\\galaxy\\\\app\\\\routes\\\\api.*.jsx)",
       "Bash(grep -n \"Money\\\\|text-xl\\\\|text-2xl\\\\|text-3xl\\\\|font-bold\\\\|price\\\\|Price\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | grep -i \"money\\\\|text-xl\\\\|text-2xl\\\\|text-3xl\" | head -30)",
       "Read(//c/Users/user/Desktop/shopify-final/galaxy/app/routes/**)",
-      "Bash(grep -n \"Promo Bunga Rendah\\\\|subsidi\\\\|Gratis 1 Kali\\\\|Cukup Bayar\\\\|biayaSubsidi\\\\|hargaProdukSetelahSubsidi\\\\|cicilanPromoHci\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\")"
+      "Bash(grep -n \"Promo Bunga Rendah\\\\|subsidi\\\\|Gratis 1 Kali\\\\|Cukup Bayar\\\\|biayaSubsidi\\\\|hargaProdukSetelahSubsidi\\\\|cicilanPromoHci\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\")",
+      "Bash(grep -n \"hargaCash\\\\|hargaCashCopy\\\\|copyToClipboard\\\\|product\\\\.title\\\\|selectedVariant\\\\.title\\\\|Default Title\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -40)"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
