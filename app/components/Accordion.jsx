@@ -33,8 +33,36 @@ const COLOR_MAP = {
   },
 };
 
-export const Accordion = ({ title, content, icon, color = 'blue' }) => {
+export const Accordion = ({ title, content, icon, color = 'blue', minimal = false }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  if (minimal) {
+    return (
+      <div>
+        <button
+          className="w-full flex items-center justify-between py-3 text-left"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="text-gray-400 flex-shrink-0 w-4 h-4 flex items-center justify-center">{icon}</span>
+            <span className="text-sm font-medium text-gray-700">{title}</span>
+          </div>
+          <svg
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            className={`w-4 h-4 flex-shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        {isOpen && (
+          <div className="pb-3 text-sm text-gray-500 leading-relaxed pl-6.5">
+            {content}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const c = COLOR_MAP[color] ?? COLOR_MAP.blue;
 
   return (

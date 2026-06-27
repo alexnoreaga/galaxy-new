@@ -6,7 +6,13 @@
       "Bash(grep -n \"Money\\\\|text-xl\\\\|text-2xl\\\\|text-3xl\\\\|font-bold\\\\|price\\\\|Price\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | grep -i \"money\\\\|text-xl\\\\|text-2xl\\\\|text-3xl\" | head -30)",
       "Read(//c/Users/user/Desktop/shopify-final/galaxy/app/routes/**)",
       "Bash(grep -n \"Promo Bunga Rendah\\\\|subsidi\\\\|Gratis 1 Kali\\\\|Cukup Bayar\\\\|biayaSubsidi\\\\|hargaProdukSetelahSubsidi\\\\|cicilanPromoHci\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\")",
-      "Bash(grep -n \"hargaCash\\\\|hargaCashCopy\\\\|copyToClipboard\\\\|product\\\\.title\\\\|selectedVariant\\\\.title\\\\|Default Title\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -40)"
+      "Bash(grep -n \"hargaCash\\\\|hargaCashCopy\\\\|copyToClipboard\\\\|product\\\\.title\\\\|selectedVariant\\\\.title\\\\|Default Title\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -40)",
+      "Bash(grep -n \"stock\\\\|Stock\\\\|garansi\\\\|Garansi\\\\|resmi\\\\|Resmi\\\\|availableForSale\\\\|ready\\\\|Ready\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | grep -i \"class\\\\|svg\\\\|icon\\\\|badge\\\\|border\\\\|bg-\\\\|text-\" | head -30)",
+      "Bash(grep -n \"availableForSale\\\\|Tersedia\\\\|Habis\\\\|stok\\\\|Stok\\\\|stock ready\\\\|Stock Ready\\\\|in stock\\\\|out of stock\\\\|ready stock\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" -i | head -20)",
+      "Bash(grep -n \"Marketplace\\\\|Tukar Baru\\\\|Pengadaan\\\\|Isi Dalam Box\\\\|14 Hari\\\\|belanja lewat\\\\|Belanja Lewat\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" -i | head -20)",
+      "Bash(grep -n \"Voucher\\\\|voucher\\\\|GLX\\\\|Salin\\\\|DiscountVoucher\\\\|discountVoucher\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -30)",
+      "Bash(grep -n \"Cicilan\\\\|cicilan\\\\|mulai dari\\\\|divider\\\\|border-t\\\\|border-b\\\\|divide\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -30)",
+      "Bash(grep -n \"Cicilan mulai\\\\|cicilan mulai\\\\|installment\\\\|order-\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -20)"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"

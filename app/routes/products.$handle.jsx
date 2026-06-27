@@ -1310,25 +1310,26 @@ DP : 0
               {/* STOCK + GARANSI — position 6 mobile, 3 desktop */}
               <div className='flex flex-row gap-2 order-6 md:order-3'>
                 {!product?.metafields[12]?.value && selectedVariant?.availableForSale && (
-                  <div className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold shadow-sm gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <div className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">
+                    Stock Ready
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    Stock Ready
                   </div>
                 )}
                 {product.metafields[0]?.value && (
-                  <div className="inline-flex items-center px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold shadow-sm gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12l2 2 4-4" />
-                    </svg>
+                  <div className="inline-flex items-center gap-1 text-sky-600 text-xs font-semibold">
                     Garansi Resmi
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
                 )}
               </div>
 
             </div>
+
+            <div className='border-t border-gray-100' />
 
               {product?.metafields[12]?.value == "true" && (
                 <div className='relative rounded-2xl overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800/60 shadow-xl'>
@@ -1418,39 +1419,39 @@ DP : 0
     
   
 
-    <div className='flex flex-col gap-2 mt-2'>
+    <div className='border border-gray-200 rounded-xl bg-white px-3 divide-y divide-gray-100 mt-2'>
 
         {/* Marketplace */}
         <Accordion
+          minimal
           title="Belanja Lewat Marketplace ?"
-          color="blue"
           content={(<MarketPlace link={product.metafields}/>)}
           icon={(
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
               <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
             </svg>
           )}
         />
 
-        {/* 14 Hari Tukar Baru — shield check icon */}
+        {/* 14 Hari Tukar Baru */}
         <Accordion
+          minimal
           title="14 Hari Tukar Baru"
-          color="green"
           content="Jaminan penukaran kembali jika barang yang diterima tidak sesuai / cacat produksi atau salah ukuran."
           icon={(
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
               <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.75.75 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
             </svg>
           )}
         />
 
-        {/* Pengadaan — building/office icon */}
+        {/* Pengadaan */}
         <Accordion
+          minimal
           title="Pengadaan Barang ?"
-          color="orange"
           content="Untuk kebutuhan pengadaan barang silahkan langsung kontak Sales Marketing kami di 0821-1131-1131"
           icon={(
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
               <path fillRule="evenodd" d="M4.5 2.25a.75.75 0 000 1.5v16.5h-.75a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5h-.75V3.75a.75.75 0 000-1.5h-15zM9 6a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5H9zm-.75 3.75A.75.75 0 019 9h1.5a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75zM9 12a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5H9zm3.75-5.25A.75.75 0 0113.5 6H15a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM13.5 9a.75.75 0 000 1.5H15A.75.75 0 0015 9h-1.5zm-.75 3.75a.75.75 0 01.75-.75H15a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM9 19.5v-2.25a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75h-4.5A.75.75 0 019 19.5z" clipRule="evenodd" />
             </svg>
           )}
@@ -1460,20 +1461,18 @@ DP : 0
 
 
           {product.metafields[2]?.value &&
-          <div className='hidden lg:block w-full mt-2 border border-gray-200 rounded-xl shadow-sm overflow-hidden bg-white'>
+          <div className='hidden lg:block w-full mt-2 border border-gray-200 rounded-xl overflow-hidden bg-white'>
             <button
               onClick={() => setIsiDalamBoxOpen(o => !o)}
-              className={`w-full flex items-center justify-between px-3 py-3 transition-all duration-200 hover:bg-gray-50 ${isiDalamBoxOpen ? 'border-b border-gray-100' : ''}`}
+              className={`w-full flex items-center justify-between px-3 py-3 ${isiDalamBoxOpen ? 'border-b border-gray-100' : ''}`}
             >
-              <div className='flex items-center gap-3'>
-                <div className='w-9 h-9 rounded-xl bg-gradient-to-br from-slate-600 to-gray-800 flex items-center justify-center flex-shrink-0 shadow-sm'>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-white">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-                  </svg>
-                </div>
-                <span className='font-semibold text-gray-800 text-sm'>Isi Dalam Box</span>
+              <div className='flex items-center gap-2.5'>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-400 flex-shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                </svg>
+                <span className='font-medium text-gray-700 text-sm'>Isi Dalam Box</span>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-4 h-4 flex-shrink-0 transition-all duration-200 ${isiDalamBoxOpen ? 'rotate-180 text-gray-600' : 'text-gray-400'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 text-gray-400 ${isiDalamBoxOpen ? 'rotate-180' : ''}`}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
             </button>
@@ -2122,24 +2121,21 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
 
       <div className='flex overflow-x-auto md:flex-col md:overflow-visible gap-2.5 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
         {voucherArray.map((voucher, index) => (
-          <div key={index} className='flex items-stretch rounded-2xl border border-rose-100 shadow-sm shrink-0 w-[260px] md:w-full md:shrink-0'
-            style={{ background: 'linear-gradient(115deg, #fff1f2 0%, #ffffff 55%)' }}>
+          <div key={index} className='flex items-stretch rounded-xl border border-gray-200 bg-white overflow-hidden shrink-0 w-[260px] md:w-full md:shrink-0'>
 
-            {/* Left: discount badge */}
-            <div className='flex-shrink-0 flex flex-col items-center justify-center rounded-l-2xl px-4 py-4 text-white'
-              style={{ background: 'linear-gradient(155deg, #fb7185, #e11d48)', minWidth: '72px' }}>
+            {/* Left: discount badge — dark panel */}
+            <div className='flex-shrink-0 flex flex-col items-center justify-center px-3.5 py-4 text-white' style={{ background: '#1f2937', minWidth: '68px' }}>
               <span className='font-black leading-none text-center'
                 style={{ fontSize: voucher.discountType === 'percentage' ? '1.45rem' : '0.8rem', lineHeight: 1 }}>
                 {voucher.discountType === 'percentage'
                   ? `${voucher.discount}%`
                   : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
               </span>
-              <span className='text-[8px] font-bold uppercase tracking-widest mt-1.5' style={{ color: 'rgba(255,255,255,0.65)' }}>OFF</span>
+              <span className='text-[8px] font-bold uppercase tracking-widest mt-1.5' style={{ color: 'rgba(255,255,255,0.4)' }}>OFF</span>
             </div>
 
             {/* Middle: code + details */}
-            <div className='flex-1 flex flex-col justify-center px-3.5 py-3 min-w-0'
-              style={{ borderLeft: '1.5px dashed #fecdd3' }}>
+            <div className='flex-1 flex flex-col justify-center px-3.5 py-3 min-w-0' style={{ borderLeft: '1.5px dashed #e5e7eb' }}>
               <span className='font-mono font-black text-gray-900 text-sm tracking-widest leading-none'>
                 {voucher.code}
               </span>
@@ -2149,7 +2145,7 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
               {(voucher.minPurchase || voucher.expiryDate) && (
                 <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5'>
                   {voucher.minPurchase && (
-                    <span className='text-[10px] font-medium text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full'>
+                    <span className='text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full'>
                       {voucher.minPurchase}
                     </span>
                   )}
@@ -2165,10 +2161,10 @@ function DiscountVoucherSection({ voucherData, product, selectedVariant, canonic
             {/* Right: copy button */}
             <button
               onClick={() => handleCopyCode(voucher.code)}
-              className='flex-shrink-0 self-stretch flex flex-col items-center justify-center w-[58px] text-[10px] font-bold rounded-r-2xl transition-all duration-200 active:scale-95'
+              className='flex-shrink-0 self-stretch flex flex-col items-center justify-center w-[52px] text-[10px] font-semibold transition-all duration-200 active:scale-95'
               style={copiedCode === voucher.code
-                ? { borderLeft: '1.5px dashed #fecdd3', background: 'rgba(16,185,129,0.08)', color: '#059669' }
-                : { borderLeft: '1.5px dashed #fecdd3', background: 'rgba(244,63,94,0.05)', color: '#e11d48' }}
+                ? { borderLeft: '1.5px dashed #e5e7eb', background: '#f0fdf4', color: '#16a34a' }
+                : { borderLeft: '1.5px dashed #e5e7eb', background: '#f9fafb', color: '#374151' }}
             >
               {copiedCode === voucher.code ? (
                 <>

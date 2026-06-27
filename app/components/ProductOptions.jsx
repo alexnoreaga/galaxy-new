@@ -6,7 +6,7 @@ import {
   } from '@remix-run/react';
   
   export default function ProductOptions({options, selectedVariant, product}) {
-    const {pathname, search} = useLocation();
+    const {pathname} = useLocation();
     const [currentSearchParams] = useSearchParams();
     const navigation = useNavigation();
   
@@ -44,15 +44,10 @@ import {
           
           return (
             <div key={option.name} className="flex flex-col">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
                 <h5 className="text-xs font-medium text-gray-600 uppercase tracking-widest">
                   {option.name}
                 </h5>
-                {currentOptionVal && (
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-semibold">
-                    {currentOptionVal}
-                  </span>
-                )}
               </div>
               
               <div className="flex flex-wrap gap-2">
