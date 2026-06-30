@@ -346,6 +346,15 @@ function ProductItem({product, loading, sold, review}) {
           />
         )}
 
+        {/* Free Ongkir badge */}
+        {parseFloat(product.priceRange.minVariantPrice.amount) >= 3000000 && !isDiscontinued && !isOutOfStock && (
+          <img
+            src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
+            alt="Free Ongkir"
+            className="absolute bottom-2 left-2 w-14 h-auto pointer-events-none z-10"
+          />
+        )}
+
         {/* Badges */}
         {hasDiscount && !isDiscontinued && (
           <div className="absolute top-2 right-2 bg-gradient-to-r from-rose-600 to-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">

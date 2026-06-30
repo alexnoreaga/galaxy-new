@@ -35,6 +35,13 @@ export const ProductFeatureHalDepan = ({products}) => {
                     {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
                       <div className="absolute p-0.5 rounded bg-gradient-to-r from-rose-500 to-rose-700 font-bold text-[10px] sm:text-xs text-white top-1 right-0">Promo</div>
                     )}
+                    {parseFloat(product.priceRange.minVariantPrice.amount) >= 3000000 && (
+                      <img
+                        src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
+                        alt="Free Ongkir"
+                        className="absolute bottom-0 left-0 w-8 sm:w-10 h-auto pointer-events-none z-10"
+                      />
+                    )}
                   </div>
                   <div className='text-xs sm:text-sm my-0.5 text-gray-800 text-center'>{product?.title.length > 40 ? product?.title.substring(0, 40) + '...' : product.title}</div>
                   {parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) > parseFloat(product.priceRange.minVariantPrice.amount) &&(
