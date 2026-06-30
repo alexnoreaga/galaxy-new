@@ -12,7 +12,8 @@
       "Bash(grep -n \"Marketplace\\\\|Tukar Baru\\\\|Pengadaan\\\\|Isi Dalam Box\\\\|14 Hari\\\\|belanja lewat\\\\|Belanja Lewat\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" -i | head -20)",
       "Bash(grep -n \"Voucher\\\\|voucher\\\\|GLX\\\\|Salin\\\\|DiscountVoucher\\\\|discountVoucher\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -30)",
       "Bash(grep -n \"Cicilan\\\\|cicilan\\\\|mulai dari\\\\|divider\\\\|border-t\\\\|border-b\\\\|divide\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -30)",
-      "Bash(grep -n \"Cicilan mulai\\\\|cicilan mulai\\\\|installment\\\\|order-\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -20)"
+      "Bash(grep -n \"Cicilan mulai\\\\|cicilan mulai\\\\|installment\\\\|order-\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -20)",
+      "Bash(grep -n \"main.*image\\\\|MainImage\\\\|product.*image\\\\|selectedVariant.*image\\\\|ProductImage\\\\|featured.*image\\\\|gallery\\\\|swiper\\\\|<img\\\\|<Image\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -30)"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"

@@ -430,6 +430,15 @@ DP : 0
             />
           </div>
 
+          {/* Free Ongkir badge — products 3jt+ */}
+          {parseFloat(wishlistPrice) >= 3000000 && (
+            <img
+              src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
+              alt="Free Ongkir"
+              className="absolute bottom-2 left-2 w-20 h-auto pointer-events-none z-10"
+            />
+          )}
+
           {/* Prev / Next buttons — desktop only */}
           {images.length > 1 && (
             <>
