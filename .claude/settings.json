@@ -17,7 +17,8 @@
       "Bash(grep -v 'node_modules\\\\|products.$handle')",
       "Bash(grep -n \"ProductItem\\\\|product\\\\.image\\\\|priceRange\\\\|relative\\\\|aspect-square\\\\|w-full h-full\\\\|<img\\\\|<Image\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/collections.\\\\$handle.jsx\" | head -30)",
       "Bash(grep -n \"bukaModal\\\\|Opsi Cicilan\\\\|Modal\\\\|BukaModal\\\\|setBukaModal\\\\|Kredivo\\\\|Homecredit\\\\|Kartu Kredit\\\\|Tutup\\\\|modalCicilan\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -30)",
-      "Bash(grep -n \"bukaModal\\\\b\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -20)"
+      "Bash(grep -n \"bukaModal\\\\b\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -20)",
+      "Bash(grep -n \"mulaiDari\\\\|function mulaiDari\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -10)"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"

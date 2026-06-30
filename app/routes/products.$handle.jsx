@@ -230,10 +230,10 @@ export async function loader({params, context, request}) {
 
   function mulaiDari(selectedVariant){
     let newHargaFinal = Number(parseFloat(selectedVariant.price.amount))
-     // HITUNGAN KARTU KREDIT START HERE
-     let biayaAdmKartuKredit12Bln = (adminKartuKredit12Bulan * newHargaFinal) / 100
-     let cicilanKartuKredit12Bulan = (Math.ceil(((newHargaFinal + biayaAdmKartuKredit12Bln) / 12)/10)*10)
-     return cicilanKartuKredit12Bulan
+    // Cheapest: Kredivo 12-month
+    let bungaKredivo = (admKredivo * newHargaFinal) / 100
+    let cicilanKredivo12Bulan = Math.ceil(((newHargaFinal / 12) + bungaKredivo) / 10) * 10
+    return cicilanKredivo12Bulan
   }
 
   function cicilanKartuKredit(selectedVariant,product,canonicalUrl){
@@ -1305,7 +1305,7 @@ DP : 0
                       Lihat
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500">Proses ±30 menit</div>
+                  <div className="text-xs text-gray-500">Proses ±30 menit · Cukup KTP</div>
                 </div>
 
               </div>
