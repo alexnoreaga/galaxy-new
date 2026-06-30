@@ -1261,19 +1261,54 @@ DP : 0
                 )}
               </div>
 
-              {/* PRICE + DISCOUNT — row on mobile (price first), stacked on desktop (discount top) */}
-              <div className="flex flex-row items-center gap-3 md:flex-col md:items-start md:gap-1 md:mt-4 order-2 md:order-4">
-                <div onClick={()=>copyToClipboard(listAngsuran(product,selectedVariant,canonicalUrl))} className="text-2xl font-bold text-rose-700 order-1 md:order-2">Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}</div>
-                {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                  <div className='flex flex-row items-center gap-2 order-2 md:order-1'>
-                    <div className='bg-rose-700 px-1.5 py-0.5 font-bold text-white text-xs rounded'><HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/></div>
-                    <div className="text-sm line-through text-slate-400">Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}</div>
-                  </div>
-                )}
-              </div>
+              {/* PRICE + CICILAN — two-column layout */}
+              <div className="flex items-stretch order-2 md:order-4 md:mt-4">
 
-              {/* CICILAN — position 3 mobile, 5 desktop */}
-              <div className='text-xs md:text-sm text-gray-700 md:text-gray-500 order-3 md:order-5'>Cicilan Mulai dari <span onClick={()=>copyToClipboard(cicilanKartuKredit(selectedVariant,product,canonicalUrl))} className='font-bold md:font-medium text-rose-700'>Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}</span> /bln. <span onClick={()=>setBukaModal(true)} className='font-bold md:font-medium cursor-pointer text-rose-700'>Lihat</span></div>
+                {/* Left: main price + discount */}
+                <div
+                  className="flex flex-col justify-center cursor-pointer pr-4"
+                  onClick={() => copyToClipboard(listAngsuran(product, selectedVariant, canonicalUrl))}
+                >
+                  <div className="text-2xl font-bold text-rose-700 leading-tight">
+                    Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}
+                  </div>
+                  {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <div className="bg-rose-700 px-1.5 py-0.5 font-bold text-white text-[10px] rounded">
+                        <HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/>
+                      </div>
+                      <div className="text-xs line-through text-slate-400">
+                        Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Vertical divider */}
+                <div className="w-px bg-gray-200 self-stretch flex-shrink-0" />
+
+                {/* Right: cicilan info */}
+                <div className="flex flex-col justify-center pl-4 gap-0.5">
+                  <div className="text-xs text-gray-500">Cicilan Mulai dari</div>
+                  <div className="text-sm font-bold text-rose-700 leading-tight">
+                    <span
+                      className="cursor-pointer"
+                      onClick={() => copyToClipboard(cicilanKartuKredit(selectedVariant, product, canonicalUrl))}
+                    >
+                      Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}
+                    </span>
+                    <span className="font-normal text-gray-600"> /bln. </span>
+                    <span
+                      onClick={() => setBukaModal(true)}
+                      className="cursor-pointer text-rose-600 underline underline-offset-2 font-semibold"
+                    >
+                      Lihat
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500">Proses ±30 menit</div>
+                </div>
+
+              </div>
 
               {/* TITLE — position 4 mobile, 1 desktop */}
               <h1 className="text-xl mt-2 md:mt-0 mb-0 md:text-2xl font-bold md:leading-snug whitespace-normal order-4 md:order-1" onClick={()=>copyToClipboard(hargaCashCopy)}>

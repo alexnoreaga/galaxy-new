@@ -682,15 +682,28 @@ export function ErrorBoundary() {
     errorMessage = error.message;
   }
 
-  // Auto-retry once on transient network errors (fetch failed, timeout)
-  const isNetworkError = errorMessage?.toLowerCase().includes('fetch failed')
-    || errorMessage?.toLowerCase().includes('network')
-    || errorMessage?.toLowerCase().includes('timeout');
+  // Detect user-side network/connectivity errors
+  const errLower = errorMessage?.toLowerCase() || '';
+  const isNetworkError = errLower.includes('fetch failed')
+    || errLower.includes('failed to fetch')
+    || errLower.includes('network')
+    || errLower.includes('timeout')
+    || errLower.includes('networkerror')
+    || errLower.includes('load failed')
+    || !navigator?.onLine;
 
   useEffect(() => {
     if (!isNetworkError) return;
-    const timer = setTimeout(() => window.location.reload(), 5000);
-    return () => clearTimeout(timer);
+    const handleOnline = () => window.location.reload();
+    window.addEventListener('online', handleOnline);
+    // Fallback: also retry every 10s in case the 'online' event doesn't fire
+    const timer = setInterval(() => {
+      if (navigator.onLine) window.location.reload();
+    }, 10000);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      clearInterval(timer);
+    };
   }, [isNetworkError]);
 
   return (
@@ -732,17 +745,19 @@ export function ErrorBoundary() {
 
                 {/* Title */}
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center">
-                  Ada gangguan di rumah Galaxy 😢
+                  {isNetworkError ? 'Koneksi Internet Bermasalah 📡' : 'Ada gangguan di rumah Galaxy 😢'}
                 </h1>
 
                 {/* Description */}
                 <p className="text-gray-600 text-lg mb-4 leading-relaxed text-center">
-                  Mohon tunggu, Galaxy Camera sedang melakukan penyesuaian exposure. Kami akan segera kembali online.
+                  {isNetworkError
+                    ? 'Sepertinya koneksi internet kamu sedang tidak stabil. Coba periksa WiFi atau data selulermu.'
+                    : 'Mohon tunggu, Galaxy Camera sedang melakukan penyesuaian exposure. Kami akan segera kembali online.'}
                 </p>
 
                 {isNetworkError && (
                   <p className="text-sm text-blue-600 text-center mb-6 font-medium">
-                    Koneksi bermasalah — halaman akan dimuat ulang otomatis dalam 5 detik...
+                    Halaman akan otomatis dimuat ulang begitu koneksi kembali tersambung.
                   </p>
                 )}
 
