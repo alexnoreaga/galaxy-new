@@ -351,7 +351,7 @@ function ProductItem({product, loading, sold, review}) {
           <img
             src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
             alt="Free Ongkir"
-            className="absolute bottom-2 left-2 w-14 h-auto pointer-events-none z-10"
+            className="absolute bottom-2 left-2 w-11 sm:w-14 h-auto pointer-events-none z-10"
           />
         )}
 
