@@ -8,7 +8,7 @@ import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 
 import { BrandPopular } from '../components/BrandPopular';
 import { RecentlyViewed } from '../components/RecentlyViewed';
-import { TrustBar } from '../components/TrustBar';
+import { SocialProofStrip } from '../components/SocialProofStrip';
 import { MiniFaq } from '../components/MiniFaq';
 import {useRef} from "react";
 import { useLayoutEffect, useState } from 'react';
@@ -167,7 +167,7 @@ export default function Homepage() {
       </div>
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
-        <TrustBar />
+        <SocialProofStrip />
       </div>
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
