@@ -2,11 +2,13 @@ const items = [
   {
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-        <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
+        <path fillRule="evenodd" d="M6 3.75A2.75 2.75 0 0 1 8.75 1h2.5A2.75 2.75 0 0 1 14 3.75v.443c.572.055 1.14.122 1.706.2C17.053 4.582 18 5.75 18 7.07v3.469c0 1.126-.694 2.191-1.83 2.54-1.952.599-4.024.921-6.17.921s-4.219-.322-6.17-.921C2.694 12.73 2 11.665 2 10.539V7.07c0-1.32.947-2.489 2.294-2.676A41.047 41.047 0 0 1 6 4.193V3.75Zm6.5 0v.325a41.622 41.622 0 0 0-5 0V3.75c0-.69.56-1.25 1.25-1.25h2.5c.69 0 1.25.56 1.25 1.25ZM10 10a1 1 0 0 0-1 1v.01a1 1 0 0 0 2 0V11a1 1 0 0 0-1-1Z" clipRule="evenodd" />
+        <path d="M3 15.055v-.684c.126.053.255.1.39.142 2.1.642 4.317.987 6.61.987 2.293 0 4.51-.345 6.61-.987.135-.041.264-.089.39-.142v.684c0 1.347-.985 2.53-2.363 2.686a41.454 41.454 0 0 1-9.274 0C3.985 17.585 3 16.402 3 15.055Z" />
       </svg>
     ),
     label: 'Toko Sejak 2014',
     sub: '10+ tahun berpengalaman',
+    color: 'bg-amber-100 text-amber-600',
   },
   {
     icon: (
@@ -16,15 +18,18 @@ const items = [
     ),
     label: 'Garansi Resmi',
     sub: 'Servis & garansi terjamin',
+    color: 'bg-sky-100 text-sky-600',
   },
   {
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-        <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-6a.75.75 0 0 1 .75.75v.316a3.78 3.78 0 0 1 1.653.713c.426.33.744.74.925 1.2a.75.75 0 0 1-1.395.55 1.35 1.35 0 0 0-.447-.563 2.187 2.187 0 0 0-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 0 1-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 0 1 1.359-.636c.08.173.245.376.54.569.313.205.706.353 1.137.432v-2.748a3.782 3.782 0 0 1-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.806.4-1.558 1.097-2.096a3.78 3.78 0 0 1 1.653-.713V4.75A.75.75 0 0 1 10 4Z" clipRule="evenodd" />
+        <path d="M6.5 3c-1.051 0-2.093.04-3.125.117A1.49 1.49 0 0 0 2 4.607V10.5h9V4.606c0-.771-.59-1.43-1.375-1.489A41.568 41.568 0 0 0 6.5 3ZM2 12v2.5A1.5 1.5 0 0 0 3.5 16h.041a3 3 0 0 1 5.918 0h.791a.75.75 0 0 0 .75-.75V12H2Z" />
+        <path d="M6.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM13.25 5a.75.75 0 0 0-.75.75v8.514a3.001 3.001 0 0 1 4.893 1.486c.017-.09.028-.182.029-.275L17.5 6a1.5 1.5 0 0 0-1.5-1.5h-2.75ZM14.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
       </svg>
     ),
-    label: 'Cicilan 0%',
-    sub: 'Tanpa kartu kredit',
+    label: 'Gratis Ongkir',
+    sub: 'Ke seluruh Indonesia',
+    color: 'bg-emerald-100 text-emerald-600',
   },
   {
     icon: (
@@ -34,6 +39,7 @@ const items = [
     ),
     label: '100% Original',
     sub: 'Produk asli bergaransi',
+    color: 'bg-rose-100 text-rose-600',
   },
 ];
 
@@ -41,15 +47,22 @@ export function TrustBar() {
   return (
     <div className="py-3 sm:py-4">
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="grid grid-cols-4 divide-x divide-gray-100">
-          {items.map((item) => (
-            <div key={item.label} className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3 px-2 sm:px-4 py-3 sm:py-5">
-              <div className="text-gray-700 flex-shrink-0">
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-gray-100">
+          {items.map((item, i) => (
+            <div
+              key={item.label}
+              className={`flex flex-row items-center gap-3 px-4 py-4 sm:py-5
+                ${i === 1 ? 'border-l border-gray-100' : ''}
+                ${i === 2 ? 'border-t border-gray-100 sm:border-t-0 sm:border-l sm:border-gray-100' : ''}
+                ${i === 3 ? 'border-t border-gray-100 border-l sm:border-t-0 sm:border-l sm:border-gray-100' : ''}
+              `}
+            >
+              <div className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${item.color}`}>
                 {item.icon}
               </div>
-              <div className="text-center sm:text-left min-w-0">
-                <p className="text-[10px] sm:text-sm font-semibold text-gray-900 leading-tight">{item.label}</p>
-                <p className="hidden sm:block text-xs text-gray-400 leading-tight mt-0.5">{item.sub}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">{item.label}</p>
+                <p className="text-[11px] sm:text-xs text-gray-500 leading-tight mt-0.5">{item.sub}</p>
               </div>
             </div>
           ))}
