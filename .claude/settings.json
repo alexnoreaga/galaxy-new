@@ -20,7 +20,8 @@
       "Bash(grep -n \"bukaModal\\\\b\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -20)",
       "Bash(grep -n \"mulaiDari\\\\|function mulaiDari\" \"c:/Users/user/Desktop/shopify-final/galaxy/app/routes/products.\\\\$handle.jsx\" | head -10)",
       "Bash(curl -s \"https://firestore.googleapis.com/v1/projects/galaxypwa/databases/\\(default\\)/documents/conversations?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU&pageSize=3\")",
-      "Bash(curl -s \"https://firestore.googleapis.com/v1/projects/galaxypwa/databases/\\(default\\)/documents/product_questions?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU&pageSize=3\")"
+      "Bash(curl -s \"https://firestore.googleapis.com/v1/projects/galaxypwa/databases/\\(default\\)/documents/product_questions?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU&pageSize=3\")",
+      "Bash(curl -s \"https://firestore.googleapis.com/v1/projects/galaxypwa/databases/\\(default\\)/documents/conversations/ffqw1nL3jpUcwutLZX6H?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"

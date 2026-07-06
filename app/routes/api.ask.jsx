@@ -23,8 +23,10 @@ async function firestoreGet(collection, docId) {
 
 async function firestorePatch(collection, docId, fields) {
   try {
+    // updateMask ensures only specified fields are updated — without it, PATCH replaces the entire document
+    const mask = Object.keys(fields).map(k => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
     await fetch(
-      `${FIREBASE_BASE}/${collection}/${encodeURIComponent(docId)}?key=${FIREBASE_API_KEY}`,
+      `${FIREBASE_BASE}/${collection}/${encodeURIComponent(docId)}?key=${FIREBASE_API_KEY}&${mask}`,
       {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -80,10 +82,11 @@ export async function loader({ request, context }) {
   const handle = url.searchParams.get('handle');
   if (!handle) return json({ error: 'Missing handle' }, { status: 400 });
 
-  // 1. Check Firestore cache
+  // 1. Check Firestore cache — skip if cached questions are empty (failed generation)
   const cached = await firestoreGet('product_questions', handle);
-  if (cached?.questions) {
-    return json({ questions: readFsArray(cached.questions), cached: true });
+  const cachedQuestions = readFsArray(cached?.questions);
+  if (cachedQuestions.length > 0) {
+    return json({ questions: cachedQuestions, cached: true });
   }
 
   // 2. Generate with Gemini
@@ -108,12 +111,14 @@ Contoh format: ["Apakah ada garansi resmi?","Bisa cicilan berapa bulan?","Apa ya
     console.error('[api.ask] question generation failed:', e?.message ?? e);
   }
 
-  // 3. Save to Firestore
-  await firestorePatch('product_questions', handle, {
-    questions: fsArray(questions),
-    title: fsString(title),
-    generated_at: fsTimestamp(),
-  });
+  // 3. Save to Firestore only if questions were generated (don't cache empty results)
+  if (questions.length > 0) {
+    await firestorePatch('product_questions', handle, {
+      questions: fsArray(questions),
+      title: fsString(title),
+      generated_at: fsTimestamp(),
+    });
+  }
 
   return json({ questions, cached: false });
 }
@@ -159,8 +164,9 @@ INSTRUKSI:
     const result = await model.generateContent(fullPrompt);
     answer = result.response.text().trim();
   } catch (e) {
-    console.error('[api.ask] answer generation failed:', e?.message ?? e);
-    answer = 'Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊';
+    const errMsg = e?.message ?? String(e);
+    console.error('[api.ask] answer generation failed:', errMsg);
+    answer = `Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊\n\n[debug: ${errMsg}]`;
   }
 
   // Save conversation to Firestore (for "Tanya Hal Lain" / custom questions)

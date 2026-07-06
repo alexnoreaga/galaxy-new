@@ -117,19 +117,22 @@ export function ProductAIChat({ product, selectedVariant }) {
     return lines;
   })();
 
-  // Load questions on mount — skeleton stays until questions arrive or fetch fails
+  // Load questions on mount — skeleton shown for at least 600ms so it's visible even on cache hits
   useEffect(() => {
     if (!handle) return;
     const controller = new AbortController();
     setLoadingQuestions(true);
+    const start = Date.now();
     const params = new URLSearchParams({ handle, title, description: description.slice(0, 300) });
     fetch(`/api/ask?${params}`, { signal: controller.signal })
       .then(r => r.json())
-      .then(d => { if (d.questions) setQuestions(d.questions); })
+      .then(d => { if (d.questions?.length) setQuestions(d.questions); })
       .catch(() => {})
       .finally(() => {
-        // Don't clear loading if this fetch was aborted (React StrictMode double-fire)
-        if (!controller.signal.aborted) setLoadingQuestions(false);
+        if (controller.signal.aborted) return;
+        const elapsed = Date.now() - start;
+        const wait = Math.max(0, 600 - elapsed);
+        setTimeout(() => setLoadingQuestions(false), wait);
       });
     return () => controller.abort();
   }, [handle]);
