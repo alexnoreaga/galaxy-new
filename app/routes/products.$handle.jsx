@@ -20,6 +20,8 @@ import { ProdukRelated } from '~/components/ProdukRelated';
 import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
 import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
+import { ProductAIChat } from '~/components/ProductAIChat';
+import { VoucherSlideIn } from '~/components/VoucherSlideIn';
 import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa6";
@@ -1438,10 +1440,13 @@ DP : 0
                   </div>
               
      
-              {/* DISCOUNT VOUCHER SECTION */}
+              {/* AI CHAT — question bubbles */}
+              <ProductAIChat product={product} selectedVariant={selectedVariant} />
+
+              {/* VOUCHER SLIDE-IN — appears after 45s, once per session */}
               <Suspense fallback={null}>
                 <Await resolve={discountVouchers}>
-                  {(vd) => <DiscountVoucherSection voucherData={vd} product={product} selectedVariant={selectedVariant} canonicalUrl={canonicalUrl} copyToClipboard={copyToClipboard} />}
+                  {(vd) => <VoucherSlideIn voucherData={vd} />}
                 </Await>
               </Suspense>
 
@@ -2127,110 +2132,6 @@ function MarketPlace({link}){
       })}
     </div>
   )
-}
-
-function DiscountVoucherSection({ voucherData, product, selectedVariant, canonicalUrl, copyToClipboard }) {
-  const [copiedCode, setCopiedCode] = useState(null);
-
-  const voucherArray = voucherData?.metaobjects?.edges?.map((edge) => {
-    const fields = edge.node.fields;
-    return {
-      code: fields.find(f => f.key === 'code')?.value || '',
-      discount: fields.find(f => f.key === 'discount_value')?.value || '',
-      discountType: fields.find(f => f.key === 'discount_type')?.value || 'fixed',
-      description: fields.find(f => f.key === 'description')?.value || '',
-      minPurchase: fields.find(f => f.key === 'min_purchase')?.value || '',
-      expiryDate: fields.find(f => f.key === 'expiry_date')?.value || '',
-    };
-  }) || [];
-
-  const handleCopyCode = (code) => {
-    copyToClipboard(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2000);
-  };
-
-  if (!voucherArray.length) return null;
-
-  return (
-    <div className='mt-3 mb-1'>
-      {/* Header */}
-      <div className='flex items-center gap-1.5 mb-2.5'>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-rose-500">
-          <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-          <path d="M6 6h.008v.008H6V6z" />
-        </svg>
-        <span className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>Voucher Diskon</span>
-      </div>
-
-      <div className='flex overflow-x-auto md:flex-col md:overflow-visible gap-2.5 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
-        {voucherArray.map((voucher, index) => (
-          <div key={index} className='flex items-stretch rounded-xl border border-gray-200 bg-white overflow-hidden shrink-0 w-[260px] md:w-full md:shrink-0'>
-
-            {/* Left: discount badge — dark panel */}
-            <div className='flex-shrink-0 flex flex-col items-center justify-center px-3.5 py-4 text-white' style={{ background: '#1f2937', minWidth: '68px' }}>
-              <span className='font-black leading-none text-center'
-                style={{ fontSize: voucher.discountType === 'percentage' ? '1.45rem' : '0.8rem', lineHeight: 1 }}>
-                {voucher.discountType === 'percentage'
-                  ? `${voucher.discount}%`
-                  : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
-              </span>
-              <span className='text-[8px] font-bold uppercase tracking-widest mt-1.5' style={{ color: 'rgba(255,255,255,0.4)' }}>OFF</span>
-            </div>
-
-            {/* Middle: code + details */}
-            <div className='flex-1 flex flex-col justify-center px-3.5 py-3 min-w-0' style={{ borderLeft: '1.5px dashed #e5e7eb' }}>
-              <span className='font-mono font-black text-gray-900 text-sm tracking-widest leading-none'>
-                {voucher.code}
-              </span>
-              {voucher.description && (
-                <p className='text-[11px] text-gray-500 leading-tight truncate mt-1'>{voucher.description}</p>
-              )}
-              {(voucher.minPurchase || voucher.expiryDate) && (
-                <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5'>
-                  {voucher.minPurchase && (
-                    <span className='text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full'>
-                      {voucher.minPurchase}
-                    </span>
-                  )}
-                  {voucher.expiryDate && (
-                    <span className='text-[10px] text-gray-400'>
-                      s/d {new Date(voucher.expiryDate).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Right: copy button */}
-            <button
-              onClick={() => handleCopyCode(voucher.code)}
-              className='flex-shrink-0 self-stretch flex flex-col items-center justify-center w-[52px] text-[10px] font-semibold transition-all duration-200 active:scale-95'
-              style={copiedCode === voucher.code
-                ? { borderLeft: '1.5px dashed #e5e7eb', background: '#f0fdf4', color: '#16a34a' }
-                : { borderLeft: '1.5px dashed #e5e7eb', background: '#f9fafb', color: '#374151' }}
-            >
-              {copiedCode === voucher.code ? (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mb-0.5">
-                    <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
-                  </svg>
-                  Disalin
-                </>
-              ) : (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 mb-0.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 0 0-9-9Z" />
-                  </svg>
-                  Salin
-                </>
-              )}
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 
