@@ -65,13 +65,10 @@ function readFsArray(field) {
 
 // ── Gemini helper ─────────────────────────────────────────────────────────────
 
-const GEMINI_API_KEY_FALLBACK = 'AIzaSyDt5xeKHzYfHOEp4RnBjUPze96l_voJgpY';
-
 function getGemini(context, { search = false } = {}) {
   const apiKey =
     context?.env?.GEMINI_API_KEY ??
-    (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ??
-    GEMINI_API_KEY_FALLBACK;
+    (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set in environment');
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({

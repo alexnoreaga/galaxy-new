@@ -21,7 +21,7 @@ import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
 import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
-import { VoucherSlideIn } from '~/components/VoucherSlideIn';
+import { VoucherInline } from '~/components/VoucherInline';
 import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa6";
@@ -1443,10 +1443,10 @@ DP : 0
               {/* AI CHAT — question bubbles */}
               <ProductAIChat product={product} selectedVariant={selectedVariant} />
 
-              {/* VOUCHER SLIDE-IN — appears after 45s, once per session */}
+              {/* KODE VOUCHER — inline strip below Tanya AI Galaxy */}
               <Suspense fallback={null}>
                 <Await resolve={discountVouchers}>
-                  {(vd) => <VoucherSlideIn voucherData={vd} />}
+                  {(vd) => <VoucherInline voucherData={vd} />}
                 </Await>
               </Suspense>
 
