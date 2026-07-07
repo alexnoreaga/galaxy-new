@@ -204,7 +204,8 @@ export function ProductAIChat({ product, selectedVariant }) {
   function openCustomMode() {
     setOpen(true);
     setIsCustomMode(true);
-    setMessages([{ role: 'ai', text: `Hi ka! Ada yang ingin ditanyakan tentang ${title}? Silakan ketik pertanyaanmu 😊` }]);
+    // Only show welcome message when starting fresh — don't wipe an ongoing conversation
+    setMessages(prev => prev.length > 0 ? prev : [{ role: 'ai', text: `Hi ka! Ada yang ingin ditanyakan tentang ${title}? Silakan ketik pertanyaanmu 😊` }]);
   }
 
   const remainingQuestions = questions.filter(
@@ -307,43 +308,35 @@ export function ProductAIChat({ product, selectedVariant }) {
                       {q}
                     </button>
                   ))}
-                  <button
-                    onClick={openCustomMode}
-                    className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] rounded-full border border-rose-200 transition-colors font-medium"
-                  >
-                    Tanya Hal Lain →
-                  </button>
                 </div>
               )}
 
               <div ref={bottomRef} />
             </div>
 
-            {/* Input — only in custom mode */}
-            {isCustomMode && (
-              <div className="px-4 py-3 border-t border-gray-100">
-                <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={inputText}
-                    onChange={e => setInputText(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSend()}
-                    placeholder="Ketik pertanyaanmu..."
-                    className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none"
-                  />
-                  <button
-                    onClick={handleSend}
-                    disabled={!inputText.trim() || loading}
-                    className="w-7 h-7 rounded-full bg-rose-600 disabled:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-white">
-                      <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95 28.897 28.897 0 0 0 15.293-7.155.75.75 0 0 0 0-1.114A28.897 28.897 0 0 0 3.105 2.288Z" />
-                    </svg>
-                  </button>
-                </div>
+            {/* Input — always visible so customers can type follow-ups after bubble questions */}
+            <div className="px-4 py-3 border-t border-gray-100">
+              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputText}
+                  onChange={e => setInputText(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSend()}
+                  placeholder="Ketik pertanyaanmu..."
+                  className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!inputText.trim() || loading}
+                  className="w-7 h-7 rounded-full bg-rose-600 disabled:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-white">
+                    <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95 28.897 28.897 0 0 0 15.293-7.155.75.75 0 0 0 0-1.114A28.897 28.897 0 0 0 3.105 2.288Z" />
+                  </svg>
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}

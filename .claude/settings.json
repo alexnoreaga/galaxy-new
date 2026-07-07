@@ -30,7 +30,9 @@
       "PowerShell(Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -gt 1024 -and $_.LocalPort -lt 20000 } | Select-Object -ExpandProperty LocalPort -Unique | Sort-Object)",
       "Bash(curl -s -m 60 \"http://localhost:3000/api/ask?handle=debug-test-fresh-$\\(date +%s\\)&title=Sony%20A7C%20II%20Kit&description=kamera%20full%20frame%20compact\")",
       "Bash(curl -s -m 60 \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyDt5xeKHzYfHOEp4RnBjUPze96l_voJgpY\" -H \"Content-Type: application/json\" -d '{\"contents\":[{\"parts\":[{\"text\":\"Kamu adalah asisten Galaxy Camera. Berdasarkan produk berikut, buat tepat 5 pertanyaan singkat \\(maks 7 kata\\) yang paling sering ditanyakan customer Indonesia di halaman produk ini. Return hanya JSON array of strings, tanpa penjelasan apapun.\\\\n\\\\nProduk: Sony A7C II Kit\\\\nDeskripsi singkat: kamera full frame compact\\\\n\\\\nContoh format: [\\\\\"Apakah ada garansi resmi?\\\\\",\\\\\"Bisa cicilan berapa bulan?\\\\\"]\"}]}]}')",
-      "Bash(curl -s -m 30 \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCjkyQWNLIBPi99CBZWL3hbkdzPcnDszfE\" -H \"Content-Type: application/json\" -d '{\"contents\":[{\"parts\":[{\"text\":\"Say hi in one word\"}]}]}')"
+      "Bash(curl -s -m 30 \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCjkyQWNLIBPi99CBZWL3hbkdzPcnDszfE\" -H \"Content-Type: application/json\" -d '{\"contents\":[{\"parts\":[{\"text\":\"Say hi in one word\"}]}]}')",
+      "Bash(curl -s -m 60 -X POST \"https://galaxy.co.id/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"test harga\",\"productTitle\":\"Test\",\"isCustom\":false}')",
+      "Bash(curl -s -m 60 -L -X POST \"https://www.galaxy.co.id/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"test harga\",\"productTitle\":\"Test\",\"isCustom\":false}')"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"

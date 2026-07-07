@@ -146,13 +146,16 @@ PRODUK YANG SEDANG DILIHAT CUSTOMER:
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}
 
 INSTRUKSI:
-- Jawab dalam bahasa Indonesia yang friendly
+- Jawab dalam bahasa Indonesia yang friendly, seperti chat WhatsApp — santai dan natural
 - Panggil customer dengan "ka" atau "kak"
-- Jawab singkat dan langsung ke inti (maks 3 kalimat)
-- Kamu BOLEH menjawab menggunakan pengetahuan umummu tentang kamera, lensa, dan elektronik — termasuk spesifikasi teknis, perbandingan produk, daya tahan baterai, resolusi video, fitur, dll — meskipun tidak tercantum di data produk di atas
-- Jika customer bertanya tentang cicilan (syarat, cara, tenor, berapa per bulan, dll): sebutkan tenor yang tersedia, estimasi cicilan per bulan dari data produk di atas, dan cara prosesnya (online/ke toko) sesuai metode yang ditanya
-- Jika customer bertanya tentang Kredivo (syarat, cara daftar, limit, dll): jawab pertanyaannya dulu, lalu tambahkan tepat separator "|||" (tanpa spasi di sekitarnya), lalu tulis panduan singkat cara mulai Kredivo: download aplikasi Kredivo → daftar dengan KTP → limit akan langsung diketahui. Tulis panduan ini sebagai pesan terpisah yang singkat dan friendly
-- Hanya arahkan ke admin untuk hal-hal spesifik Galaxy Camera: stok terkini, approval cicilan, promo khusus, jadwal pickup, atau kondisi unit tertentu
+- WAJIB SINGKAT: maksimal 2-3 kalimat pendek per jawaban. Ini chat, bukan artikel
+- JANGAN pakai format markdown (**, *, bullet list, nomor) — tulis kalimat biasa saja karena chat tidak bisa menampilkan format
+- Jika pertanyaan customer luas dan jawabannya punya banyak opsi (contoh: "cara kredit gimana?"), JANGAN jelaskan semua opsi sekaligus. Jawab singkat lalu BALIK BERTANYA untuk mempersempit, contoh: "Bisa ka! Mau cicilan pakai kartu kredit atau tanpa kartu kredit?" Setelah customer pilih, baru jelaskan opsi itu saja dengan estimasi cicilannya dari data produk
+- Jika customer sudah spesifik (contoh: "cicilan Kredivo 12x berapa?"), langsung jawab angka estimasinya dari data produk, singkat
+- Jika jawaban terpaksa panjang, pecah jadi 2 pesan dengan separator "|||" (tanpa spasi di sekitarnya)
+- Jika customer bertanya tentang Kredivo (syarat, cara daftar, limit): jawab singkat, lalu "|||", lalu panduan singkat: download aplikasi Kredivo → daftar dengan KTP → limit langsung diketahui
+- Kamu BOLEH menjawab pakai pengetahuan umummu tentang kamera, lensa, dan elektronik — spesifikasi, perbandingan produk, baterai, fitur, dll — meskipun tidak ada di data produk
+- Hanya arahkan ke admin untuk hal spesifik Galaxy Camera: stok terkini, approval cicilan, promo khusus, jadwal pickup, kondisi unit tertentu
 - Jangan sebut nama marketplace (Shopee, Tokopedia, dll)`;
 
   const historyText = messages.length > 0
@@ -166,9 +169,8 @@ INSTRUKSI:
     const result = await model.generateContent(fullPrompt);
     answer = result.response.text().trim();
   } catch (e) {
-    const errMsg = e?.message ?? String(e);
-    console.error('[api.ask] answer generation failed:', errMsg);
-    answer = `Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊\n\n[debug: ${errMsg}]`;
+    console.error('[api.ask] answer generation failed:', e?.message ?? e);
+    answer = 'Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊';
   }
 
   // Save conversation to Firestore (for "Tanya Hal Lain" / custom questions)
@@ -199,7 +201,16 @@ INSTRUKSI:
         updated_at: fsTimestamp(),
       });
     } else {
-      // Create new conversation
+      // Create new conversation — include prior chat history (e.g. bubble Q&A before the customer typed)
+      const historyMaps = messages.map(m => ({
+        mapValue: {
+          fields: {
+            role: fsString(m.role === 'user' ? 'user' : 'ai'),
+            text: fsString(m.text ?? ''),
+            time: fsTimestamp(),
+          },
+        },
+      }));
       const newConvId = await firestoreCreate('conversations', {
         session_id: fsString(sessionId),
         product_handle: fsString(productHandle ?? ''),
@@ -208,15 +219,18 @@ INSTRUKSI:
         updated_at: fsTimestamp(),
         messages: {
           arrayValue: {
-            values: newMessage.map(m => ({
-              mapValue: {
-                fields: {
-                  role: m.role,
-                  text: m.text,
-                  time: m.time,
+            values: [
+              ...historyMaps,
+              ...newMessage.map(m => ({
+                mapValue: {
+                  fields: {
+                    role: m.role,
+                    text: m.text,
+                    time: m.time,
+                  },
                 },
-              },
-            })),
+              })),
+            ],
           },
         },
       });
