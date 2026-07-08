@@ -5,7 +5,10 @@
       "Bash(curl -s -m 90 http://localhost:3000/api/ask*)",
       "Bash(curl -s -m 60 http://localhost:3000/api/ask*)",
       "Bash(curl -s -m 5 -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
-      "PowerShell(Get-NetTCPConnection -State Listen*)"
+      "PowerShell(Get-NetTCPConnection -State Listen*)",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Ada kamera Sony A6700 ga ka?\",\"productTitle\":\"Fujifilm X-S20 Kit 15-45mm\",\"productPrice\":\"Rp18.999.000\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Jam buka toko?\",\"productTitle\":\"Fujifilm X-S20\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 \"http://localhost:3000/api/ask?handle=verify-final-test&title=Canon%20R50%20Kit&description=kamera%20mirrorless%20pemula\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
