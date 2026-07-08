@@ -2,8 +2,9 @@ export const storeKnowledge = `
 INFORMASI TOKO GALAXY CAMERA:
 - Nama Toko: Galaxy Camera
 - Jam Operasional: Setiap hari Senin–Minggu, pukul 10.00–19.00 WIB
-- Lokasi Tangerang: Ruko Mall Metropolis Town Square, Blok GM3 No.6, Kelapa Indah, Tangerang
-- Lokasi Depok: Mall Depok Town Square, Lantai 2 Blok SS2 No.8, Beji, Depok
+- Lokasi Tangerang: Ruko Mall Metropolis Town Square, Blok GM3 No.6, Kelapa Indah, Tangerang — Maps: https://www.google.com/maps/search/?api=1&query=Galaxy+Camera+Mall+Metropolis+Town+Square+Tangerang
+- Lokasi Depok: Mall Depok Town Square, Lantai 2 Blok SS2 No.8, Beji, Depok — Maps: https://www.google.com/maps/search/?api=1&query=Galaxy+Camera+Depok+Town+Square
+- Jika customer tanya lokasi/alamat/cara ke toko: sertakan link Maps di atas (tulis link apa adanya, otomatis jadi clickable)
 - Website: galaxy.co.id
 - Toko berdiri sejak 2014, sudah 10+ tahun berpengalaman
 
@@ -15,7 +16,12 @@ GARANSI:
 - Drone DJI: Garansi resmi TAM 1 tahun
 - Lensa Sigma: Garansi resmi 2 tahun
 - Mikrofon Saramonic: Garansi resmi 2 tahun
-- Klaim garansi bisa dibantu oleh tim kami atau datang langsung ke toko
+PROSEDUR KLAIM GARANSI (khusus pembelian di Galaxy Camera):
+1. Kirim unit yang berkendala ke toko (atau datang langsung)
+2. Lampirkan nota pembelian dan kartu garansi
+3. Tim toko akan cek unitnya terlebih dahulu
+4. Setelah dicek, tim kami yang bawa ke service center resmi brand tersebut
+5. Progress servis akan dikabari secara berkala
 
 CICILAN & PEMBAYARAN:
 
@@ -38,6 +44,14 @@ Tips cicilan tanpa kartu kredit:
 Split Payment:
 - Bisa mix pembayaran, contoh: sebagian pakai kartu kredit + sebagian cash — ini bisa dilakukan di toko
 
+METODE PEMBAYARAN DI WEBSITE:
+- Transfer bank: BISA, semua bank tersedia
+- Virtual Account: bisa
+- Kartu kredit: bisa
+- Kredivo, Akulaku, Shopee Paylater: bisa
+- QRIS dan e-wallet: bisa
+- COD (bayar di tempat): saat ini BELUM bisa — tapi customer bisa order online lalu bayar dan ambil langsung di toko (pickup)
+
 Catatan penting:
 - Semua produk sudah termasuk PPN
 - Faktur pajak bisa diterbitkan (lampirkan NPWP & email, proses 1–3 hari kerja)
@@ -49,10 +63,20 @@ FREE BONUS:
 - Gratis ongkir untuk pembelian di atas Rp3.000.000 ke seluruh Indonesia
 
 PENGIRIMAN:
-- Order sebelum jam 17.00 WIB dikirim hari yang sama
-- Pengiriman instan: maksimal order jam 18.00, masih dikirim hari yang sama
+- Pengiriman dari Tangerang Kota
+- Ekspedisi tersedia: JNE, J&T, Gojek Instant, Grab Instant
+- Grab/Gojek Instant (Jabodetabek): bisa tiba di hari yang sama, maksimal order jam 18.00
+- Order reguler sebelum jam 17.00 WIB dikirim hari yang sama
 - Sameday: batas pickup ekspedisi jam 14.00, jika lewat diproses keesokan harinya
+- Estimasi Pulau Jawa & Bali: sekitar 1–3 hari kerja
+- Estimasi luar Jawa: sekitar 2–5 hari kerja tergantung daerah
 - Gratis ongkir ke seluruh Indonesia untuk pembelian di atas Rp3.000.000
+
+TOKO RESMI DI MARKETPLACE (hanya berikan jika customer bertanya):
+- Tokopedia: https://www.tokopedia.com/galaxycamera
+- Shopee: https://shopee.co.id/galaxycamera
+- Blibli: https://www.blibli.com/merchant/galaxy-camera-flagship-store/GAC-49845
+- Jika customer tanya "bisa beli di Tokopedia/Shopee/Blibli?": jawab BISA, berikan link toko resmi di atas (tulis link apa adanya), lalu ingatkan bahwa harga dan promo tiap platform bisa berbeda — dan di website galaxy.co.id sering ada voucher tambahan
 
 KEBIJAKAN TOKO:
 - Semua produk 100% original bergaransi resmi

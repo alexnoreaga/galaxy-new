@@ -141,6 +141,37 @@ query askPredictiveSearch($searchTerm: String!) {
   }
 }`;
 
+// ── Rate limiting — max 15 messages per 5 minutes per session ────────────────
+const RATE_WINDOW_MS = 5 * 60 * 1000;
+const RATE_MAX = 15;
+const rateMap = new Map();
+
+function isRateLimited(sessionId) {
+  if (!sessionId) return false;
+  const now = Date.now();
+  const recent = (rateMap.get(sessionId) ?? []).filter(t => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_MAX) {
+    rateMap.set(sessionId, recent);
+    return true;
+  }
+  recent.push(now);
+  rateMap.set(sessionId, recent);
+  // Prevent unbounded memory growth
+  if (rateMap.size > 500) {
+    for (const [k, v] of rateMap) {
+      if (v.every(t => now - t >= RATE_WINDOW_MS)) rateMap.delete(k);
+    }
+  }
+  return false;
+}
+
+// ── Simple string hash for bubble answer cache keys ──────────────────────────
+function simpleHash(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+
 const VOUCHERS_QUERY = `#graphql
 query askVouchers {
   metaobjects(type: "discount_voucher", first: 10) {
@@ -251,6 +282,37 @@ export async function action({ request, context }) {
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
+  // Rate limit — protect Gemini quota from spam
+  if (isRateLimited(sessionId)) {
+    return json({
+      answer: 'Maaf ka, terlalu banyak pertanyaan dalam waktu singkat 🙏 Tunggu sebentar ya, atau langsung hubungi admin kami di 0821-1131-1131 😊',
+    });
+  }
+
+  // Bubble answer cache — bubble questions are fixed per product, so cache their answers
+  // Only for first-click bubble questions (no history) since follow-ups depend on context
+  const cacheId = !isCustom && productHandle && messages.length === 0
+    ? `${productHandle}~ans~${simpleHash(question)}`
+    : null;
+
+  if (cacheId) {
+    const cached = await firestoreGet('product_questions', cacheId);
+    const cachedAnswer = cached?.answer?.stringValue;
+    const cachedPrice = cached?.price?.stringValue ?? '';
+    const cachedAt = cached?.cached_at?.timestampValue;
+    const fresh = cachedAt && Date.now() - new Date(cachedAt).getTime() < 7 * 24 * 3600 * 1000;
+    // Invalidate when the price changed (cicilan answers embed price estimates)
+    if (cachedAnswer && fresh && cachedPrice === String(productPrice ?? '')) {
+      // Still track the bubble click before returning
+      await firestorePatch(`bubble_clicks/${productHandle}/questions`, encodeURIComponent(question), {
+        question: fsString(question),
+        count: { integerValue: 1 },
+        last_clicked: fsTimestamp(),
+      });
+      return json({ answer: cachedAnswer, cached: true });
+    }
+  }
+
   const model = getGemini(context, { search: true });
 
   // Search catalog + fetch active vouchers in parallel
@@ -293,6 +355,8 @@ INSTRUKSI:
   * Setelah jawab cicilan → "Mau dibantu hitung tenor lain, atau langsung order ka?"
   * Setelah jawab garansi/bonus/ongkir → "Ada lagi yang mau ditanyakan, atau mau langsung diproses ka?"
 - Jangan memaksa: jika customer bilang cuma tanya-tanya atau menolak, jawab santai dan tawarkan bantuan lain tanpa mengulang ajakan yang sama
+- JANGAN mengulang pertanyaan follow-up yang sama yang sudah pernah kamu tanyakan di riwayat percakapan — jika customer tidak merespons ajakanmu sebelumnya, ganti pendekatan atau jawab saja tanpa ajakan
+- Jika customer menutup percakapan ("makasih", "oke", "sip", "cuma tanya-tanya", dll): balas hangat dan singkat TANPA pertanyaan follow-up apapun, contoh: "Sama-sama ka! Kalau ada yang mau ditanyakan lagi, aku siap bantu 😊"
 - JANGAN pakai format markdown (**, *, bullet list, nomor) — tulis kalimat biasa saja karena chat tidak bisa menampilkan format
 - Jika pertanyaan customer luas dan jawabannya punya banyak opsi (contoh: "cara kredit gimana?"), JANGAN jelaskan semua opsi sekaligus. Jawab singkat lalu BALIK BERTANYA untuk mempersempit, contoh: "Bisa ka! Mau cicilan pakai kartu kredit atau tanpa kartu kredit?" Setelah customer pilih, baru jelaskan opsi itu saja dengan estimasi cicilannya dari data produk
 - Jika customer sudah spesifik (contoh: "cicilan Kredivo 12x berapa?"), langsung jawab angka estimasinya dari data produk, singkat
@@ -300,7 +364,7 @@ INSTRUKSI:
 - Jika customer bertanya tentang Kredivo (syarat, cara daftar, limit): jawab singkat, lalu "|||", lalu panduan singkat: download aplikasi Kredivo → daftar dengan KTP → limit langsung diketahui
 - Kamu BOLEH menjawab pakai pengetahuan umummu tentang kamera, lensa, dan elektronik — spesifikasi, perbandingan produk, baterai, fitur, dll — meskipun tidak ada di data produk
 - Hanya arahkan ke admin untuk hal spesifik Galaxy Camera: stok terkini, approval cicilan, promo khusus, jadwal pickup, kondisi unit tertentu
-- Jangan sebut nama marketplace (Shopee, Tokopedia, dll)`;
+- Jangan sebut marketplace (Shopee, Tokopedia, Blibli) secara proaktif — utamakan order via website. TAPI jika customer sendiri yang bertanya apakah bisa beli via marketplace, jawab bisa dan berikan link toko resmi kami dari knowledge di atas`;
 
   const historyText = messages.length > 0
     ? messages.map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n')
@@ -322,6 +386,15 @@ INSTRUKSI:
   if (answer.includes('[VOUCHER]')) {
     responseVouchers = activeVouchers.length > 0 ? activeVouchers : undefined;
     answer = answer.replace(/\s*\[VOUCHER\]\s*/g, ' ').replace(/ +/g, ' ').trim();
+  }
+
+  // Save bubble answer to cache — only plain text answers without cards or errors
+  if (cacheId && !foundProducts && !responseVouchers && !answer.includes('gangguan teknis')) {
+    await firestorePatch('product_questions', cacheId, {
+      answer: fsString(answer),
+      price: fsString(String(productPrice ?? '')),
+      cached_at: fsTimestamp(),
+    });
   }
 
   // Save conversation to Firestore (for "Tanya Hal Lain" / custom questions)
