@@ -135,34 +135,73 @@ query askPredictiveSearch($searchTerm: String!) {
       title
       handle
       availableForSale
+      featuredImage { url }
       priceRange { minVariantPrice { amount } }
     }
   }
 }`;
 
+const VOUCHERS_QUERY = `#graphql
+query askVouchers {
+  metaobjects(type: "discount_voucher", first: 10) {
+    edges { node { fields { key value } } }
+  }
+}`;
+
+async function getActiveVouchers(context) {
+  try {
+    const data = await context.storefront.query(VOUCHERS_QUERY);
+    const now = new Date();
+    return (data?.metaobjects?.edges ?? [])
+      .map(edge => {
+        const f = Object.fromEntries((edge.node?.fields ?? []).map(x => [x.key, x.value]));
+        return {
+          code: f.code || '',
+          discount: f.discount_value || '',
+          discountType: f.discount_type || 'fixed',
+          description: f.description || '',
+          minPurchase: f.min_purchase || '',
+          expiryDate: f.expiry_date || '',
+        };
+      })
+      .filter(v => v.code)
+      .filter(v => !v.expiryDate || new Date(v.expiryDate) >= now);
+  } catch (e) {
+    console.error('[api.ask] voucher fetch failed:', e?.message ?? e);
+    return [];
+  }
+}
+
 // Detect whether the customer is asking about other products, and search the store catalog
-async function searchStoreProducts(context, question, messages) {
+async function searchStoreProducts(context, question, messages, currentProduct = '') {
   try {
     const router = getGemini(context, { search: false, temperature: 0 });
     const recentHistory = messages.slice(-2).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Tugasmu HANYA menentukan apakah customer menanyakan ketersediaan, harga, atau rekomendasi suatu produk (kamera, lensa, drone, aksesoris, dll). Jika ya, output kata kunci pencarian produknya (2-5 kata). Jika tidak, output: NO
 
+Jika customer menyebut "baterainya", "chargernya", "lensanya", "tasnya" dll yang merujuk ke produk yang sedang dilihat, gunakan pengetahuanmu tentang aksesoris yang kompatibel — sebutkan model spesifiknya (contoh: baterai Sony A6400 = NP-FW50, baterai Canon EOS RP = LP-E17).
+
 Contoh:
 - "Ada sony a6400 ga" → Sony A6400
 - "Kalau sony a6700 ada?" → Sony A6700
 - "Punya lensa buat sony ga?" → lensa Sony
+- (halaman Sony A6400) "min ada jual baterainya ga" → baterai NP-FW50
+- (halaman Canon EOS RP) "chargernya ada?" → charger LP-E17
+- (halaman Sony A6400) "ada lensa tele buat kamera ini?" → lensa tele Sony E-mount
 - "Rekomendasi drone buat pemula dong" → drone DJI
 - "Jam buka toko?" → NO
 - "Bisa cicilan ga?" → NO
 - "Kamera ini bagus buat vlog?" → NO
-${recentHistory ? `\nPercakapan terakhir:\n${recentHistory}\n` : ''}
+${currentProduct ? `\nCustomer sedang berada di halaman produk: "${currentProduct}"` : ''}${recentHistory ? `\nPercakapan terakhir:\n${recentHistory}` : ''}
 Pertanyaan customer: "${question}"
 
 Output:`;
 
     const routerRes = await router.generateContent(routerPrompt);
     const keyword = routerRes.response.text().trim().replace(/^["']|["']$/g, '');
-    if (!keyword || keyword.toUpperCase() === 'NO' || keyword.length > 60) return '';
+    if (!keyword || keyword.toUpperCase() === 'NO' || keyword.length > 60) {
+      return { contextText: '', products: [] };
+    }
     console.log('[api.ask] product search keyword:', keyword);
 
     const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
@@ -171,41 +210,56 @@ Output:`;
     const items = data?.predictiveSearch?.products ?? [];
 
     if (items.length === 0) {
-      return `Customer mencari "${keyword}" tapi produk ini TIDAK DITEMUKAN di katalog toko — kemungkinan kami tidak menjualnya atau sudah tidak tersedia.
+      return {
+        contextText: `Customer mencari "${keyword}" tapi produk ini TIDAK DITEMUKAN di katalog toko — kemungkinan kami tidak menjualnya atau sudah tidak tersedia.
 - Jawab jujur bahwa produk itu sepertinya tidak tersedia di toko kami
 - Jika kamu tahu produk serupa yang umum kami jual (lihat daftar kategori produk di atas), tawarkan sebagai alternatif
-- Sarankan konfirmasi ke admin di 0821-1131-1131 untuk memastikan`;
+- Sarankan konfirmasi ke admin di 0821-1131-1131 untuk memastikan`,
+        products: [],
+      };
     }
 
-    const list = items
-      .map(p => {
-        const price = Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0));
-        return `- ${p.title} | Rp${price.toLocaleString('id-ID')} | ${p.availableForSale ? 'Ready stock' : 'Stok habis'} | https://www.galaxy.co.id/products/${p.handle}`;
-      })
+    const products = items.slice(0, 3).map(p => ({
+      title: p.title,
+      handle: p.handle,
+      image: p.featuredImage?.url ?? null,
+      price: Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0)),
+      available: p.availableForSale,
+    }));
+
+    const list = products
+      .map(p => `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${p.available ? 'Ready stock' : 'Stok habis'}`)
       .join('\n');
 
-    return `Hasil pencarian katalog toko untuk "${keyword}":
+    return {
+      contextText: `Hasil pencarian katalog toko untuk "${keyword}":
 ${list}
-- Gunakan data ini untuk menjawab. Sebutkan maksimal 2-3 produk paling relevan beserta harga dan link-nya (tulis link apa adanya, jangan pakai format markdown)
-- PENTING: hanya tawarkan produk yang SEJENIS dengan yang dicari customer. Jika customer cari kamera tapi hasil pencarian cuma aksesoris (baterai, tas, charger, dll), berarti kameranya tidak tersedia — jawab jujur tidak tersedia, jangan tawarkan aksesoris sebagai pengganti
-- Jika produk yang dicari tidak ada tapi kamu tahu model serupa yang biasa kami jual, boleh sarankan customer cek model itu
-- Jika stok habis, tetap boleh disebut tapi beri tahu stoknya habis`;
+- PENTING: produk di atas akan OTOMATIS ditampilkan sebagai kartu bergambar (foto, harga, link) tepat di bawah jawabanmu. JANGAN tulis link dan JANGAN sebutkan semua harga satu per satu — cukup jawab natural dan singkat, contoh: "Ada kak, ready stock! Ini pilihannya ya 👇"
+- Hanya relevan jika produknya SEJENIS dengan yang dicari customer. Jika customer cari kamera tapi hasil pencarian cuma aksesoris (baterai, tas, charger, dll), berarti kameranya tidak tersedia — jawab jujur tidak tersedia
+- Jika stok habis, beri tahu stoknya habis`,
+      products,
+    };
   } catch (e) {
     console.error('[api.ask] product search failed:', e?.message ?? e);
-    return '';
+    return { contextText: '', products: [] };
   }
 }
 
 export async function action({ request, context }) {
   const body = await request.json();
-  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productCicilan, productHandle, sessionId, conversationId, messages = [], isCustom = false } = body;
+  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productCicilan, productHandle, sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
   const model = getGemini(context, { search: true });
 
-  // Search the store catalog if the customer is asking about other products
-  const storeSearchResults = await searchStoreProducts(context, question, messages);
+  // Search catalog + fetch active vouchers in parallel
+  const [storeSearch, activeVouchers] = await Promise.all([
+    searchStoreProducts(context, question, messages, productTitle ?? ''),
+    getActiveVouchers(context),
+  ]);
+  const storeSearchResults = storeSearch.contextText;
+  const foundProducts = storeSearch.products.length > 0 ? storeSearch.products : undefined;
 
   const systemContext = `${storeKnowledge}
 
@@ -215,15 +269,30 @@ PRODUK YANG SEDANG DILIHAT CUSTOMER:
 - Deskripsi: ${(productDescription ?? '').slice(0, 400)}
 - Spesifikasi: ${(productSpecs ?? '').slice(0, 800)}
 - Isi Paket/Box: ${(productIsiBox ?? '').slice(0, 300)}
+${productFreeBonus ? `- Bonus Gratis KHUSUS produk ini (sedang berlaku, sebutkan ini saat customer tanya bonus/free): ${productFreeBonus.slice(0, 300)}` : ''}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}
 ${storeSearchResults ? `
 INFO PENCARIAN KATALOG TOKO:
 ${storeSearchResults}` : ''}
+${activeVouchers.length > 0 ? `
+KODE VOUCHER AKTIF (khusus order via website):
+${activeVouchers.map(v => `- ${v.code} | diskon ${v.discountType === 'percentage' ? v.discount + '%' : 'Rp' + Number(v.discount).toLocaleString('id-ID')}${v.minPurchase ? ' | min. belanja ' + v.minPurchase : ''}${v.expiryDate ? ' | berlaku s/d ' + v.expiryDate : ''}`).join('\n')}
+- Jika customer berniat order/checkout via WEBSITE (atau setuju saat kamu tawarkan order via website), tawarkan voucher: bilang singkat "aku kasih voucher diskon ya ka 👇" lalu akhiri dengan marker [VOUCHER] persis seperti itu — marker otomatis diganti kartu voucher dengan tombol salin
+- [VOUCHER] WAJIB di posisi PALING AKHIR jawaban — jangan ada kalimat, pertanyaan, atau "|||" apapun setelahnya
+- JANGAN tulis kode voucher di teks jawaban, cukup marker [VOUCHER]
+- Hanya tawarkan jika harga produk memenuhi min. belanja voucher` : ''}
 
 INSTRUKSI:
+- Kamu adalah SALES Galaxy Camera yang ramah dan jago closing — tujuanmu membantu customer sampai terjadi transaksi, bukan cuma menjawab pertanyaan
 - Jawab dalam bahasa Indonesia yang friendly, seperti chat WhatsApp — santai dan natural
 - Panggil customer dengan "ka" atau "kak"
 - WAJIB SINGKAT: maksimal 2-3 kalimat pendek per jawaban. Ini chat, bukan artikel
+- SELALU akhiri jawaban dengan SATU pertanyaan follow-up singkat yang mengarahkan ke transaksi, sesuai konteks. Contoh:
+  * Setelah menunjukkan produk yang dicari → "Rencananya mau ambil langsung di toko atau order via website ka?"
+  * Setelah jawab spesifikasi/perbandingan → "Rencananya buat dipakai apa ka, foto atau video?" (lalu arahkan ke produk yang cocok)
+  * Setelah jawab cicilan → "Mau dibantu hitung tenor lain, atau langsung order ka?"
+  * Setelah jawab garansi/bonus/ongkir → "Ada lagi yang mau ditanyakan, atau mau langsung diproses ka?"
+- Jangan memaksa: jika customer bilang cuma tanya-tanya atau menolak, jawab santai dan tawarkan bantuan lain tanpa mengulang ajakan yang sama
 - JANGAN pakai format markdown (**, *, bullet list, nomor) — tulis kalimat biasa saja karena chat tidak bisa menampilkan format
 - Jika pertanyaan customer luas dan jawabannya punya banyak opsi (contoh: "cara kredit gimana?"), JANGAN jelaskan semua opsi sekaligus. Jawab singkat lalu BALIK BERTANYA untuk mempersempit, contoh: "Bisa ka! Mau cicilan pakai kartu kredit atau tanpa kartu kredit?" Setelah customer pilih, baru jelaskan opsi itu saja dengan estimasi cicilannya dari data produk
 - Jika customer sudah spesifik (contoh: "cicilan Kredivo 12x berapa?"), langsung jawab angka estimasinya dari data produk, singkat
@@ -246,6 +315,13 @@ INSTRUKSI:
   } catch (e) {
     console.error('[api.ask] answer generation failed:', e?.message ?? e);
     answer = 'Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊';
+  }
+
+  // [VOUCHER] marker → strip it and attach voucher cards to the response
+  let responseVouchers;
+  if (answer.includes('[VOUCHER]')) {
+    responseVouchers = activeVouchers.length > 0 ? activeVouchers : undefined;
+    answer = answer.replace(/\s*\[VOUCHER\]\s*/g, ' ').replace(/ +/g, ' ').trim();
   }
 
   // Save conversation to Firestore (for "Tanya Hal Lain" / custom questions)
@@ -309,7 +385,7 @@ INSTRUKSI:
           },
         },
       });
-      return json({ answer, conversationId: newConvId });
+      return json({ answer, conversationId: newConvId, products: foundProducts, vouchers: responseVouchers });
     }
   }
 
@@ -322,5 +398,5 @@ INSTRUKSI:
     }).catch(() => {});
   }
 
-  return json({ answer });
+  return json({ answer, products: foundProducts, vouchers: responseVouchers });
 }

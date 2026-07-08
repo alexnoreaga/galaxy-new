@@ -66,10 +66,82 @@ function renderWithWaLink(text) {
   });
 }
 
+function ProductCard({ product }) {
+  const img = product.image
+    ? `${product.image}${product.image.includes('?') ? '&' : '?'}width=120`
+    : null;
+  return (
+    <a
+      href={`/products/${product.handle}`}
+      className="flex items-center gap-3 bg-white border border-gray-200 hover:border-rose-300 rounded-xl p-2 transition-colors group"
+    >
+      {img ? (
+        <img
+          src={img}
+          alt={product.title}
+          loading="lazy"
+          className="w-14 h-14 rounded-lg object-cover flex-shrink-0 bg-gray-50"
+        />
+      ) : (
+        <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-gray-300">
+            <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+            <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39Z" clipRule="evenodd" />
+          </svg>
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold text-gray-800 leading-snug line-clamp-2">{product.title}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-sm font-bold text-rose-600">Rp{Number(product.price).toLocaleString('id-ID')}</span>
+          {product.available ? (
+            <span className="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Ready</span>
+          ) : (
+            <span className="text-[9px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">Habis</span>
+          )}
+        </div>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-300 group-hover:text-rose-500 flex-shrink-0 transition-colors">
+        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clipRule="evenodd" />
+      </svg>
+    </a>
+  );
+}
+
+function VoucherChatCard({ voucher }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    navigator.clipboard.writeText(voucher.code).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  const discountLabel = voucher.discountType === 'percentage'
+    ? `${voucher.discount}%`
+    : `Rp${Number(voucher.discount).toLocaleString('id-ID')}`;
+  return (
+    <div className="flex items-center justify-between gap-2 bg-rose-50/70 border border-dashed border-rose-300 rounded-xl px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="font-mono text-sm font-bold text-rose-700 tracking-wider">{voucher.code}</p>
+        <p className="text-[10px] text-gray-500 truncate">
+          Diskon {discountLabel}{voucher.minPurchase ? ` • min. ${voucher.minPurchase}` : ''}
+        </p>
+      </div>
+      <button
+        onClick={copy}
+        className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95 ${
+          copied ? 'bg-emerald-500 text-white' : 'bg-rose-600 hover:bg-rose-700 text-white'
+        }`}
+      >
+        {copied ? '✓ Tersalin' : 'Salin'}
+      </button>
+    </div>
+  );
+}
+
 function ChatMessage({ msg }) {
   const isUser = msg.role === 'user';
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
       <div
         className={`max-w-[85%] px-3 py-2.5 text-sm leading-relaxed rounded-2xl ${
           isUser
@@ -79,6 +151,16 @@ function ChatMessage({ msg }) {
       >
         {isUser ? msg.text : renderWithWaLink(msg.text)}
       </div>
+      {!isUser && msg.products?.length > 0 && (
+        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%]">
+          {msg.products.map(p => <ProductCard key={p.handle} product={p} />)}
+        </div>
+      )}
+      {!isUser && msg.vouchers?.length > 0 && (
+        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%]">
+          {msg.vouchers.map(v => <VoucherChatCard key={v.code} voucher={v} />)}
+        </div>
+      )}
     </div>
   );
 }
@@ -105,6 +187,7 @@ export function ProductAIChat({ product, selectedVariant }) {
   const specsRaw = product?.metafields?.[5]?.value ?? '';
   const specs = specsRaw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const isiBox = product?.metafields?.[2]?.value ?? '';
+  const freeBonus = product?.metafields?.[1]?.value ?? '';
 
   // Compute cicilan estimates using same rates as the product page
   const productCicilan = (() => {
@@ -188,6 +271,7 @@ export function ProductAIChat({ product, selectedVariant }) {
           productDescription: description,
           productSpecs: specs,
           productIsiBox: isiBox,
+          productFreeBonus: freeBonus,
           productCicilan,
           productHandle: handle,
           sessionId: getSessionId(),
@@ -199,7 +283,16 @@ export function ProductAIChat({ product, selectedVariant }) {
       const data = await res.json();
       if (data.conversationId) setConversationId(data.conversationId);
       const parts = (data.answer ?? '').split('|||').map(s => s.trim()).filter(Boolean);
-      setMessages(prev => [...prev, ...parts.map(text => ({ role: 'ai', text }))]);
+      setMessages(prev => [
+        ...prev,
+        ...parts.map((text, idx) => ({
+          role: 'ai',
+          text,
+          // Attach product/voucher cards to the last bubble only
+          products: idx === parts.length - 1 ? data.products ?? null : null,
+          vouchers: idx === parts.length - 1 ? data.vouchers ?? null : null,
+        })),
+      ]);
     } catch {
       setMessages(prev => [...prev, { role: 'ai', text: 'Maaf ka, ada gangguan. Silakan coba lagi 😊' }]);
     } finally {
