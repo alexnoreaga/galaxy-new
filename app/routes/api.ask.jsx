@@ -129,9 +129,9 @@ Contoh format: ["Apakah ada garansi resmi?","Bisa cicilan berapa bulan?","Apa ya
 // ── POST — answer a question or continue conversation ────────────────────────
 
 const PRODUCT_SEARCH_QUERY = `#graphql
-query searchProducts($query: String!, $first: Int!) {
-  products(first: $first, query: $query) {
-    nodes {
+query askPredictiveSearch($searchTerm: String!) {
+  predictiveSearch(limit: 5, limitScope: EACH, query: $searchTerm, types: [PRODUCT]) {
+    products {
       title
       handle
       availableForSale
@@ -166,9 +166,9 @@ Output:`;
     console.log('[api.ask] product search keyword:', keyword);
 
     const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
-      variables: { query: keyword, first: 5 },
+      variables: { searchTerm: keyword },
     });
-    const items = data?.products?.nodes ?? [];
+    const items = data?.predictiveSearch?.products ?? [];
 
     if (items.length === 0) {
       return `Customer mencari "${keyword}" tapi produk ini TIDAK DITEMUKAN di katalog toko — kemungkinan kami tidak menjualnya atau sudah tidak tersedia.
