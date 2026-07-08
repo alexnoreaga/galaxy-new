@@ -208,9 +208,11 @@ async function searchStoreProducts(context, question, messages, currentProduct =
   try {
     const router = getGemini(context, { search: false, temperature: 0 });
     const recentHistory = messages.slice(-2).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
-    const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Tugasmu HANYA menentukan apakah customer menanyakan ketersediaan, harga, atau rekomendasi suatu produk (kamera, lensa, drone, aksesoris, dll). Jika ya, output kata kunci pencarian produknya (2-5 kata). Jika tidak, output: NO
+    const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Tugasmu HANYA menentukan apakah customer menanyakan KETERSEDIAAN, harga, atau rekomendasi suatu produk (kamera, lensa, drone, aksesoris, dll). Jika ya, output kata kunci pencarian produknya (2-5 kata). Jika tidak, output: NO
 
 Jika customer menyebut "baterainya", "chargernya", "lensanya", "tasnya" dll yang merujuk ke produk yang sedang dilihat, gunakan pengetahuanmu tentang aksesoris yang kompatibel — sebutkan model spesifiknya (contoh: baterai Sony A6400 = NP-FW50, baterai Canon EOS RP = LP-E17).
+
+PENTING: pertanyaan PERBANDINGAN atau opini ("bedanya apa", "bagusan mana", "vs", "lebih worth it mana", "mending mana") BUKAN pencarian produk → output NO. Customer tidak sedang mencari barang, dia minta penjelasan.
 
 Contoh:
 - "Ada sony a6400 ga" → Sony A6400
@@ -220,6 +222,9 @@ Contoh:
 - (halaman Canon EOS RP) "chargernya ada?" → charger LP-E17
 - (halaman Sony A6400) "ada lensa tele buat kamera ini?" → lensa tele Sony E-mount
 - "Rekomendasi drone buat pemula dong" → drone DJI
+- "bedanya sama a6400 apa min" → NO
+- "bagusan mana sama x-s20?" → NO
+- "mending ini atau zv-e10?" → NO
 - "Jam buka toko?" → NO
 - "Bisa cicilan ga?" → NO
 - "Kamera ini bagus buat vlog?" → NO
