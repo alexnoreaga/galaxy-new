@@ -65,7 +65,7 @@ function readFsArray(field) {
 
 // ── Gemini helper ─────────────────────────────────────────────────────────────
 
-function getGemini(context, { search = false } = {}) {
+function getGemini(context, { search = false, temperature } = {}) {
   const apiKey =
     context?.env?.GEMINI_API_KEY ??
     (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
@@ -74,6 +74,7 @@ function getGemini(context, { search = false } = {}) {
   return genAI.getGenerativeModel({
     model: 'gemini-2.5-flash',
     ...(search ? { tools: [{ googleSearch: {} }] } : {}),
+    ...(temperature !== undefined ? { generationConfig: { temperature } } : {}),
   });
 }
 
@@ -142,30 +143,53 @@ query searchProducts($query: String!, $first: Int!) {
 // Detect whether the customer is asking about other products, and search the store catalog
 async function searchStoreProducts(context, question, messages) {
   try {
-    const router = getGemini(context, { search: false });
+    const router = getGemini(context, { search: false, temperature: 0 });
     const recentHistory = messages.slice(-2).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
-    const routerPrompt = `Kamu adalah router untuk toko kamera online.
-${recentHistory ? `Percakapan terakhir:\n${recentHistory}\n` : ''}
+    const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Tugasmu HANYA menentukan apakah customer menanyakan ketersediaan, harga, atau rekomendasi suatu produk (kamera, lensa, drone, aksesoris, dll). Jika ya, output kata kunci pencarian produknya (2-5 kata). Jika tidak, output: NO
+
+Contoh:
+- "Ada sony a6400 ga" → Sony A6400
+- "Kalau sony a6700 ada?" → Sony A6700
+- "Punya lensa buat sony ga?" → lensa Sony
+- "Rekomendasi drone buat pemula dong" → drone DJI
+- "Jam buka toko?" → NO
+- "Bisa cicilan ga?" → NO
+- "Kamera ini bagus buat vlog?" → NO
+${recentHistory ? `\nPercakapan terakhir:\n${recentHistory}\n` : ''}
 Pertanyaan customer: "${question}"
 
-Apakah customer menanyakan ketersediaan, harga, atau rekomendasi produk LAIN di toko (kamera, lensa, drone, aksesoris, dll)? Jika ya, jawab HANYA kata kunci pencarian produknya dalam 2-5 kata (contoh: "Sony A6700" atau "lensa Sony e-mount"). Jika tidak, jawab HANYA: NO`;
+Output:`;
 
     const routerRes = await router.generateContent(routerPrompt);
     const keyword = routerRes.response.text().trim().replace(/^["']|["']$/g, '');
     if (!keyword || keyword.toUpperCase() === 'NO' || keyword.length > 60) return '';
+    console.log('[api.ask] product search keyword:', keyword);
 
     const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
       variables: { query: keyword, first: 5 },
     });
     const items = data?.products?.nodes ?? [];
-    if (items.length === 0) return '';
 
-    return items
+    if (items.length === 0) {
+      return `Customer mencari "${keyword}" tapi produk ini TIDAK DITEMUKAN di katalog toko — kemungkinan kami tidak menjualnya atau sudah tidak tersedia.
+- Jawab jujur bahwa produk itu sepertinya tidak tersedia di toko kami
+- Jika kamu tahu produk serupa yang umum kami jual (lihat daftar kategori produk di atas), tawarkan sebagai alternatif
+- Sarankan konfirmasi ke admin di 0821-1131-1131 untuk memastikan`;
+    }
+
+    const list = items
       .map(p => {
         const price = Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0));
         return `- ${p.title} | Rp${price.toLocaleString('id-ID')} | ${p.availableForSale ? 'Ready stock' : 'Stok habis'} | https://www.galaxy.co.id/products/${p.handle}`;
       })
       .join('\n');
+
+    return `Hasil pencarian katalog toko untuk "${keyword}":
+${list}
+- Gunakan data ini untuk menjawab. Sebutkan maksimal 2-3 produk paling relevan beserta harga dan link-nya (tulis link apa adanya, jangan pakai format markdown)
+- PENTING: hanya tawarkan produk yang SEJENIS dengan yang dicari customer. Jika customer cari kamera tapi hasil pencarian cuma aksesoris (baterai, tas, charger, dll), berarti kameranya tidak tersedia — jawab jujur tidak tersedia, jangan tawarkan aksesoris sebagai pengganti
+- Jika produk yang dicari tidak ada tapi kamu tahu model serupa yang biasa kami jual, boleh sarankan customer cek model itu
+- Jika stok habis, tetap boleh disebut tapi beri tahu stoknya habis`;
   } catch (e) {
     console.error('[api.ask] product search failed:', e?.message ?? e);
     return '';
@@ -193,10 +217,8 @@ PRODUK YANG SEDANG DILIHAT CUSTOMER:
 - Isi Paket/Box: ${(productIsiBox ?? '').slice(0, 300)}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}
 ${storeSearchResults ? `
-HASIL PENCARIAN PRODUK DI TOKO (relevan dengan pertanyaan customer):
-${storeSearchResults}
-- Gunakan data ini untuk menjawab. Sebutkan maksimal 2-3 produk paling relevan beserta harga dan link-nya (tulis link apa adanya, jangan pakai format markdown)
-- Jika stok habis, tetap boleh disebut tapi beri tahu stoknya habis` : ''}
+INFO PENCARIAN KATALOG TOKO:
+${storeSearchResults}` : ''}
 
 INSTRUKSI:
 - Jawab dalam bahasa Indonesia yang friendly, seperti chat WhatsApp — santai dan natural

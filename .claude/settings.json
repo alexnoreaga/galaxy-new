@@ -8,7 +8,13 @@
       "PowerShell(Get-NetTCPConnection -State Listen*)",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Ada kamera Sony A6700 ga ka?\",\"productTitle\":\"Fujifilm X-S20 Kit 15-45mm\",\"productPrice\":\"Rp18.999.000\",\"isCustom\":false}')",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Jam buka toko?\",\"productTitle\":\"Fujifilm X-S20\",\"isCustom\":false}')",
-      "Bash(curl -s -m 90 \"http://localhost:3000/api/ask?handle=verify-final-test&title=Canon%20R50%20Kit&description=kamera%20mirrorless%20pemula\")"
+      "Bash(curl -s -m 90 \"http://localhost:3000/api/ask?handle=verify-final-test&title=Canon%20R50%20Kit&description=kamera%20mirrorless%20pemula\")",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Ada sony a6400 ga\",\"productTitle\":\"Canon EOS RP Kit RF 24-105mm\",\"isCustom\":false}')",
+      "Bash(node \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Desktop-shopify-final-galaxy\\\\9c446e58-66d7-4299-a4f0-c38bad365353\\\\scratchpad\\\\test-search.mjs\")",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Kalau sony a6700 ada?\",\"productTitle\":\"Canon EOS RP Kit RF 24-105mm\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Kalau sony a6700 ada?\",\"productTitle\":\"Canon EOS RP\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Ada sony a6400 ga\",\"productTitle\":\"Canon EOS RP\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Bisa cicilan ga?\",\"productTitle\":\"Canon EOS RP\",\"productPrice\":\"Rp21.999.000\",\"isCustom\":false}')"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
