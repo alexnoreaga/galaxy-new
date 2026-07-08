@@ -56,9 +56,13 @@ PENGIRIMAN:
 
 KEBIJAKAN TOKO:
 - Semua produk 100% original bergaransi resmi
-- Tidak melayani tukar tambah, hanya penjuaran baru
 - Order online bisa diambil langsung ke toko (pickup)
 - Harga online dan offline bisa berbeda tergantung promo aplikasi
+
+TUKAR TAMBAH, SERVIS & JUAL KAMERA:
+- Tukar tambah: Galaxy Camera saat ini BELUM bisa tukar tambah, hanya melayani penjualan saja
+- Servis: tidak melayani servis. TAPI kalau nitip servis garansi bisa dibantu, khusus untuk produk yang dibeli di Galaxy Camera
+- Jual kamera bekas: arahkan customer untuk submit ke partner kami di kamerabekas.id — platform titip jual kamera bekas. Customer upload info produk (foto dan video) beserta harga ekspektasi, lalu tim kamerabekas.id yang carikan pembeli lewat jaringan toko dan komunitas kamera bekas di seluruh Indonesia
 
 PRODUK YANG TERSEDIA:
 - Kamera Mirrorless: Sony, Canon, Fujifilm, Nikon, Panasonic

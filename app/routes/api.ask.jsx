@@ -127,6 +127,51 @@ Contoh format: ["Apakah ada garansi resmi?","Bisa cicilan berapa bulan?","Apa ya
 
 // ── POST — answer a question or continue conversation ────────────────────────
 
+const PRODUCT_SEARCH_QUERY = `#graphql
+query searchProducts($query: String!, $first: Int!) {
+  products(first: $first, query: $query) {
+    nodes {
+      title
+      handle
+      availableForSale
+      priceRange { minVariantPrice { amount } }
+    }
+  }
+}`;
+
+// Detect whether the customer is asking about other products, and search the store catalog
+async function searchStoreProducts(context, question, messages) {
+  try {
+    const router = getGemini(context, { search: false });
+    const recentHistory = messages.slice(-2).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
+    const routerPrompt = `Kamu adalah router untuk toko kamera online.
+${recentHistory ? `Percakapan terakhir:\n${recentHistory}\n` : ''}
+Pertanyaan customer: "${question}"
+
+Apakah customer menanyakan ketersediaan, harga, atau rekomendasi produk LAIN di toko (kamera, lensa, drone, aksesoris, dll)? Jika ya, jawab HANYA kata kunci pencarian produknya dalam 2-5 kata (contoh: "Sony A6700" atau "lensa Sony e-mount"). Jika tidak, jawab HANYA: NO`;
+
+    const routerRes = await router.generateContent(routerPrompt);
+    const keyword = routerRes.response.text().trim().replace(/^["']|["']$/g, '');
+    if (!keyword || keyword.toUpperCase() === 'NO' || keyword.length > 60) return '';
+
+    const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
+      variables: { query: keyword, first: 5 },
+    });
+    const items = data?.products?.nodes ?? [];
+    if (items.length === 0) return '';
+
+    return items
+      .map(p => {
+        const price = Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0));
+        return `- ${p.title} | Rp${price.toLocaleString('id-ID')} | ${p.availableForSale ? 'Ready stock' : 'Stok habis'} | https://www.galaxy.co.id/products/${p.handle}`;
+      })
+      .join('\n');
+  } catch (e) {
+    console.error('[api.ask] product search failed:', e?.message ?? e);
+    return '';
+  }
+}
+
 export async function action({ request, context }) {
   const body = await request.json();
   const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productCicilan, productHandle, sessionId, conversationId, messages = [], isCustom = false } = body;
@@ -134,6 +179,9 @@ export async function action({ request, context }) {
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
   const model = getGemini(context, { search: true });
+
+  // Search the store catalog if the customer is asking about other products
+  const storeSearchResults = await searchStoreProducts(context, question, messages);
 
   const systemContext = `${storeKnowledge}
 
@@ -144,6 +192,11 @@ PRODUK YANG SEDANG DILIHAT CUSTOMER:
 - Spesifikasi: ${(productSpecs ?? '').slice(0, 800)}
 - Isi Paket/Box: ${(productIsiBox ?? '').slice(0, 300)}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}
+${storeSearchResults ? `
+HASIL PENCARIAN PRODUK DI TOKO (relevan dengan pertanyaan customer):
+${storeSearchResults}
+- Gunakan data ini untuk menjawab. Sebutkan maksimal 2-3 produk paling relevan beserta harga dan link-nya (tulis link apa adanya, jangan pakai format markdown)
+- Jika stok habis, tetap boleh disebut tapi beri tahu stoknya habis` : ''}
 
 INSTRUKSI:
 - Jawab dalam bahasa Indonesia yang friendly, seperti chat WhatsApp — santai dan natural

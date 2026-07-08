@@ -24,26 +24,46 @@ function TypingIndicator() {
 }
 
 const WA_NUMBER = '6281113111131';
-const PHONE_RE = /(\b0821[-\s]?1131[-\s]?1131\b)/g;
+// Split on phone number OR http(s) URLs so both become clickable
+const LINK_SPLIT_RE = /(0821[-\s]?1131[-\s]?1131|https?:\/\/[^\s]+)/g;
 
 function renderWithWaLink(text) {
-  const parts = text.split(PHONE_RE);
-  return parts.map((part, i) =>
-    PHONE_RE.test(part) ? (
-      <a
-        key={i}
-        href={`https://wa.me/${WA_NUMBER}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="font-semibold underline underline-offset-2 text-rose-600 hover:text-rose-700"
-        onClick={e => e.stopPropagation()}
-      >
-        {part}
-      </a>
-    ) : (
-      <span key={i}>{part}</span>
-    )
-  );
+  const parts = text.split(LINK_SPLIT_RE);
+  return parts.map((part, i) => {
+    if (/^0821[-\s]?1131[-\s]?1131$/.test(part)) {
+      return (
+        <a
+          key={i}
+          href={`https://wa.me/${WA_NUMBER}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold underline underline-offset-2 text-rose-600 hover:text-rose-700"
+          onClick={e => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    if (/^https?:\/\//.test(part)) {
+      const url = part.replace(/[.,!?)]+$/, ''); // strip trailing punctuation
+      const trail = part.slice(url.length);
+      return (
+        <span key={i}>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline underline-offset-2 text-rose-600 hover:text-rose-700 break-all"
+            onClick={e => e.stopPropagation()}
+          >
+            {url.replace(/^https?:\/\/(www\.)?/, '')}
+          </a>
+          {trail}
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
 }
 
 function ChatMessage({ msg }) {
