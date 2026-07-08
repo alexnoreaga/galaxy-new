@@ -189,6 +189,15 @@ export function ProductAIChat({ product, selectedVariant }) {
   const isiBox = product?.metafields?.[2]?.value ?? '';
   const freeBonus = product?.metafields?.[1]?.value ?? '';
 
+  // Nego offer: extra 3% off, computed here so the AI never does math itself
+  const negoInfo = (() => {
+    const harga = Number(parseFloat(selectedVariant?.price?.amount ?? 0));
+    if (!harga) return '';
+    const potongan = Math.round(harga * 0.03);
+    const hargaNego = Math.floor((harga - potongan) / 1000) * 1000;
+    return `Harga normal: Rp${harga.toLocaleString('id-ID')} | Potongan tambahan 3%: Rp${potongan.toLocaleString('id-ID')} | HARGA SPESIAL NEGO: Rp${hargaNego.toLocaleString('id-ID')}`;
+  })();
+
   // Compute cicilan estimates using same rates as the product page
   const productCicilan = (() => {
     const harga = Number(parseFloat(selectedVariant?.price?.amount ?? 0));
@@ -273,6 +282,7 @@ export function ProductAIChat({ product, selectedVariant }) {
           productIsiBox: isiBox,
           productFreeBonus: freeBonus,
           productCicilan,
+          productNego: negoInfo,
           productHandle: handle,
           sessionId: getSessionId(),
           conversationId,

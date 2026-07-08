@@ -213,6 +213,7 @@ async function searchStoreProducts(context, question, messages, currentProduct =
 Jika customer menyebut "baterainya", "chargernya", "lensanya", "tasnya" dll yang merujuk ke produk yang sedang dilihat, gunakan pengetahuanmu tentang aksesoris yang kompatibel — sebutkan model spesifiknya (contoh: baterai Sony A6400 = NP-FW50, baterai Canon EOS RP = LP-E17).
 
 PENTING: pertanyaan PERBANDINGAN atau opini ("bedanya apa", "bagusan mana", "vs", "lebih worth it mana", "mending mana") BUKAN pencarian produk → output NO. Customer tidak sedang mencari barang, dia minta penjelasan.
+PENTING: pertanyaan tentang harga/nego/diskon/cicilan produk YANG SEDANG DILIHAT ("harganya berapa", "bisa kurang ga", "bisa nego?") juga BUKAN pencarian → output NO. Data harga produk itu sudah tersedia.
 
 Contoh:
 - "Ada sony a6400 ga" → Sony A6400
@@ -225,6 +226,8 @@ Contoh:
 - "bedanya sama a6400 apa min" → NO
 - "bagusan mana sama x-s20?" → NO
 - "mending ini atau zv-e10?" → NO
+- "harganya berapa ya?" → NO
+- "harga bisa kurang ga min?" → NO
 - "Jam buka toko?" → NO
 - "Bisa cicilan ga?" → NO
 - "Kamera ini bagus buat vlog?" → NO
@@ -283,7 +286,7 @@ ${list}
 
 export async function action({ request, context }) {
   const body = await request.json();
-  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productCicilan, productHandle, sessionId, conversationId, messages = [], isCustom = false } = body;
+  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productCicilan, productNego, productHandle, sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
@@ -338,6 +341,13 @@ PRODUK YANG SEDANG DILIHAT CUSTOMER:
 - Isi Paket/Box: ${(productIsiBox ?? '').slice(0, 300)}
 ${productFreeBonus ? `- Bonus Gratis KHUSUS produk ini (sedang berlaku, sebutkan ini saat customer tanya bonus/free): ${productFreeBonus.slice(0, 300)}` : ''}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}
+${productNego ? `
+PENAWARAN NEGO UNTUK PRODUK INI (gunakan HANYA saat customer minta nego/potongan/harga kurang/best price):
+- ${productNego}
+- Syarat: harga spesial ini KHUSUS pembelian langsung di toko (debit, cash, atau transfer) ATAU order manual via WhatsApp admin di 0821-1131-1131
+- Saat customer minta nego: langsung tawarkan harga spesial ini, sebut nominal harga setelah potongan, dan jelaskan syaratnya
+- JANGAN kasih potongan lebih besar dari ini. Jika customer minta lebih murah lagi, arahkan nego lanjut ke admin di 0821-1131-1131
+- Jangan tawarkan harga nego ini kalau customer tidak minta nego` : ''}
 ${storeSearchResults ? `
 INFO PENCARIAN KATALOG TOKO:
 ${storeSearchResults}` : ''}
