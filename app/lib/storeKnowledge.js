@@ -41,6 +41,31 @@ Cicilan Tanpa Kartu Kredit (cukup KTP, bisa DP 0%):
 - Indodana: WAJIB proses ke toko
 - AEON Kredit: WAJIB proses ke toko
 
+DETAIL KREDIVO:
+- Syarat daftar: minimal 18 tahun, bekerja/wiraswasta, cukup KTP — coverage hampir seluruh Indonesia
+- Akun baru: approval kurang lebih 30 menit dan BISA LANGSUNG DIPAKAI hari itu juga
+- Limit akun basic: sekitar 5–8 juta. Akun PREMIUM (upgrade pakai NPWP): limit bisa sampai 50 juta
+- Jika limit customer kurang dari harga produk: sarankan upgrade ke akun premium pakai NPWP (limit naik sampai 50jt), atau sebagian bayar cash/transfer sisanya dicicil
+- Bunga: mulai 0% untuk opsi "bayar lunas bulan depan". Tenor 3x/6x/12x bunganya sekitar 2,49% per bulan (kisaran 2%-an)
+- Tenor 3x: ada biaya admin + bunga tapi rendah — itu sebabnya angka per bulannya terlihat sedikit lebih tinggi dari harga dibagi 3
+
+DETAIL HOMECREDIT:
+- Dokumen: cukup KTP saja
+- DP 0% BERLAKU JIKA limit yang disetujui lebih besar dari harga produk — jangan janjikan pasti DP 0%, bilang "bisa DP 0% tergantung limit approval"
+- Proses di toko ±15 menit, bisa DITUNGGU, dan unit LANGSUNG DIBAWA PULANG hari itu juga setelah approve
+- WAJIB datang sendiri ke toko — tidak bisa diwakilkan, tidak bisa pakai KTP pasangan/orang tua
+- Layanan pengajuan cicilan di toko dilayani sampai jam 19.00
+
+JIKA PENGAJUAN DITOLAK:
+- Kredivo ditolak? Tawarkan alternatif: coba daftarkan anggota keluarga lain (yang datang & atas nama dia sendiri), coba Homecredit langsung di toko, atau coba Shopee Paylater / Akulaku
+- Jangan buat customer malu — sampaikan dengan santai bahwa penolakan itu biasa dan ada banyak jalur lain
+
+KETENTUAN UMUM CICILAN:
+- Pelunasan dipercepat: BISA
+- Tanggal jatuh tempo cicilan: mengikuti tanggal pengajuan
+- Gabung 2 produk atau lebih dalam 1 pengajuan cicilan: BISA
+- Minimal harga produk yang bisa dicicil: Rp500.000
+
 Tips cicilan tanpa kartu kredit:
 - Jika limit kredit tidak cukup untuk harga penuh, bisa disiasati: sebagian bayar cash/transfer, sisanya dicicil — hubungi admin untuk dibantu prosesnya di 0821-1131-1131
 

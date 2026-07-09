@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaWhatsapp, FaTiktok, FaYoutube, FaLocationDot, FaCameraRetro, FaBuilding, FaGlobe, FaChevronRight } from 'react-icons/fa6';
+import { FaWhatsapp, FaTiktok, FaYoutube, FaLocationDot, FaCameraRetro, FaBuilding, FaChevronRight } from 'react-icons/fa6';
 import {
   getSessionId,
   trackEvent,
@@ -23,7 +23,7 @@ const LINK_GROUPS = [
   {
     label: 'Belanja Online',
     links: [
-      { name: 'Website Resmi galaxy.co.id', href: '/', icon: <FaGlobe className="text-rose-600" />, iconBg: 'bg-rose-50' },
+      { name: 'Website Resmi Galaxy.co.id', href: '/', icon: <img src="/favicon-96x96.png" alt="" className="w-6 h-6 object-contain" />, iconBg: 'bg-white', featured: true },
       { name: 'Tokopedia', href: 'https://www.tokopedia.com/galaxycamera', badge: 'T', badgeColor: '#03ac0e' },
       { name: 'Shopee', href: 'https://shopee.co.id/galaxycamera', badge: 'S', badgeColor: '#ee4d2d' },
       { name: 'Blibli', href: 'https://www.blibli.com/merchant/galaxy-camera-flagship-store/GAC-49845', badge: 'B', badgeColor: '#0095da' },
@@ -279,7 +279,11 @@ export default function Bio() {
                   target={link.href.startsWith('http') ? '_blank' : undefined}
                   rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                   onClick={() => trackEvent('bio_link_clicked', '', link.name)}
-                  className="flex items-center gap-3 bg-white border border-gray-200 hover:border-rose-300 hover:shadow-md rounded-xl px-3.5 py-3 transition-all group"
+                  className={`flex items-center gap-3 rounded-xl px-3.5 py-3 transition-all group ${
+                    link.featured
+                      ? 'bg-rose-50 border-2 border-rose-300 hover:border-rose-500 hover:shadow-lg hover:shadow-rose-100'
+                      : 'bg-white border border-gray-200 hover:border-rose-300 hover:shadow-md'
+                  }`}
                 >
                   {link.badge ? (
                     <span
@@ -289,12 +293,17 @@ export default function Bio() {
                       {link.badge}
                     </span>
                   ) : (
-                    <span className={`w-9 h-9 rounded-full ${link.iconBg} flex items-center justify-center text-base flex-shrink-0`}>
+                    <span className={`w-9 h-9 rounded-full ${link.iconBg} flex items-center justify-center text-base flex-shrink-0 ${link.featured ? 'shadow-sm' : ''}`}>
                       {link.icon}
                     </span>
                   )}
-                  <span className="flex-1 text-sm font-semibold text-gray-800 leading-snug">{link.name}</span>
-                  <FaChevronRight className="text-gray-300 group-hover:text-rose-400 text-xs flex-shrink-0 transition-colors" />
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold text-gray-800 leading-snug">{link.name}</span>
+                    {link.featured && (
+                      <span className="block text-[11px] text-rose-600 font-medium mt-0.5">Ada voucher tambahan khusus website 🎟️</span>
+                    )}
+                  </span>
+                  <FaChevronRight className={`text-xs flex-shrink-0 transition-colors ${link.featured ? 'text-rose-400 group-hover:text-rose-600' : 'text-gray-300 group-hover:text-rose-400'}`} />
                 </a>
               ))}
             </div>

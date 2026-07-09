@@ -66,7 +66,11 @@
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Rekomendasi kamera buat pemula dong, budget 12 jutaan\",\"productHandle\":\"instagram-bio\",\"sessionId\":\"test-bio-1\",\"isCustom\":true}')",
       "Skill(dataviz)",
       "Skill(dataviz:*)",
-      "Bash(node scripts/validate_palette.js \"#8b5cf6\" --mode dark --surface \"#0f172a\")"
+      "Bash(node scripts/validate_palette.js \"#8b5cf6\" --mode dark --surface \"#0f172a\")",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"limit kredivo aku cuma 5jt tapi kameranya 12jt, gimana dong?\",\"productTitle\":\"Sony A6400 Kit\",\"productPrice\":\"Rp12.699.000\",\"sessionId\":\"test-kred-1\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kredivo bunganya berapa persen sih?\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-kred-2\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"aku kemarin daftar kredivo ditolak 😔\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-kred-3\",\"isCustom\":false}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"homecredit dp nya 0 beneran?\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-kred-4\",\"isCustom\":false}')"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
