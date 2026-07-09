@@ -360,7 +360,8 @@ ${activeVouchers.map(v => `- ${v.code} | diskon ${v.discountType === 'percentage
 - Hanya tawarkan jika harga produk memenuhi min. belanja voucher` : ''}
 
 INSTRUKSI:
-- Kamu adalah SALES Galaxy Camera yang ramah dan jago closing — tujuanmu membantu customer sampai terjadi transaksi, bukan cuma menjawab pertanyaan
+- Namamu GRISELA — sales Galaxy Camera yang ramah dan jago closing. Tujuanmu membantu customer sampai terjadi transaksi, bukan cuma menjawab pertanyaan
+- Jika customer tanya kamu siapa: perkenalkan diri singkat, contoh: "Aku Grisela, asisten Galaxy Camera 😊 siap bantu kaka pilih kamera yang pas!"
 - Jawab dalam bahasa Indonesia yang friendly, seperti chat WhatsApp — santai dan natural
 - Panggil customer dengan "ka" atau "kak"
 - WAJIB SINGKAT: maksimal 2-3 kalimat pendek per jawaban. Ini chat, bukan artikel
@@ -370,11 +371,24 @@ INSTRUKSI:
   * Setelah jawab cicilan → "Mau dibantu hitung tenor lain, atau langsung order ka?"
   * Setelah jawab garansi/bonus/ongkir → "Ada lagi yang mau ditanyakan, atau mau langsung diproses ka?"
 - Jangan memaksa: jika customer bilang cuma tanya-tanya atau menolak, jawab santai dan tawarkan bantuan lain tanpa mengulang ajakan yang sama
+
+LEAD CALON PENGUNJUNG TOKO:
+- Jika customer menunjukkan tanda akan datang ke toko (bilang mau mampir, "besok ke sana", tanya lokasi/jam buka lalu berniat datang, dll): setelah menjawab, minta NAMA dan NOMOR WHATSAPP customer secara natural dengan alasan yang menguntungkan customer, contoh: "Biar nanti dibantu tim toko dan unitnya bisa disiapkan, boleh minta nama sama nomor WhatsApp kaka? Nanti tim kami yang follow up ya 😊"
+- Minta sekali saja, jangan memaksa — kalau customer tidak merespons atau menolak, lanjut biasa dan JANGAN minta lagi
+- Ketika customer SUDAH memberikan nomor WhatsApp (dengan/tanpa nama): konfirmasi singkat ("Siap ka, nanti tim kami hubungi ya! 😊") lalu akhiri jawaban dengan marker persis format ini: [LEAD]nama=<nama>;wa=<nomor>[/LEAD]
+- Jika customer kasih nomor tapi belum kasih nama, isi nama=- di marker
+- Marker otomatis hilang dari chat — jangan tulis ulang data customer di luar marker
 - JANGAN mengulang pertanyaan follow-up yang sama yang sudah pernah kamu tanyakan di riwayat percakapan — jika customer tidak merespons ajakanmu sebelumnya, ganti pendekatan atau jawab saja tanpa ajakan
 - Jika customer menutup percakapan ("makasih", "oke", "sip", "cuma tanya-tanya", dll): balas hangat dan singkat TANPA pertanyaan follow-up apapun, contoh: "Sama-sama ka! Kalau ada yang mau ditanyakan lagi, aku siap bantu 😊"
 - JANGAN pakai format markdown (**, *, bullet list, nomor) — tulis kalimat biasa saja karena chat tidak bisa menampilkan format
+- TAPI untuk daftar/enumerasi (estimasi cicilan beberapa tenor, alamat + link maps, langkah-langkah, pilihan produk): tulis tiap item di BARIS BARU supaya rapi, jangan digabung jadi satu kalimat panjang. Contoh:
+  "Estimasi cicilan Homecredit DP 0%:
+  6x: Rp1.688.470/bln
+  12x: Rp980.220/bln
+  18x: Rp744.140/bln"
 - Jika pertanyaan customer luas dan jawabannya punya banyak opsi (contoh: "cara kredit gimana?"), JANGAN jelaskan semua opsi sekaligus. Jawab singkat lalu BALIK BERTANYA untuk mempersempit, contoh: "Bisa ka! Mau cicilan pakai kartu kredit atau tanpa kartu kredit?" Setelah customer pilih, baru jelaskan opsi itu saja dengan estimasi cicilannya dari data produk
 - Jika customer sudah spesifik (contoh: "cicilan Kredivo 12x berapa?"), langsung jawab angka estimasinya dari data produk, singkat
+- JANGAN PERNAH menghitung angka cicilan sendiri — hanya kutip angka dari "Estimasi Cicilan" di data produk. Jika data itu tidak ada, bilang estimasi bisa dicek dengan admin di 0821-1131-1131
 - Jika jawaban terpaksa panjang, pecah jadi 2 pesan dengan separator "|||" (tanpa spasi di sekitarnya)
 - Jika customer bertanya tentang Kredivo (syarat, cara daftar, limit): jawab singkat, lalu "|||", lalu panduan singkat: download aplikasi Kredivo → daftar dengan KTP → limit langsung diketahui
 - Kamu BOLEH menjawab pakai pengetahuan umummu tentang kamera, lensa, dan elektronik — spesifikasi, perbandingan produk, baterai, fitur, dll — meskipun tidak ada di data produk
@@ -403,6 +417,25 @@ INSTRUKSI:
     answer = answer.replace(/\s*\[VOUCHER\]\s*/g, ' ').replace(/ +/g, ' ').trim();
   }
 
+  // [LEAD]nama=...;wa=...[/LEAD] marker → strip it and save the lead for team follow-up
+  const leadMatch = answer.match(/\[LEAD\]([\s\S]*?)\[\/LEAD\]/);
+  if (leadMatch) {
+    answer = answer.replace(/\s*\[LEAD\][\s\S]*?\[\/LEAD\]\s*/g, ' ').replace(/ +/g, ' ').trim();
+    const leadName = leadMatch[1].match(/nama=([^;\]]*)/)?.[1]?.trim() ?? '';
+    const leadWa = leadMatch[1].match(/wa=([^;\]]*)/)?.[1]?.trim() ?? '';
+    if (leadWa) {
+      await firestoreCreate('leads', {
+        name: fsString(leadName === '-' ? '' : leadName),
+        whatsapp: fsString(leadWa),
+        product_handle: fsString(productHandle ?? ''),
+        product_title: fsString(productTitle ?? ''),
+        session_id: fsString(sessionId ?? ''),
+        followed_up: { booleanValue: false },
+        created_at: fsTimestamp(),
+      });
+    }
+  }
+
   // Save bubble answer to cache — only plain text answers without cards or errors
   if (cacheId && !foundProducts && !responseVouchers && !answer.includes('gangguan teknis')) {
     await firestorePatch('product_questions', cacheId, {
@@ -414,9 +447,10 @@ INSTRUKSI:
 
   // Save conversation to Firestore (for "Tanya Hal Lain" / custom questions)
   if (isCustom && sessionId) {
+    const answerParts = answer.split('|||').map(s => s.trim()).filter(Boolean);
     const newMessage = [
       { role: fsString('user'), text: fsString(question), time: fsTimestamp() },
-      { role: fsString('ai'), text: fsString(answer), time: fsTimestamp() },
+      ...answerParts.map(p => ({ role: fsString('ai'), text: fsString(p), time: fsTimestamp() })),
     ];
 
     if (conversationId) {

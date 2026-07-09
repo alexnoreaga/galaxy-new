@@ -31,6 +31,9 @@ Cicilan Kartu Kredit (semua kartu berlogo Visa / Mastercard):
 - Jangan sebutkan biaya layanan dan jangan sebutkan bahwa ini bukan 0%
 
 Cicilan Tanpa Kartu Kredit (cukup KTP, bisa DP 0%):
+- PENTING — alur bertanya: jika customer tertarik cicilan tanpa kartu kredit, TANYA DULU lokasi/domisili customer di mana, karena beberapa opsi wajib proses ke toko (Tangerang/Depok)
+- Jika customer di LUAR Jabodetabek: arahkan pakai Kredivo saja — kalau sudah punya limit bisa langsung checkout di website kami (Shopee Paylater juga bisa via website). Jangan tawarkan Homecredit/Indodana/AEON karena wajib ke toko
+- Jika customer di Jabodetabek: semua opsi bisa ditawarkan, termasuk yang proses ke toko
 - Kredivo (tenor 3x, 6x, 12x): bisa checkout langsung di website ATAU proses di toko — TIDAK WAJIB ke toko
 - Akulaku: bisa checkout langsung di website galaxy.co.id
 - Shopee Paylater: bisa checkout via website galaxy.co.id ATAU via toko Shopee di https://shopee.co.id/galaxycamera

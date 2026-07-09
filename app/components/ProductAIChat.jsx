@@ -9,16 +9,32 @@ function getSessionId() {
   return id;
 }
 
+const AVATAR = '/Grisela.png';
+
+function GriselaAvatar({ size = 'w-6 h-6' }) {
+  return (
+    <img
+      src={AVATAR}
+      alt="Grisela"
+      className={`${size} rounded-full object-cover flex-shrink-0 select-none`}
+      draggable={false}
+    />
+  );
+}
+
 function TypingIndicator() {
   return (
-    <div className="flex items-center gap-1 px-3 py-2.5 bg-gray-100 rounded-2xl rounded-tl-sm w-fit">
-      {[0, 1, 2].map(i => (
-        <span
-          key={i}
-          className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
-          style={{ animationDelay: `${i * 0.15}s` }}
-        />
-      ))}
+    <div className="flex items-end gap-1.5">
+      <GriselaAvatar />
+      <div className="flex items-center gap-1 px-3 py-2.5 bg-gray-100 rounded-2xl rounded-tl-sm w-fit">
+        {[0, 1, 2].map(i => (
+          <span
+            key={i}
+            className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -140,24 +156,30 @@ function VoucherChatCard({ voucher }) {
 
 function ChatMessage({ msg }) {
   const isUser = msg.role === 'user';
-  return (
-    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-      <div
-        className={`max-w-[85%] px-3 py-2.5 text-sm leading-relaxed rounded-2xl ${
-          isUser
-            ? 'bg-rose-600 text-white rounded-tr-sm'
-            : 'bg-gray-100 text-gray-800 rounded-tl-sm'
-        }`}
-      >
-        {isUser ? msg.text : renderWithWaLink(msg.text)}
+  if (isUser) {
+    return (
+      <div className="flex flex-col items-end">
+        <div className="max-w-[85%] px-3 py-2.5 text-sm leading-relaxed rounded-2xl whitespace-pre-line bg-rose-600 text-white rounded-tr-sm">
+          {msg.text}
+        </div>
       </div>
-      {!isUser && msg.products?.length > 0 && (
-        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%]">
+    );
+  }
+  return (
+    <div className="flex flex-col items-start">
+      <div className="flex items-end gap-1.5 max-w-[85%]">
+        <GriselaAvatar />
+        <div className="px-3 py-2.5 text-sm leading-relaxed rounded-2xl whitespace-pre-line bg-gray-100 text-gray-800 rounded-tl-sm">
+          {renderWithWaLink(msg.text)}
+        </div>
+      </div>
+      {msg.products?.length > 0 && (
+        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%] pl-[30px]">
           {msg.products.map(p => <ProductCard key={p.handle} product={p} />)}
         </div>
       )}
-      {!isUser && msg.vouchers?.length > 0 && (
-        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%]">
+      {msg.vouchers?.length > 0 && (
+        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%] pl-[30px]">
           {msg.vouchers.map(v => <VoucherChatCard key={v.code} voucher={v} />)}
         </div>
       )}
@@ -328,7 +350,7 @@ export function ProductAIChat({ product, selectedVariant }) {
     setOpen(true);
     setIsCustomMode(true);
     // Only show welcome message when starting fresh — don't wipe an ongoing conversation
-    setMessages(prev => prev.length > 0 ? prev : [{ role: 'ai', text: `Hi ka! Ada yang ingin ditanyakan tentang ${title}? Silakan ketik pertanyaanmu 😊` }]);
+    setMessages(prev => prev.length > 0 ? prev : [{ role: 'ai', text: `Hi ka! Aku Grisela 😊 Ada yang ingin ditanyakan tentang ${title}? Silakan ketik pertanyaanmu ya` }]);
   }
 
   const remainingQuestions = questions.filter(
@@ -338,7 +360,10 @@ export function ProductAIChat({ product, selectedVariant }) {
   return (
     <div className="mt-3">
       {/* Section label */}
-      <p className="text-[11px] text-gray-400 font-medium mb-2 uppercase tracking-wide">Tanya AI Galaxy</p>
+      <div className="flex items-center gap-1.5 mb-2">
+        <GriselaAvatar size="w-5 h-5" />
+        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">Tanya AI Galaxy</p>
+      </div>
 
       {/* Bubble questions */}
       <div className="flex flex-wrap gap-2">
@@ -389,14 +414,10 @@ export function ProductAIChat({ product, selectedVariant }) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-rose-100 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-rose-600">
-                    <path fillRule="evenodd" d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2ZM7.75 6a.75.75 0 0 1 .75.75v3.5h3.25a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1-.75-.75v-4.25A.75.75 0 0 1 7.75 6Z" clipRule="evenodd" />
-                  </svg>
-                </div>
+                <GriselaAvatar size="w-8 h-8" />
                 <div>
-                  <p className="text-xs font-semibold text-gray-800 leading-none">Tanya AI Galaxy</p>
-                  <p className="text-[10px] text-emerald-500 font-medium mt-0.5">● AI Asisten</p>
+                  <p className="text-xs font-semibold text-gray-800 leading-none">Grisela</p>
+                  <p className="text-[10px] text-emerald-500 font-medium mt-0.5">● AI Asisten Galaxy</p>
                 </div>
               </div>
               <button onClick={handleClose} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
