@@ -39,22 +39,36 @@ function TypingIndicator() {
   );
 }
 
-const WA_NUMBER = '6281113111131';
+function trackEvent(type, handle = '', meta = '') {
+  try {
+    fetch('/api/chat-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, handle, sessionId: getSessionId(), meta }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // analytics must never break the chat
+  }
+}
+
+const WA_NUMBER = '6282111311131';
 // Split on phone number OR http(s) URLs so both become clickable
 const LINK_SPLIT_RE = /(0821[-\s]?1131[-\s]?1131|https?:\/\/[^\s]+)/g;
 
-function renderWithWaLink(text) {
+function renderWithWaLink(text, waMessage) {
+  const waHref = `https://wa.me/${WA_NUMBER}${waMessage ? `?text=${encodeURIComponent(waMessage)}` : ''}`;
   const parts = text.split(LINK_SPLIT_RE);
   return parts.map((part, i) => {
     if (/^0821[-\s]?1131[-\s]?1131$/.test(part)) {
       return (
         <a
           key={i}
-          href={`https://wa.me/${WA_NUMBER}`}
+          href={waHref}
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold underline underline-offset-2 text-rose-600 hover:text-rose-700"
-          onClick={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); trackEvent('wa_clicked'); }}
         >
           {part}
         </a>
@@ -89,6 +103,7 @@ function ProductCard({ product }) {
   return (
     <a
       href={`/products/${product.handle}`}
+      onClick={() => trackEvent('product_card_clicked', product.handle)}
       className="flex items-center gap-3 bg-white border border-gray-200 hover:border-rose-300 rounded-xl p-2 transition-colors group"
     >
       {img ? (
@@ -128,6 +143,7 @@ function VoucherChatCard({ voucher }) {
   const [copied, setCopied] = useState(false);
   function copy() {
     navigator.clipboard.writeText(voucher.code).catch(() => {});
+    trackEvent('voucher_copied', '', voucher.code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -154,7 +170,7 @@ function VoucherChatCard({ voucher }) {
   );
 }
 
-function ChatMessage({ msg }) {
+function ChatMessage({ msg, waMessage }) {
   const isUser = msg.role === 'user';
   if (isUser) {
     return (
@@ -170,7 +186,7 @@ function ChatMessage({ msg }) {
       <div className="flex items-end gap-1.5 max-w-[85%]">
         <GriselaAvatar />
         <div className="px-3 py-2.5 text-sm leading-relaxed rounded-2xl whitespace-pre-line bg-gray-100 text-gray-800 rounded-tl-sm">
-          {renderWithWaLink(msg.text)}
+          {renderWithWaLink(msg.text, waMessage)}
         </div>
       </div>
       {msg.products?.length > 0 && (
@@ -210,6 +226,8 @@ export function ProductAIChat({ product, selectedVariant }) {
   const specs = specsRaw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const isiBox = product?.metafields?.[2]?.value ?? '';
   const freeBonus = product?.metafields?.[1]?.value ?? '';
+  const isDiscontinued = product?.metafields?.[12]?.value === 'true';
+  const inStock = selectedVariant?.availableForSale ?? true;
 
   // Nego offer: extra 3% off, computed here so the AI never does math itself
   const negoInfo = (() => {
@@ -271,6 +289,11 @@ export function ProductAIChat({ product, selectedVariant }) {
     return () => controller.abort();
   }, [handle]);
 
+  // Track chat opens (fires once per open, not per message)
+  useEffect(() => {
+    if (open) trackEvent('chat_opened', handle);
+  }, [open]);
+
   // Scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -305,6 +328,8 @@ export function ProductAIChat({ product, selectedVariant }) {
           productFreeBonus: freeBonus,
           productCicilan,
           productNego: negoInfo,
+          productDiscontinued: isDiscontinued,
+          productInStock: inStock,
           productHandle: handle,
           sessionId: getSessionId(),
           conversationId,
@@ -433,7 +458,13 @@ export function ProductAIChat({ product, selectedVariant }) {
                 <p className="text-xs text-gray-400 text-center mt-4">Pilih pertanyaan di bawah atau ketik sendiri</p>
               )}
 
-              {messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)}
+              {messages.map((msg, i) => (
+                <ChatMessage
+                  key={i}
+                  msg={msg}
+                  waMessage={`Halo admin Galaxy Camera 😊 Saya dari website, sudah chat dengan Grisela tentang produk "${title}". Mau tanya lebih lanjut ya.`}
+                />
+              ))}
               {loading && (
                 <div className="flex justify-start">
                   <TypingIndicator />
