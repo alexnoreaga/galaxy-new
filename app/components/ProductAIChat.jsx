@@ -294,6 +294,17 @@ export function ProductAIChat({ product, selectedVariant }) {
     if (open) trackEvent('chat_opened', handle);
   }, [open]);
 
+  // Off-hours floating button opens this chat via a window event
+  useEffect(() => {
+    const handler = () => {
+      setOpen(true);
+      setIsCustomMode(true);
+      setMessages(prev => prev.length > 0 ? prev : [{ role: 'ai', text: `Hi ka! Aku Grisela 😊 Ada yang ingin ditanyakan tentang ${title}? Silakan ketik pertanyaanmu ya` }]);
+    };
+    window.addEventListener('grisela:open', handler);
+    return () => window.removeEventListener('grisela:open', handler);
+  }, [title]);
+
   // Scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

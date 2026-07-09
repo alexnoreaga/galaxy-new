@@ -74,7 +74,10 @@
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"Hi, can I get tax refund as a tourist?\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-tax-1\",\"isCustom\":false}')",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kalau barangnya udah sampai tapi aku berubah pikiran bisa dikembalikan ga?\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-know2-1\",\"isCustom\":false}')",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"aku takut kameranya rusak pas dikirim, aman ga?\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-know2-2\",\"isCustom\":false}')",
-      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kamera buat vlog pemula enaknya apa ya?\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-know2-3\",\"isCustom\":false}')"
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kamera buat vlog pemula enaknya apa ya?\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-know2-3\",\"isCustom\":false}')",
+      "PowerShell($p = 'c:\\\\Users\\\\user\\\\Desktop\\\\shopify-final\\\\galaxy\\\\app\\\\routes\\\\bio.jsx'; $lines = [IO.File]::ReadAllLines\\($p\\); $new = $lines[0..48] + $lines[212..\\($lines.Count-1\\)]; [IO.File]::WriteAllLines\\($p, $new, \\(New-Object System.Text.UTF8Encoding\\($false\\)\\)\\); Write-Output \"Lines: $\\($lines.Count\\) -> $\\($new.Count\\)\")",
+      "Bash(curl -s -m 15 -o /dev/null -w \"bio: %{http_code}\\\\n\" http://localhost:3000/bio)",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"aku mau chat sama admin langsung dong\",\"productTitle\":\"Sony A6400 Kit\",\"sessionId\":\"test-offhour-1\",\"isCustom\":false}')"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
