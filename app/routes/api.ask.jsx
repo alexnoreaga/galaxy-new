@@ -179,6 +179,36 @@ query askVouchers {
   }
 }`;
 
+// ── Curated recommendations — staff-editable via harga-produk dashboard (rekomendasi/grisela_kurasi) ──
+const DEFAULT_KURASI = `- Vlog pemula: Canon EOS R100, Sony ZV-1F, Canon EOS R50, Sony ZV-E10, DJI Osmo Pocket 3, Insta360 Ace Pro 2, Sony A6400
+- All-round (foto + video harian): Sony ZV-E10, Fujifilm X-M5, Canon EOS R50, DJI Osmo Pocket 3
+- Profesional / kerja: Canon EOS RP, Canon EOS R8, Sony A7 Mark III, Sony A7 Mark IV, Canon EOS R6 Mark II, Canon EOS R6 Mark III
+- Drone pemula: DJI Neo 2, DJI Lito, DJI Flip, DJI Mini 5 Pro
+- Digicam (kamera pocket hemat): SBOX S8, SBOX Sofia D11, Kodak FZ45, Kodak FZ55, Kodak Pixpro C1, Yashica Tank, Yashica Digimate, Yashica Digipix 100, Yashica City 100, Yashica City 300
+- Digicam premium: Canon IXUS 285, Canon G7X Mark III`;
+
+let kurasiCache = { at: 0, text: '' };
+
+async function getKurasiText() {
+  if (Date.now() - kurasiCache.at < 5 * 60 * 1000 && kurasiCache.text) return kurasiCache.text;
+  try {
+    const fields = await firestoreGet('rekomendasi', 'grisela_kurasi');
+    const cats = fields?.categories?.arrayValue?.values ?? [];
+    const lines = cats
+      .map(c => {
+        const f = c.mapValue?.fields;
+        const label = f?.label?.stringValue ?? '';
+        const items = (f?.items?.arrayValue?.values ?? []).map(v => v.stringValue).filter(Boolean);
+        return label && items.length > 0 ? `- ${label}: ${items.join(', ')}` : null;
+      })
+      .filter(Boolean);
+    kurasiCache = { at: Date.now(), text: lines.length > 0 ? lines.join('\n') : DEFAULT_KURASI };
+  } catch {
+    kurasiCache = { at: Date.now(), text: DEFAULT_KURASI };
+  }
+  return kurasiCache.text;
+}
+
 // Returning customer: fetch their most recent past conversation (equality filter only — no composite index needed)
 async function getReturningCustomerContext(sessionId) {
   try {
@@ -506,13 +536,14 @@ export async function action({ request, context }) {
 
   const model = getGemini(context, { search: true });
 
-  // Search catalog + fetch vouchers + returning-customer history in parallel
-  const [storeSearch, activeVouchers, returningContext] = await Promise.all([
+  // Search catalog + fetch vouchers + returning-customer history + curated picks in parallel
+  const [storeSearch, activeVouchers, returningContext, kurasiText] = await Promise.all([
     searchStoreProducts(context, question, messages, productTitle ?? ''),
     getActiveVouchers(context),
     sessionId && messages.length === 0 && !conversationId
       ? getReturningCustomerContext(sessionId)
       : Promise.resolve(''),
+    getKurasiText(),
   ]);
 
   const nowWib = new Date().toLocaleString('id-ID', {
@@ -524,6 +555,10 @@ export async function action({ request, context }) {
   const foundProducts = storeSearch.products.length > 0 ? storeSearch.products : undefined;
 
   const systemContext = `${storeKnowledge}
+
+REKOMENDASI ANDALAN GALAXY (dikurasi tim internal — gunakan saat customer minta rekomendasi, sesuaikan budget & kebutuhan):
+${kurasiText}
+- Sebutkan 2-3 pilihan paling pas saja, jangan semua — lalu tanya kebutuhan detail untuk mempersempit
 
 WAKTU SEKARANG: ${nowWib} WIB
 - Gunakan untuk menjawab pertanyaan jam buka secara AKURAT: toko buka setiap hari 10.00–19.00 WIB. Jika sekarang di luar jam itu, bilang toko sedang tutup dan sebutkan kapan buka lagi. Jangan asal bilang "masih buka"
