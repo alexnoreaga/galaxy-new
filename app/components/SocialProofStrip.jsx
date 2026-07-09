@@ -40,10 +40,10 @@ export function SocialProofStrip() {
     : String(soldCount);
 
   const displays = [
-    { num: soldDisplay, suffix: '+', label: 'Produk Terjual' },
-    { num: '4.9', suffix: '/5 ⭐', label: 'Rating Pelanggan' },
-    { num: yearsCount, suffix: '+', label: 'Tahun Berpengalaman' },
-    { num: 'Gratis', suffix: '', label: 'Ongkir se-Indonesia' },
+    { num: soldDisplay, suffix: '+', label: 'Produk Terjual', short: 'Terjual' },
+    { num: '4.9', suffix: '/5 ⭐', label: 'Rating Pelanggan', short: 'Rating' },
+    { num: yearsCount, suffix: '+', label: 'Tahun Berpengalaman', short: 'Tahun' },
+    { num: 'Gratis', suffix: '', label: 'Ongkir se-Indonesia', short: 'Ongkir' },
   ];
 
   return (
@@ -60,25 +60,26 @@ export function SocialProofStrip() {
       <div className="absolute -top-8 left-1/4 w-32 h-32 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-8 right-1/4 w-32 h-32 bg-rose-600/15 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative grid grid-cols-2 sm:grid-cols-4">
+      <div className="relative grid grid-cols-4">
         {displays.map((item, i) => (
           <div
             key={i}
-            className={`flex flex-col items-center justify-center py-3.5 px-3 text-center
-              ${i === 1 || i === 3 ? 'border-l border-white/10' : ''}
-              ${i >= 2 ? 'border-t border-white/10 sm:border-t-0' : ''}
-              ${i === 2 ? 'sm:border-l sm:border-white/10' : ''}
+            className={`flex flex-col items-center justify-center py-2 sm:py-3.5 px-1 sm:px-3 text-center
+              ${i > 0 ? 'border-l border-white/10' : ''}
             `}
           >
             <div className="flex items-baseline gap-0.5">
-              <span className="text-lg sm:text-2xl font-black text-amber-400 tabular-nums leading-none tracking-tight">
+              <span className="text-sm sm:text-2xl font-black text-amber-400 tabular-nums leading-none tracking-tight">
                 {item.num}
               </span>
               {item.suffix && (
-                <span className="text-xs sm:text-sm font-bold text-amber-300/80 ml-0.5">{item.suffix}</span>
+                <span className="text-[9px] sm:text-sm font-bold text-amber-300/80 ml-0.5">{item.suffix}</span>
               )}
             </div>
-            <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 leading-tight">{item.label}</span>
+            <span className="text-[9px] sm:text-xs text-slate-400 font-medium mt-0.5 leading-tight">
+              <span className="sm:hidden">{item.short}</span>
+              <span className="hidden sm:inline">{item.label}</span>
+            </span>
           </div>
         ))}
       </div>
