@@ -24,6 +24,11 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
     const lokasi = useLocation()
     const urlSekarang = lokasi.pathname
 
+    // Standalone pages — no header/footer/floating buttons (e.g. Instagram link-in-bio)
+    if (urlSekarang === '/bio') {
+      return <main>{children}</main>;
+    }
+
     // const [muncul, setMuncul] = useState(null);
     // const [counter, setCounter] = useState(0);
     

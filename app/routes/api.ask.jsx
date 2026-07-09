@@ -528,7 +528,7 @@ export async function action({ request, context }) {
 WAKTU SEKARANG: ${nowWib} WIB
 - Gunakan untuk menjawab pertanyaan jam buka secara AKURAT: toko buka setiap hari 10.00–19.00 WIB. Jika sekarang di luar jam itu, bilang toko sedang tutup dan sebutkan kapan buka lagi. Jangan asal bilang "masih buka"
 ${returningContext ? `\n${returningContext}\n` : ''}
-PRODUK YANG SEDANG DILIHAT CUSTOMER:
+${!productTitle ? `KONTEKS: Customer chat dari link bio Instagram Galaxy Camera — BELUM melihat produk tertentu. Gali kebutuhannya (mau kamera buat apa, budget berapa) lalu bantu rekomendasikan produk dari katalog. Jangan mengarang data produk, harga, atau cicilan.` : `PRODUK YANG SEDANG DILIHAT CUSTOMER:
 - Nama: ${productTitle ?? ''}
 - Harga: ${productPrice ?? ''}
 ${productDiscontinued ? `- ⚠️ STATUS: DISCONTINUED — produk ini sudah tidak diproduksi/dijual lagi. Jika customer berniat beli atau tanya stok: beri tahu dengan jujur produk ini sudah discontinued, JANGAN dorong customer membeli produk ini, JANGAN tawarkan nego/cicilan untuk produk ini. Tawarkan bantuan carikan penggantinya yang lebih baru (sebutkan model penerusnya jika kamu tahu, atau tanya kebutuhan customer untuk rekomendasi)` : `- Status stok: ${productInStock ? 'Ready stock / tersedia' : 'STOK DI WEBSITE SEDANG KOSONG — TAPI data website kadang belum terupdate dan stok fisik di toko bisa berbeda. Jika customer mau beli: JANGAN bilang pasti habis. Bilang stok di website sedang kosong, tapi sarankan konfirmasi cepat ke admin di 0821-1131-1131 karena kemungkinan unit masih tersedia di toko. Boleh juga tawarkan produk serupa yang ready sebagai alternatif'}`}
@@ -536,7 +536,7 @@ ${productDiscontinued ? `- ⚠️ STATUS: DISCONTINUED — produk ini sudah tida
 - Spesifikasi: ${(productSpecs ?? '').slice(0, 800)}
 - Isi Paket/Box: ${(productIsiBox ?? '').slice(0, 300)}
 ${productFreeBonus ? `- Bonus Gratis KHUSUS produk ini (sedang berlaku, sebutkan ini saat customer tanya bonus/free): ${productFreeBonus.slice(0, 300)}` : ''}
-${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}
+${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}`}
 ${productNego ? `
 PENAWARAN NEGO UNTUK PRODUK INI (gunakan HANYA saat customer minta nego/potongan/harga kurang/best price):
 - ${productNego}

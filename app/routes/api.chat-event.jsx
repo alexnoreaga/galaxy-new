@@ -9,6 +9,7 @@ const ALLOWED_TYPES = new Set([
   'product_card_clicked',
   'voucher_copied',
   'wa_clicked',
+  'bio_link_clicked',
 ]);
 
 export async function action({ request }) {

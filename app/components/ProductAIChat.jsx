@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-function getSessionId() {
+export function getSessionId() {
   let id = localStorage.getItem('galaxy_session_id');
   if (!id) {
     id = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -11,7 +11,7 @@ function getSessionId() {
 
 const AVATAR = '/Grisela.png';
 
-function GriselaAvatar({ size = 'w-6 h-6' }) {
+export function GriselaAvatar({ size = 'w-6 h-6' }) {
   return (
     <img
       src={AVATAR}
@@ -22,7 +22,7 @@ function GriselaAvatar({ size = 'w-6 h-6' }) {
   );
 }
 
-function TypingIndicator() {
+export function TypingIndicator() {
   return (
     <div className="flex items-end gap-1.5">
       <GriselaAvatar />
@@ -39,7 +39,7 @@ function TypingIndicator() {
   );
 }
 
-function trackEvent(type, handle = '', meta = '') {
+export function trackEvent(type, handle = '', meta = '') {
   try {
     fetch('/api/chat-event', {
       method: 'POST',
@@ -170,7 +170,7 @@ function VoucherChatCard({ voucher }) {
   );
 }
 
-function ChatMessage({ msg, waMessage }) {
+export function ChatMessage({ msg, waMessage }) {
   const isUser = msg.role === 'user';
   if (isUser) {
     return (
