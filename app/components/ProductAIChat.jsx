@@ -170,7 +170,7 @@ function VoucherChatCard({ voucher }) {
   );
 }
 
-export const MARKETPLACE_COLORS = { Tokopedia: '#03ac0e', Shopee: '#ee4d2d', Blibli: '#0095da' };
+const MARKETPLACE_COLORS = { Tokopedia: '#03ac0e', Shopee: '#ee4d2d', Blibli: '#0095da' };
 
 function MarketplaceLinkRow({ link }) {
   return (
@@ -195,7 +195,7 @@ function MarketplaceLinkRow({ link }) {
   );
 }
 
-function ChatMessage({ msg, waMessage }) {
+export function ChatMessage({ msg, waMessage }) {
   const isUser = msg.role === 'user';
   if (isUser) {
     return (
