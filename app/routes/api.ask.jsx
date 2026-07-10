@@ -333,9 +333,9 @@ async function searchStoreProducts(context, question, messages, currentProduct =
     const collectionsText = collections.map(c => `${c.handle} = ${c.title}`).join('\n');
 
     const router = getGemini(context, { search: false, temperature: 0 });
-    const recentHistory = messages.slice(-2).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
+    const recentHistory = messages.slice(-4).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Analisa pertanyaan customer, output TEPAT SATU baris dengan salah satu format:
-1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga produk SPESIFIK
+1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna")
 2. REKOMENDASI: <handle1,handle2,handle3> | <harga_min>-<harga_max> — customer minta rekomendasi/saran produk. Pilih 1-3 collection_handle paling relevan dari DAFTAR KOLEKSI di bawah, urutkan dari yang paling cocok (dipisah koma). Budget: "6 jutaan" = 5000000-7000000, "dibawah 10jt" = 0-10000000, "sekitar 15 juta" = 13000000-17000000, tanpa budget = 0-999999999
 3. UPSELL: <aksesoris1>; <aksesoris2> — customer BARU SAJA menyatakan jadi/mau beli produk yang sedang dilihat ("oke aku ambil", "jadi deh", "gas order", "oke order via website", "mau yang ini"). Pilih 2 aksesoris pelengkap paling relevan untuk produk itu, gunakan pengetahuanmu tentang model yang kompatibel (contoh: memory card SD, baterai cadangan model yang cocok). TAPI jika di riwayat percakapan kamu SUDAH pernah menawarkan aksesoris, output NO
 4. NO — bukan pencarian, rekomendasi, atau komitmen beli
@@ -353,6 +353,8 @@ Contoh:
 - "Punya lensa buat sony ga?" → SEARCH: lensa Sony
 - (halaman Sony A6400) "min ada jual baterainya ga" → SEARCH: baterai NP-FW50
 - (halaman Canon EOS RP) "chargernya ada?" → SEARCH: charger LP-E17
+- "ada warna apa untuk insta 360 x5?" → SEARCH: Insta360 X5
+- "insta 360 quick reader 512 sama invisible selfie stick ada?" → SEARCH: Insta360 Quick Reader
 - "mau tanya rekomen kamera 6 jutaan" → REKOMENDASI: <handle mirrorless>,<handle kamera lain>,<handle instax/pocket> | 5000000-7000000
 - "rekomendasi drone buat pemula dong" → REKOMENDASI: <handle koleksi drone> | 0-999999999
 - "kamera buat vlog dibawah 10 juta apa ya?" → REKOMENDASI: <handle koleksi kamera vlog/mirrorless>,<handle alternatif> | 0-10000000
@@ -475,10 +477,9 @@ ${CARD_INSTRUCTIONS}
 
     if (items.length === 0) {
       return {
-        contextText: `Customer mencari "${keyword}" tapi produk ini TIDAK DITEMUKAN di katalog toko — kemungkinan kami tidak menjualnya atau sudah tidak tersedia.
-- Jawab jujur bahwa produk itu sepertinya tidak tersedia di toko kami
-- Jika kamu tahu produk serupa yang umum kami jual (lihat daftar kategori produk di atas), tawarkan sebagai alternatif
-- Sarankan konfirmasi ke admin di 0821-1131-1131 untuk memastikan`,
+        contextText: `Customer mencari "${keyword}" tapi pencarian katalog TIDAK menemukan hasil.
+- PENTING: jika di riwayat percakapan kamu SUDAH mengonfirmasi produk ini tersedia (sudah pernah kamu tunjukkan), berarti pencarian kali ini gagal karena kata kunci — JANGAN kontradiksi dirimu, JANGAN bilang produk tidak tersedia. Jawab pertanyaan customer berdasarkan riwayat dan pengetahuan umummu
+- Jika produk ini BELUM pernah dikonfirmasi tersedia di percakapan: jawab jujur sepertinya tidak tersedia di toko kami, tawarkan produk serupa yang umum kami jual, dan sarankan konfirmasi ke admin di 0821-1131-1131`,
         products: [],
       };
     }
