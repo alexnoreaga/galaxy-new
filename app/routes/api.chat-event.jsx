@@ -10,6 +10,7 @@ const ALLOWED_TYPES = new Set([
   'voucher_copied',
   'wa_clicked',
   'bio_link_clicked',
+  'marketplace_clicked',
 ]);
 
 export async function action({ request }) {

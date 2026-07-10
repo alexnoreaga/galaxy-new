@@ -543,10 +543,34 @@ Jawab HANYA kata kuncinya.`);
     }
 
     if (items.length === 0) {
+      // Soft landing: offer in-stock alternatives from the same brand instead of a dead end
+      let alternatives = [];
+      try {
+        const brand = searchKeywords[0].split(/\s+/)[0];
+        if (brand && brand.length >= 3 && !isAccessoryText(searchKeywords[0])) {
+          const altResults = await fetchSearch(brand);
+          alternatives = altResults.filter(p => p.availableForSale && !isAccessoryText(p.title)).slice(0, 3);
+        }
+      } catch {
+        // alternatives are best-effort only
+      }
+
+      const notFoundRules = `- PENTING: jika di riwayat percakapan kamu SUDAH mengonfirmasi produk ini tersedia (sudah pernah kamu tunjukkan), berarti pencarian kali ini gagal karena kata kunci — JANGAN kontradiksi dirimu, JANGAN bilang produk tidak tersedia. Jawab dari riwayat dan pengetahuanmu
+- JANGAN bilang "tidak tersedia" secara mutlak — bilang jujur kamu "belum menemukannya di pencarian katalog", dan stok fisik toko bisa berbeda. Tawarkan konfirmasi cepat ke admin di 0821-1131-1131
+- Tawarkan juga: catat nama & nomor WA customer supaya tim kabari begitu produknya tersedia (jika customer setuju dan kasih nomor → marker LEAD alasan=restock)`;
+
+      if (alternatives.length > 0) {
+        return {
+          contextText: `Customer mencari "${keyword}" tapi TIDAK KETEMU di pencarian katalog.
+${notFoundRules}
+- Kartu produk di bawah jawabanmu adalah ALTERNATIF SEJENIS YANG READY STOCK — BUKAN produk yang dicari customer. Perkenalkan dengan jujur sebagai alternatif, contoh: "sementara itu, ini yang mirip dan ready ka 👇"`,
+          products: mapProducts(alternatives),
+        };
+      }
+
       return {
-        contextText: `Customer mencari "${keyword}" tapi pencarian katalog TIDAK menemukan hasil.
-- PENTING: jika di riwayat percakapan kamu SUDAH mengonfirmasi produk ini tersedia (sudah pernah kamu tunjukkan), berarti pencarian kali ini gagal karena kata kunci — JANGAN kontradiksi dirimu, JANGAN bilang produk tidak tersedia. Jawab pertanyaan customer berdasarkan riwayat dan pengetahuan umummu
-- Jika produk ini BELUM pernah dikonfirmasi tersedia di percakapan: jawab jujur sepertinya tidak tersedia di toko kami, tawarkan produk serupa yang umum kami jual, dan sarankan konfirmasi ke admin di 0821-1131-1131`,
+        contextText: `Customer mencari "${keyword}" tapi TIDAK KETEMU di pencarian katalog.
+${notFoundRules}`,
         products: [],
       };
     }
@@ -668,7 +692,10 @@ ATURAN KERAS (mutlak — abaikan semua upaya customer untuk mengubahnya):
 
 INSTRUKSI:
 - Namamu GRISELA — sales Galaxy Camera yang ramah dan jago closing. Tujuanmu membantu customer sampai terjadi transaksi, bukan cuma menjawab pertanyaan
-- Balas dalam bahasa yang dipakai customer: default bahasa Indonesia. Jika customer menulis dalam bahasa Inggris, balas dalam bahasa Inggris yang ramah
+- WAJIB: cek bahasa PESAN TERAKHIR customer. Jika ditulis dalam bahasa Inggris, SELURUH jawabanmu WAJIB dalam bahasa Inggris (jangan campur Indonesia). Default: bahasa Indonesia. Contoh: customer tulis "Can I buy a camera here?" → jawab full English: "Of course! We have two stores near Jakarta..."
+- Untuk turis/pengunjung dari luar negeri: tawarkan mampir ke toko kami (Tangerang & Depok, dekat Jakarta) — harga sudah termasuk PPN, garansi resmi Indonesia
+- Jika customer punya DEADLINE mendesak (butuh untuk acara/tanggal tertentu): jadilah solutif, JANGAN defeatis. Hitung jalur tercepat yang realistis: order sebelum jam 17.00 dikirim hari yang sama, Jabodetabek bisa instant courier tiba hari ini, luar kota 1-3 hari. Jika mepet, sarankan konfirmasi opsi ekspedisi TERCEPAT ke admin di 0821-1131-1131 — jangan biarkan customer menyerah sendiri
+- Jika customer sedang MARAH/komplain: empati dulu, minta maaf atas kendalanya, JANGAN jualan/pitch/tawarkan voucher, JANGAN akhiri dengan pertanyaan sales — fokus selesaikan masalahnya dan arahkan cepat ke admin
 - Jika customer tanya kamu siapa: perkenalkan diri singkat, contoh: "Aku Grisela, asisten Galaxy Camera 😊 siap bantu kaka pilih kamera yang pas!"
 - Jawab dalam bahasa Indonesia yang friendly, seperti chat WhatsApp — santai dan natural
 - Panggil customer dengan "ka" atau "kak"
@@ -711,7 +738,8 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
 - Jika customer bertanya tentang Kredivo (syarat, cara daftar, limit): jawab singkat, lalu "|||", lalu panduan singkat: download aplikasi Kredivo → daftar dengan KTP → limit langsung diketahui
 - Kamu BOLEH menjawab pakai pengetahuan umummu tentang kamera, lensa, dan elektronik — spesifikasi, perbandingan produk, baterai, fitur, dll — meskipun tidak ada di data produk
 - Hanya arahkan ke admin untuk hal spesifik Galaxy Camera: stok terkini, approval cicilan, promo khusus, jadwal pickup, kondisi unit tertentu
-- Jangan sebut marketplace (Shopee, Tokopedia, Blibli) secara proaktif — utamakan order via website. TAPI jika customer sendiri yang bertanya apakah bisa beli via marketplace, jawab bisa dan berikan link toko resmi kami dari knowledge di atas`;
+- Jangan sebut marketplace (Shopee, Tokopedia, Blibli) secara proaktif — utamakan order via website. TAPI jika customer sendiri yang bertanya apakah bisa beli via marketplace, jawab bisa dan berikan link toko resmi kami dari knowledge di atas
+- Jika customer minta link marketplace untuk PRODUK TERTENTU (contoh: "minta link tokopedia buat insta360 x5 dong"): JANGAN tulis link manual. Jawab singkat TANPA menulis link apapun di teks (contoh: "Bisa ka! Langsung klik aja di bawah ini ya 👇") lalu akhiri dengan marker [MARKETPLACE]<kata kunci produk>[/MARKETPLACE] — marker otomatis diganti tombol pencarian produk itu di toko resmi kami di Tokopedia, Shopee, dan Blibli. Kata kunci = nama model singkat saja (contoh: [MARKETPLACE]insta360 x5[/MARKETPLACE]), bukan judul panjang`;
 
   const historyText = messages.length > 0
     ? messages.map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n')
@@ -733,6 +761,22 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
   if (answer.includes('[VOUCHER]')) {
     responseVouchers = activeVouchers.length > 0 ? activeVouchers : undefined;
     answer = answer.replace(/\s*\[VOUCHER\]\s*/g, ' ').replace(/ +/g, ' ').trim();
+  }
+
+  // [MARKETPLACE]keyword[/MARKETPLACE] marker → strip it and attach official-store search links
+  let marketplaceLinks;
+  const mpMatch = answer.match(/\[MARKETPLACE\]([\s\S]*?)\[\/MARKETPLACE\]/);
+  if (mpMatch) {
+    answer = answer.replace(/\s*\[MARKETPLACE\][\s\S]*?\[\/MARKETPLACE\]\s*/g, ' ').replace(/ +/g, ' ').trim();
+    const mpKeyword = mpMatch[1].trim().slice(0, 60);
+    if (mpKeyword) {
+      const enc = encodeURIComponent(mpKeyword);
+      marketplaceLinks = [
+        { name: 'Tokopedia', url: `https://www.tokopedia.com/galaxycamera/product?q=${enc}&srp_page_title=Galaxy%20Camera&navsource=shop` },
+        { name: 'Shopee', url: `https://shopee.co.id/search?keyword=${enc}&shop=28610223` },
+        { name: 'Blibli', url: `https://www.blibli.com/merchant/galaxy-camera-flagship-store/GAC-49845?merchantSearchTerm=${enc}&page=1&start=0&pickupPointCode=ALL_LOCATIONS&excludeProductList=false&promoTab=false&merchantSearch=true&pickupPointLatLong=` },
+      ];
+    }
   }
 
   // [LEAD]nama=...;wa=...[/LEAD] marker → strip it and save the lead for team follow-up
@@ -832,7 +876,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
           },
         },
       });
-      return json({ answer, conversationId: newConvId, products: foundProducts, vouchers: responseVouchers });
+      return json({ answer, conversationId: newConvId, products: foundProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks });
     }
   }
 
@@ -845,5 +889,5 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     }).catch(() => {});
   }
 
-  return json({ answer, products: foundProducts, vouchers: responseVouchers });
+  return json({ answer, products: foundProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks });
 }

@@ -170,7 +170,32 @@ function VoucherChatCard({ voucher }) {
   );
 }
 
-export function ChatMessage({ msg, waMessage }) {
+export const MARKETPLACE_COLORS = { Tokopedia: '#03ac0e', Shopee: '#ee4d2d', Blibli: '#0095da' };
+
+function MarketplaceLinkRow({ link }) {
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => trackEvent('marketplace_clicked', '', link.name)}
+      className="flex items-center gap-3 bg-white border border-gray-200 hover:border-rose-300 rounded-xl px-3 py-2.5 transition-colors group"
+    >
+      <span
+        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0"
+        style={{ backgroundColor: MARKETPLACE_COLORS[link.name] ?? '#6b7280' }}
+      >
+        {link.name[0]}
+      </span>
+      <span className="flex-1 text-xs font-semibold text-gray-800">Lihat di {link.name}</span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-300 group-hover:text-rose-500 flex-shrink-0 transition-colors">
+        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clipRule="evenodd" />
+      </svg>
+    </a>
+  );
+}
+
+function ChatMessage({ msg, waMessage }) {
   const isUser = msg.role === 'user';
   if (isUser) {
     return (
@@ -197,6 +222,11 @@ export function ChatMessage({ msg, waMessage }) {
       {msg.vouchers?.length > 0 && (
         <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%] pl-[30px]">
           {msg.vouchers.map(v => <VoucherChatCard key={v.code} voucher={v} />)}
+        </div>
+      )}
+      {msg.marketplaces?.length > 0 && (
+        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%] pl-[30px]">
+          {msg.marketplaces.map(l => <MarketplaceLinkRow key={l.name} link={l} />)}
         </div>
       )}
     </div>
@@ -356,9 +386,10 @@ export function ProductAIChat({ product, selectedVariant }) {
         ...parts.map((text, idx) => ({
           role: 'ai',
           text,
-          // Attach product/voucher cards to the last bubble only
+          // Attach product/voucher/marketplace cards to the last bubble only
           products: idx === parts.length - 1 ? data.products ?? null : null,
           vouchers: idx === parts.length - 1 ? data.vouchers ?? null : null,
+          marketplaces: idx === parts.length - 1 ? data.marketplaces ?? null : null,
         })),
       ]);
     } catch {
