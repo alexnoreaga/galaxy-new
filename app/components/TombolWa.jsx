@@ -46,15 +46,18 @@ export const TombolWa = () => {
     return (
       <div
         onClick={openWa}
-        className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 md:bottom-40 z-50 cursor-pointer group"
+        className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 md:bottom-40 z-50 cursor-pointer group flex flex-col items-center gap-1"
       >
-        <div className="relative flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-white/70 sm:bg-white/60 shadow-lg sm:shadow-2xl border border-green-200 hover:bg-green-600 transition-all duration-200 backdrop-blur-xl">
+        <div className="relative flex items-center justify-center w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-white/70 sm:bg-white/60 shadow-lg sm:shadow-2xl border border-green-200 hover:bg-green-600 transition-all duration-200 backdrop-blur-xl">
           <span className="absolute inset-0 flex items-center justify-center">
-            <span className="inline-flex h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-green-400 opacity-40 animate-ping"></span>
+            <span className="inline-flex h-11 w-11 sm:h-14 sm:w-14 rounded-full bg-green-400 opacity-40 animate-ping"></span>
           </span>
-          <FaWhatsapp className="text-2xl sm:text-4xl text-green-600 group-hover:text-white drop-shadow-md transition-all z-10" />
-          <span className="absolute left-14 sm:left-20 top-1/2 -translate-y-1/2 hidden sm:block bg-green-600 text-white px-4 py-2 rounded-full shadow-lg font-semibold text-base opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">Chat WhatsApp</span>
+          <FaWhatsapp className="text-[28px] sm:text-4xl text-green-600 group-hover:text-white drop-shadow-md transition-all z-10" />
+          <span className="absolute left-16 sm:left-20 top-1/2 -translate-y-1/2 hidden sm:block bg-green-600 text-white px-4 py-2 rounded-full shadow-lg font-semibold text-base opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">Chat WhatsApp</span>
         </div>
+        <span className="sm:hidden text-[10px] font-bold text-white bg-green-600 px-2 py-0.5 rounded-full shadow-md leading-tight">
+          Chat Admin
+        </span>
       </div>
     );
   }
@@ -64,11 +67,11 @@ export const TombolWa = () => {
     <>
       <div
         onClick={openGrisela}
-        className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 md:bottom-40 z-50 cursor-pointer group"
+        className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 md:bottom-40 z-50 cursor-pointer group flex flex-col items-center gap-1"
       >
-        <div className="relative w-12 h-12 sm:w-20 sm:h-20">
+        <div className="relative w-14 h-14 sm:w-20 sm:h-20">
           <span className="absolute inset-0 flex items-center justify-center">
-            <span className="inline-flex h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-rose-400 opacity-40 animate-ping"></span>
+            <span className="inline-flex h-11 w-11 sm:h-14 sm:w-14 rounded-full bg-rose-400 opacity-40 animate-ping"></span>
           </span>
           <img
             src="/Grisela.png"
@@ -76,11 +79,14 @@ export const TombolWa = () => {
             draggable={false}
             className="relative w-full h-full rounded-full object-cover border-2 border-rose-300 shadow-lg sm:shadow-2xl group-hover:scale-105 transition-transform duration-200 select-none"
           />
-          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-emerald-400 border-2 border-white" />
-          <span className="absolute right-14 sm:right-24 top-1/2 -translate-y-1/2 hidden sm:block bg-rose-600 text-white px-4 py-2 rounded-full shadow-lg font-semibold text-base opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+          <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-400 border-2 border-white" />
+          <span className="absolute right-16 sm:right-24 top-1/2 -translate-y-1/2 hidden sm:block bg-rose-600 text-white px-4 py-2 rounded-full shadow-lg font-semibold text-base opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
             Tanya Grisela — Online 24 Jam
           </span>
         </div>
+        <span className="sm:hidden text-[10px] font-bold text-white bg-rose-600 px-2 py-0.5 rounded-full shadow-md leading-tight">
+          Tanya Grisela
+        </span>
       </div>
 
       <GriselaGeneralChat
