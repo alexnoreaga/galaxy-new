@@ -130,7 +130,7 @@ Contoh format: ["Apakah ada garansi resmi?","Bisa cicilan berapa bulan?","Apa ya
 
 const PRODUCT_SEARCH_QUERY = `#graphql
 query askPredictiveSearch($searchTerm: String!) {
-  predictiveSearch(limit: 5, limitScope: EACH, query: $searchTerm, types: [PRODUCT]) {
+  predictiveSearch(limit: 10, limitScope: EACH, query: $searchTerm, types: [PRODUCT]) {
     products {
       title
       handle
@@ -306,6 +306,13 @@ async function getCollectionsList(context) {
   return collectionsCache.list;
 }
 
+// Words that mark a product/query as an accessory rather than a main device
+const ACCESSORY_RE = /\b(baterai|battery|charger|charging|lens ?guard|selfie ?stick|tongsis|case|casing|cage|reader|memory|micro ?sd|sd ?card|strap|mount|adapter|adaptor|filter|protector|protective|hub|grip|tripod|mic|microphone|mikrofon|tas|screen|tempered|holder|bracket|cover|pouch|remote|kabel|cable|cap|frame|pelindung|guard|windshield|deadcat|lanyard|floaty|pelampung)\b/i;
+
+function isAccessoryText(text) {
+  return ACCESSORY_RE.test(text ?? '');
+}
+
 function mapProducts(items) {
   return items.slice(0, 3).map(p => ({
     title: p.title,
@@ -335,12 +342,14 @@ async function searchStoreProducts(context, question, messages, currentProduct =
     const router = getGemini(context, { search: false, temperature: 0 });
     const recentHistory = messages.slice(-4).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Analisa pertanyaan customer, output TEPAT SATU baris dengan salah satu format:
-1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna")
+1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna"). Jika customer menyebut DUA produk sekaligus, pisahkan dengan ";" (maksimal 2): SEARCH: produk pertama; produk kedua
 2. REKOMENDASI: <handle1,handle2,handle3> | <harga_min>-<harga_max> — customer minta rekomendasi/saran produk. Pilih 1-3 collection_handle paling relevan dari DAFTAR KOLEKSI di bawah, urutkan dari yang paling cocok (dipisah koma). Budget: "6 jutaan" = 5000000-7000000, "dibawah 10jt" = 0-10000000, "sekitar 15 juta" = 13000000-17000000, tanpa budget = 0-999999999
 3. UPSELL: <aksesoris1>; <aksesoris2> — customer BARU SAJA menyatakan jadi/mau beli produk yang sedang dilihat ("oke aku ambil", "jadi deh", "gas order", "oke order via website", "mau yang ini"). Pilih 2 aksesoris pelengkap paling relevan untuk produk itu, gunakan pengetahuanmu tentang model yang kompatibel (contoh: memory card SD, baterai cadangan model yang cocok). TAPI jika di riwayat percakapan kamu SUDAH pernah menawarkan aksesoris, output NO
 4. NO — bukan pencarian, rekomendasi, atau komitmen beli
 
 Jika customer menyebut "baterainya", "chargernya", "lensanya" dll yang merujuk ke produk yang sedang dilihat, gunakan pengetahuanmu tentang aksesoris yang kompatibel — sebutkan model spesifiknya (contoh: baterai Sony A6400 = NP-FW50, baterai Canon EOS RP = LP-E17).
+
+NORMALISASI NAMA MODEL: perbaiki penulisan customer ke nama model RESMI pakai pengetahuanmu — "sony 6400" → Sony A6400, "zve10" → Sony ZV-E10, "gopro 13" → GoPro Hero 13, "canon 750d" → Canon EOS 750D, "xs20" → Fujifilm X-S20, "osmo pocket" → DJI Osmo Pocket.
 
 PENTING: pertanyaan PERBANDINGAN atau opini ("bedanya apa", "bagusan mana", "vs", "mending mana") → NO. Customer minta penjelasan, bukan mencari barang.
 PENTING: pertanyaan harga/nego/diskon/cicilan produk YANG SEDANG DILIHAT ("harganya berapa", "bisa kurang ga") → NO. Data harga produk itu sudah tersedia.
@@ -354,7 +363,7 @@ Contoh:
 - (halaman Sony A6400) "min ada jual baterainya ga" → SEARCH: baterai NP-FW50
 - (halaman Canon EOS RP) "chargernya ada?" → SEARCH: charger LP-E17
 - "ada warna apa untuk insta 360 x5?" → SEARCH: Insta360 X5
-- "insta 360 quick reader 512 sama invisible selfie stick ada?" → SEARCH: Insta360 Quick Reader
+- "insta 360 quick reader 512 sama invisible selfie stick ada?" → SEARCH: Insta360 Quick Reader; selfie stick Insta360
 - "mau tanya rekomen kamera 6 jutaan" → REKOMENDASI: <handle mirrorless>,<handle kamera lain>,<handle instax/pocket> | 5000000-7000000
 - "rekomendasi drone buat pemula dong" → REKOMENDASI: <handle koleksi drone> | 0-999999999
 - "kamera buat vlog dibawah 10 juta apa ya?" → REKOMENDASI: <handle koleksi kamera vlog/mirrorless>,<handle alternatif> | 0-10000000
@@ -465,15 +474,73 @@ ${CARD_INSTRUCTIONS}
       };
     }
 
-    // ── Specific product search branch ──
-    const keyword = out.replace(/^SEARCH:\s*/i, '').trim();
-    if (!keyword || keyword.length > 60) return empty;
-    console.log('[api.ask] product search keyword:', keyword);
+    // ── Specific product search branch (supports up to 2 products separated by ";") ──
+    const keywordRaw = out.replace(/^SEARCH:\s*/i, '').trim();
+    if (!keywordRaw || keywordRaw.length > 120) return empty;
+    const searchKeywords = keywordRaw.split(';').map(s => s.trim()).filter(Boolean).slice(0, 2);
+    if (searchKeywords.length === 0) return empty;
+    const keyword = searchKeywords.join('" dan "');
+    console.log('[api.ask] product search keywords:', searchKeywords.join('; '));
 
-    const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
-      variables: { searchTerm: keyword },
-    });
-    const items = data?.predictiveSearch?.products ?? [];
+    const fetchSearch = async (term) => {
+      const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
+        variables: { searchTerm: term },
+      });
+      return data?.predictiveSearch?.products ?? [];
+    };
+
+    const found = [];
+    for (const kw of searchKeywords) {
+      let results = await fetchSearch(kw);
+
+      // Predictive search often buries the main device under its accessories
+      // (e.g. "insta360 x4" → chargers & lens guards first). If the customer
+      // is NOT asking for an accessory, put main devices first — and if none
+      // came back at all, retry with a category hint.
+      if (!isAccessoryText(kw)) {
+        let mains = results.filter(p => !isAccessoryText(p.title));
+        if (mains.length === 0) {
+          const retry = await fetchSearch(`${kw} camera`);
+          mains = retry.filter(p => !isAccessoryText(p.title));
+        }
+        results = [...mains, ...results.filter(p => isAccessoryText(p.title))];
+      }
+
+      // With 2 keywords, take fewer per keyword so both products get card space
+      found.push(...results.slice(0, searchKeywords.length > 1 ? 2 : 5));
+    }
+    let items = [...new Map(found.map(p => [p.handle, p])).values()];
+
+    // "Think again" fallback: zero results → one extra AI call to correct the
+    // keyword to an official model name (typos, missing letters: "sony 6400"),
+    // then search once more.
+    if (items.length === 0) {
+      try {
+        const fixer = getGemini(context, { search: false, temperature: 0 });
+        const fixRes = await fixer.generateContent(`Pencarian katalog toko kamera untuk "${searchKeywords.join(' / ')}" tidak menemukan hasil. Kemungkinan customer salah tulis atau nama modelnya tidak lengkap. Berikan SATU kata kunci alternatif dengan nama model resmi yang paling mungkin dimaksud (2-5 kata). Jika tidak ada ide, jawab: NO
+
+Contoh: "sony 6400" → Sony A6400 | "gopro 13" → GoPro Hero 13 | "zve10" → Sony ZV-E10 | "pocket 3" → DJI Osmo Pocket 3
+
+Jawab HANYA kata kuncinya.`);
+        const alt = fixRes.response.text().trim().replace(/^["']|["']$/g, '');
+        if (alt && alt.toUpperCase() !== 'NO' && alt.length <= 60 && alt.toLowerCase() !== searchKeywords[0].toLowerCase()) {
+          console.log('[api.ask] retry with corrected keyword:', alt);
+          let retryResults = await fetchSearch(alt);
+          if (!isAccessoryText(alt)) {
+            const mains = retryResults.filter(p => !isAccessoryText(p.title));
+            if (mains.length === 0) {
+              const retry2 = await fetchSearch(`${alt} camera`);
+              retryResults = [...retry2.filter(p => !isAccessoryText(p.title)), ...retryResults];
+            } else {
+              retryResults = [...mains, ...retryResults.filter(p => isAccessoryText(p.title))];
+            }
+          }
+          items = [...new Map(retryResults.slice(0, 5).map(p => [p.handle, p])).values()];
+        }
+      } catch (e) {
+        console.error('[api.ask] keyword correction failed:', e?.message ?? e);
+      }
+    }
 
     if (items.length === 0) {
       return {
@@ -489,7 +556,8 @@ ${CARD_INSTRUCTIONS}
       contextText: `Hasil pencarian katalog toko untuk "${keyword}":
 ${productListText(products)}
 ${CARD_INSTRUCTIONS}
-- Hanya relevan jika produknya SEJENIS dengan yang dicari customer. Jika customer cari kamera tapi hasil pencarian cuma aksesoris (baterai, tas, charger, dll), berarti kameranya tidak tersedia — jawab jujur tidak tersedia`,
+- Hanya relevan jika produknya SEJENIS dengan yang dicari customer. Jika customer cari kamera tapi hasil pencarian cuma aksesoris (baterai, tas, charger, dll), berarti kameranya tidak tersedia — jawab jujur tidak tersedia
+- Jika customer menyebut BEBERAPA produk tapi hanya sebagian yang muncul di hasil: sebutkan yang ketemu, dan jujur bilang sisanya belum ketemu di katalog — sarankan konfirmasi ke admin untuk yang belum ketemu`,
       products,
     };
   } catch (e) {
