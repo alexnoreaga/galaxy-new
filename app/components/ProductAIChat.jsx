@@ -319,14 +319,19 @@ export function ProductAIChat({ product, selectedVariant }) {
     return () => controller.abort();
   }, [handle]);
 
-  // Track chat opens (fires once per open, not per message)
+  // Track chat opens with the trigger that opened it (fires once per open)
+  const openTriggerRef = useRef('');
   useEffect(() => {
-    if (open) trackEvent('chat_opened', handle);
+    if (open) {
+      trackEvent('chat_opened', handle, openTriggerRef.current);
+      openTriggerRef.current = '';
+    }
   }, [open]);
 
   // Off-hours floating button opens this chat via a window event
   useEffect(() => {
     const handler = () => {
+      openTriggerRef.current = 'floating-button';
       setOpen(true);
       setIsCustomMode(true);
       setMessages(prev => prev.length > 0 ? prev : [{ role: 'ai', text: `Hi ka! Aku Grisela 😊 Ada yang ingin ditanyakan tentang ${title}? Silakan ketik pertanyaanmu ya` }]);
@@ -348,6 +353,9 @@ export function ProductAIChat({ product, selectedVariant }) {
   }, [isCustomMode, open]);
 
   async function askQuestion(question, custom = false) {
+    if (!open) openTriggerRef.current = custom ? 'tanya-hal-lain' : `bubble: ${question}`;
+    // Every AI-generated question click is tracked with its text
+    if (!custom) trackEvent('question_clicked', handle, question);
     setOpen(true);
     if (custom) setIsCustomMode(true);
 
@@ -414,6 +422,7 @@ export function ProductAIChat({ product, selectedVariant }) {
   }
 
   function openCustomMode() {
+    if (!open) openTriggerRef.current = 'tanya-hal-lain';
     setOpen(true);
     setIsCustomMode(true);
     // Only show welcome message when starting fresh — don't wipe an ongoing conversation

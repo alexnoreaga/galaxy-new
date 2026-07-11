@@ -165,6 +165,52 @@ function isRateLimited(sessionId) {
   return false;
 }
 
+// ── Junk/gibberish gatekeeper — spam must never reach Gemini (it costs money) ─
+const junkMap = new Map();    // sessionId -> { count, at }
+const lastMsgMap = new Map(); // sessionId -> last normalized message
+
+const SHORT_OK_RE = /^(ya|iya|y|ok|oke|okay|okey|sip|siap|mau|gas|boleh|bisa|ga|gak|ngga|nggak|tidak|no|yes|yup|thanks|makasih|thx|mksh|dji|kk|min|halo|hai|hi|p)$/i;
+
+function isJunkMessage(q) {
+  const t = (q ?? '').trim();
+  if (!t) return true;
+  if (SHORT_OK_RE.test(t)) return false;
+  if (/\d/.test(t)) return false; // model numbers & budgets ("x4", "5jt") are legit
+  const letters = t.replace(/[^a-zA-Z]/g, '');
+  if (t.length < 3) return true;                 // "C", "J", "xv"
+  if (letters.length === 0) return true;         // pure symbols
+  const vowels = (letters.match(/[aiueo]/gi) ?? []).length;
+  if (letters.length <= 6 && vowels === 0) return true;                    // "cgc", "xvxv"
+  if (letters.length >= 10 && vowels / letters.length < 0.15) return true; // consonant mash
+  const symbols = (t.match(/[^a-zA-Z0-9\s]/g) ?? []).length;
+  if (t.length >= 15 && symbols / t.length > 0.4) return true;             // punctuation soup
+  return false;
+}
+
+function checkJunk(sessionId, question) {
+  if (!sessionId) return null;
+  if (junkMap.size > 1000) junkMap.clear();
+  if (lastMsgMap.size > 1000) lastMsgMap.clear();
+
+  const norm = question.trim().toLowerCase().replace(/\s+/g, ' ');
+  const junk = isJunkMessage(question);
+  const repeat = lastMsgMap.get(sessionId) === norm;
+  lastMsgMap.set(sessionId, norm);
+  if (!junk && !repeat) return null;
+
+  const rec = junkMap.get(sessionId) ?? { count: 0, at: Date.now() };
+  if (Date.now() - rec.at > 30 * 60 * 1000) { rec.count = 0; rec.at = Date.now(); }
+  rec.count++;
+  junkMap.set(sessionId, rec);
+
+  if (rec.count >= 6) {
+    return 'Sepertinya banyak pesan yang tidak jelas ka, aku jeda dulu ya 🙏 Kalau butuh bantuan serius, langsung hubungi admin di 0821-1131-1131 😊';
+  }
+  return junk
+    ? 'Maaf ka, aku kurang paham maksud pesannya 🙏 Bisa diketik ulang pertanyaannya? 😊'
+    : 'Pesannya sama seperti sebelumnya ya ka 😊 Ada hal lain yang mau ditanyakan?';
+}
+
 // ── Simple string hash for bubble answer cache keys ──────────────────────────
 function simpleHash(str) {
   let h = 5381;
@@ -592,7 +638,7 @@ ${CARD_INSTRUCTIONS}
 
 export async function action({ request, context }) {
   const body = await request.json();
-  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productCicilan, productNego, productDiscontinued = false, productInStock = true, productHandle, sessionId, conversationId, messages = [], isCustom = false } = body;
+  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productCicilan, productNego, productDiscontinued = false, productInStock = true, productHandle, pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
@@ -601,6 +647,13 @@ export async function action({ request, context }) {
     return json({
       answer: 'Maaf ka, terlalu banyak pertanyaan dalam waktu singkat 🙏 Tunggu sebentar ya, atau langsung hubungi admin kami di 0821-1131-1131 😊',
     });
+  }
+
+  // Junk gate: gibberish, single letters, and repeated messages get a canned
+  // reply — zero Gemini calls, zero Firestore writes
+  const junkReply = checkJunk(sessionId, question);
+  if (junkReply) {
+    return json({ answer: junkReply });
   }
 
   // Bubble answer cache — bubble questions are fixed per product, so cache their answers
@@ -856,6 +909,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         session_id: fsString(sessionId),
         product_handle: fsString(productHandle ?? ''),
         product_title: fsString(productTitle ?? ''),
+        page: fsString(String(pagePath).slice(0, 200)),
         needs_review: { booleanValue: needsReview },
         created_at: fsTimestamp(),
         updated_at: fsTimestamp(),

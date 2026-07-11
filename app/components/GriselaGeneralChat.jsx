@@ -28,7 +28,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
 
   useEffect(() => {
     if (open) {
-      trackEvent('chat_opened', source);
+      trackEvent('chat_opened', source, typeof window !== 'undefined' ? window.location.pathname : '');
       setMessages(prev => prev.length > 0 ? prev : [{
         role: 'ai',
         text: 'Hi ka! Aku Grisela, asisten AI Galaxy Camera 😊\nMau cari kamera, tanya harga, cicilan, atau minta rekomendasi? Ketik aja ya!',
@@ -53,6 +53,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
         body: JSON.stringify({
           question: q,
           productHandle: source,
+          pagePath: typeof window !== 'undefined' ? window.location.pathname : '',
           sessionId: getSessionId(),
           conversationId,
           messages: messages.map(m => ({ role: m.role, text: m.text })),
@@ -135,7 +136,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
               {QUICK_QUESTIONS.map((q, i) => (
                 <button
                   key={i}
-                  onClick={() => ask(q)}
+                  onClick={() => { trackEvent('question_clicked', source, q); ask(q); }}
                   className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-full transition-colors leading-tight text-left"
                 >
                   {q}
