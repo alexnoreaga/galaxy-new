@@ -389,7 +389,7 @@ async function searchStoreProducts(context, question, messages, currentProduct =
     const recentHistory = messages.slice(-4).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Analisa pertanyaan customer, output TEPAT SATU baris dengan salah satu format:
 1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna"). Jika customer menyebut DUA produk sekaligus, pisahkan dengan ";" (maksimal 2): SEARCH: produk pertama; produk kedua
-2. REKOMENDASI: <handle1,handle2,handle3> | <harga_min>-<harga_max> — customer minta rekomendasi/saran produk. Pilih 1-3 collection_handle paling relevan dari DAFTAR KOLEKSI di bawah, urutkan dari yang paling cocok (dipisah koma). Budget: "6 jutaan" = 5000000-7000000, "dibawah 10jt" = 0-10000000, "sekitar 15 juta" = 13000000-17000000, tanpa budget = 0-999999999
+2. REKOMENDASI: <handle1,handle2,handle3> | <harga_min>-<harga_max> | <brand atau -> — customer minta rekomendasi/saran produk. Pilih 1-3 collection_handle paling relevan dari DAFTAR KOLEKSI di bawah, urutkan dari yang paling cocok (dipisah koma). Budget: "6 jutaan" = 5000000-7000000, "dibawah 10jt" = 0-10000000, "sekitar 15 juta" = 13000000-17000000, tanpa budget = 0-999999999. Segmen ketiga: nama BRAND jika customer menyebut/menginginkan brand tertentu (contoh: Sony), atau "-" jika bebas brand
 3. UPSELL: <aksesoris1>; <aksesoris2> — customer BARU SAJA menyatakan jadi/mau beli produk yang sedang dilihat ("oke aku ambil", "jadi deh", "gas order", "oke order via website", "mau yang ini"). Pilih 2 aksesoris pelengkap paling relevan untuk produk itu, gunakan pengetahuanmu tentang model yang kompatibel (contoh: memory card SD, baterai cadangan model yang cocok). TAPI jika di riwayat percakapan kamu SUDAH pernah menawarkan aksesoris, output NO
 4. NO — bukan pencarian, rekomendasi, atau komitmen beli
 
@@ -399,6 +399,8 @@ NORMALISASI NAMA MODEL: perbaiki penulisan customer ke nama model RESMI pakai pe
 
 PENTING: pertanyaan PERBANDINGAN atau opini ("bedanya apa", "bagusan mana", "vs", "mending mana") → NO. Customer minta penjelasan, bukan mencari barang.
 PENTING: pertanyaan harga/nego/diskon/cicilan produk YANG SEDANG DILIHAT ("harganya berapa", "bisa kurang ga") → NO. Data harga produk itu sudah tersedia.
+PENTING: jika customer sedang MENJAWAB pertanyaan Admin dalam alur mencari produk (lihat riwayat: Admin baru bertanya jenis/kebutuhan/level/budget), jawaban pendek seperti "sony kak", "pemula si kak", "foto dan video" adalah KELANJUTAN alur rekomendasi → output REKOMENDASI dengan koleksi sesuai konteks riwayat, BUKAN NO.
+PENTING: jika customer sudah menyebut BRAND tertentu (Sony/Canon/Fujifilm/dll) di riwayat, WAJIB isi segmen ketiga REKOMENDASI dengan brand itu supaya hasilnya sesuai keinginan customer.
 
 DAFTAR KOLEKSI:
 ${collectionsText}
@@ -410,9 +412,12 @@ Contoh:
 - (halaman Canon EOS RP) "chargernya ada?" → SEARCH: charger LP-E17
 - "ada warna apa untuk insta 360 x5?" → SEARCH: Insta360 X5
 - "insta 360 quick reader 512 sama invisible selfie stick ada?" → SEARCH: Insta360 Quick Reader; selfie stick Insta360
-- "mau tanya rekomen kamera 6 jutaan" → REKOMENDASI: <handle mirrorless>,<handle kamera lain>,<handle instax/pocket> | 5000000-7000000
-- "rekomendasi drone buat pemula dong" → REKOMENDASI: <handle koleksi drone> | 0-999999999
-- "kamera buat vlog dibawah 10 juta apa ya?" → REKOMENDASI: <handle koleksi kamera vlog/mirrorless>,<handle alternatif> | 0-10000000
+- (riwayat: Admin tanya "mau kamera apa?") "sony kak" → REKOMENDASI: <handle koleksi mirrorless> | 0-999999999 | Sony
+- (riwayat: customer sudah sebut Sony, Admin tanya "buat kebutuhan apa?") "pemula si kak" → REKOMENDASI: <handle koleksi mirrorless> | 0-999999999 | Sony
+- (riwayat: Admin tanya "foto atau video?") "foto dan video kak" → REKOMENDASI: <handle koleksi sesuai konteks> | 0-999999999 | <brand dari riwayat atau ->
+- "mau tanya rekomen kamera 6 jutaan" → REKOMENDASI: <handle mirrorless>,<handle kamera lain>,<handle instax/pocket> | 5000000-7000000 | -
+- "rekomendasi drone buat pemula dong" → REKOMENDASI: <handle koleksi drone> | 0-999999999 | -
+- "kamera buat vlog dibawah 10 juta apa ya?" → REKOMENDASI: <handle koleksi kamera vlog/mirrorless>,<handle alternatif> | 0-10000000 | -
 - (halaman Sony A6400) "oke deh aku ambil yang ini" → UPSELL: memory card SD; baterai NP-FW50
 - (halaman Canon EOS R50) "gas order via website" → UPSELL: memory card SD; baterai LP-E17
 - "bedanya sama a6400 apa min" → NO
@@ -431,13 +436,18 @@ Output:`;
     // ── Recommendation branch: candidate collections + budget filter, best sellers first ──
     if (/^REKOMENDASI:/i.test(out)) {
       const body = out.replace(/^REKOMENDASI:\s*/i, '');
-      const [handleRaw, rangeRaw] = body.split('|').map(s => (s ?? '').trim());
+      const [handleRaw, rangeRaw, brandRaw] = body.split('|').map(s => (s ?? '').trim());
       const range = rangeRaw?.match(/(\d+)\s*-\s*(\d+)/);
       const min = range ? Number(range[1]) : 0;
       const max = range ? Number(range[2]) : 999999999;
       const handles = (handleRaw ?? '').replace(/[<>]/g, '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 3);
       if (handles.length === 0) return empty;
-      console.log('[api.ask] recommendation:', handles.join(','), min, '-', max);
+      // Customer's requested brand — recommendations must respect it
+      const brand = (brandRaw ?? '').replace(/[<>]/g, '').replace(/^-$/, '').trim();
+      console.log('[api.ask] recommendation:', handles.join(','), min, '-', max, brand ? `brand=${brand}` : '');
+
+      const brandFilter = (items) =>
+        brand ? items.filter(p => p.title.toLowerCase().includes(brand.toLowerCase())) : items;
 
       const tryCollections = async (priceMin, priceMax) => {
         for (const handle of handles) {
@@ -447,7 +457,7 @@ Output:`;
               filters: [{ available: true }, { price: { min: priceMin, max: priceMax } }],
             },
           });
-          const items = data?.collection?.products?.nodes ?? [];
+          const items = brandFilter(data?.collection?.products?.nodes ?? []);
           if (items.length > 0) return items;
         }
         return [];
@@ -461,6 +471,17 @@ Output:`;
       if (items.length === 0 && max < 999999999) {
         items = await tryCollections(Math.floor(min * 0.8), Math.ceil(max * 1.5));
         stretched = items.length > 0;
+      }
+
+      // 3rd pass: brand requested but collections had no match → brand-wide search
+      if (items.length === 0 && brand) {
+        const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
+          variables: { searchTerm: `${brand} camera` },
+        });
+        items = (data?.predictiveSearch?.products ?? [])
+          .filter(p => p.availableForSale && !isAccessoryText(p.title))
+          .filter(p => p.title.toLowerCase().includes(brand.toLowerCase()))
+          .slice(0, 3);
       }
 
       if (items.length === 0) {
@@ -760,6 +781,8 @@ INSTRUKSI:
   * Setelah jawab cicilan → "Mau dibantu hitung tenor lain, atau langsung order ka?"
   * Setelah jawab garansi/bonus/ongkir → "Ada lagi yang mau ditanyakan, atau mau langsung diproses ka?"
 - Jangan memaksa: jika customer bilang cuma tanya-tanya atau menolak, jawab santai dan tawarkan bantuan lain tanpa mengulang ajakan yang sama
+- INGAT NIAT CICILAN: jika di riwayat customer sudah bilang mau CICILAN (apalagi sudah pilih metode seperti AEON/Kredivo/Homecredit), JANGAN tanya "budget berapa" — customer cicilan berpikir dalam ANGSURAN PER BULAN, bukan uang tunai. Tanyakan "nyamannya angsuran berapa per bulan ka?" lalu pakai patokan internal: angsuran nyaman × 12 ≈ kisaran harga produk yang cocok. Saat merekomendasikan, framing-nya per bulan ("cicilannya sekitar sejutaan per bulan ka") — angka pasti bilang akan dihitungkan saat pengajuan
+- Jika metode cicilan yang dipilih customer WAJIB ke toko (AEON, Homecredit, Indodana): arahkan closing ke KUNJUNGAN TOKO — tawarkan keep unit tanpa DP, sebutkan prosesnya cuma ±15 menit langsung bawa pulang, dan minta nama + nomor WA supaya tim toko siapkan (marker LEAD alasan=kunjungan)
 
 PENANGANAN KEBERATAN (jurus sales — selalu empati dulu, singkat, satu langkah kecil berikutnya):
 - "Mahal" / "kemahalan": jangan defensif. Reframe ke cicilan per bulan dari data produk ("kalau dicicil cuma Rp X/bln ka"), lalu tawarkan harga nego (khusus toko/WA admin) atau voucher website
@@ -777,8 +800,9 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
 - Marker otomatis hilang dari chat — jangan tulis ulang data customer di luar marker
 - Selain niat ke toko, tawarkan juga simpan kontak saat: stok produk kosong (alasan=restock) atau customer ragu/mikir dulu (alasan=promo) — sekali saja, jangan maksa
 - JANGAN mengulang pertanyaan follow-up yang sama yang sudah pernah kamu tanyakan di riwayat percakapan — jika customer tidak merespons ajakanmu sebelumnya, ganti pendekatan atau jawab saja tanpa ajakan
+- JANGAN MENGINTEROGASI: maksimal 2 pertanyaan menggali kebutuhan secara berturut-turut. Begitu kamu tahu kategori + level/kebutuhan dasar customer (contoh: "Sony" + "pemula"), LANGSUNG rekomendasikan 2-3 produk — jangan tambah pertanyaan "foto atau video?", "budgetnya berapa?" dulu. Tunjukkan produk dulu, persempit belakangan kalau customer minta
 - Jika customer menutup percakapan ("makasih", "oke", "sip", "cuma tanya-tanya", dll): balas hangat dan singkat TANPA pertanyaan follow-up apapun, contoh: "Sama-sama ka! Kalau ada yang mau ditanyakan lagi, aku siap bantu 😊"
-- JANGAN pakai format markdown (**, *, bullet list, nomor) — tulis kalimat biasa saja karena chat tidak bisa menampilkan format
+- JANGAN PERNAH pakai format markdown — chat menampilkan teks mentah, jadi simbol ** dan * akan terlihat jelek oleh customer. DILARANG menulis seperti "* **Sony ZV-E10**: bagus". Yang BENAR: tulis nama produk langsung dalam kalimat atau baris baru tanpa simbol apapun, contoh: "Sony ZV-E10 — favorit buat vlogging dan pemula"
 - TAPI untuk daftar/enumerasi (estimasi cicilan beberapa tenor, alamat + link maps, langkah-langkah, pilihan produk): tulis tiap item di BARIS BARU supaya rapi, jangan digabung jadi satu kalimat panjang. Contoh:
   "Estimasi cicilan Homecredit DP 0%:
   6x: Rp1.688.470/bln
