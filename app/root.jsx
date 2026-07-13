@@ -690,7 +690,8 @@ export function ErrorBoundary() {
     || errLower.includes('timeout')
     || errLower.includes('networkerror')
     || errLower.includes('load failed')
-    || !navigator?.onLine;
+    // navigator only exists in the browser — guard for SSR (worker has no navigator global)
+    || (typeof navigator !== 'undefined' && !navigator.onLine);
 
   useEffect(() => {
     if (!isNetworkError) return;

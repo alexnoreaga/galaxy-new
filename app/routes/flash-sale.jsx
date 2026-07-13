@@ -1,7 +1,7 @@
 import { json } from '@shopify/remix-oxygen';
 import { useLoaderData, Link } from '@remix-run/react';
 import { useState, useEffect } from 'react';
-import { getAutomaticDiscounts, getActiveFlashProducts } from '~/lib/autoDiscounts';
+import { getAutomaticDiscounts, getActiveFlashProducts, readEnvVar } from '~/lib/autoDiscounts';
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -144,8 +144,8 @@ export async function loader({ context }) {
     const productIds = products.map(p => p.id.split('/').pop()).filter(Boolean);
 
     if (productIds.length > 0) {
-      const shop = context.env.PUBLIC_STORE_DOMAIN;
-      const token = await getAdminToken(shop, context.env.SHOPIFY_APP_CLIENT_ID, context.env.SHOPIFY_APP_CLIENT_SECRET);
+      const shop = readEnvVar(context.env, 'PUBLIC_STORE_DOMAIN');
+      const token = await getAdminToken(shop, readEnvVar(context.env, 'SHOPIFY_APP_CLIENT_ID'), readEnvVar(context.env, 'SHOPIFY_APP_CLIENT_SECRET'));
 
       const res = await fetch(
         `https://${shop}/admin/api/2026-01/products.json?ids=${productIds.join(',')}&fields=id,variants`,
