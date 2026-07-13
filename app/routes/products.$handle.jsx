@@ -1,4 +1,4 @@
-﻿import {useLoaderData,Link,useNavigate,useSearchParams} from '@remix-run/react';
+import {useLoaderData,Link,useNavigate,useSearchParams} from '@remix-run/react';
 import {defer} from '@shopify/remix-oxygen';
 // import {Image} from '@shopify/hydrogen-react';
 import ProductOptions from '~/components/ProductOptions';
@@ -22,6 +22,7 @@ import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
+import { getAutomaticDiscounts, findProductAutoDiscount } from '~/lib/autoDiscounts';
 import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa6";
@@ -42,6 +43,91 @@ export const handle = {
 export function shouldRevalidate({currentUrl, nextUrl, defaultShouldRevalidate}) {
   if (currentUrl.pathname === nextUrl.pathname) return false;
   return defaultShouldRevalidate;
+}
+
+// ── Flash sale banner + live countdown ────────────────────────────────────────
+
+function CountdownBox({ value }) {
+  return (
+    <span className="bg-gray-900/85 text-white font-mono font-bold text-xs sm:text-sm rounded-md px-1 sm:px-1.5 py-0.5 min-w-[24px] sm:min-w-[28px] text-center inline-block tabular-nums leading-tight">
+      {value}
+    </span>
+  );
+}
+
+function FlashSaleCountdown({ endsAt }) {
+  // null until mounted — avoids SSR/client hydration mismatch on time
+  const [now, setNow] = useState(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const left = now === null ? null : Math.max(0, new Date(endsAt).getTime() - now);
+  if (left !== null && left <= 0) return null;
+
+  const d = left === null ? '--' : Math.floor(left / 86400000);
+  const h = left === null ? '--' : String(Math.floor((left % 86400000) / 3600000)).padStart(2, '0');
+  const m = left === null ? '--' : String(Math.floor((left % 3600000) / 60000)).padStart(2, '0');
+  const s = left === null ? '--' : String(Math.floor((left % 60000) / 1000)).padStart(2, '0');
+
+  return (
+    <div className="flex items-center gap-0.5 sm:gap-1">
+      {(left === null ? false : d > 0) && (
+        <>
+          <CountdownBox value={d} />
+          <span className="text-white/90 text-[9px] sm:text-[10px] font-bold mr-0.5">hari</span>
+        </>
+      )}
+      <CountdownBox value={h} />
+      <span className="text-white font-black text-xs">:</span>
+      <CountdownBox value={m} />
+      <span className="text-white font-black text-xs">:</span>
+      <CountdownBox value={s} />
+    </div>
+  );
+}
+
+function FlashSaleBanner({ autoDiscount }) {
+  if (!autoDiscount) return null;
+  const hemat = autoDiscount.type === 'amount'
+    ? `Rp${autoDiscount.amount.toLocaleString('id-ID')}`
+    : `${autoDiscount.percentage}%`;
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl order-2 md:order-4 mt-3 md:mt-4"
+      style={{ background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 45%, #f97316 100%)' }}
+    >
+      {/* Diagonal shine */}
+      <div
+        className="absolute inset-y-0 w-24 pointer-events-none"
+        style={{
+          background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%)',
+          animation: 'flashShine 2.8s ease-in-out infinite',
+        }}
+      />
+      <style>{`@keyframes flashShine { 0% { left: -25%; } 60% { left: 110%; } 100% { left: 110%; } }`}</style>
+
+      <div className="relative flex items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="text-xl sm:text-2xl animate-pulse flex-shrink-0">⚡</span>
+          <div className="min-w-0">
+            <p className="text-white font-black italic text-sm sm:text-lg tracking-wider leading-none drop-shadow-sm">FLASH SALE</p>
+            <p className="text-white/95 text-[10px] sm:text-xs font-semibold mt-0.5 leading-tight whitespace-nowrap">
+              Hemat {hemat}<span className="hidden sm:inline"> · otomatis di checkout</span>
+            </p>
+          </div>
+        </div>
+        {autoDiscount.endsAt && (
+          <div className="text-right flex-shrink-0">
+            <p className="text-white/85 text-[8px] sm:text-[10px] font-bold uppercase tracking-wide mb-0.5">Berakhir dalam</p>
+            <FlashSaleCountdown endsAt={autoDiscount.endsAt} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export async function loader({params, context, request}) {
@@ -70,6 +156,7 @@ export async function loader({params, context, request}) {
   const discountVouchersPromise = context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
     variables: { type: 'discount_voucher', first: 10 },
   });
+  const autoDiscountsPromise = getAutomaticDiscounts(context.env).catch(() => []);
 
   // ROUND 1 — critical data only (blocks first byte)
   const [
@@ -144,6 +231,9 @@ export async function loader({params, context, request}) {
         soldCount = parseInt(doc.fields?.count?.integerValue || 0);
       }).catch(() => {}),
   ]);
+
+  // Match active automatic discount (flash sale) for this product
+  const autoDiscount = findProductAutoDiscount(await autoDiscountsPromise, product?.id);
 
   const productNumId = product?.id?.split('/').pop();
   const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value;
@@ -220,6 +310,7 @@ export async function loader({params, context, request}) {
     discountVouchers: discountVouchersPromise,
     cachedFaqs: cachedFaqsPromise,
     finalTebusMurah: tebusMurahPromise,
+    autoDiscount,
   });
 
 }
@@ -1078,7 +1169,7 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount} = useLoaderData();
+    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount} = useLoaderData();
 
     // Compute selected variant from URL params — all 50 variants are already in product.variants.nodes
     // so this is instant, no server call needed on variant switch
@@ -1263,6 +1354,9 @@ DP : 0
                 )}
               </div>
 
+              {/* FLASH SALE banner + countdown */}
+              <FlashSaleBanner autoDiscount={autoDiscount} />
+
               {/* PRICE + CICILAN — two-column layout */}
               <div className="flex items-stretch order-2 md:order-4 md:mt-4">
 
@@ -1271,18 +1365,44 @@ DP : 0
                   className="flex flex-col justify-center cursor-pointer pr-4"
                   onClick={() => copyToClipboard(listAngsuran(product, selectedVariant, canonicalUrl))}
                 >
-                  <div className="text-2xl font-bold text-rose-700 leading-tight">
-                    Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}
-                  </div>
-                  {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <div className="bg-rose-700 px-1.5 py-0.5 font-bold text-white text-[10px] rounded">
-                        <HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/>
+                  {autoDiscount ? (
+                    (() => {
+                      const basePrice = parseFloat(selectedVariant.price.amount);
+                      const flashPrice = Math.max(0, autoDiscount.type === 'amount'
+                        ? basePrice - autoDiscount.amount
+                        : Math.round(basePrice * (1 - autoDiscount.percentage / 100)));
+                      return (
+                        <>
+                          <div className="text-2xl font-bold text-red-600 leading-tight">
+                            Rp{flashPrice.toLocaleString("id-ID")}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <div className="text-xs line-through text-slate-400 whitespace-nowrap">
+                              Rp{basePrice.toLocaleString("id-ID")}
+                            </div>
+                            <span className="bg-red-50 border border-red-200 text-red-600 px-1.5 py-[1px] rounded-md text-[10px] font-bold tracking-wide whitespace-nowrap">
+                              HEMAT {autoDiscount.type === 'amount' ? `Rp${autoDiscount.amount.toLocaleString('id-ID')}` : `${autoDiscount.percentage}%`}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-rose-700 leading-tight">
+                        Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}
                       </div>
-                      <div className="text-xs line-through text-slate-400">
-                        Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}
-                      </div>
-                    </div>
+                      {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <div className="bg-rose-700 px-1.5 py-0.5 font-bold text-white text-[10px] rounded">
+                            <HitunganPersen hargaSebelum={selectedVariant.compareAtPrice.amount} hargaSesudah={selectedVariant.price.amount}/>
+                          </div>
+                          <div className="text-xs line-through text-slate-400">
+                            Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -1441,7 +1561,7 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} />
+              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={autoDiscount} />
 
               {/* KODE VOUCHER — inline strip below Tanya AI Galaxy */}
               <Suspense fallback={null}>

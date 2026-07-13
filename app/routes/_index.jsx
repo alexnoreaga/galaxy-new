@@ -1,4 +1,4 @@
-﻿import {defer} from '@shopify/remix-oxygen';
+import {defer} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link,useOutletContext} from '@remix-run/react';
 import {Suspense, lazy} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
@@ -11,7 +11,8 @@ import { RecentlyViewed } from '../components/RecentlyViewed';
 import { SocialProofStrip } from '../components/SocialProofStrip';
 import { MiniFaq } from '../components/MiniFaq';
 import {useRef} from "react";
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState, useEffect } from 'react';
+import { getAutomaticDiscounts, getActiveFlashProducts } from '~/lib/autoDiscounts';
 import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
 
 import { Carousel } from '~/components/Carousel';
@@ -24,6 +25,26 @@ const ModalBalasCepat = lazy(() => import('~/components/ModalBalasCepat').then(m
 
 
 
+
+const FLASH_SALE_HOME_QUERY = `#graphql
+  query FlashSaleHome($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        id
+        title
+        handle
+        featuredImage { url altText }
+        variants(first: 1) {
+          nodes {
+            availableForSale
+            price { amount }
+            compareAtPrice { amount }
+          }
+        }
+      }
+    }
+  }
+`;
 
 export async function loader({context, request}) {
   const customerAccessToken = await context.session.get('customerAccessToken');
@@ -86,6 +107,91 @@ export async function loader({context, request}) {
     };
   });
 
+  // Flash sale strip — discount-driven: products come FROM the active discounts,
+  // no collection maintenance needed. Deferred; renders only while a sale is live.
+  const flashSalePromise = (async () => {
+    const discounts = await getAutomaticDiscounts(context.env).catch(() => []);
+    const flashMap = getActiveFlashProducts(discounts, 12);
+    if (flashMap.size === 0) return { items: [], saleEndsAt: null };
+
+    const data = await storefront.query(FLASH_SALE_HOME_QUERY, {
+      variables: { ids: [...flashMap.keys()] },
+    });
+    const nodes = (data?.nodes ?? []).filter(Boolean);
+
+    let saleEndsAt = null;
+    const flashNodes = [];
+    for (const p of nodes) {
+      const d = flashMap.get(p.id);
+      if (!d) continue;
+      if (d.endsAt && (!saleEndsAt || new Date(d.endsAt) < new Date(saleEndsAt))) saleEndsAt = d.endsAt;
+      flashNodes.push({ p, d });
+    }
+    if (flashNodes.length === 0) return { items: [], saleEndsAt: null };
+
+    // Social proof per flash product (same pattern as MirrorlessProducts)
+    const socials = await Promise.all(
+      flashNodes.map(({ p }) =>
+        Promise.all([
+          fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(doc => parseInt(doc?.fields?.count?.integerValue || 0))
+            .catch(() => 0),
+          fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              structuredQuery: {
+                from: [{ collectionId: 'reviews' }],
+                where: {
+                  compositeFilter: {
+                    op: 'AND',
+                    filters: [
+                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: p.handle } } },
+                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
+                    ],
+                  },
+                },
+                select: { fields: [{ fieldPath: 'rating' }] },
+                limit: 100,
+              },
+            }),
+          })
+            .then(res => res.ok ? res.json() : null)
+            .then(rows => {
+              const ratings = (rows || []).filter(r => r.document).map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
+              return ratings.length > 0
+                ? { count: ratings.length, avg: parseFloat((ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)) }
+                : null;
+            })
+            .catch(() => null),
+        ])
+      )
+    );
+
+    const items = flashNodes.map(({ p, d }, i) => {
+      const v = p.variants?.nodes?.[0];
+      const base = parseFloat(v?.price?.amount ?? 0);
+      const compareAt = parseFloat(v?.compareAtPrice?.amount ?? 0);
+      const flashPrice = Math.max(0, d.type === 'amount' ? base - d.amount : Math.round(base * (1 - d.percentage / 100)));
+      const strikeAt = Math.max(compareAt, base);
+      return {
+        title: p.title,
+        handle: p.handle,
+        image: p.featuredImage?.url ?? null,
+        price: flashPrice,
+        strikeAt,
+        pct: strikeAt > flashPrice ? Math.round((1 - flashPrice / strikeAt) * 100) : 0,
+        available: v?.availableForSale ?? true,
+        sold: socials[i][0],
+        review: socials[i][1],
+        endsAt: d.endsAt ?? null,
+      };
+    }).filter(it => it.available);
+
+    return { items, saleEndsAt };
+  })().catch(() => ({ items: [], saleEndsAt: null }));
+
   // BrandPopular has <Await> — defer the 2-step chain (GET_BRANDS then N x GET_BRAND_IMAGE)
   const kumpulanBrandPromise = storefront.query(GET_BRANDS).then(async (brands) => {
     const hasilLoop = brands?.metaobjects?.nodes[0]?.fields[0]?.value;
@@ -134,6 +240,7 @@ export async function loader({context, request}) {
     hasilCollection: collections2,
     banner,
     mirrorlessProducts,
+    flashSale: flashSalePromise,
   });
 }
 
@@ -141,6 +248,210 @@ export async function loader({context, request}) {
 
 
 
+
+// ── Flash sale section (homepage) ─────────────────────────────────────────────
+
+function HomeMiniCountdown({ endsAt }) {
+  // null until mounted — avoids SSR/client hydration mismatch on time
+  const [now, setNow] = useState(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const left = now === null ? null : Math.max(0, new Date(endsAt).getTime() - now);
+  if (left !== null && left <= 0) return null;
+  const d = left === null ? null : Math.floor(left / 86400000);
+  const v = (n) => (left === null ? '--' : String(n).padStart(2, '0'));
+  const h = left === null ? '--' : v(Math.floor((left % 86400000) / 3600000));
+  const m = left === null ? '--' : v(Math.floor((left % 3600000) / 60000));
+  const s = left === null ? '--' : v(Math.floor((left % 60000) / 1000));
+  const Box = ({ val }) => (
+    <span className="bg-black/40 text-white font-mono font-bold text-[11px] sm:text-xs rounded px-1 sm:px-1.5 py-0.5 min-w-[20px] sm:min-w-[24px] text-center inline-block tabular-nums leading-tight">
+      {val}
+    </span>
+  );
+  return (
+    <div className="flex items-center gap-0.5">
+      {(left === null ? false : d > 0) && (
+        <>
+          <Box val={d} />
+          <span className="text-white/90 text-[9px] font-bold mx-0.5">hr</span>
+        </>
+      )}
+      <Box val={h} />
+      <span className="text-white font-black text-[11px]">:</span>
+      <Box val={m} />
+      <span className="text-white font-black text-[11px]">:</span>
+      <Box val={s} />
+    </div>
+  );
+}
+
+function CardMiniCountdown({ endsAt }) {
+  // null until mounted — avoids SSR/client hydration mismatch on time
+  const [now, setNow] = useState(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const left = now === null ? null : Math.max(0, new Date(endsAt).getTime() - now);
+  if (left !== null && left <= 0) return null;
+  const d = left === null ? null : Math.floor(left / 86400000);
+  const v = (n) => (left === null ? '--' : String(n).padStart(2, '0'));
+  const Box = ({ val }) => (
+    <span className="bg-gray-900 text-white font-mono font-bold text-[9px] rounded px-[3px] py-[1px] min-w-[17px] text-center inline-block tabular-nums leading-tight">
+      {val}
+    </span>
+  );
+  return (
+    <div className="flex items-center gap-[2px]">
+      {(left === null ? false : d > 0) && (
+        <>
+          <Box val={left === null ? '--' : d} />
+          <span className="text-red-500 font-bold" style={{ fontSize: 8 }}>hr</span>
+        </>
+      )}
+      <Box val={v(left === null ? null : Math.floor((left % 86400000) / 3600000))} />
+      <span className="text-red-500 font-black text-[9px]">:</span>
+      <Box val={v(left === null ? null : Math.floor((left % 3600000) / 60000))} />
+      <span className="text-red-500 font-black text-[9px]">:</span>
+      <Box val={v(left === null ? null : Math.floor((left % 60000) / 1000))} />
+    </div>
+  );
+}
+
+function FlashSaleHomeSection({ flashSale }) {
+  return (
+    <Suspense fallback={null}>
+      <Await resolve={flashSale}>
+        {({ items, saleEndsAt }) => {
+          if (!items || items.length === 0) return null;
+          return (
+            <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
+              <section
+                className="relative overflow-hidden rounded-xl"
+                style={{ background: 'linear-gradient(110deg, #b71c1c 0%, #e53935 45%, #f4511e 100%)' }}
+              >
+                {/* Diagonal stripes + shine */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 16px)' }}
+                />
+                <div
+                  className="absolute inset-y-0 w-28 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.22) 50%, transparent 80%)',
+                    animation: 'homeFlashShine 3s ease-in-out infinite',
+                  }}
+                />
+                <style>{`@keyframes homeFlashShine { 0% { left: -30%; } 60% { left: 115%; } 100% { left: 115%; } }`}</style>
+
+                {/* Header — countdown drops to its own row on mobile */}
+                <div className="relative px-3 sm:px-4 pt-2.5 pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                      <span className="text-lg sm:text-2xl animate-pulse flex-shrink-0">⚡</span>
+                      <h2 className="text-white font-black italic text-base sm:text-2xl tracking-wider leading-none drop-shadow-sm whitespace-nowrap">
+                        FLASH SALE
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {saleEndsAt && (
+                        <div className="hidden sm:block">
+                          <HomeMiniCountdown endsAt={saleEndsAt} />
+                        </div>
+                      )}
+                      <Link to="/flash-sale" className="text-white text-[11px] sm:text-xs font-bold whitespace-nowrap hover:underline no-underline">
+                        Lihat Semua →
+                      </Link>
+                    </div>
+                  </div>
+                  {saleEndsAt && (
+                    <div className="sm:hidden mt-1.5 flex items-center gap-1.5">
+                      <span className="text-white/85 font-bold uppercase tracking-wider" style={{ fontSize: 9 }}>Berakhir dalam</span>
+                      <HomeMiniCountdown endsAt={saleEndsAt} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Product rail */}
+                <div
+                  className="relative flex gap-2 sm:gap-2.5 overflow-x-auto px-3 sm:px-4 pb-3"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {items.map(it => (
+                    <Link
+                      key={it.handle}
+                      to={`/products/${it.handle}`}
+                      prefetch="intent"
+                      className="flex-shrink-0 w-32 sm:w-40 bg-white rounded-lg overflow-hidden no-underline group"
+                      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.18)' }}
+                    >
+                      <div className="relative bg-gray-50" style={{ aspectRatio: '1/1' }}>
+                        {it.pct > 0 && (
+                          <div className="absolute top-1.5 left-1.5 z-10 bg-yellow-400 text-red-900 font-black text-[10px] px-1.5 py-0.5 rounded-sm leading-tight">
+                            -{it.pct}%
+                          </div>
+                        )}
+                        {it.image ? (
+                          <img
+                            src={it.image}
+                            alt={it.title}
+                            loading="lazy"
+                            className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-200 text-3xl">📷</div>
+                        )}
+                      </div>
+                      <div className="p-2">
+                        <p className="text-gray-800 text-[11px] leading-snug line-clamp-2 mb-1" style={{ minHeight: 28 }}>
+                          {it.title}
+                        </p>
+                        {(it.review || it.sold > 0) && (
+                          <div className="flex items-center gap-1 mb-1 text-[9px] text-gray-500 leading-none">
+                            {it.review && (
+                              <>
+                                <span className="text-amber-400 text-[10px]">★</span>
+                                <span className="font-bold text-gray-700">{it.review.avg}</span>
+                                <span className="text-gray-400">({it.review.count})</span>
+                              </>
+                            )}
+                            {it.review && it.sold > 0 && <span className="text-gray-300">·</span>}
+                            {it.sold > 0 && <span>{it.sold} terjual</span>}
+                          </div>
+                        )}
+                        <p className="font-black text-sm leading-tight" style={{ color: '#e53935' }}>
+                          Rp{Math.round(it.price).toLocaleString('id-ID')}
+                        </p>
+                        {it.strikeAt > it.price && (
+                          <p className="text-[10px] text-gray-400 line-through leading-tight mt-0.5">
+                            Rp{Math.round(it.strikeAt).toLocaleString('id-ID')}
+                          </p>
+                        )}
+                        {it.endsAt && (
+                          <div
+                            className="mt-1.5 -mx-2 -mb-2 px-2 py-1.5 flex items-center gap-1"
+                            style={{ background: 'linear-gradient(90deg, #fef2f2, #fff7ed)', borderTop: '1px solid #fee2e2' }}
+                          >
+                            <span style={{ fontSize: 9 }}>⚡</span>
+                            <CardMiniCountdown endsAt={it.endsAt} />
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            </div>
+          );
+        }}
+      </Await>
+    </Suspense>
+  );
+}
 
 export default function Homepage() {
   const data = useLoaderData();
@@ -170,6 +481,25 @@ export default function Homepage() {
         <SocialProofStrip />
       </div>
 
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+
+      <div className='hidden md:block'>
+      <RenderCollection collections={data.hasilCollection.collections}/>
+      </div>
+
+      <div className='block md:hidden'>
+      <KategoriHalDepan related={data.hasilCollection.collections}/>
+      </div>
+
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+        <VouchersSection vouchers={data.vouchers} />
+      </div>
+
+      {/* FLASH SALE — only renders while an automatic discount is active */}
+      <FlashSaleHomeSection flashSale={data.flashSale} />
+
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
         <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-md hover:shadow-lg transition-shadow duration-300">
           {/* Modern gradient overlay */}
@@ -180,7 +510,7 @@ export default function Homepage() {
           <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-56 sm:h-56 bg-gradient-to-tr from-blue-400/20 to-transparent rounded-full blur-3xl"></div>
 
           {/* Content */}
-          <div className="relative px-3 py-2 sm:px-6 sm:py-3 md:py-3.5 flex flex-row items-center justify-between gap-2 sm:gap-4 z-10">
+          <div className="mb-5 relative px-3 py-2 sm:px-6 sm:py-3 md:py-3.5 flex flex-row items-center justify-between gap-2 sm:gap-4 z-10">
             <div className="flex-1 min-w-0">
               <div className="hidden sm:inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-2 py-0.5 mb-1 sm:mb-1.5 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-300">
@@ -213,22 +543,7 @@ export default function Homepage() {
           </div>
         </div>
       </div>
-      
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 
-      <div className='hidden md:block'>
-      <RenderCollection collections={data.hasilCollection.collections}/>
-      </div>
-
-      <div className='block md:hidden'>
-      <KategoriHalDepan related={data.hasilCollection.collections}/>
-      </div>
-
-      </div>
-
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
-        <VouchersSection vouchers={data.vouchers} />
-      </div>
 
       
 
@@ -246,7 +561,7 @@ export default function Homepage() {
 
         </div> */}
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      <div className="relative mt-2 mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
         <MirrorlessProducts products={data.mirrorlessProducts} />
       </div>
 
@@ -511,7 +826,7 @@ function RecommendedProducts({products}) {
 
 function MirrorlessProducts({products}) {
   return (
-    <div className="mirrorless-products mb-8">
+    <div className="mirrorless-products mb-8 mt-4">
       <div className='flex flex-row items-center justify-between mb-4 gap-2'>
         <div className="text-gray-900 text-sm sm:text-xl font-medium sm:font-semibold tracking-tight">Mirrorless Terbaru</div>
         <Link to="/collections/kamera-mirrorless">

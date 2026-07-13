@@ -659,7 +659,7 @@ ${CARD_INSTRUCTIONS}
 
 export async function action({ request, context }) {
   const body = await request.json();
-  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productCicilan, productNego, productDiscontinued = false, productInStock = true, productHandle, pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
+  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productHandle, pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
@@ -738,6 +738,7 @@ ${productDiscontinued ? `- ⚠️ STATUS: DISCONTINUED — produk ini sudah tida
 - Deskripsi: ${(productDescription ?? '').slice(0, 400)}
 - Spesifikasi: ${(productSpecs ?? '').slice(0, 800)}
 - Isi Paket/Box: ${(productIsiBox ?? '').slice(0, 300)}
+${productFlashSale ? `- ⚡ FLASH SALE SEDANG AKTIF untuk produk ini: ${productFlashSale} — diskon OTOMATIS terpotong saat checkout di website, TANPA kode. Sebutkan ini PROAKTIF saat membahas harga/order — ini senjata closing utamamu! Ciptakan urgensi halus dengan menyebut batas waktunya. Harga flash ini khusus checkout website (nego 3% tetap opsi untuk toko/WA — bandingkan jujur mana yang lebih hemat jika ditanya)` : ''}
 ${productFreeBonus ? `- Bonus Gratis KHUSUS produk ini (sedang berlaku, sebutkan ini saat customer tanya bonus/free): ${productFreeBonus.slice(0, 300)}` : ''}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}`}
 ${productNego ? `

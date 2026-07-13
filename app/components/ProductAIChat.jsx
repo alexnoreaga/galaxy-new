@@ -233,7 +233,7 @@ export function ChatMessage({ msg, waMessage }) {
   );
 }
 
-export function ProductAIChat({ product, selectedVariant }) {
+export function ProductAIChat({ product, selectedVariant, autoDiscount = null }) {
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [open, setOpen] = useState(false);
@@ -258,6 +258,23 @@ export function ProductAIChat({ product, selectedVariant }) {
   const freeBonus = product?.metafields?.[1]?.value ?? '';
   const isDiscontinued = product?.metafields?.[12]?.value === 'true';
   const inStock = selectedVariant?.availableForSale ?? true;
+
+  // Flash sale (Shopify automatic discount) — computed here so the AI never does math itself
+  const flashSaleInfo = (() => {
+    if (!autoDiscount) return '';
+    const base = Number(parseFloat(selectedVariant?.price?.amount ?? 0));
+    if (!base) return '';
+    const flashPrice = Math.max(0, autoDiscount.type === 'amount'
+      ? base - autoDiscount.amount
+      : Math.round(base * (1 - autoDiscount.percentage / 100)));
+    const hemat = autoDiscount.type === 'amount'
+      ? `Rp${autoDiscount.amount.toLocaleString('id-ID')}`
+      : `${autoDiscount.percentage}%`;
+    const until = autoDiscount.endsAt
+      ? new Date(autoDiscount.endsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' })
+      : '';
+    return `${autoDiscount.title}: hemat ${hemat} — harga flash Rp${flashPrice.toLocaleString('id-ID')} (harga normal Rp${base.toLocaleString('id-ID')})${until ? `, berlaku sampai ${until}` : ''}`;
+  })();
 
   // Nego offer: extra 3% off, computed here so the AI never does math itself
   const negoInfo = (() => {
@@ -377,6 +394,7 @@ export function ProductAIChat({ product, selectedVariant }) {
           productFreeBonus: freeBonus,
           productCicilan,
           productNego: negoInfo,
+          productFlashSale: flashSaleInfo,
           productDiscontinued: isDiscontinued,
           productInStock: inStock,
           productHandle: handle,
