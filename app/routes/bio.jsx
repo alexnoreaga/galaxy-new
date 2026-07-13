@@ -1,7 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { json } from '@shopify/remix-oxygen';
+import { useLoaderData, Link } from '@remix-run/react';
 import { FaWhatsapp, FaTiktok, FaYoutube, FaLocationDot, FaCameraRetro, FaBuilding, FaChevronRight } from 'react-icons/fa6';
 import { trackEvent, GriselaAvatar } from '~/components/ProductAIChat';
 import { GriselaGeneralChat } from '~/components/GriselaGeneralChat';
+import { getAutomaticDiscounts, getActiveFlashProducts } from '~/lib/autoDiscounts';
+
+export async function loader({ context }) {
+  const discounts = await getAutomaticDiscounts(context.env).catch(() => []);
+  const flashMap = getActiveFlashProducts(discounts, 50);
+  let saleEndsAt = null;
+  for (const d of flashMap.values()) {
+    if (d.endsAt && (!saleEndsAt || new Date(d.endsAt) < new Date(saleEndsAt))) saleEndsAt = d.endsAt;
+  }
+  return json({ flashCount: flashMap.size, saleEndsAt });
+}
 
 export const meta = () => {
   return [
@@ -47,7 +60,42 @@ const LINK_GROUPS = [
   },
 ];
 
+function BioCountdown({ endsAt }) {
+  // null until mounted — avoids SSR/client hydration mismatch on time
+  const [now, setNow] = useState(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const left = now === null ? null : Math.max(0, new Date(endsAt).getTime() - now);
+  if (left !== null && left <= 0) return null;
+  const d = left === null ? null : Math.floor(left / 86400000);
+  const v = (n) => (left === null ? '--' : String(n).padStart(2, '0'));
+  const Box = ({ val }) => (
+    <span className="bg-black/40 text-white font-mono font-bold text-[11px] rounded px-1 py-0.5 min-w-[22px] text-center inline-block tabular-nums leading-tight">
+      {val}
+    </span>
+  );
+  return (
+    <div className="flex items-center gap-0.5">
+      {(left === null ? false : d > 0) && (
+        <>
+          <Box val={left === null ? '--' : d} />
+          <span className="text-white/90 text-[9px] font-bold mx-0.5">hr</span>
+        </>
+      )}
+      <Box val={v(left === null ? null : Math.floor((left % 86400000) / 3600000))} />
+      <span className="text-white font-black text-[11px]">:</span>
+      <Box val={v(left === null ? null : Math.floor((left % 3600000) / 60000))} />
+      <span className="text-white font-black text-[11px]">:</span>
+      <Box val={v(left === null ? null : Math.floor((left % 60000) / 1000))} />
+    </div>
+  );
+}
+
 export default function Bio() {
+  const { flashCount, saleEndsAt } = useLoaderData();
   const [chatOpen, setChatOpen] = useState(false);
 
   return (
@@ -98,6 +146,47 @@ export default function Bio() {
           </div>
           <FaChevronRight className="text-green-200 flex-shrink-0" />
         </a>
+
+        {/* FLASH SALE — only appears while a sale is live */}
+        {flashCount > 0 && (
+          <Link
+            to="/flash-sale"
+            onClick={() => trackEvent('bio_link_clicked', '', 'Flash Sale')}
+            className="relative block w-full overflow-hidden rounded-2xl -mt-4 mb-7 active:scale-[0.98] transition-transform no-underline"
+            style={{ background: 'linear-gradient(110deg, #b71c1c 0%, #e53935 45%, #f4511e 100%)', boxShadow: '0 8px 24px rgba(229,57,53,0.35)' }}
+          >
+            {/* Stripes + shine sweep */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 14px)' }}
+            />
+            <div
+              className="absolute inset-y-0 w-20 pointer-events-none"
+              style={{
+                background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%)',
+                animation: 'bioFlashShine 2.4s ease-in-out infinite',
+              }}
+            />
+            <style>{`@keyframes bioFlashShine { 0% { left: -25%; } 60% { left: 110%; } 100% { left: 110%; } }`}</style>
+
+            <div className="relative flex items-center gap-3 px-4 py-3.5">
+              <span className="text-2xl animate-pulse flex-shrink-0">⚡</span>
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-white font-black italic text-[16px] tracking-wider leading-tight drop-shadow-sm">FLASH SALE</p>
+                <p className="text-yellow-200 text-xs font-bold mt-0.5">
+                  {flashCount} produk diskon kilat — buruan sebelum habis!
+                </p>
+                {saleEndsAt && (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className="text-white/85 font-bold uppercase tracking-wider" style={{ fontSize: 9 }}>Berakhir</span>
+                    <BioCountdown endsAt={saleEndsAt} />
+                  </div>
+                )}
+              </div>
+              <FaChevronRight className="text-white/80 flex-shrink-0" />
+            </div>
+          </Link>
+        )}
 
         {/* Link groups */}
         {LINK_GROUPS.map(group => (
