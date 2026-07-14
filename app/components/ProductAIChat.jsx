@@ -256,6 +256,11 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null })
   const specs = specsRaw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const isiBox = product?.metafields?.[2]?.value ?? '';
   const freeBonus = product?.metafields?.[1]?.value ?? '';
+  // Garansi metafield + vendor, e.g. "2 Tahun Fujifilm Indonesia"
+  const garansiRaw = product?.metafields?.[0]?.value ?? '';
+  const garansi = garansiRaw
+    ? `${garansiRaw}${product?.vendor && product.vendor !== 'galaxy' ? ` ${product.vendor}` : ''}`
+    : '';
   const isDiscontinued = product?.metafields?.[12]?.value === 'true';
   const inStock = selectedVariant?.availableForSale ?? true;
 
@@ -392,6 +397,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null })
           productSpecs: specs,
           productIsiBox: isiBox,
           productFreeBonus: freeBonus,
+          productGaransi: garansi,
           productCicilan,
           productNego: negoInfo,
           productFlashSale: flashSaleInfo,
