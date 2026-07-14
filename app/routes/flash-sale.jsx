@@ -420,6 +420,7 @@ function ProductCard({ product, inventoryMap, flash, social }) {
 export default function FlashSale() {
   const { collection, products: loaderProducts, maxDiscount, monthYear, inventoryMap, autoFlashMap, saleEndsAt, socialMap } = useLoaderData();
   const products = loaderProducts ?? collection?.products?.nodes ?? [];
+  const [visibleCount, setVisibleCount] = useState(20);
 
   return (
     <div className="min-h-screen" style={{ background: '#f5f5f5' }}>
@@ -593,9 +594,23 @@ export default function FlashSale() {
             <p className="text-sm text-gray-400">Pantau terus — penawaran kilat berikutnya bisa muncul kapan saja!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">
-            {products.map(p => <ProductCard key={p.id} product={p} inventoryMap={inventoryMap} flash={autoFlashMap?.[p.id]} social={socialMap?.[p.handle]} />)}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">
+              {products.slice(0, visibleCount).map(p => <ProductCard key={p.id} product={p} inventoryMap={inventoryMap} flash={autoFlashMap?.[p.id]} social={socialMap?.[p.handle]} />)}
+            </div>
+            {products.length > visibleCount && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => setVisibleCount(c => c + 20)}
+                  className="inline-flex items-center gap-2 font-bold text-sm text-white px-8 py-3 rounded-full transition-all active:scale-95 hover:shadow-lg"
+                  style={{ background: 'linear-gradient(110deg, #e53935, #f4511e)', boxShadow: '0 4px 14px rgba(229,57,53,0.3)' }}
+                >
+                  ⚡ Muat Lebih Banyak
+                  <span className="bg-white/20 rounded-full px-2 py-0.5 text-xs">{products.length - visibleCount} lagi</span>
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
