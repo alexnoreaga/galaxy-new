@@ -347,8 +347,8 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null })
 
   // Off-hours floating button opens this chat via a window event
   useEffect(() => {
-    const handler = () => {
-      openTriggerRef.current = 'floating-button';
+    const handler = (e) => {
+      openTriggerRef.current = e?.detail?.source ?? 'floating-button';
       setOpen(true);
       setIsCustomMode(true);
       setMessages(prev => prev.length > 0 ? prev : [{ role: 'ai', text: `Hi ka! Aku Grisela 😊 Ada yang ingin ditanyakan tentang ${title}? Silakan ketik pertanyaanmu ya` }]);
