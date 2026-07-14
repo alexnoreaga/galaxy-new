@@ -73,6 +73,13 @@ export async function getAutomaticDiscounts(env) {
   return autoDiscountsCache.list;
 }
 
+// Heuristic: accessory-looking titles rank below main devices in flash displays
+const ACCESSORY_TITLE_RE = /\b(baterai|battery|charger|charging|lens ?guard|selfie ?stick|tongsis|case|casing|cage|reader|memory|micro ?sd|sd ?card|strap|mount|adapter|adaptor|filter|protector|protective|hub|grip|tripod|mic|microphone|mikrofon|tas|screen|tempered|holder|bracket|cover|pouch|remote|kabel|cable|cap|frame|pelindung|guard|windshield|deadcat|lanyard|floaty|pelampung)\b/i;
+
+export function isAccessoryTitle(title) {
+  return ACCESSORY_TITLE_RE.test(title ?? '');
+}
+
 // All product IDs covered by currently-active basic discounts → Map<productGid, discountInfo>
 export function getActiveFlashProducts(discounts, max = 20) {
   const now = Date.now();

@@ -4,17 +4,80 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { FaWhatsapp, FaTiktok, FaYoutube, FaLocationDot, FaCameraRetro, FaBuilding, FaChevronRight } from 'react-icons/fa6';
 import { trackEvent, GriselaAvatar } from '~/components/ProductAIChat';
 import { GriselaGeneralChat } from '~/components/GriselaGeneralChat';
-import { getAutomaticDiscounts, getActiveFlashProducts } from '~/lib/autoDiscounts';
+import { getAutomaticDiscounts, getActiveFlashProducts, isAccessoryTitle } from '~/lib/autoDiscounts';
 
 export async function loader({ context }) {
   const discounts = await getAutomaticDiscounts(context.env).catch(() => []);
-  const flashMap = getActiveFlashProducts(discounts, 50);
+  const flashMap = getActiveFlashProducts(discounts, 20);
   let saleEndsAt = null;
   for (const d of flashMap.values()) {
     if (d.endsAt && (!saleEndsAt || new Date(d.endsAt) < new Date(saleEndsAt))) saleEndsAt = d.endsAt;
   }
-  return json({ flashCount: flashMap.size, saleEndsAt });
+
+  // Fetch + rank flash products: deepest discount first, main devices boosted over accessories
+  let flashItems = [];
+  if (flashMap.size > 0) {
+    try {
+      const data = await context.storefront.query(BIO_FLASH_QUERY, {
+        variables: { ids: [...flashMap.keys()] },
+      });
+      flashItems = (data?.nodes ?? [])
+        .filter(Boolean)
+        .map(p => {
+          const d = flashMap.get(p.id);
+          if (!d) return null;
+          const variants = p.variants?.nodes ?? [];
+          const v = d.variantIds
+            ? (variants.find(x => d.variantIds.includes(x.id)) ?? null)
+            : variants[0];
+          if (!v || !v.availableForSale) return null;
+          const base = parseFloat(v.price?.amount ?? 0);
+          const compareAt = parseFloat(v.compareAtPrice?.amount ?? 0);
+          const price = Math.max(0, d.type === 'amount' ? base - d.amount : Math.round(base * (1 - d.percentage / 100)));
+          const strikeAt = Math.max(compareAt, base);
+          return {
+            title: p.title,
+            handle: p.handle,
+            image: p.featuredImage?.url ?? null,
+            price,
+            strikeAt,
+            pct: strikeAt > price ? Math.round((1 - price / strikeAt) * 100) : 0,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          const score = it => (isAccessoryTitle(it.title) ? 0 : 15) + it.pct;
+          return score(b) - score(a);
+        })
+        .slice(0, 6);
+    } catch {
+      // rail is best-effort — the FLASH SALE header still renders
+    }
+  }
+
+  return json({ flashCount: flashMap.size, saleEndsAt, flashItems });
 }
+
+const BIO_FLASH_QUERY = `#graphql
+  query BioFlashProducts($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        id
+        title
+        handle
+        featuredImage { url altText }
+        variants(first: 10) {
+          nodes {
+            id
+            availableForSale
+            price { amount }
+            compareAtPrice { amount }
+          }
+        }
+      }
+    }
+  }
+`;
 
 export const meta = () => {
   return [
@@ -95,20 +158,15 @@ function BioCountdown({ endsAt }) {
 }
 
 export default function Bio() {
-  const { flashCount, saleEndsAt } = useLoaderData();
+  const { flashCount, saleEndsAt, flashItems = [] } = useLoaderData();
   const [chatOpen, setChatOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-white">
-      <div className="max-w-md mx-auto px-4 py-10">
-        {/* Header */}
-        <div className="text-center mb-7">
-          <img src={LOGO} alt="Galaxy Camera" className="h-12 mx-auto mb-3 object-contain" />
-          <p className="text-sm text-gray-500">
-            Toko Kamera Terpercaya sejak 2014
-            <br />
-            Tangerang · Depok · Garansi Resmi
-          </p>
+      <div className="max-w-md mx-auto px-4 pt-5 pb-10">
+        {/* Header — compact: logo only, trust line moved to footer */}
+        <div className="text-center mb-5">
+          <img src={LOGO} alt="Galaxy Camera" className="h-10 mx-auto object-contain" />
         </div>
 
         {/* Grisela hero button */}
@@ -147,12 +205,10 @@ export default function Bio() {
           <FaChevronRight className="text-green-200 flex-shrink-0" />
         </a>
 
-        {/* FLASH SALE — only appears while a sale is live */}
+        {/* FLASH SALE — merged card: header + product rail, only while a sale is live */}
         {flashCount > 0 && (
-          <Link
-            to="/flash-sale"
-            onClick={() => trackEvent('bio_link_clicked', '', 'Flash Sale')}
-            className="relative block w-full overflow-hidden rounded-2xl -mt-4 mb-7 active:scale-[0.98] transition-transform no-underline"
+          <div
+            className="relative w-full overflow-hidden rounded-2xl -mt-4 mb-7"
             style={{ background: 'linear-gradient(110deg, #b71c1c 0%, #e53935 45%, #f4511e 100%)', boxShadow: '0 8px 24px rgba(229,57,53,0.35)' }}
           >
             {/* Stripes + shine sweep */}
@@ -169,23 +225,69 @@ export default function Bio() {
             />
             <style>{`@keyframes bioFlashShine { 0% { left: -25%; } 60% { left: 110%; } 100% { left: 110%; } }`}</style>
 
-            <div className="relative flex items-center gap-3 px-4 py-3.5">
-              <span className="text-2xl animate-pulse flex-shrink-0">⚡</span>
+            {/* Header — links to /flash-sale */}
+            <Link
+              to="/flash-sale"
+              onClick={() => trackEvent('bio_link_clicked', '', 'Flash Sale')}
+              className="relative flex items-center gap-2.5 px-4 pt-3 pb-2 no-underline active:opacity-90"
+            >
+              <span className="text-xl animate-pulse flex-shrink-0">⚡</span>
               <div className="flex-1 text-left min-w-0">
-                <p className="text-white font-black italic text-[16px] tracking-wider leading-tight drop-shadow-sm">FLASH SALE</p>
-                <p className="text-yellow-200 text-xs font-bold mt-0.5">
-                  {flashCount} produk diskon kilat — buruan sebelum habis!
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-white font-black italic text-[16px] tracking-wider leading-tight drop-shadow-sm whitespace-nowrap">FLASH SALE</p>
+                  <span className="text-white text-[11px] font-bold whitespace-nowrap">Lihat Semua →</span>
+                </div>
                 {saleEndsAt && (
-                  <div className="flex items-center gap-1.5 mt-1.5">
+                  <div className="flex items-center gap-1.5 mt-1">
                     <span className="text-white/85 font-bold uppercase tracking-wider" style={{ fontSize: 9 }}>Berakhir</span>
                     <BioCountdown endsAt={saleEndsAt} />
                   </div>
                 )}
               </div>
-              <FaChevronRight className="text-white/80 flex-shrink-0" />
-            </div>
-          </Link>
+            </Link>
+
+            {/* Product rail — ranked by discount depth, main devices first */}
+            {flashItems.length > 0 && (
+              <div
+                className="relative flex gap-2 overflow-x-auto px-3 pb-3 pt-1"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {flashItems.map(it => (
+                  <Link
+                    key={it.handle}
+                    to={`/products/${it.handle}`}
+                    onClick={() => trackEvent('bio_link_clicked', '', 'Flash Sale Produk')}
+                    className="flex-shrink-0 w-28 bg-white rounded-lg overflow-hidden no-underline"
+                    style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }}
+                  >
+                    <div className="relative bg-gray-50" style={{ aspectRatio: '1/1' }}>
+                      {it.pct > 0 && (
+                        <div className="absolute top-1 left-1 z-10 bg-yellow-400 text-red-900 font-black text-[9px] px-1 py-0.5 rounded-sm leading-none">
+                          -{it.pct}%
+                        </div>
+                      )}
+                      {it.image ? (
+                        <img src={it.image} alt={it.title} loading="lazy" className="w-full h-full object-contain p-1.5" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-200 text-2xl">📷</div>
+                      )}
+                    </div>
+                    <div className="px-1.5 pt-1 pb-1.5">
+                      <p className="text-gray-700 leading-tight line-clamp-1" style={{ fontSize: 9 }}>{it.title}</p>
+                      <p className="font-black text-[11px] leading-tight mt-0.5" style={{ color: '#e53935' }}>
+                        Rp{Math.round(it.price).toLocaleString('id-ID')}
+                      </p>
+                      {it.strikeAt > it.price && (
+                        <p className="text-gray-400 line-through leading-tight" style={{ fontSize: 8 }}>
+                          Rp{Math.round(it.strikeAt).toLocaleString('id-ID')}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Link groups */}
@@ -234,6 +336,7 @@ export default function Bio() {
         {/* Footer */}
         <p className="text-center text-xs text-gray-400 mt-8">
           Buka Setiap Hari · 10.00–19.00 WIB
+          <br />Terpercaya Sejak 2014 · Tangerang · Depok · Garansi Resmi
           <br />© {new Date().getFullYear()} Galaxy Camera
         </p>
       </div>

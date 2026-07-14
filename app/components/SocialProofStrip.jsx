@@ -47,36 +47,24 @@ export function SocialProofStrip() {
   ];
 
   return (
-    <div
-      ref={stripRef}
-      className="relative overflow-hidden rounded-xl my-3 sm:my-4"
-      style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)' }}
-    >
-      {/* Shimmer lines */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-rose-400/40 to-transparent" />
-
-      {/* Glow orbs */}
-      <div className="absolute -top-8 left-1/4 w-32 h-32 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-8 right-1/4 w-32 h-32 bg-rose-600/15 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative grid grid-cols-4">
+    <div ref={stripRef} className="my-3 sm:my-5">
+      <div className="grid grid-cols-4">
         {displays.map((item, i) => (
           <div
             key={i}
-            className={`flex flex-col items-center justify-center py-2 sm:py-3.5 px-1 sm:px-3 text-center
-              ${i > 0 ? 'border-l border-white/10' : ''}
+            className={`flex flex-col items-center justify-center py-2 sm:py-3 px-1 sm:px-3 text-center
+              ${i > 0 ? 'border-l border-gray-200' : ''}
             `}
           >
             <div className="flex items-baseline gap-0.5">
-              <span className="text-sm sm:text-2xl font-black text-amber-400 tabular-nums leading-none tracking-tight">
+              <span className="text-sm sm:text-2xl font-black text-gray-900 tabular-nums leading-none tracking-tight">
                 {item.num}
               </span>
               {item.suffix && (
-                <span className="text-[9px] sm:text-sm font-bold text-amber-300/80 ml-0.5">{item.suffix}</span>
+                <span className="text-[9px] sm:text-sm font-bold text-gray-400 ml-0.5">{item.suffix}</span>
               )}
             </div>
-            <span className="text-[9px] sm:text-xs text-slate-400 font-medium mt-0.5 leading-tight">
+            <span className="text-[9px] sm:text-xs text-gray-500 font-medium mt-1 leading-tight">
               <span className="sm:hidden">{item.short}</span>
               <span className="hidden sm:inline">{item.label}</span>
             </span>
