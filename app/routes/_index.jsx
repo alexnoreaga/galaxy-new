@@ -34,7 +34,7 @@ const FLASH_SALE_HOME_QUERY = `#graphql
         title
         handle
         featuredImage { url altText }
-        variants(first: 1) {
+        variants(first: 10) {
           nodes {
             availableForSale
             price { amount }
@@ -170,7 +170,12 @@ export async function loader({context, request}) {
     );
 
     const items = flashNodes.map(({ p, d }, i) => {
-      const v = p.variants?.nodes?.[0];
+      // Variant-level discounts: price from the covered variant
+      const variants = p.variants?.nodes ?? [];
+      const v = d.variantIds
+        ? (variants.find(x => d.variantIds.includes(x.id)) ?? null)
+        : variants[0];
+      if (!v) return null; // covered variant not fetched — skip rather than show a wrong price
       const base = parseFloat(v?.price?.amount ?? 0);
       const compareAt = parseFloat(v?.compareAtPrice?.amount ?? 0);
       const flashPrice = Math.max(0, d.type === 'amount' ? base - d.amount : Math.round(base * (1 - d.percentage / 100)));
@@ -187,7 +192,7 @@ export async function loader({context, request}) {
         review: socials[i][1],
         endsAt: d.endsAt ?? null,
       };
-    }).filter(it => it.available);
+    }).filter(it => it && it.available);
 
     return { items, saleEndsAt };
   })().catch(() => ({ items: [], saleEndsAt: null }));

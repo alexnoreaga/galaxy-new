@@ -46,7 +46,10 @@ export async function getAutomaticDiscounts(env) {
                     }
                     items {
                       __typename
-                      ... on DiscountProducts { products(first: 100) { nodes { id } } }
+                      ... on DiscountProducts {
+                        products(first: 100) { nodes { id } }
+                        productVariants(first: 100) { nodes { id product { id } } }
+                      }
                       ... on AllDiscountItems { allItems }
                     }
                   }
@@ -89,9 +92,22 @@ export function getActiveFlashProducts(discounts, max = 20) {
       if (pct > 0) info = { title: d.title, type: 'percentage', percentage: pct, endsAt: d.endsAt ?? null };
     }
     if (!info) continue;
+    // Product-level selections (all variants discounted)
     for (const p of d.customerGets?.items?.products?.nodes ?? []) {
       if (map.size >= max) break;
-      if (!map.has(p.id)) map.set(p.id, info);
+      if (!map.has(p.id)) map.set(p.id, { ...info, variantIds: null });
+    }
+    // Variant-level selections (only some variants discounted)
+    for (const v of d.customerGets?.items?.productVariants?.nodes ?? []) {
+      const pid = v.product?.id;
+      if (!pid) continue;
+      const existing = map.get(pid);
+      if (existing) {
+        if (existing.variantIds) existing.variantIds.push(v.id);
+      } else {
+        if (map.size >= max) continue;
+        map.set(pid, { ...info, variantIds: [v.id] });
+      }
     }
   }
   return map;
@@ -104,18 +120,21 @@ export function findProductAutoDiscount(discounts, productGid) {
     const endsOk = !d.endsAt || new Date(d.endsAt).getTime() >= now;
     if (!startsOk || !endsOk) continue;
     const items = d.customerGets?.items;
-    const applies =
+    const productLevel =
       items?.allItems === true ||
       (items?.products?.nodes ?? []).some(p => p.id === productGid);
-    if (!applies) continue;
+    const variantHits = (items?.productVariants?.nodes ?? []).filter(v => v.product?.id === productGid);
+    if (!productLevel && variantHits.length === 0) continue;
+    // variantIds: null = whole product discounted; array = only these variants
+    const variantIds = productLevel ? null : variantHits.map(v => v.id);
     const value = d.customerGets?.value;
     if (value?.__typename === 'DiscountAmount') {
       const amount = parseFloat(value.amount?.amount ?? 0);
-      if (amount > 0) return { title: d.title, type: 'amount', amount, endsAt: d.endsAt ?? null };
+      if (amount > 0) return { title: d.title, type: 'amount', amount, endsAt: d.endsAt ?? null, variantIds };
     }
     if (value?.__typename === 'DiscountPercentage') {
       const pct = Number(value.percentage ?? 0);
-      if (pct > 0) return { title: d.title, type: 'percentage', percentage: pct, endsAt: d.endsAt ?? null };
+      if (pct > 0) return { title: d.title, type: 'percentage', percentage: pct, endsAt: d.endsAt ?? null, variantIds };
     }
   }
   return null;

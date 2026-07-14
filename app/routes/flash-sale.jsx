@@ -167,7 +167,11 @@ export async function loader({ context }) {
   }
 
   const discountPcts = products.map(p => {
-    const v = p.variants?.nodes?.[0];
+    const d0 = autoFlashMap[p.id];
+    const nodes0 = p.variants?.nodes ?? [];
+    const v = d0?.variantIds
+      ? (nodes0.find(x => d0.variantIds.includes(x.id)) ?? nodes0[0])
+      : nodes0[0];
     const price = parseFloat(v?.price?.amount ?? 0);
     const cap = parseFloat(v?.compareAtPrice?.amount ?? 0);
     const d = autoFlashMap[p.id];
@@ -322,13 +326,19 @@ function HeroCountdown({ endsAt }) {
 // ── Product Card ──────────────────────────────────────────────────────────────
 
 function ProductCard({ product, inventoryMap, flash, social }) {
-  const variant = product.variants?.nodes?.[0];
+  // Variant-level discounts: show the covered variant's price; drop the flash
+  // treatment if none of the fetched variants is covered
+  const allVariants = product.variants?.nodes ?? [];
+  const variant = flash?.variantIds
+    ? (allVariants.find(v => flash.variantIds.includes(v.id)) ?? allVariants[0])
+    : allVariants[0];
+  const flashActive = flash && (!flash.variantIds || flash.variantIds.includes(variant?.id)) ? flash : null;
   const basePrice = parseFloat(variant?.price?.amount ?? 0);
   const compareAt = parseFloat(variant?.compareAtPrice?.amount ?? 0);
 
   // Real automatic discount (flash sale) takes priority over compareAt pricing
-  const flashPrice = flash
-    ? Math.max(0, flash.type === 'amount' ? basePrice - flash.amount : Math.round(basePrice * (1 - flash.percentage / 100)))
+  const flashPrice = flashActive
+    ? Math.max(0, flashActive.type === 'amount' ? basePrice - flashActive.amount : Math.round(basePrice * (1 - flashActive.percentage / 100)))
     : null;
   const price = flashPrice !== null ? flashPrice : basePrice;
   const strikeAt = flashPrice !== null
@@ -338,7 +348,7 @@ function ProductCard({ product, inventoryMap, flash, social }) {
   const discountPct = hasDiscount ? Math.round((1 - price / strikeAt) * 100) : 0;
 
   // Countdown: real discount end date wins; manual metafield is the fallback
-  const endDate = flash?.endsAt ?? (product.metafields?.find(m => m?.key === 'periode_promo_akhir')?.value ?? null);
+  const endDate = flashActive?.endsAt ?? (product.metafields?.find(m => m?.key === 'periode_promo_akhir')?.value ?? null);
   const isSoldOut = !variant?.availableForSale;
   const qty = variant?.id ? (inventoryMap?.[variant.id] ?? null) : null;
   const fmt = n => Math.round(n).toLocaleString('id-ID');
@@ -348,12 +358,12 @@ function ProductCard({ product, inventoryMap, flash, social }) {
       to={`/products/${product.handle}`}
       prefetch="intent"
       className="group flex flex-col bg-white rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl no-underline"
-      style={{ border: flash ? '1.5px solid #fca5a5' : '1px solid #f0f0f0', boxShadow: flash ? '0 2px 12px rgba(229,57,53,0.12)' : '0 2px 8px rgba(0,0,0,0.06)', textDecoration: 'none' }}
+      style={{ border: flashActive ? '1.5px solid #fca5a5' : '1px solid #f0f0f0', boxShadow: flashActive ? '0 2px 12px rgba(229,57,53,0.12)' : '0 2px 8px rgba(0,0,0,0.06)', textDecoration: 'none' }}
     >
       <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: '1/1' }}>
         {hasDiscount && (
           <div className="absolute top-2 left-2 z-10 text-white font-black text-xs px-2 py-0.5 rounded-sm leading-tight" style={{ background: '#e53935' }}>
-            {flash ? '⚡' : ''}-{discountPct}%
+            {flashActive ? '⚡' : ''}-{discountPct}%
           </div>
         )}
         {product.featuredImage?.url ? (
@@ -405,7 +415,7 @@ function ProductCard({ product, inventoryMap, flash, social }) {
             style={{ background: 'linear-gradient(90deg, #fef2f2, #fff7ed)', borderTop: '1px solid #fee2e2' }}
           >
             <p className="text-red-500 font-bold uppercase tracking-wider mb-1.5" style={{ fontSize: 8 }}>
-              {flash ? '⚡ Berakhir dalam' : 'Berakhir dalam'}
+              {flashActive ? '⚡ Berakhir dalam' : 'Berakhir dalam'}
             </p>
             <Countdown endDate={endDate} />
           </div>
@@ -627,7 +637,7 @@ const FLASH_EXTRA_PRODUCTS_QUERY = `#graphql
         title
         handle
         featuredImage { url altText }
-        variants(first: 1) {
+        variants(first: 10) {
           nodes {
             id
             availableForSale
@@ -661,7 +671,7 @@ const FLASH_SALE_QUERY = `#graphql
             key
             value
           }
-          variants(first: 1) {
+          variants(first: 10) {
             nodes {
               id
               availableForSale

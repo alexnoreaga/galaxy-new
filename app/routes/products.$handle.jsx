@@ -1183,6 +1183,11 @@ DP : 0
       ) ?? loaderVariant;
     })();
 
+    // Variant-level discounts only apply to the covered variant(s)
+    const flashForVariant = autoDiscount && (!autoDiscount.variantIds || autoDiscount.variantIds.includes(selectedVariant?.id))
+      ? autoDiscount
+      : null;
+
     const [root] = useMatches();
     const cart = root.data?.cart;
 
@@ -1355,7 +1360,7 @@ DP : 0
               </div>
 
               {/* FLASH SALE banner + countdown */}
-              <FlashSaleBanner autoDiscount={autoDiscount} />
+              <FlashSaleBanner autoDiscount={flashForVariant} />
 
               {/* PRICE + CICILAN — two-column layout */}
               <div className="flex items-stretch order-2 md:order-4 md:mt-4">
@@ -1365,12 +1370,12 @@ DP : 0
                   className="flex flex-col justify-center cursor-pointer pr-4"
                   onClick={() => copyToClipboard(listAngsuran(product, selectedVariant, canonicalUrl))}
                 >
-                  {autoDiscount ? (
+                  {flashForVariant ? (
                     (() => {
                       const basePrice = parseFloat(selectedVariant.price.amount);
-                      const flashPrice = Math.max(0, autoDiscount.type === 'amount'
-                        ? basePrice - autoDiscount.amount
-                        : Math.round(basePrice * (1 - autoDiscount.percentage / 100)));
+                      const flashPrice = Math.max(0, flashForVariant.type === 'amount'
+                        ? basePrice - flashForVariant.amount
+                        : Math.round(basePrice * (1 - flashForVariant.percentage / 100)));
                       return (
                         <>
                           <div className="text-2xl font-bold text-red-600 leading-tight">
@@ -1381,7 +1386,7 @@ DP : 0
                               Rp{basePrice.toLocaleString("id-ID")}
                             </div>
                             <span className="bg-red-50 border border-red-200 text-red-600 px-1.5 py-[1px] rounded-md text-[10px] font-bold tracking-wide whitespace-nowrap">
-                              HEMAT {autoDiscount.type === 'amount' ? `Rp${autoDiscount.amount.toLocaleString('id-ID')}` : `${autoDiscount.percentage}%`}
+                              HEMAT {flashForVariant.type === 'amount' ? `Rp${flashForVariant.amount.toLocaleString('id-ID')}` : `${flashForVariant.percentage}%`}
                             </span>
                           </div>
                         </>
@@ -1561,7 +1566,7 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={autoDiscount} />
+              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} />
 
               {/* KODE VOUCHER — inline strip below Tanya AI Galaxy */}
               <Suspense fallback={null}>
