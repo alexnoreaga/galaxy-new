@@ -86,7 +86,9 @@
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"ada insta360 x4 action camera?\",\"productHandle\":\"floating-button\",\"sessionId\":\"test-x4-4\",\"isCustom\":true}')",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"ada sony 6400 ga?\",\"productHandle\":\"floating-button\",\"sessionId\":\"test-fuzzy-1\",\"isCustom\":true}')",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"zve10 ada stok?\",\"productHandle\":\"floating-button\",\"sessionId\":\"test-fuzzy-2\",\"isCustom\":true}')",
-      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"ada insta360 x6 pro max?\",\"productHandle\":\"floating-button\",\"sessionId\":\"test-nf-1\",\"isCustom\":true}')"
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"ada insta360 x6 pro max?\",\"productHandle\":\"floating-button\",\"sessionId\":\"test-nf-1\",\"isCustom\":true}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"halo kak, sy td order cuma salah klik metode pembayaran, tadinya klik va bca, mau ganti BNI tp sdh tidak bisa, mohon bantuannya\",\"sessionId\":\"test-pay-1\",\"isCustom\":true}')",
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kak boleh sy lihatkan virtual account untuk order #1367 an zulax studio\",\"sessionId\":\"test-pay-2\",\"isCustom\":true}')"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"
