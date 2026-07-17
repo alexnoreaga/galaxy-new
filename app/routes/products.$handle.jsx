@@ -23,6 +23,7 @@ import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
 import { getAutomaticDiscounts, findProductAutoDiscount } from '~/lib/autoDiscounts';
+import { getVariantCosts, buildHargaBest } from '~/lib/hargaBest';
 import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa6";
@@ -235,6 +236,12 @@ export async function loader({params, context, request}) {
   // Match active automatic discount (flash sale) for this product
   const autoDiscount = findProductAutoDiscount(await autoDiscountsPromise, product?.id);
 
+  // Staff-only "harga best" — computed server-side so raw cost never reaches the browser
+  const hargaBest = buildHargaBest({
+    variants: product?.variants?.nodes ?? [],
+    costs: await getVariantCosts(context.env, product?.id).catch(() => ({})),
+  });
+
   const productNumId = product?.id?.split('/').pop();
   const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value;
   const tebusMurahRaw = product?.metafields[14]?.value;
@@ -303,6 +310,7 @@ export async function loader({params, context, request}) {
       pageType: AnalyticsPageType.product,
       products: [product],
     },
+    hargaBest,
     // Deferred — stream in after page renders
     related: relatedPromise,
     metaobject: metaobjectPromise,
@@ -313,6 +321,34 @@ export async function loader({params, context, request}) {
     autoDiscount,
   });
 
+}
+
+// Sits bottom-LEFT: the right side is taken by the floating WA/Grisela button,
+// and the bottom strip by the mobile navbar + sticky checkout bar.
+function BackToTop() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 600);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <button
+      type="button"
+      aria-label="Kembali ke atas"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className={`fixed bottom-32 left-4 md:bottom-40 md:left-6 z-40 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur border border-gray-200 shadow-lg text-gray-700 hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all duration-300 ${
+        show ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2 pointer-events-none'
+      }`}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+      </svg>
+    </button>
+  );
 }
 
   const bungaHCI = 3.2
@@ -432,7 +468,7 @@ DP : 0
 
 
 
-  const ImageGallery = ({ productData, selectedVariant, wishlistHandle, wishlistTitle, wishlistImage, wishlistPrice, wishlistEmail }) => {
+  const ImageGallery = ({ productData, selectedVariant, wishlistHandle, wishlistTitle, wishlistImage, wishlistPrice, wishlistEmail, onSecretCopy }) => {
     const images = productData.images.edges.map((e) => e.node);
 
     // displayUrl is the source of truth for the main image
@@ -507,6 +543,7 @@ DP : 0
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onDoubleClick={onSecretCopy}
         >
           <div className="aspect-square w-full">
             <img
@@ -1169,7 +1206,7 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount} = useLoaderData();
+    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount,hargaBest} = useLoaderData();
 
     // Compute selected variant from URL params — all 50 variants are already in product.variants.nodes
     // so this is instant, no server call needed on variant switch
@@ -1291,8 +1328,12 @@ DP : 0
       `Info Produk : ${canonicalUrl}`;
 
       
+    // Staff-only "harga best" — precomputed per variant in the loader (see ~/lib/hargaBest)
+    const hargaBestCopy = hargaBest?.byVariant?.[selectedVariant?.id] ?? '';
+    const variantPunyaModal = !!hargaBest?.withRealCost?.includes(selectedVariant?.id);
+
     const copyToClipboard = (objekCopy) => {
-      
+
 
 
       const textToCopy = objekCopy
@@ -1343,6 +1384,7 @@ DP : 0
                 wishlistImage={selectedVariant?.image?.url || product.featuredImage?.url || ''}
                 wishlistPrice={String(selectedVariant?.price?.amount || '')}
                 wishlistEmail={custEmail?.customer?.email || null}
+                onSecretCopy={() => hargaBestCopy && copyToClipboard(hargaBestCopy)}
               />
             </div>
           </div>
@@ -1566,7 +1608,7 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} />
+              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} />
 
               {/* KODE VOUCHER — inline strip below Tanya AI Galaxy */}
               <Suspense fallback={null}>
@@ -2020,10 +2062,12 @@ DP : 0
       
       <div className='mt-5 pt-5 font-bold border-t'>PRODUK SERUPA</div>
 
+      <BackToTop />
+
       {/* DESKTOP STICKY CHECKOUT START HERE */}
 
-      {selectedVariant?.availableForSale 
-        && product?.metafields[12]?.value != "true" 
+      {selectedVariant?.availableForSale
+        && product?.metafields[12]?.value != "true"
          && (
       
       <div className={`hidden md:flex ${showStickyBar ? '' : 'lg:hidden'} fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)]`}>

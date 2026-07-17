@@ -233,7 +233,7 @@ export function ChatMessage({ msg, waMessage }) {
   );
 }
 
-export function ProductAIChat({ product, selectedVariant, autoDiscount = null }) {
+export function ProductAIChat({ product, selectedVariant, autoDiscount = null, hasHargaModal = false }) {
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [open, setOpen] = useState(false);
@@ -462,7 +462,10 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null })
       {/* Section label */}
       <div className="flex items-center gap-1.5 mb-2">
         <GriselaAvatar size="w-5 h-5" />
-        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">Tanya AI Galaxy</p>
+        {/* "Galaxy" turns red when this variant has a Cost per item — internal cue for staff */}
+        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">
+          Tanya AI <span className={hasHargaModal ? 'text-red-600' : undefined}>Galaxy</span>
+        </p>
       </div>
 
       {/* Bubble questions */}
