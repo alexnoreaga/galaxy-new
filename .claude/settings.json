@@ -89,7 +89,12 @@
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"ada insta360 x6 pro max?\",\"productHandle\":\"floating-button\",\"sessionId\":\"test-nf-1\",\"isCustom\":true}')",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"halo kak, sy td order cuma salah klik metode pembayaran, tadinya klik va bca, mau ganti BNI tp sdh tidak bisa, mohon bantuannya\",\"sessionId\":\"test-pay-1\",\"isCustom\":true}')",
       "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kak boleh sy lihatkan virtual account untuk order #1367 an zulax studio\",\"sessionId\":\"test-pay-2\",\"isCustom\":true}')",
-      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kalau harga flash sale gini bisa ga kak kalau beli langsung di toko?\",\"productTitle\":\"Sony ZV-E10\",\"productFlashSale\":\"Flash Sale AKTIF: harga coret Rp8.999.000 jadi Rp7.499.000 \\(hemat Rp1.500.000\\), berakhir 20 Juli 2026\",\"sessionId\":\"test-flash-offline\",\"isCustom\":true}')"
+      "Bash(curl -s -m 90 -X POST \"http://localhost:3000/api/ask\" -H \"Content-Type: application/json\" -d '{\"question\":\"kalau harga flash sale gini bisa ga kak kalau beli langsung di toko?\",\"productTitle\":\"Sony ZV-E10\",\"productFlashSale\":\"Flash Sale AKTIF: harga coret Rp8.999.000 jadi Rp7.499.000 \\(hemat Rp1.500.000\\), berakhir 20 Juli 2026\",\"sessionId\":\"test-flash-offline\",\"isCustom\":true}')",
+      "Bash(curl -s -m 60 \"http://localhost:3000/collections/kamera-mirrorless\")",
+      "Bash(curl -s -m 60 -o /dev/null -w \"%{http_code}\" \"http://localhost:3000/collections/kamera-mirrorless\")",
+      "Bash(grep -oE '<title>[^<]*</title>|Rp[0-9.]{7,}')",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -m 8 -o /dev/null -w \"%{http_code}\" \"http://localhost:3000/\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\.claude\\projects\\c--Users-user-Desktop-shopify-final-galaxy\\memory"

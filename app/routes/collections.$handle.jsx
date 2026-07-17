@@ -313,6 +313,22 @@ function ProductsGrid({products, soldCounts, reviewSummaries}) {
   );
 }
 
+// Cheapest tenor (Kredivo 12x) — mirrors mulaiDari() on the product page
+const ADM_KREDIVO = 2.6;
+const CICILAN_MIN_HARGA = 1000000; // below this a monthly figure is meaningless
+
+function cicilanPerBulan(price) {
+  const bunga = (ADM_KREDIVO * price) / 100;
+  return Math.ceil((price / 12 + bunga) / 10) * 10;
+}
+
+// Compact for mobile: 939.000 -> "939rb", 1.093.330 -> "1,1jt"
+function formatSingkat(n) {
+  const rb = Math.round(n / 1000);
+  if (rb >= 1000) return `${(n / 1000000).toFixed(1).replace('.', ',')}jt`;
+  return `${rb}rb`;
+}
+
 function ProductItem({product, loading, sold, review}) {
   const variant = product.variants.nodes[0];
   const variantUrl = useVariantUrl(product.handle, variant.selectedOptions);
@@ -323,6 +339,9 @@ function ProductItem({product, loading, sold, review}) {
   const isDiscontinued = product?.metafields[12]?.value === 'true';
   const isOutOfStock = !product.availableForSale && !isDiscontinued;
   const hasFreeItem = product.metafields[1]?.value?.length > 0;
+
+  const harga = parseFloat(product.priceRange.minVariantPrice.amount);
+  const showCicilan = harga >= CICILAN_MIN_HARGA && !isDiscontinued && !isOutOfStock;
 
   return (
     <Link
@@ -399,6 +418,15 @@ function ProductItem({product, loading, sold, review}) {
           <p className={`text-sm font-bold ${hasDiscount ? 'text-rose-700' : 'text-gray-900'}`}>
             Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString('id-ID')}
           </p>
+          {showCicilan && (
+            <p className="text-[10px] sm:text-[11px] text-gray-500 leading-tight mt-0.5">
+              Cicilan{' '}
+              <span className="font-semibold text-rose-700">
+                {formatSingkat(cicilanPerBulan(harga))}
+              </span>
+              /bln
+            </p>
+          )}
         </div>
 
         {/* Free item badge */}
