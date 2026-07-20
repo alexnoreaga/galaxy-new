@@ -26,6 +26,11 @@ export const TombolWa = () => {
 
   const adminOnline = wibHour === null || (wibHour >= ADMIN_START && wibHour < ADMIN_END);
 
+  // On product pages the bottom nav is hidden and the checkout bar sits at bottom-0,
+  // so lower the floating button on mobile to sit just above it (desktop unchanged).
+  const isProduct = location.pathname.includes('/products/');
+  const floatPos = `${isProduct ? 'bottom-24' : 'bottom-40'} right-4 sm:bottom-8 sm:right-6 md:bottom-40`;
+
   function openWa() {
     window.open(
       'https://api.whatsapp.com/send?phone=6282111311131&text=Hi%20admin%20Galaxy.co.id%20saya%20berminat%20produk%20yang%20dilink%20ini%20' + window.location.href,
@@ -46,7 +51,7 @@ export const TombolWa = () => {
     return (
       <div
         onClick={openWa}
-        className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 md:bottom-40 z-50 cursor-pointer group flex flex-col items-center gap-1"
+        className={`fixed ${floatPos} z-50 cursor-pointer group flex flex-col items-center gap-1`}
       >
         <div className="relative flex items-center justify-center w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-white/70 sm:bg-white/60 shadow-lg sm:shadow-2xl border border-green-200 hover:bg-green-600 transition-all duration-200 backdrop-blur-xl">
           <span className="absolute inset-0 flex items-center justify-center">
@@ -67,7 +72,7 @@ export const TombolWa = () => {
     <>
       <div
         onClick={openGrisela}
-        className="fixed bottom-40 right-4 sm:bottom-8 sm:right-6 md:bottom-40 z-50 cursor-pointer group flex flex-col items-center gap-1"
+        className={`fixed ${floatPos} z-50 cursor-pointer group flex flex-col items-center gap-1`}
       >
         <div className="relative w-14 h-14 sm:w-20 sm:h-20">
           <span className="absolute inset-0 flex items-center justify-center">

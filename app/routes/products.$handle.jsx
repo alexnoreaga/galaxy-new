@@ -351,6 +351,106 @@ function BackToTop() {
   );
 }
 
+// Fullscreen image zoom — pinch (2 fingers), double-tap to toggle, drag to pan, swipe to change.
+// Opened via the magnifier button on the gallery, so it never interferes with the
+// staff double-click-to-copy secret on the inline product image.
+function ZoomViewer({ images, startIndex = 0, onClose }) {
+  const [index, setIndex] = useState(startIndex);
+  const [scale, setScale] = useState(1);
+  const [tx, setTx] = useState(0);
+  const [ty, setTy] = useState(0);
+  const s = useRef({ mode: null, pinchDist: 0, baseScale: 1, sx: 0, sy: 0, baseTx: 0, baseTy: 0, lastTap: 0, swipeX: 0 });
+
+  const reset = () => { setScale(1); setTx(0); setTy(0); };
+  useEffect(() => { reset(); }, [index]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose(index);
+      if (e.key === 'ArrowRight') setIndex((i) => (i + 1) % images.length);
+      if (e.key === 'ArrowLeft') setIndex((i) => (i - 1 + images.length) % images.length);
+    };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+  }, [images.length, onClose, index]);
+
+  const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  const next = () => setIndex((i) => (i + 1) % images.length);
+  const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
+
+  const onTouchStart = (e) => {
+    const st = s.current;
+    if (e.touches.length === 2) {
+      st.mode = 'pinch'; st.pinchDist = dist(e.touches); st.baseScale = scale;
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - st.lastTap < 300) { scale > 1 ? reset() : setScale(2.5); st.lastTap = 0; st.mode = null; return; }
+      st.lastTap = now;
+      if (scale > 1) { st.mode = 'pan'; st.sx = e.touches[0].clientX; st.sy = e.touches[0].clientY; st.baseTx = tx; st.baseTy = ty; }
+      else { st.mode = 'swipe'; st.swipeX = e.touches[0].clientX; }
+    }
+  };
+  const onTouchMove = (e) => {
+    const st = s.current;
+    if (st.mode === 'pinch' && e.touches.length === 2) {
+      setScale(Math.min(4, Math.max(1, st.baseScale * (dist(e.touches) / st.pinchDist))));
+    } else if (st.mode === 'pan' && e.touches.length === 1) {
+      setTx(st.baseTx + (e.touches[0].clientX - st.sx));
+      setTy(st.baseTy + (e.touches[0].clientY - st.sy));
+    }
+  };
+  const onTouchEnd = (e) => {
+    const st = s.current;
+    if (st.mode === 'pinch' && scale < 1.05) reset();
+    if (st.mode === 'swipe') {
+      const dx = (e.changedTouches[0]?.clientX ?? 0) - st.swipeX;
+      if (dx > 50) prev(); else if (dx < -50) next();
+    }
+    st.mode = null;
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/95 flex flex-col select-none" onClick={(e) => { if (e.target === e.currentTarget) onClose(index); }}>
+      <div className="flex items-center justify-between px-4 py-3 text-white/90 flex-shrink-0">
+        <span className="text-sm tabular-nums">{index + 1} / {images.length}</span>
+        <button type="button" onClick={() => onClose(index)} aria-label="Tutup" className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-95 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <div
+        className="flex-1 overflow-hidden flex items-center justify-center"
+        style={{ touchAction: 'none' }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onDoubleClick={() => (scale > 1 ? reset() : setScale(2.5))}
+      >
+        <img
+          src={images[index]?.src}
+          alt=""
+          draggable={false}
+          style={{ transform: `translate(${tx}px, ${ty}px) scale(${scale})`, transition: s.current.mode ? 'none' : 'transform 0.2s', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+        />
+      </div>
+
+      {images.length > 1 && (
+        <>
+          <button type="button" onClick={prev} aria-label="Sebelumnya" className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white active:scale-95 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+          </button>
+          <button type="button" onClick={next} aria-label="Berikutnya" className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white active:scale-95 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </>
+      )}
+
+      <p className="text-center text-white/40 text-[11px] py-3 flex-shrink-0">Cubit untuk zoom · Ketuk 2× · Geser untuk ganti foto</p>
+    </div>
+  );
+}
+
   const bungaHCI = 3.2
   const admKredivo = 2.6
   const adminFee3BulanKredivo = 3
@@ -475,6 +575,7 @@ DP : 0
     // It is set directly from selectedVariant or from manual navigation
     const [displayUrl, setDisplayUrl] = useState(selectedVariant || images[0]?.src);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [zoomOpen, setZoomOpen] = useState(false);
     const touchStartXRef = useRef(null);
     const touchEndXRef = useRef(null);
     const thumbRef = useRef(null);
@@ -536,6 +637,14 @@ DP : 0
     return (
       <div className="flex flex-col gap-2 select-none w-full md:max-w-xl md:mx-auto lg:max-w-2xl">
 
+        {zoomOpen && (
+          <ZoomViewer
+            images={images}
+            startIndex={currentIndex >= 0 ? currentIndex : 0}
+            onClose={(i) => { if (typeof i === 'number') goTo(i); setZoomOpen(false); }}
+          />
+        )}
+
         {/* Main image */}
         <div
           className="relative w-full bg-white rounded-xl overflow-hidden"
@@ -559,6 +668,19 @@ DP : 0
               style={{ pointerEvents: 'none', userSelect: 'none' }}
             />
           </div>
+
+          {/* Zoom / magnifier — opens fullscreen viewer. Separate from the image's
+              double-click, so it never clashes with the staff harga-best shortcut. */}
+          <button
+            type="button"
+            onClick={() => setZoomOpen(true)}
+            aria-label="Perbesar foto"
+            className="absolute top-2 left-2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+            </svg>
+          </button>
 
           {/* Free Ongkir badge — products 3jt+ */}
           {parseFloat(wishlistPrice) >= 3000000 && (
