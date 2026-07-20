@@ -945,10 +945,35 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     // Flag conversations where Grisela deflected — these are knowledge gaps worth reviewing
     const needsReview = /gangguan teknis|silakan hubungi admin|hubungi admin kami/i.test(answer);
     const answerParts = answer.split('|||').map(s => s.trim()).filter(Boolean);
+
+    // Persist the visual attachments the customer saw (product cards, vouchers, marketplace
+    // links) so the admin viewer renders the same thing — JSON string on the last AI part.
+    const attach = {};
+    if (foundProducts) attach.products = foundProducts;
+    if (responseVouchers) attach.vouchers = responseVouchers;
+    if (marketplaceLinks) attach.marketplaces = marketplaceLinks;
+    const attachStr = Object.keys(attach).length ? JSON.stringify(attach) : '';
+
+    const aiParts = answerParts.map((p, i) => {
+      const m = { role: fsString('ai'), text: fsString(p), time: fsTimestamp() };
+      if (attachStr && i === answerParts.length - 1) m.attachments = fsString(attachStr);
+      return m;
+    });
     const newMessage = [
       { role: fsString('user'), text: fsString(question), time: fsTimestamp() },
-      ...answerParts.map(p => ({ role: fsString('ai'), text: fsString(p), time: fsTimestamp() })),
+      ...aiParts,
     ];
+
+    const toMsgMap = (m) => ({
+      mapValue: {
+        fields: {
+          role: m.role,
+          text: m.text,
+          time: m.time,
+          ...(m.attachments ? { attachments: m.attachments } : {}),
+        },
+      },
+    });
 
     if (conversationId) {
       // Append to existing conversation — fetch current messages first
@@ -956,15 +981,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
       const currentMsgs = existing?.messages?.arrayValue?.values ?? [];
       const updatedMsgs = [
         ...currentMsgs,
-        ...newMessage.map(m => ({
-          mapValue: {
-            fields: {
-              role: m.role,
-              text: m.text,
-              time: m.time,
-            },
-          },
-        })),
+        ...newMessage.map(toMsgMap),
       ];
       await firestorePatch('conversations', conversationId, {
         messages: { arrayValue: { values: updatedMsgs } },
@@ -995,15 +1012,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
           arrayValue: {
             values: [
               ...historyMaps,
-              ...newMessage.map(m => ({
-                mapValue: {
-                  fields: {
-                    role: m.role,
-                    text: m.text,
-                    time: m.time,
-                  },
-                },
-              })),
+              ...newMessage.map(toMsgMap),
             ],
           },
         },

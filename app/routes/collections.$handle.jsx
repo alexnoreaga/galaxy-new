@@ -178,8 +178,60 @@ export async function loader({request, params, context}) {
   });
 }
 
+// Festive "heboh & meriah" hero — ONLY rendered on the cuci-gudang collection
+function CuciGudangHero({ count, children }) {
+  return (
+    <div className="relative overflow-hidden" style={{ background: 'linear-gradient(120deg,#b91c1c 0%,#dc2626 35%,#ea580c 70%,#f59e0b 100%)' }}>
+      <style>{`
+        @keyframes cgShine { 0%{transform:translateX(-130%) skewX(-20deg)} 60%,100%{transform:translateX(240%) skewX(-20deg)} }
+        @keyframes cgFloat { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-10px) rotate(8deg)} }
+        @keyframes cgPop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+      `}</style>
+
+      {/* glow blobs */}
+      <div className="absolute -top-10 -left-10 w-52 h-52 rounded-full bg-yellow-300/25 blur-3xl" />
+      <div className="absolute -bottom-16 right-0 w-64 h-64 rounded-full bg-rose-600/30 blur-3xl" />
+      {/* diagonal shine sweep */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-y-0 w-1/3" style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent)', animation: 'cgShine 3.5s ease-in-out infinite' }} />
+      </div>
+      {/* floating emojis */}
+      <span className="absolute top-6 left-[8%] text-2xl sm:text-3xl" style={{ animation: 'cgFloat 3s ease-in-out infinite' }}>🏷️</span>
+      <span className="absolute bottom-8 left-[18%] text-xl sm:text-2xl hidden sm:block" style={{ animation: 'cgFloat 3.6s ease-in-out infinite .4s' }}>💥</span>
+      <span className="absolute top-8 right-[10%] text-2xl sm:text-3xl" style={{ animation: 'cgFloat 3.2s ease-in-out infinite .2s' }}>🔥</span>
+
+      <div className="relative max-w-7xl mx-auto px-4 py-8 sm:py-12 text-center text-white">
+        <div className="inline-flex items-center gap-2 mb-3">
+          <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[11px] sm:text-xs font-black tracking-[0.2em] uppercase border border-white/30">
+            ⚡ Promo Spesial Galaxy
+          </span>
+        </div>
+
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none drop-shadow-[0_3px_8px_rgba(0,0,0,0.35)]">
+          <span className="inline-block" style={{ animation: 'cgPop 2s ease-in-out infinite' }}>CUCI</span>{' '}
+          <span className="inline-block text-yellow-300" style={{ animation: 'cgPop 2s ease-in-out infinite .3s' }}>GUDANG</span>
+        </h1>
+
+        <p className="mt-3 text-base sm:text-2xl font-extrabold text-yellow-100 drop-shadow">
+          Diskon Gila-Gilaan! 💥 Stok Terbatas — Sikat Sebelum Kehabisan!
+        </p>
+
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 text-xs sm:text-sm font-bold">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-red-600 shadow-lg">🏷️ {count}+ Produk Harga Miring</span>
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/30">🚚 Gratis Ongkir 3jt+</span>
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/30">✅ Garansi Resmi</span>
+        </div>
+
+        <div className="mt-5 flex justify-center">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function Collection() {
   const {collection, soldCounts, reviewSummaries} = useLoaderData();
+  const params = useParams();
+  const isCuciGudang = params.handle === 'cuci-gudang';
   const location = useLocation();
   const [formData, setFormData] = useState('');
   const submit = useSubmit();
@@ -198,46 +250,59 @@ export default function Collection() {
     submit(formDatax, {method: 'get'});
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Collection header */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-5 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{collection.title}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                {collection.products.nodes.length > 0
-                  ? `${collection.products.nodes.length}+ produk tersedia`
-                  : 'Tidak ada produk'}
-              </p>
-            </div>
+  // Sort control — reused in both the normal header and the cuci-gudang hero
+  const sortControl = (
+    <Form method="get">
+      <div className="flex items-center gap-2">
+        <label htmlFor="reverse" className={`text-sm font-medium whitespace-nowrap ${isCuciGudang ? 'text-white/90' : 'text-gray-600'}`}>
+          Urutkan:
+        </label>
+        <select
+          name="reverse"
+          id="reverse"
+          value={formData}
+          onChange={handleInputChange}
+          className={`text-sm rounded-xl px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 ${
+            isCuciGudang
+              ? 'bg-white/95 text-red-700 font-semibold border-0 focus:ring-white shadow-lg'
+              : 'border border-gray-200 bg-white text-gray-700 focus:ring-gray-900 focus:border-transparent'
+          }`}
+        >
+          <option value="" disabled defaultValue>Pilih...</option>
+          <option sortkey="RELEVANCE" data-reverse="false">Relevansi</option>
+          <option sortkey="TITLE" data-reverse="false">A-Z</option>
+          <option sortkey="TITLE" data-reverse="true">Z-A</option>
+          <option sortkey="PRICE" data-reverse="false">Harga Terendah</option>
+          <option sortkey="PRICE" data-reverse="true">Harga Tertinggi</option>
+        </select>
+      </div>
+    </Form>
+  );
 
-            {/* Sort */}
-            <Form method="get">
-              <div className="flex items-center gap-2">
-                <label htmlFor="reverse" className="text-sm text-gray-600 font-medium whitespace-nowrap">
-                  Urutkan:
-                </label>
-                <select
-                  name="reverse"
-                  id="reverse"
-                  value={formData}
-                  onChange={handleInputChange}
-                  className="text-sm border border-gray-200 rounded-xl bg-white text-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent cursor-pointer"
-                >
-                  <option value="" disabled defaultValue>Pilih...</option>
-                  <option sortkey="RELEVANCE" data-reverse="false">Relevansi</option>
-                  <option sortkey="TITLE" data-reverse="false">A-Z</option>
-                  <option sortkey="TITLE" data-reverse="true">Z-A</option>
-                  <option sortkey="PRICE" data-reverse="false">Harga Terendah</option>
-                  <option sortkey="PRICE" data-reverse="true">Harga Tertinggi</option>
-                </select>
+  return (
+    <div className={`min-h-screen ${isCuciGudang ? 'bg-gradient-to-b from-orange-50 via-red-50 to-white' : 'bg-gray-50'}`}>
+      {/* Collection header */}
+      {isCuciGudang ? (
+        <CuciGudangHero count={collection.products.nodes.length}>
+          {sortControl}
+        </CuciGudangHero>
+      ) : (
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 py-5 sm:py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{collection.title}</h1>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {collection.products.nodes.length > 0
+                    ? `${collection.products.nodes.length}+ produk tersedia`
+                    : 'Tidak ada produk'}
+                </p>
               </div>
-            </Form>
+              {sortControl}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Products */}
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -260,7 +325,7 @@ export default function Collection() {
                 </div>
               </PreviousLink>
 
-              <ProductsGrid products={nodes} soldCounts={soldCounts} reviewSummaries={reviewSummaries} />
+              <ProductsGrid products={nodes} soldCounts={soldCounts} reviewSummaries={reviewSummaries} festive={isCuciGudang} />
 
               <NextLink>
                 <div className="flex justify-center mt-8">
@@ -297,7 +362,7 @@ export default function Collection() {
   );
 }
 
-function ProductsGrid({products, soldCounts, reviewSummaries}) {
+function ProductsGrid({products, soldCounts, reviewSummaries, festive = false}) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
       {products.map((product, index) => (
@@ -307,6 +372,7 @@ function ProductsGrid({products, soldCounts, reviewSummaries}) {
           loading={index < 8 ? 'eager' : undefined}
           sold={soldCounts?.[product.handle] || 0}
           review={reviewSummaries?.[product.handle] || null}
+          festive={festive}
         />
       ))}
     </div>
@@ -329,7 +395,7 @@ function formatSingkat(n) {
   return `${rb}rb`;
 }
 
-function ProductItem({product, loading, sold, review}) {
+function ProductItem({product, loading, sold, review, festive = false}) {
   const variant = product.variants.nodes[0];
   const variantUrl = useVariantUrl(product.handle, variant.selectedOptions);
 
@@ -345,13 +411,22 @@ function ProductItem({product, loading, sold, review}) {
 
   return (
     <Link
-      className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 overflow-hidden flex flex-col no-underline"
+      className={`group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col no-underline ${
+        festive
+          ? 'border-2 border-red-400 hover:border-red-500 hover:shadow-red-100'
+          : 'border border-gray-100 hover:border-gray-200'
+      }`}
       key={product.id}
       prefetch="intent"
       to={variantUrl}
     >
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-50 aspect-square">
+        {festive && !isDiscontinued && !isOutOfStock && (
+          <span className="absolute top-0 left-0 z-20 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] sm:text-[10px] font-black px-2 py-1 rounded-br-xl shadow tracking-wide">
+            🔥 CUCI GUDANG
+          </span>
+        )}
         {product.featuredImage && (
           <Image
             alt={product.featuredImage.altText || product.title}
