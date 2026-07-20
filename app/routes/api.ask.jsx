@@ -375,6 +375,36 @@ function productListText(products) {
     .join('\n');
 }
 
+// Cicilan estimate from price — MUST match ProductAIChat.jsx's productCicilan formula exactly,
+// so a searched product quotes the same numbers as its own product page.
+function hitungCicilan(harga) {
+  if (!harga || harga < 500000) return '';
+  const fmt = (n) => `Rp${(Math.ceil(n / 10) * 10).toLocaleString('id-ID')}`;
+  const kr3 = Math.ceil(((harga + harga * 0.03) / 3) / 10) * 10;
+  const kr6 = Math.ceil(((harga / 6) + harga * 0.026) / 10) * 10;
+  const kr12 = Math.ceil(((harga / 12) + harga * 0.026) / 10) * 10;
+  // Default set is shown WITHOUT naming the provider (keeps it simple, not overwhelming)
+  let lines = `[TAMPILKAN DEFAULT — cicilan tanpa kartu kredit, DP bisa 0%, JANGAN sebut nama provider]: 3x ${fmt(kr3)}/bln | 6x ${fmt(kr6)}/bln | 12x ${fmt(kr12)}/bln`;
+  if (harga >= 1000000) {
+    const b = harga * 0.032;
+    const h = (n) => fmt(Math.ceil(((harga / n) + b) / 10) * 10);
+    lines += `\n  [HANYA JIKA CUSTOMER MINTA tenor lebih panjang / opsi lain — proses ke toko]: 15x ${h(15)}/bln | 18x ${h(18)}/bln`;
+  }
+  return lines;
+}
+
+// Product list WITH per-item cicilan estimate — for the specific-product SEARCH branch,
+// so Grisela can quote installments instead of deflecting to admin.
+function productListTextWithCicilan(products) {
+  return products
+    .map(p => {
+      const base = `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${p.available ? 'Ready stock' : 'Stok habis'}`;
+      const cic = hitungCicilan(p.price);
+      return cic ? `${base}\n  Estimasi Cicilan: ${cic}` : base;
+    })
+    .join('\n');
+}
+
 const CARD_INSTRUCTIONS = `- PENTING: produk di atas akan OTOMATIS ditampilkan sebagai kartu bergambar (foto, harga, link) tepat di bawah jawabanmu. JANGAN tulis link dan JANGAN sebutkan semua harga satu per satu — cukup jawab natural dan singkat, contoh: "Ada kak, ready stock! Ini pilihannya ya 👇"
 - Jika stok habis, beri tahu stoknya habis`;
 
@@ -401,6 +431,7 @@ NORMALISASI NAMA MODEL: perbaiki penulisan customer ke nama model RESMI pakai pe
 
 PENTING: pertanyaan PERBANDINGAN ("bedanya apa", "bagusan mana", "vs", "mending A atau B") → jika customer menyebut produk SPESIFIK LAIN yang BUKAN produk yang sedang dilihat, output SEARCH untuk produk lain itu supaya datanya (harga, stok, keberadaan di toko) bisa diambil untuk dibandingkan — JANGAN NO, karena tanpa data Grisela akan salah bilang "produknya tidak ada". Nama edisi/varian boleh disertakan, pencarian tetap menemukan produk induknya (contoh: sedang di halaman Yashica DigiPix 100, "mending ini atau charmera millenium?" → SEARCH: Charmera Millenium). Hanya jika pertanyaannya opini umum TANPA produk spesifik lain, atau kedua produk sudah sama-sama ada datanya → NO.
 PENTING: pertanyaan harga/nego/diskon/cicilan produk YANG SEDANG DILIHAT ("harganya berapa", "bisa kurang ga") → NO. Data harga produk itu sudah tersedia.
+PENTING: TAPI jika pertanyaan harga/cicilan itu tentang produk LAIN yang BUKAN sedang dilihat — mis. varian berbeda ("body only" padahal halaman ini versi kit, atau sebaliknya), atau produk lain yang disebut/dibahas di riwayat — output SEARCH untuk produk itu supaya harga & estimasi cicilannya bisa diambil, JANGAN NO. Ambil nama produknya dari riwayat kalau pertanyaan terakhir singkat (mis. "kalau body only cicilannya?" saat riwayat membahas Sony A7 IV → SEARCH: Sony A7 IV Body Only). Contoh: (halaman Sony A7 IV Kit) "body only cicilannya berapa?" → SEARCH: Sony A7 IV Body Only
 PENTING: jika customer sedang MENJAWAB pertanyaan Admin dalam alur mencari produk (lihat riwayat: Admin baru bertanya jenis/kebutuhan/level/budget), jawaban pendek seperti "sony kak", "pemula si kak", "foto dan video" adalah KELANJUTAN alur rekomendasi → output REKOMENDASI dengan koleksi sesuai konteks riwayat, BUKAN NO.
 PENTING: jika customer sudah menyebut BRAND tertentu (Sony/Canon/Fujifilm/dll) di riwayat, WAJIB isi segmen ketiga REKOMENDASI dengan brand itu supaya hasilnya sesuai keinginan customer.
 
@@ -649,10 +680,11 @@ ${notFoundRules}`,
     const products = mapProducts(items);
     return {
       contextText: `Hasil pencarian katalog toko untuk "${keyword}":
-${productListText(products)}
+${productListTextWithCicilan(products)}
 ${CARD_INSTRUCTIONS}
 - Hanya relevan jika produknya SEJENIS dengan yang dicari customer. Jika customer cari kamera tapi hasil pencarian cuma aksesoris (baterai, tas, charger, dll), berarti kameranya tidak tersedia — jawab jujur tidak tersedia
-- Jika customer menyebut BEBERAPA produk tapi hanya sebagian yang muncul di hasil: sebutkan yang ketemu, dan jujur bilang sisanya belum ketemu di katalog — sarankan konfirmasi ke admin untuk yang belum ketemu`,
+- Jika customer menyebut BEBERAPA produk tapi hanya sebagian yang muncul di hasil: sebutkan yang ketemu, dan jujur bilang sisanya belum ketemu di katalog — sarankan konfirmasi ke admin untuk yang belum ketemu
+- Estimasi Cicilan produk hasil pencarian SUDAH tersedia di atas — kutip angkanya langsung saat customer tanya cicilan, JANGAN bilang harus dicek admin dulu. TAMPILKAN HANYA set default (3x/6x/12x) TANPA menyebut nama provider (jangan tulis Kredivo/Homecredit); opsi tenor lebih panjang (15x/18x) sebutkan HANYA kalau customer minta. Untuk tenor yang memang tidak ada (mis. 24 bulan), jujur bilang tenor maksimal 18 bulan`,
       products,
     };
   } catch (e) {
@@ -831,6 +863,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
   18x: Rp744.140/bln"
 - Jika pertanyaan customer luas dan jawabannya punya banyak opsi (contoh: "cara kredit gimana?"), JANGAN jelaskan semua opsi sekaligus. Jawab singkat lalu BALIK BERTANYA untuk mempersempit, contoh: "Bisa ka! Mau cicilan pakai kartu kredit atau tanpa kartu kredit?" Setelah customer pilih, baru jelaskan opsi itu saja dengan estimasi cicilannya dari data produk
 - Jika customer sudah spesifik (contoh: "cicilan Kredivo 12x berapa?"), langsung jawab angka estimasinya dari data produk, singkat
+- TAMPILKAN CICILAN TETAP SIMPEL (PENTING): saat customer minta estimasi cicilan tanpa kartu kredit, tampilkan HANYA SATU set angka simpel — tenor 3x, 6x, dan 12x — dan JANGAN sebut nama provider apapun (JANGAN tulis "Kredivo" atau "Homecredit"). Cukup sebut "estimasi cicilan tanpa kartu kredit, DP bisa 0%". DILARANG memborong dua metode sekaligus atau semua tenor (15x/18x) dalam satu jawaban — itu bikin customer bingung. Sebutkan nama metode tertentu, opsi kartu kredit, atau tenor lebih panjang (15x/18x) HANYA kalau customer memang menanyakannya
 - JANGAN PERNAH menghitung angka cicilan sendiri — hanya kutip angka dari "Estimasi Cicilan" di data produk. Jika data itu tidak ada, bilang estimasi bisa dicek dengan admin di 0821-1131-1131
 - Jika jawaban terpaksa panjang, pecah jadi 2 pesan dengan separator "|||" (tanpa spasi di sekitarnya)
 - Jika customer bertanya tentang Kredivo (syarat, cara daftar, limit): jawab singkat, lalu "|||", lalu panduan singkat: download aplikasi Kredivo → daftar dengan KTP → limit langsung diketahui

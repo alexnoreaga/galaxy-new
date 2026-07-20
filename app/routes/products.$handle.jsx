@@ -18,6 +18,7 @@ import { WishlistButton } from '~/components/WishlistButton';
 import {AnalyticsPageType} from '@shopify/hydrogen';
 import { ProdukRelated } from '~/components/ProdukRelated';
 import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
+import { RecentlyViewed } from '~/components/RecentlyViewed';
 import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
@@ -1442,6 +1443,9 @@ DP : 0
           image: product.featuredImage?.url || selectedVariant?.image?.url || '',
           price: parseFloat(selectedVariant.price.amount),
           compareAtPrice: parseFloat(selectedVariant?.compareAtPrice?.amount || 0),
+          rating: productReviews?.length ? Number((productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length).toFixed(1)) : 0,
+          reviewCount: productReviews?.length || 0,
+          soldCount: soldCount || 0,
           savedAt: Date.now(),
         };
         const existing = JSON.parse(localStorage.getItem('galaxy_recently_viewed') || '[]')
@@ -2346,9 +2350,12 @@ DP : 0
             {(rel) => <ProdukRelated related={rel} />}
           </Await>
         </Suspense>
+
+        {/* Recently viewed — exit-intent rail for comparison shoppers */}
+        <RecentlyViewed />
         </div>
 
- 
+
         {foundAdmin && <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} />}
 
         {/* BOTTOM CHECKOUT START HERE */}
