@@ -46,6 +46,37 @@ export function shouldRevalidate({currentUrl, nextUrl, defaultShouldRevalidate})
   return defaultShouldRevalidate;
 }
 
+// Relative "time ago" in Indonesian — "2 hari lalu", "1 minggu lalu", etc.
+function waktuLalu(dateStr) {
+  if (!dateStr) return '';
+  const then = new Date(dateStr).getTime();
+  if (Number.isNaN(then)) return '';
+  const detik = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if (detik < 60) return 'Baru saja';
+  const menit = Math.floor(detik / 60);
+  if (menit < 60) return `${menit} menit lalu`;
+  const jam = Math.floor(menit / 60);
+  if (jam < 24) return `${jam} jam lalu`;
+  const hari = Math.floor(jam / 24);
+  if (hari === 1) return 'Kemarin';
+  if (hari < 7) return `${hari} hari lalu`;
+  const minggu = Math.floor(hari / 7);
+  if (minggu < 5) return `${minggu} minggu lalu`;
+  const bulan = Math.floor(hari / 30);
+  if (bulan < 12) return `${bulan} bulan lalu`;
+  const tahun = Math.floor(hari / 365);
+  return `${tahun} tahun lalu`;
+}
+
+// Verified-seal check icon (used on review trust badges)
+function CheckSeal({ className = 'w-3 h-3' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
 // ── Flash sale banner + live countdown ────────────────────────────────────────
 
 function CountdownBox({ value }) {
@@ -1102,22 +1133,31 @@ DP : 0
           <div className="flex flex-col divide-y divide-gray-100">
             {reviews.map(r => (
               <div key={r.id} className="py-4">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div>
-                    <span className="text-sm font-semibold text-gray-800">{r.customerName}</span>
-                    <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-start gap-3 mb-1">
+                  {/* Avatar */}
+                  <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gradient-to-br ${['from-blue-500 to-indigo-500','from-rose-500 to-pink-500','from-emerald-500 to-teal-500','from-amber-500 to-orange-500','from-violet-500 to-purple-500'][(r.customerName?.charCodeAt(0) || 0) % 5]}`}>
+                    {(r.customerName || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {/* Name + trust badge */}
+                    <div className="flex items-center gap-x-2 gap-y-1 flex-wrap">
+                      <span className="text-sm font-semibold text-gray-800">{r.customerName}</span>
+                      {r.verifiedPurchase ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 pl-1 pr-1.5 py-0.5 rounded-full">
+                          <CheckSeal className="w-3 h-3 text-emerald-600" /> Pembelian Terverifikasi
+                        </span>
+                      ) : r.source === 'toko' ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 pl-1 pr-1.5 py-0.5 rounded-full">
+                          <CheckSeal className="w-3 h-3 text-blue-600" /> Pembeli Toko
+                        </span>
+                      ) : null}
+                    </div>
+                    {/* Stars + relative time */}
+                    <div className="flex items-center gap-2 mt-1">
                       <StarRating value={r.rating} />
-                      {r.verifiedPurchase && (
-                        <span className="text-[10px] font-semibold text-green-600 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">✓ Terverifikasi</span>
-                      )}
-                      {!r.verifiedPurchase && r.source === 'toko' && (
-                        <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full">🏪 Pembeli Toko</span>
-                      )}
+                      <span className="text-[11px] text-gray-400">{waktuLalu(r.createdAt)}</span>
                     </div>
                   </div>
-                  <span className="text-[11px] text-gray-400 whitespace-nowrap">
-                    {r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
-                  </span>
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed mt-2">{r.reviewText}</p>
                 {(r.photoUrls?.length > 0 || r.photoUrl) && (
