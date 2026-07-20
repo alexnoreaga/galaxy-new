@@ -2,7 +2,7 @@ import {Await, NavLink, useMatches, Link} from '@remix-run/react';
 import {Suspense, useState, useEffect} from 'react';
 import {FaInstagram, FaTiktok, FaYoutube, FaXTwitter, FaWhatsapp, FaFacebookF} from 'react-icons/fa6';
 import {PredictiveSearchForm, PredictiveSearchResults} from '~/components/Search';
-import {useLocation} from '@remix-run/react';
+import {useLocation, useNavigate} from '@remix-run/react';
 import {FaRegCircleUser} from 'react-icons/fa6';
 import {NearestStoreBar} from '~/components/NearestStoreBar';
 
@@ -16,6 +16,19 @@ export function Header({header, isLoggedIn, cart}) {
   ];
 
   const {shop, menu} = header;
+
+  // On mobile PRODUCT pages we collapse the header to a single compact bar
+  // (back · search · account · cart) — logo, mobile search row, and store bar are hidden.
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isProduct = location.pathname.includes('/products/');
+
+  function goBack() {
+    // React Router stores a history index; >0 means there's in-app history to pop
+    const idx = typeof window !== 'undefined' ? window.history.state?.idx ?? 0 : 0;
+    if (idx > 0) navigate(-1);
+    else navigate('/');
+  }
 
   return (
     <>
@@ -76,8 +89,22 @@ export function Header({header, isLoggedIn, cart}) {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg shadow-sm">
         <div className="flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto border-b border-gray-100">
 
-          {/* Left: hamburger + logo */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Back button — mobile product pages only */}
+          {isProduct && (
+            <button
+              type="button"
+              onClick={goBack}
+              aria-label="Kembali"
+              className="sm:hidden -ml-1.5 flex items-center justify-center w-9 h-9 rounded-full text-gray-700 hover:bg-gray-100 active:scale-95 transition-all flex-shrink-0"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+          )}
+
+          {/* Left: hamburger + logo — hidden on mobile product pages */}
+          <div className={`${isProduct ? 'hidden sm:flex' : 'flex'} items-center gap-3 flex-shrink-0`}>
             <HeaderMenuMobileToggle />
             <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className="flex-shrink-0 hover:opacity-80 transition-opacity">
               <img
@@ -92,7 +119,7 @@ export function Header({header, isLoggedIn, cart}) {
             </NavLink>
           </div>
 
-          {/* Center: desktop nav + search */}
+          {/* Center: desktop nav + search (+ inline search on mobile product pages) */}
           <div className="flex-1 flex items-center gap-4 min-w-0">
             <div className="hidden lg:flex items-center flex-shrink-0">
               <HeaderMenu menu={menu} viewport="desktop" />
@@ -100,21 +127,28 @@ export function Header({header, isLoggedIn, cart}) {
             <div className="hidden sm:block flex-1 max-w-xl">
               <SearchToggle />
             </div>
+            {isProduct && (
+              <div className="sm:hidden flex-1 min-w-0">
+                <SearchToggleMobile />
+              </div>
+            )}
           </div>
 
           {/* Right: account + cart */}
           <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
         </div>
 
-        {/* Mobile search bar */}
-        <div className="sm:hidden w-full bg-white border-b border-gray-100">
+        {/* Mobile search bar — hidden on product pages (search moved inline above) */}
+        <div className={`${isProduct ? 'hidden' : 'sm:hidden'} w-full bg-white border-b border-gray-100`}>
           <div className="px-4 py-2">
             <SearchToggleMobile />
           </div>
         </div>
 
-        {/* Nearest store bar */}
-        <NearestStoreBar />
+        {/* Nearest store bar — hidden on mobile product pages */}
+        <div className={isProduct ? 'hidden sm:block' : ''}>
+          <NearestStoreBar />
+        </div>
       </header>
     </>
   );

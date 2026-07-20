@@ -115,13 +115,9 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
         </Await>
       </Suspense>
       
-      {/* <BottomNavbar/> */}
       <TombolWa/>
-      {urlSekarang.includes('cart') ? (
-        <BottomNavbar/>
-      ) : urlSekarang.includes('collections') ? (
-          <BottomNavbar/>
-      ) :  <BottomNavbar/>} 
+      {/* Bottom nav hidden on product pages so the Beli/checkout bar owns the bottom edge */}
+      {!urlSekarang.includes('/products/') && <BottomNavbar/>}
     </>
   );
 }

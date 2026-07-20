@@ -340,7 +340,7 @@ function BackToTop() {
       type="button"
       aria-label="Kembali ke atas"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed bottom-32 left-4 md:bottom-40 md:left-6 z-40 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur border border-gray-200 shadow-lg text-gray-700 hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all duration-300 ${
+      className={`fixed bottom-20 left-4 md:bottom-40 md:left-6 z-40 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur border border-gray-200 shadow-lg text-gray-700 hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all duration-300 ${
         show ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2 pointer-events-none'
       }`}
     >
@@ -2195,7 +2195,7 @@ DP : 0
           && product?.metafields[12]?.value != "true" 
            && (
         
-        <div className='md:hidden fixed left-0 bottom-16 w-full z-50 bg-white border-t border-gray-200 px-3 py-2 flex items-center gap-2'>
+        <div className='md:hidden fixed left-0 bottom-0 w-full z-50 bg-white border-t border-gray-200 px-3 py-2 flex items-center gap-2'>
 
           {/* Bandingkan — icon only */}
           <button
@@ -2255,7 +2255,7 @@ DP : 0
 
       {/* MOBILE — slim Bandingkan bar for out-of-stock / discontinued */}
       {(!selectedVariant?.availableForSale || product?.metafields[12]?.value == "true") && (
-        <div className='md:hidden fixed left-0 bottom-16 w-full z-50 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-3 py-2'>
+        <div className='md:hidden fixed left-0 bottom-0 w-full z-50 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-3 py-2'>
           <button
             onClick={() => setBukaModalBandingkan(true)}
             className='w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-gray-800 text-sm font-semibold active:bg-gray-50 transition-colors'
