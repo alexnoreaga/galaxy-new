@@ -486,6 +486,10 @@ PENTING: pertanyaan harga/nego/diskon/cicilan produk YANG SEDANG DILIHAT ("harga
 PENTING: TAPI jika pertanyaan harga/cicilan itu tentang produk LAIN yang BUKAN sedang dilihat — mis. varian berbeda ("body only" padahal halaman ini versi kit, atau sebaliknya), atau produk lain yang disebut/dibahas di riwayat — output SEARCH untuk produk itu supaya harga & estimasi cicilannya bisa diambil, JANGAN NO. Ambil nama produknya dari riwayat kalau pertanyaan terakhir singkat (mis. "kalau body only cicilannya?" saat riwayat membahas Sony A7 IV → SEARCH: Sony A7 IV Body Only). Contoh: (halaman Sony A7 IV Kit) "body only cicilannya berapa?" → SEARCH: Sony A7 IV Body Only
 PENTING: jika customer sedang MENJAWAB pertanyaan Admin dalam alur mencari produk (lihat riwayat: Admin baru bertanya jenis/kebutuhan/level/budget), jawaban pendek seperti "sony kak", "pemula si kak", "foto dan video" adalah KELANJUTAN alur rekomendasi → output REKOMENDASI dengan koleksi sesuai konteks riwayat, BUKAN NO.
 PENTING: jika customer sudah menyebut BRAND tertentu (Sony/Canon/Fujifilm/dll) di riwayat, WAJIB isi segmen ketiga REKOMENDASI dengan brand itu supaya hasilnya sesuai keinginan customer.
+PENTING — KATEGORI:
+  a) Jika customer menyebut BEBERAPA jenis/kategori sekaligus ("action cam atau pocket", "digicam atau instax", "mirrorless atau dslr", "kamera siap pakai kayak action cam / pocket"), WAJIB sertakan handle koleksi untuk SETIAP kategori yang disebut (sampai 3) — JANGAN hanya satu. Contoh: "budget 1 jutaan, kamera siap pakai action cam atau pocket" → REKOMENDASI: kamera-action,kamera-pocket,camera-compact | 0-1500000 | -
+  b) Jika customer menyebut SATU kategori spesifik saja ("mirrorless aja", "dslr", "drone", "action cam"), pilih koleksi kategori ITU SAJA (1 handle) — jangan campur kategori lain.
+  c) Jika customer minta rekomendasi UMUM tanpa menyebut kategori ("kamera 6 jutaan buat pemula"), baru pilih 2-3 kategori beragam sesuai budget.
 
 DAFTAR KOLEKSI:
 ${collectionsText}
@@ -537,17 +541,25 @@ Output:`;
         brand ? items.filter(p => p.title.toLowerCase().includes(brand.toLowerCase())) : items;
 
       const tryCollections = async (priceMin, priceMax) => {
-        for (const handle of handles) {
-          const data = await context.storefront.query(COLLECTION_RECOMMEND_QUERY, {
-            variables: {
-              handle,
-              filters: [{ available: true }, { price: { min: priceMin, max: priceMax } }],
-            },
-          });
-          const items = brandFilter(data?.collection?.products?.nodes ?? []);
-          if (items.length > 0) return items;
+        // Fetch every candidate collection, then round-robin interleave so a multi-category
+        // request ("action cam ATAU pocket") shows variety — not just the first collection.
+        const perCollection = await Promise.all(
+          handles.map(async (handle) => {
+            const data = await context.storefront.query(COLLECTION_RECOMMEND_QUERY, {
+              variables: {
+                handle,
+                filters: [{ available: true }, { price: { min: priceMin, max: priceMax } }],
+              },
+            });
+            return brandFilter(data?.collection?.products?.nodes ?? []);
+          })
+        );
+        const merged = [];
+        const maxLen = Math.max(0, ...perCollection.map(a => a.length));
+        for (let i = 0; i < maxLen; i++) {
+          for (const arr of perCollection) if (arr[i]) merged.push(arr[i]);
         }
-        return [];
+        return [...new Map(merged.map(p => [p.handle, p])).values()];
       };
 
       // 1st pass: exact budget across all candidate collections
