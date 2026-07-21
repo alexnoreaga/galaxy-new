@@ -23,6 +23,14 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
+  // Silent block: server flags abusive sessions; keep the input disabled through the cooldown
+  const [blocked, setBlocked] = useState(false);
+  useEffect(() => {
+    try {
+      const until = parseInt(localStorage.getItem('grisela_blocked_until') || '0', 10);
+      if (until && Date.now() < until) setBlocked(true);
+    } catch {}
+  }, []);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -62,6 +70,10 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
       });
       const data = await res.json();
       if (data.conversationId) setConversationId(data.conversationId);
+      if (data.blocked) {
+        setBlocked(true);
+        try { localStorage.setItem('grisela_blocked_until', String(Date.now() + 45 * 60 * 1000)); } catch {}
+      }
       const parts = (data.answer ?? '').split('|||').map(s => s.trim()).filter(Boolean);
       setMessages(prev => [
         ...prev,
@@ -82,7 +94,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
 
   function handleSend() {
     const text = inputText.trim();
-    if (!text || loading) return;
+    if (!text || loading || blocked) return;
     setInputText('');
     ask(text);
   }
@@ -157,12 +169,13 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
               value={inputText}
               onChange={e => setInputText(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
-              placeholder="Ketik pertanyaanmu..."
-              className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none"
+              placeholder={blocked ? 'Chat tidak tersedia' : 'Ketik pertanyaanmu...'}
+              disabled={blocked}
+              className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none disabled:cursor-not-allowed"
             />
             <button
               onClick={handleSend}
-              disabled={!inputText.trim() || loading}
+              disabled={!inputText.trim() || loading || blocked}
               className="w-7 h-7 rounded-full bg-rose-600 disabled:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-white">

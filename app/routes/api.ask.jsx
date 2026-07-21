@@ -211,6 +211,51 @@ function checkJunk(sessionId, question) {
     : 'Pesannya sama seperti sebelumnya ya ka 😊 Ada hal lain yang mau ditanyakan?';
 }
 
+// ── Harassment gate — silent cutoff, no warning (trolls feed on reactions) ─────
+// Scoped to GENUINELY targeted abuse (sexual, slur+target, threats), NOT mere
+// frustration/price-profanity ("mahal banget anjir" is fine and must pass through).
+const blockedMap = new Map(); // sessionId -> unblock timestamp (ms)
+const HARASS_COOLDOWN_MS = 45 * 60 * 1000;
+const HARASS_CUTOFF = 'Maaf, chat untuk sesi ini sudah tidak tersedia. Untuk bantuan silakan hubungi admin di 0821-1131-1131.';
+
+// Normalise common evasions (leetspeak, repeated/split chars) before matching
+function normalizeAbuse(t) {
+  return (t ?? '')
+    .toLowerCase()
+    .replace(/[0]/g, 'o').replace(/[1|]/g, 'i').replace(/[3]/g, 'e').replace(/[4@]/g, 'a').replace(/[5$]/g, 's').replace(/[7]/g, 't')
+    .replace(/(.)\1{2,}/g, '$1$1') // "anjiiiing" -> "anjiing"
+    .replace(/[^a-z\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Explicit sexual vulgarity — essentially never "frustration at price"
+const HARASS_SEX_RE = /\b(ngentot|entot|ewe|kontol|kntl|memek|meki|mek|pepek|puki|pukimak|kimak|kimk|coli|colmek|ngaceng|sange|bugil|jembut|pantek|itil|silit|bispak|bisyar|sepong|sange)\b/;
+// Targeted insult = slur near a "you" pronoun (so bare "anjir" frustration passes)
+const HARASS_INSULT_RE = /\b(anjing|anjg|asu|babi|bangsat|bajingan|goblok|tolol|bego|idiot|tai|taik|setan|monyet|kunyuk|jancok|jancuk|kampret|sundal|lonte|kontol|bacot|dungu)\b[\s\w]{0,6}\b(lu|lo|loe|elu|elo|lw|kamu|kau|km|situ|ente)\b|\b(lu|lo|loe|elu|elo|lw|kamu|kau|km|situ|ente)\b[\s\w]{0,3}\b(anjing|asu|babi|bangsat|bajingan|goblok|tolol|bego|idiot|tai|setan|monyet|jancok|jancuk|sundal|lonte|dungu)\b/;
+// Threats
+const HARASS_THREAT_RE = /\b(bunuh|tusuk|bacok|gorok|habisi|hajar|gebuk|tampar)\b[\s\w]{0,10}\b(lu|lo|kamu|kau|km|elu)\b|\bmati\s*(lu|lo|kau|kamu)\b|\bawas\s*(lu|lo|kau|kamu)\b/;
+
+function isHarassment(q) {
+  const t = normalizeAbuse(q);
+  if (!t) return false;
+  return HARASS_SEX_RE.test(t) || HARASS_INSULT_RE.test(t) || HARASS_THREAT_RE.test(t);
+}
+
+// Returns the silent-cutoff line if the session is blocked or the message is abusive,
+// else null. No warning is ever issued — abuse gets a dead, bureaucratic dead-end.
+function checkHarassment(sessionId, question) {
+  if (!sessionId) return null;
+  if (blockedMap.size > 1000) blockedMap.clear();
+  const until = blockedMap.get(sessionId);
+  if (until && Date.now() < until) return HARASS_CUTOFF;
+  if (isHarassment(question)) {
+    blockedMap.set(sessionId, Date.now() + HARASS_COOLDOWN_MS);
+    return HARASS_CUTOFF;
+  }
+  return null;
+}
+
 // ── Simple string hash for bubble answer cache keys ──────────────────────────
 function simpleHash(str) {
   let h = 5381;
@@ -353,10 +398,17 @@ async function getCollectionsList(context) {
 }
 
 // Words that mark a product/query as an accessory rather than a main device
-const ACCESSORY_RE = /\b(baterai|battery|charger|charging|lens ?guard|selfie ?stick|tongsis|case|casing|cage|reader|memory|micro ?sd|sd ?card|strap|mount|adapter|adaptor|filter|protector|protective|hub|grip|tripod|mic|microphone|mikrofon|tas|screen|tempered|holder|bracket|cover|pouch|remote|kabel|cable|cap|frame|pelindung|guard|windshield|deadcat|lanyard|floaty|pelampung)\b/i;
+const ACCESSORY_RE = /\b(baterai|battery|charger|charging|lens ?guard|selfie ?stick|tongsis|case|casing|cage|reader|memory|micro ?sd|sd ?card|strap|mount|adapter|adaptor|filter|protector|protective|hub|grip|tripod|mic|microphone|mikrofon|tas|screen|tempered|holder|bracket|cover|pouch|remote|kabel|cable|cap|frame|pelindung|guard|windshield|deadcat|lanyard|floaty|pelampung|aksesoris|accessor(y|ies)|macrolens|macro ?lens|media mod|light mod|display mod|enclosure)\b/i;
+
+// "for GoPro HERO", "For All ... Cameras", "buat DJI" etc. = accessory FOR a device.
+// Note: a bare "kit" is NOT here — real camera kits (Canon EOS R50 Kit) must stay main devices.
+const ACCESSORY_FOR_RE = /\b(for|buat|untuk)\s+(all|the|your|semua|gopro|hero|dji|osmo|insta\s?360|sony|canon|nikon|fuji\w*|max|action ?cam)\b/i;
+// Named accessory kits only (never a bare "kit", which is usually a camera+lens kit)
+const ACCESSORY_KIT_RE = /\b(adventure|sports?|travel|action|vlog(ging)?|starter|holiday|grip|hand ?grip|head ?strap|accessory|aksesoris) kit\b/i;
 
 function isAccessoryText(text) {
-  return ACCESSORY_RE.test(text ?? '');
+  const t = text ?? '';
+  return ACCESSORY_RE.test(t) || ACCESSORY_FOR_RE.test(t) || ACCESSORY_KIT_RE.test(t);
 }
 
 function mapProducts(items) {
@@ -704,6 +756,13 @@ export async function action({ request, context }) {
     return json({
       answer: 'Maaf ka, terlalu banyak pertanyaan dalam waktu singkat 🙏 Tunggu sebentar ya, atau langsung hubungi admin kami di 0821-1131-1131 😊',
     });
+  }
+
+  // Harassment gate: targeted abuse gets a silent bureaucratic cutoff — no warning,
+  // no reaction (trolls feed on reactions), zero Gemini calls. Session goes on cooldown.
+  const harassReply = checkHarassment(sessionId, question);
+  if (harassReply) {
+    return json({ answer: harassReply, blocked: true });
   }
 
   // Junk gate: gibberish, single letters, and repeated messages get a canned
