@@ -307,17 +307,17 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
     const kr6 = Math.ceil(((harga / 6) + bungaKredivo) / 10) * 10;
     const kr12 = Math.ceil(((harga / 12) + bungaKredivo) / 10) * 10;
 
-    let lines = `Estimasi Cicilan Kartu Kredit:\n3x: ${fmt(kk3)}/bln | 6x: ${fmt(kk6)}/bln | 12x: ${fmt(kk12)}/bln\n\nEstimasi Cicilan Tanpa KK (Kredivo, DP 0%):\n3x: ${fmt(kr3)}/bln | 6x: ${fmt(kr6)}/bln | 12x: ${fmt(kr12)}/bln`;
+    // DEFAULT = only cicilan tanpa kartu kredit, no provider name. Kartu kredit & longer
+    // tenors are marked as opt-in so Grisela shows them ONLY when the customer asks.
+    let lines = `[TAMPILKAN DEFAULT — cicilan tanpa kartu kredit, DP bisa 0%, JANGAN sebut nama provider]: 3x: ${fmt(kr3)}/bln | 6x: ${fmt(kr6)}/bln | 12x: ${fmt(kr12)}/bln`;
 
     if (harga >= 1000000) {
       const bungaHci = harga * 0.032;
-      const hci6 = Math.ceil(((harga / 6) + bungaHci) / 10) * 10;
-      const hci9 = Math.ceil(((harga / 9) + bungaHci) / 10) * 10;
-      const hci12 = Math.ceil(((harga / 12) + bungaHci) / 10) * 10;
       const hci15 = Math.ceil(((harga / 15) + bungaHci) / 10) * 10;
       const hci18 = Math.ceil(((harga / 18) + bungaHci) / 10) * 10;
-      lines += `\n\nEstimasi Cicilan Homecredit (DP 0%, proses ke toko):\n6x: ${fmt(hci6)}/bln | 9x: ${fmt(hci9)}/bln | 12x: ${fmt(hci12)}/bln | 15x: ${fmt(hci15)}/bln | 18x: ${fmt(hci18)}/bln`;
+      lines += `\n[HANYA JIKA CUSTOMER MINTA tenor lebih panjang / opsi lain — proses ke toko]: 15x: ${fmt(hci15)}/bln | 18x: ${fmt(hci18)}/bln`;
     }
+    lines += `\n[HANYA JIKA CUSTOMER TANYA CICILAN KARTU KREDIT]: 3x: ${fmt(kk3)}/bln | 6x: ${fmt(kk6)}/bln | 12x: ${fmt(kk12)}/bln`;
     return lines;
   })();
 
