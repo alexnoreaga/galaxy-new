@@ -55,7 +55,36 @@ export async function loader({ context }) {
     }
   }
 
-  return json({ flashCount: flashMap.size, saleEndsAt, flashItems });
+  // Cuci Gudang clearance rail (collection-driven), same ranking as flash
+  let cuciItems = [];
+  try {
+    const cg = await context.storefront.query(BIO_CUCI_GUDANG_QUERY, { variables: { handle: 'cuci-gudang' } });
+    cuciItems = (cg?.collection?.products?.nodes ?? [])
+      .filter(Boolean)
+      .map(p => {
+        const price = parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0);
+        const strikeAt = parseFloat(p.compareAtPriceRange?.minVariantPrice?.amount ?? 0);
+        if (!price) return null;
+        return {
+          title: p.title,
+          handle: p.handle,
+          image: p.featuredImage?.url ?? null,
+          price,
+          strikeAt,
+          pct: strikeAt > price ? Math.round((1 - price / strikeAt) * 100) : 0,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const score = it => (isAccessoryTitle(it.title) ? 0 : 15) + it.pct;
+        return score(b) - score(a);
+      })
+      .slice(0, 6);
+  } catch {
+    // best-effort — section just won't render
+  }
+
+  return json({ flashCount: flashMap.size, saleEndsAt, flashItems, cuciItems });
 }
 
 const BIO_FLASH_QUERY = `#graphql
@@ -73,6 +102,23 @@ const BIO_FLASH_QUERY = `#graphql
             price { amount }
             compareAtPrice { amount }
           }
+        }
+      }
+    }
+  }
+`;
+
+const BIO_CUCI_GUDANG_QUERY = `#graphql
+  query BioCuciGudang($handle: String!) {
+    collection(handle: $handle) {
+      products(first: 12) {
+        nodes {
+          id
+          title
+          handle
+          featuredImage { url altText }
+          priceRange { minVariantPrice { amount } }
+          compareAtPriceRange { minVariantPrice { amount } }
         }
       }
     }
@@ -158,7 +204,7 @@ function BioCountdown({ endsAt }) {
 }
 
 export default function Bio() {
-  const { flashCount, saleEndsAt, flashItems = [] } = useLoaderData();
+  const { flashCount, saleEndsAt, flashItems = [], cuciItems = [] } = useLoaderData();
   const [chatOpen, setChatOpen] = useState(false);
 
   return (
@@ -287,6 +333,84 @@ export default function Bio() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* CUCI GUDANG — merged card (purple/fuchsia), matches flash sale layout */}
+        {cuciItems.length > 0 && (
+          <div
+            className={`relative w-full overflow-hidden rounded-2xl mb-7 ${flashCount > 0 ? '-mt-5' : '-mt-4'}`}
+            style={{ background: 'linear-gradient(110deg, #6d28d9 0%, #a21caf 48%, #db2777 100%)', boxShadow: '0 8px 24px rgba(162,28,175,0.35)' }}
+          >
+            {/* Stripes + shine sweep */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 14px)' }}
+            />
+            <div
+              className="absolute inset-y-0 w-20 pointer-events-none"
+              style={{
+                background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%)',
+                animation: 'bioCuciShine 2.4s ease-in-out infinite',
+              }}
+            />
+            <style>{`@keyframes bioCuciShine { 0% { left: -25%; } 60% { left: 110%; } 100% { left: 110%; } }`}</style>
+
+            {/* Header — links to /collections/cuci-gudang */}
+            <Link
+              to="/collections/cuci-gudang"
+              onClick={() => trackEvent('bio_link_clicked', '', 'Cuci Gudang')}
+              className="relative flex items-center gap-2.5 px-4 pt-3 pb-2 no-underline active:opacity-90"
+            >
+              <span className="text-xl animate-pulse flex-shrink-0">🔥</span>
+              <div className="flex-1 text-left min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-white font-black italic text-[16px] tracking-wider leading-tight drop-shadow-sm whitespace-nowrap">CUCI GUDANG</p>
+                  <span className="text-white text-[11px] font-bold whitespace-nowrap">Lihat Semua →</span>
+                </div>
+                <p className="text-white/85 font-bold uppercase tracking-wider mt-1" style={{ fontSize: 9 }}>Harga Miring · Stok Terbatas</p>
+              </div>
+            </Link>
+
+            {/* Product rail — ranked, main devices first */}
+            <div
+              className="relative flex gap-2 overflow-x-auto px-3 pb-3 pt-1"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {cuciItems.map(it => (
+                <Link
+                  key={it.handle}
+                  to={`/products/${it.handle}`}
+                  onClick={() => trackEvent('bio_link_clicked', '', 'Cuci Gudang Produk')}
+                  className="flex-shrink-0 w-28 bg-white rounded-lg overflow-hidden no-underline"
+                  style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }}
+                >
+                  <div className="relative bg-gray-50" style={{ aspectRatio: '1/1' }}>
+                    {it.pct > 0 && (
+                      <div className="absolute top-1 left-1 z-10 bg-yellow-300 text-fuchsia-900 font-black text-[9px] px-1 py-0.5 rounded-sm leading-none">
+                        -{it.pct}%
+                      </div>
+                    )}
+                    {it.image ? (
+                      <img src={it.image} alt={it.title} loading="lazy" className="w-full h-full object-contain p-1.5" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-200 text-2xl">📷</div>
+                    )}
+                  </div>
+                  <div className="px-1.5 pt-1 pb-1.5">
+                    <p className="text-gray-700 leading-tight line-clamp-1" style={{ fontSize: 9 }}>{it.title}</p>
+                    <p className="font-black text-[11px] leading-tight mt-0.5" style={{ color: '#a21caf' }}>
+                      Rp{Math.round(it.price).toLocaleString('id-ID')}
+                    </p>
+                    {it.strikeAt > it.price && (
+                      <p className="text-gray-400 line-through leading-tight" style={{ fontSize: 8 }}>
+                        Rp{Math.round(it.strikeAt).toLocaleString('id-ID')}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 

@@ -163,6 +163,42 @@ function FlashSaleBanner({ autoDiscount }) {
   );
 }
 
+// Festive clearance banner — shown on product pages when the product is in the cuci-gudang collection
+function CuciGudangBanner() {
+  return (
+    <Link
+      to="/collections/cuci-gudang"
+      prefetch="intent"
+      className="relative overflow-hidden rounded-xl order-2 md:order-4 mt-3 md:mt-4 block no-underline"
+      style={{ background: 'linear-gradient(100deg,#b91c1c 0%,#dc2626 35%,#ea580c 70%,#f59e0b 100%)' }}
+    >
+      <div
+        className="absolute inset-y-0 w-24 pointer-events-none"
+        style={{
+          background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%)',
+          animation: 'cgBannerShine 2.8s ease-in-out infinite',
+        }}
+      />
+      <style>{`@keyframes cgBannerShine { 0% { left:-25%; } 60% { left:110%; } 100% { left:110%; } }`}</style>
+
+      <div className="relative flex items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="text-xl sm:text-2xl animate-pulse flex-shrink-0">🔥</span>
+          <div className="min-w-0">
+            <p className="text-white font-black italic text-sm sm:text-lg tracking-wider leading-none drop-shadow-sm">CUCI GUDANG</p>
+            <p className="text-white/95 text-[10px] sm:text-xs font-semibold mt-0.5 leading-tight">
+              Harga Miring · Stok Terbatas<span className="hidden sm:inline"> — Buruan Sebelum Kehabisan!</span>
+            </p>
+          </div>
+        </div>
+        <span className="flex-shrink-0 inline-flex items-center gap-1 bg-white text-red-600 text-[10px] sm:text-xs font-black px-2.5 py-1.5 rounded-full shadow">
+          Lihat Semua →
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export async function loader({params, context, request}) {
 
   const {session} = context;
@@ -1388,6 +1424,9 @@ DP : 0
       ? autoDiscount
       : null;
 
+    // Product belongs to the cuci-gudang (clearance) collection?
+    const inCuciGudang = product?.collections?.nodes?.some(c => c.handle === 'cuci-gudang');
+
     const [root] = useMatches();
     const cart = root.data?.cart;
 
@@ -1569,6 +1608,9 @@ DP : 0
 
               {/* FLASH SALE banner + countdown */}
               <FlashSaleBanner autoDiscount={flashForVariant} />
+
+              {/* CUCI GUDANG clearance banner — only if product is in that collection */}
+              {inCuciGudang && <CuciGudangBanner />}
 
               {/* PRICE + CICILAN — two-column layout */}
               <div className="flex items-stretch order-2 md:order-4 md:mt-4">
@@ -2579,7 +2621,7 @@ function TombolWaDiscontinue({product}){
         values
       }
 
-      collections(first:1){
+      collections(first:50){
         nodes{
           title
           handle

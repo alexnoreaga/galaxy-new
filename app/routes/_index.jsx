@@ -46,6 +46,23 @@ const FLASH_SALE_HOME_QUERY = `#graphql
   }
 `;
 
+const CUCI_GUDANG_HOME_QUERY = `#graphql
+  query CuciGudangHome($handle: String!) {
+    collection(handle: $handle) {
+      products(first: 12) {
+        nodes {
+          id
+          title
+          handle
+          featuredImage { url altText }
+          priceRange { minVariantPrice { amount } }
+          compareAtPriceRange { minVariantPrice { amount } }
+        }
+      }
+    }
+  }
+`;
+
 export async function loader({context, request}) {
   const customerAccessToken = await context.session.get('customerAccessToken');
   const {storefront} = context;
@@ -197,6 +214,69 @@ export async function loader({context, request}) {
     return { items, saleEndsAt };
   })().catch(() => ({ items: [], saleEndsAt: null }));
 
+  // Cuci Gudang (clearance) rail — collection-driven, deferred like flash sale
+  const cuciGudangPromise = (async () => {
+    const data = await storefront.query(CUCI_GUDANG_HOME_QUERY, { variables: { handle: 'cuci-gudang' } }).catch(() => null);
+    const nodes = (data?.collection?.products?.nodes ?? []).filter(Boolean);
+    if (nodes.length === 0) return { items: [] };
+
+    const socials = await Promise.all(
+      nodes.map(p =>
+        Promise.all([
+          fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(doc => parseInt(doc?.fields?.count?.integerValue || 0))
+            .catch(() => 0),
+          fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              structuredQuery: {
+                from: [{ collectionId: 'reviews' }],
+                where: {
+                  compositeFilter: {
+                    op: 'AND',
+                    filters: [
+                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: p.handle } } },
+                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
+                    ],
+                  },
+                },
+                select: { fields: [{ fieldPath: 'rating' }] },
+                limit: 100,
+              },
+            }),
+          })
+            .then(res => res.ok ? res.json() : null)
+            .then(rows => {
+              const ratings = (rows || []).filter(r => r.document).map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
+              return ratings.length > 0
+                ? { count: ratings.length, avg: parseFloat((ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)) }
+                : null;
+            })
+            .catch(() => null),
+        ])
+      )
+    );
+
+    const items = nodes.map((p, i) => {
+      const price = parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0);
+      const strikeAt = parseFloat(p.compareAtPriceRange?.minVariantPrice?.amount ?? 0);
+      return {
+        title: p.title,
+        handle: p.handle,
+        image: p.featuredImage?.url ?? null,
+        price,
+        strikeAt,
+        pct: strikeAt > price ? Math.round((1 - price / strikeAt) * 100) : 0,
+        sold: socials[i][0],
+        review: socials[i][1],
+      };
+    }).filter(it => it.price > 0);
+
+    return { items };
+  })().catch(() => ({ items: [] }));
+
   // BrandPopular has <Await> — defer the 2-step chain (GET_BRANDS then N x GET_BRAND_IMAGE)
   const kumpulanBrandPromise = storefront.query(GET_BRANDS).then(async (brands) => {
     const hasilLoop = brands?.metaobjects?.nodes[0]?.fields[0]?.value;
@@ -246,6 +326,7 @@ export async function loader({context, request}) {
     banner,
     mirrorlessProducts,
     flashSale: flashSalePromise,
+    cuciGudang: cuciGudangPromise,
   });
 }
 
@@ -324,6 +405,127 @@ function CardMiniCountdown({ endsAt }) {
       <span className="text-red-500 font-black text-[9px]">:</span>
       <Box val={v(left === null ? null : Math.floor((left % 60000) / 1000))} />
     </div>
+  );
+}
+
+function CuciGudangHomeSection({ cuciGudang }) {
+  return (
+    <Suspense fallback={null}>
+      <Await resolve={cuciGudang}>
+        {({ items }) => {
+          if (!items || items.length === 0) return null;
+          return (
+            <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
+              <section
+                className="relative overflow-hidden rounded-xl"
+                style={{ background: 'linear-gradient(110deg, #6d28d9 0%, #a21caf 48%, #db2777 100%)' }}
+              >
+                {/* Diagonal stripes + shine */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 16px)' }}
+                />
+                <div
+                  className="absolute inset-y-0 w-28 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.22) 50%, transparent 80%)',
+                    animation: 'homeCuciShine 3s ease-in-out infinite',
+                  }}
+                />
+                <style>{`@keyframes homeCuciShine { 0% { left: -30%; } 60% { left: 115%; } 100% { left: 115%; } }`}</style>
+
+                {/* Header */}
+                <div className="relative px-3 sm:px-4 pt-2.5 pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                      <span className="text-lg sm:text-2xl animate-pulse flex-shrink-0">🔥</span>
+                      <div className="min-w-0">
+                        <h2 className="text-white font-black italic text-base sm:text-2xl tracking-wider leading-none drop-shadow-sm whitespace-nowrap">
+                          CUCI GUDANG
+                        </h2>
+                        <p className="text-white/90 text-[9px] sm:text-xs font-semibold leading-tight mt-0.5 whitespace-nowrap">
+                          Harga Miring · Stok Terbatas
+                        </p>
+                      </div>
+                    </div>
+                    <Link to="/collections/cuci-gudang" className="text-white text-[11px] sm:text-xs font-bold whitespace-nowrap hover:underline no-underline flex-shrink-0">
+                      Lihat Semua →
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Product rail */}
+                <div
+                  className="relative flex gap-2 sm:gap-2.5 overflow-x-auto px-3 sm:px-4 pb-3"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {items.map(it => (
+                    <Link
+                      key={it.handle}
+                      to={`/products/${it.handle}`}
+                      prefetch="intent"
+                      className="flex-shrink-0 w-32 sm:w-40 bg-white rounded-lg overflow-hidden no-underline group"
+                      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.18)' }}
+                    >
+                      <div className="relative bg-gray-50" style={{ aspectRatio: '1/1' }}>
+                        {it.pct > 0 && (
+                          <div className="absolute top-1.5 left-1.5 z-10 bg-yellow-300 text-fuchsia-900 font-black text-[10px] px-1.5 py-0.5 rounded-sm leading-tight">
+                            -{it.pct}%
+                          </div>
+                        )}
+                        {it.image ? (
+                          <img
+                            src={it.image}
+                            alt={it.title}
+                            loading="lazy"
+                            className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-200 text-3xl">📷</div>
+                        )}
+                      </div>
+                      <div className="p-2">
+                        <p className="text-gray-800 text-[11px] leading-snug line-clamp-2 mb-1" style={{ minHeight: 28 }}>
+                          {it.title}
+                        </p>
+                        {(it.review || it.sold > 0) && (
+                          <div className="flex items-center gap-1 mb-1 text-[9px] text-gray-500 leading-none">
+                            {it.review && (
+                              <>
+                                <span className="text-amber-400 text-[10px]">★</span>
+                                <span className="font-bold text-gray-700">{it.review.avg}</span>
+                                <span className="text-gray-400">({it.review.count})</span>
+                              </>
+                            )}
+                            {it.review && it.sold > 0 && <span className="text-gray-300">·</span>}
+                            {it.sold > 0 && <span>{it.sold} terjual</span>}
+                          </div>
+                        )}
+                        <p className="font-black text-sm leading-tight" style={{ color: '#a21caf' }}>
+                          Rp{Math.round(it.price).toLocaleString('id-ID')}
+                        </p>
+                        {it.strikeAt > it.price && (
+                          <p className="text-[10px] text-gray-400 line-through leading-tight mt-0.5">
+                            Rp{Math.round(it.strikeAt).toLocaleString('id-ID')}
+                          </p>
+                        )}
+                        <div
+                          className="mt-1.5 -mx-2 -mb-2 px-2 py-1.5 flex items-center gap-1"
+                          style={{ background: 'linear-gradient(90deg, #faf5ff, #fdf2f8)', borderTop: '1px solid #f3e8ff' }}
+                        >
+                          <span style={{ fontSize: 9 }}>🔥</span>
+                          <span className="text-[9px] font-bold" style={{ color: '#a21caf' }}>Cuci Gudang</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            </div>
+          );
+        }}
+      </Await>
+    </Suspense>
   );
 }
 
@@ -504,6 +706,9 @@ export default function Homepage() {
 
       {/* FLASH SALE — only renders while an automatic discount is active */}
       <FlashSaleHomeSection flashSale={data.flashSale} />
+
+      {/* CUCI GUDANG — clearance rail, only renders if the collection has products */}
+      <CuciGudangHomeSection cuciGudang={data.cuciGudang} />
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
         <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-md hover:shadow-lg transition-shadow duration-300">
