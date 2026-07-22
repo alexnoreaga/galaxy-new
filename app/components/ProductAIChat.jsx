@@ -170,6 +170,41 @@ function VoucherChatCard({ voucher }) {
   );
 }
 
+function NegoCodeCard({ nego }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    navigator.clipboard.writeText(nego.code).catch(() => {});
+    trackEvent('voucher_copied', '', nego.code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  const habis = nego.endsAt ? new Date(nego.endsAt) : null;
+  return (
+    <div className="rounded-xl px-3 py-2.5 border border-dashed" style={{ background: 'linear-gradient(100deg,#fff7ed,#fef2f2)', borderColor: '#fca5a5' }}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wide">🎁 Kode Spesial Buat Kaka</p>
+          <p className="font-mono text-base font-black text-rose-700 tracking-wider leading-tight">{nego.code}</p>
+          <p className="text-[10px] text-gray-600">
+            Potongan <span className="font-bold">Rp{Number(nego.amount).toLocaleString('id-ID')}</span> · pakai saat checkout
+          </p>
+        </div>
+        <button
+          onClick={copy}
+          className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all active:scale-95 ${
+            copied ? 'bg-emerald-500 text-white' : 'bg-rose-600 hover:bg-rose-700 text-white'
+          }`}
+        >
+          {copied ? '✓ Tersalin' : 'Salin'}
+        </button>
+      </div>
+      <p className="text-[9px] text-gray-400 mt-1.5">
+        Berlaku sekali pakai{habis ? ` · sampai ${habis.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} ${habis.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` : ''} · khusus produk ini
+      </p>
+    </div>
+  );
+}
+
 const MARKETPLACE_COLORS = { Tokopedia: '#03ac0e', Shopee: '#ee4d2d', Blibli: '#0095da' };
 
 function MarketplaceLinkRow({ link }) {
@@ -222,6 +257,11 @@ export function ChatMessage({ msg, waMessage }) {
       {msg.vouchers?.length > 0 && (
         <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%] pl-[30px]">
           {msg.vouchers.map(v => <VoucherChatCard key={v.code} voucher={v} />)}
+        </div>
+      )}
+      {msg.negoCode?.code && (
+        <div className="flex flex-col gap-1.5 mt-1.5 w-full max-w-[95%] pl-[30px]">
+          <NegoCodeCard nego={msg.negoCode} />
         </div>
       )}
       {msg.marketplaces?.length > 0 && (
@@ -412,6 +452,8 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           productDiscontinued: isDiscontinued,
           productInStock: inStock,
           productHandle: handle,
+          productId: product?.id ?? '',
+          variantId: selectedVariant?.id ?? '',
           sessionId: getSessionId(),
           conversationId,
           messages: messages.map(m => ({ role: m.role, text: m.text })),
@@ -430,10 +472,11 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
         ...parts.map((text, idx) => ({
           role: 'ai',
           text,
-          // Attach product/voucher/marketplace cards to the last bubble only
+          // Attach product/voucher/marketplace/negoCode cards to the last bubble only
           products: idx === parts.length - 1 ? data.products ?? null : null,
           vouchers: idx === parts.length - 1 ? data.vouchers ?? null : null,
           marketplaces: idx === parts.length - 1 ? data.marketplaces ?? null : null,
+          negoCode: idx === parts.length - 1 ? data.negoCode ?? null : null,
         })),
       ]);
     } catch {

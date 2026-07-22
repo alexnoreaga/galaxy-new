@@ -13,6 +13,10 @@ import { readEnvVar } from '~/lib/autoDiscounts';
 const costCache = new Map(); // productId -> { at, costs: {variantId: number} }
 const TTL = 5 * 60 * 1000;
 
+// Hard cap on the "harga best" discount — the giveaway can never exceed this fraction of price.
+// Safety net against a too-low cost typo and a guard against over-discounting fat-margin items.
+const MAX_DISCOUNT_PCT = 0.10;
+
 function roundTo1000(n) {
   return Math.round(n / 1000) * 1000;
 }
@@ -89,9 +93,17 @@ export function buildHargaBest({ variants = [], costs = {} }) {
 
     // realCost >= price means bad data — safer to quote the 3% ceiling than under-cost
     const pakaiModal = realCost > 0 && realCost < price;
-    const hargaBest = pakaiModal
-      ? realCost + roundTo1000((price - realCost) * 0.5)
-      : roundTo1000(price * 0.97);
+    let hargaBest;
+    if (pakaiModal) {
+      const fiftyFifty = realCost + roundTo1000((price - realCost) * 0.5);
+      // Hard ceiling: never discount more than MAX_DISCOUNT_PCT of price. Protects against a
+      // too-low cost typo (a dropped digit would otherwise compute a huge discount) and caps
+      // fat-margin giveaways. Clamp UP to the floor price (= higher price / smaller discount).
+      const floor = roundTo1000(price * (1 - MAX_DISCOUNT_PCT));
+      hargaBest = Math.max(fiftyFifty, floor);
+    } else {
+      hargaBest = roundTo1000(price * 0.97);
+    }
 
     if (pakaiModal) withRealCost.push(v.id);
     byVariant[v.id] = `Harga best menjadi Rp ${hargaBest.toLocaleString('id-ID')} ya ka\nKhusus pembayaran debit, cash atau transfer ya.`;
