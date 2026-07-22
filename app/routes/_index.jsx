@@ -3,7 +3,6 @@ import {Await, useLoaderData, Link,useOutletContext} from '@remix-run/react';
 import {Suspense, lazy} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
-import {KategoriHalDepan} from '~/components/KategoriHalDepan';
 import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 
 import { BrandPopular } from '../components/BrandPopular';
@@ -70,58 +69,67 @@ export async function loader({context, request}) {
   const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
   const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
+  // Batched social proof: 1 batchGet for all sold_counts + chunked IN query for reviews,
+  // instead of 2 fetches PER product. Keeps the homepage well under the Workers 100-subrequest cap.
+  const getSocialProof = async (handles) => {
+    const list = [...new Set((handles || []).filter(Boolean))];
+    const soldCounts = {};
+    const reviewSummaries = {};
+    if (list.length === 0) return { soldCounts, reviewSummaries };
+    await Promise.all([
+      (async () => {
+        try {
+          const documents = list.map(h => `projects/galaxypwa/databases/(default)/documents/sold_counts/${h}`);
+          const r = await fetch(`${FIRESTORE_BASE}:batchGet?key=${FIRESTORE_KEY}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ documents }),
+          });
+          const rows = r.ok ? await r.json() : [];
+          for (const row of rows) {
+            if (row.found) soldCounts[row.found.name.split('/').pop()] = parseInt(row.found.fields?.count?.integerValue || 0);
+          }
+        } catch { /* best effort */ }
+      })(),
+      (async () => {
+        try {
+          const chunks = [];
+          for (let i = 0; i < list.length; i += 10) chunks.push(list.slice(i, i + 10));
+          const perHandle = {};
+          await Promise.all(chunks.map(async chunk => {
+            const r = await fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              // Single-field IN (no composite index needed); status filtered client-side
+              body: JSON.stringify({ structuredQuery: {
+                from: [{ collectionId: 'reviews' }],
+                where: { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'IN', value: { arrayValue: { values: chunk.map(h => ({ stringValue: h })) } } } },
+                select: { fields: [{ fieldPath: 'productHandle' }, { fieldPath: 'rating' }, { fieldPath: 'status' }] },
+                limit: 300,
+              } }),
+            });
+            const rows = r.ok ? await r.json() : [];
+            for (const row of rows) {
+              const f = row.document?.fields;
+              if (!f || f.status?.stringValue !== 'approved') continue;
+              const h = f.productHandle?.stringValue;
+              if (!h) continue;
+              (perHandle[h] = perHandle[h] || []).push(parseInt(f.rating?.integerValue || 5));
+            }
+          }));
+          for (const h in perHandle) {
+            const rs = perHandle[h];
+            reviewSummaries[h] = { count: rs.length, avg: parseFloat((rs.reduce((s, x) => s + x, 0) / rs.length).toFixed(1)) };
+          }
+        } catch { /* best effort */ }
+      })(),
+    ]);
+    return { soldCounts, reviewSummaries };
+  };
+
   // Start deferred promises immediately — run in background while critical queries load
   const mirrorlessProducts = storefront.query(MIRRORLESS_PRODUCTS_QUERY).then(async (data) => {
     const nodes = data?.collection?.products?.nodes || [];
-    const [soldEntries, reviewEntries] = await Promise.all([
-      Promise.all(
-        nodes.map(p =>
-          fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
-            .then(res => res.ok ? res.json() : null)
-            .then(doc => [p.handle, parseInt(doc?.fields?.count?.integerValue || 0)])
-            .catch(() => [p.handle, 0])
-        )
-      ),
-      Promise.all(
-        nodes.map(p =>
-          fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              structuredQuery: {
-                from: [{ collectionId: 'reviews' }],
-                where: {
-                  compositeFilter: {
-                    op: 'AND',
-                    filters: [
-                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: p.handle } } },
-                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
-                    ],
-                  },
-                },
-                select: { fields: [{ fieldPath: 'rating' }] },
-                limit: 100,
-              },
-            }),
-          })
-            .then(res => res.ok ? res.json() : null)
-            .then(rows => {
-              const ratings = (rows || [])
-                .filter(r => r.document)
-                .map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
-              const count = ratings.length;
-              const avg = count > 0 ? parseFloat((ratings.reduce((s, r) => s + r, 0) / count).toFixed(1)) : 0;
-              return [p.handle, count > 0 ? { count, avg } : null];
-            })
-            .catch(() => [p.handle, null])
-        )
-      ),
-    ]);
-    return {
-      ...data,
-      soldCounts: Object.fromEntries(soldEntries),
-      reviewSummaries: Object.fromEntries(reviewEntries),
-    };
+    const { soldCounts, reviewSummaries } = await getSocialProof(nodes.map(p => p.handle));
+    return { ...data, soldCounts, reviewSummaries };
   });
 
   // Flash sale strip — discount-driven: products come FROM the active discounts,
@@ -146,47 +154,10 @@ export async function loader({context, request}) {
     }
     if (flashNodes.length === 0) return { items: [], saleEndsAt: null };
 
-    // Social proof per flash product (same pattern as MirrorlessProducts)
-    const socials = await Promise.all(
-      flashNodes.map(({ p }) =>
-        Promise.all([
-          fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
-            .then(res => res.ok ? res.json() : null)
-            .then(doc => parseInt(doc?.fields?.count?.integerValue || 0))
-            .catch(() => 0),
-          fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              structuredQuery: {
-                from: [{ collectionId: 'reviews' }],
-                where: {
-                  compositeFilter: {
-                    op: 'AND',
-                    filters: [
-                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: p.handle } } },
-                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
-                    ],
-                  },
-                },
-                select: { fields: [{ fieldPath: 'rating' }] },
-                limit: 100,
-              },
-            }),
-          })
-            .then(res => res.ok ? res.json() : null)
-            .then(rows => {
-              const ratings = (rows || []).filter(r => r.document).map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
-              return ratings.length > 0
-                ? { count: ratings.length, avg: parseFloat((ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)) }
-                : null;
-            })
-            .catch(() => null),
-        ])
-      )
-    );
+    // Social proof — batched (1 batchGet + 1 IN query), not 2 fetches per product
+    const { soldCounts, reviewSummaries } = await getSocialProof(flashNodes.map(({ p }) => p.handle));
 
-    const items = flashNodes.map(({ p, d }, i) => {
+    const items = flashNodes.map(({ p, d }) => {
       // Variant-level discounts: price from the covered variant
       const variants = p.variants?.nodes ?? [];
       const v = d.variantIds
@@ -205,8 +176,8 @@ export async function loader({context, request}) {
         strikeAt,
         pct: strikeAt > flashPrice ? Math.round((1 - flashPrice / strikeAt) * 100) : 0,
         available: v?.availableForSale ?? true,
-        sold: socials[i][0],
-        review: socials[i][1],
+        sold: soldCounts[p.handle] || 0,
+        review: reviewSummaries[p.handle] || null,
         endsAt: d.endsAt ?? null,
       };
     }).filter(it => it && it.available);
@@ -220,46 +191,10 @@ export async function loader({context, request}) {
     const nodes = (data?.collection?.products?.nodes ?? []).filter(Boolean);
     if (nodes.length === 0) return { items: [] };
 
-    const socials = await Promise.all(
-      nodes.map(p =>
-        Promise.all([
-          fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
-            .then(res => res.ok ? res.json() : null)
-            .then(doc => parseInt(doc?.fields?.count?.integerValue || 0))
-            .catch(() => 0),
-          fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              structuredQuery: {
-                from: [{ collectionId: 'reviews' }],
-                where: {
-                  compositeFilter: {
-                    op: 'AND',
-                    filters: [
-                      { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: p.handle } } },
-                      { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
-                    ],
-                  },
-                },
-                select: { fields: [{ fieldPath: 'rating' }] },
-                limit: 100,
-              },
-            }),
-          })
-            .then(res => res.ok ? res.json() : null)
-            .then(rows => {
-              const ratings = (rows || []).filter(r => r.document).map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
-              return ratings.length > 0
-                ? { count: ratings.length, avg: parseFloat((ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)) }
-                : null;
-            })
-            .catch(() => null),
-        ])
-      )
-    );
+    // Social proof — batched (1 batchGet + 1 IN query), not 2 fetches per product
+    const { soldCounts, reviewSummaries } = await getSocialProof(nodes.map(p => p.handle));
 
-    const items = nodes.map((p, i) => {
+    const items = nodes.map((p) => {
       const price = parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0);
       const strikeAt = parseFloat(p.compareAtPriceRange?.minVariantPrice?.amount ?? 0);
       return {
@@ -269,8 +204,8 @@ export async function loader({context, request}) {
         price,
         strikeAt,
         pct: strikeAt > price ? Math.round((1 - price / strikeAt) * 100) : 0,
-        sold: socials[i][0],
-        review: socials[i][1],
+        sold: soldCounts[p.handle] || 0,
+        review: reviewSummaries[p.handle] || null,
       };
     }).filter(it => it.price > 0);
 
@@ -690,13 +625,7 @@ export default function Homepage() {
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 
-      <div className='hidden md:block'>
       <RenderCollection collections={data.hasilCollection.collections}/>
-      </div>
-
-      <div className='block md:hidden'>
-      <KategoriHalDepan related={data.hasilCollection.collections}/>
-      </div>
 
       </div>
 
@@ -911,46 +840,42 @@ function BannerKecil({ images }) {
 
 function RenderCollection({ collections }) {
   return (
-    <Suspense fallback={<div>Loading collections...</div>}>
+    <Suspense fallback={<div className="h-40" />}>
       <Await resolve={collections}>
         {({ nodes }) => (
-          <section className="w-full py-6 sm:py-8">
-            <div className='flex flex-row items-end justify-between mb-6 gap-4'>
-              <div>
-                <h2 className="text-gray-900 text-lg sm:text-2xl md:text-3xl font-bold tracking-tight">Kategori Populer</h2>
-                <div className='h-1 w-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mt-2'></div>
-              </div>
-              <Link to={`/collections/`}>
-                <button className='px-4 py-2 sm:px-6 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-xs sm:text-sm rounded-full shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap'>
-                  Lihat Semua →
-                </button>
+          <section className="w-full py-5 sm:py-8 px-2 sm:px-0">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
+              <h2 className="flex items-center gap-2 text-gray-900 text-lg sm:text-2xl font-bold tracking-tight">
+                <span className="text-amber-400 text-base sm:text-xl">★</span> Kategori Populer
+              </h2>
+              <Link to="/collections/" className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap">
+                Lihat Semua →
               </Link>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2 sm:gap-3 lg:gap-4">
-              {nodes.map((collection) => (
-                <Link to={`/collections/${collection.handle}`} key={collection.id}>
-                  <div className="group relative flex flex-col items-center justify-center p-3 sm:p-4 bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-gray-100 hover:border-blue-300 transition-all duration-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 h-32 sm:h-40 lg:h-48 overflow-hidden cursor-pointer">
-                    {/* Background Glow Effect */}
-                    <div className='absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-blue-400/5 to-indigo-400/5'></div>
-                    
+
+            {/* Clean bordered grid — one responsive layout for mobile + desktop.
+                Capped at 8 so it fills exactly 1 row (desktop) / 2 rows (mobile), never an orphan. */}
+            <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8 bg-white border-t border-l border-gray-200 rounded-xl overflow-hidden">
+              {nodes.slice(0, 8).map((collection) => (
+                <Link
+                  to={`/collections/${collection.handle}`}
+                  key={collection.id}
+                  className="group flex flex-col items-center justify-center gap-1.5 sm:gap-2 p-2.5 sm:p-4 border-r border-b border-gray-200 hover:bg-gray-50 transition-colors min-h-[104px] sm:min-h-[144px]"
+                >
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-[72px] md:h-[72px] flex items-center justify-center flex-shrink-0">
                     {collection?.image && (
-                      <div className='relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center mb-2 sm:mb-3 flex-shrink-0 shadow-sm group-hover:shadow-md transition-all duration-300'>
-                        <Image
-                          alt={`Image of ${collection.title}`}
-                          data={collection.image}
-                          sizes="(max-width: 640px) 56px, (max-width: 1024px) 64px, 80px"
-                          crop="center"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
+                      <Image
+                        alt={`Image of ${collection.title}`}
+                        data={collection.image}
+                        sizes="(max-width: 640px) 48px, 72px"
+                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      />
                     )}
-                    <p className="text-gray-800 text-center text-xs sm:text-sm font-semibold line-clamp-2 leading-tight relative z-10 group-hover:text-blue-700 transition-colors duration-300">
-                      {collection.title}
-                    </p>
-                    
-                    {/* Hover Bottom Border */}
-                    <div className='absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
                   </div>
+                  <p className="text-gray-700 text-center text-[10px] sm:text-sm font-medium line-clamp-2 leading-tight">
+                    {collection.title}
+                  </p>
                 </Link>
               ))}
             </div>
