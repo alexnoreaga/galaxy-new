@@ -183,6 +183,9 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
               </svg>
             </button>
           </div>
+          <p className="text-[9px] text-gray-300 text-center mt-1.5 leading-tight">
+            Grisela AI bisa keliru — cek info penting ke admin ya
+          </p>
         </div>
       </div>
     </div>
