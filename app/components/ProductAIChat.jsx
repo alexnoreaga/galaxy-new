@@ -543,7 +543,8 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
             ))}
             <button
               onClick={openCustomMode}
-              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs rounded-full border border-rose-200 transition-colors leading-tight font-medium"
+              className="px-3.5 py-1.5 text-white text-xs rounded-full transition-all leading-tight font-semibold shadow-sm hover:shadow-md active:scale-95"
+              style={{ background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 45%, #f97316 100%)' }}
             >
               Tanya Hal Lain →
             </button>

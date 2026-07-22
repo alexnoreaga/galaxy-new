@@ -57,7 +57,7 @@ export function SocialProofStrip() {
             `}
           >
             <div className="flex items-baseline gap-0.5">
-              <span className="text-sm sm:text-2xl font-black text-gray-900 tabular-nums leading-none tracking-tight">
+              <span className="text-sm sm:text-2xl font-black tabular-nums leading-none tracking-tight bg-gradient-to-br from-rose-600 via-red-600 to-orange-500 bg-clip-text text-transparent">
                 {item.num}
               </span>
               {item.suffix && (
