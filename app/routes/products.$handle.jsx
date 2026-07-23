@@ -1843,45 +1843,7 @@ DP : 0
     
   
 
-    <div className='border border-gray-200 rounded-xl bg-white px-3 divide-y divide-gray-100 mt-2'>
-
-        {/* Marketplace */}
-        <Accordion
-          minimal
-          title="Belanja Lewat Marketplace ?"
-          content={(<MarketPlace link={product.metafields}/>)}
-          icon={(
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-              <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
-            </svg>
-          )}
-        />
-
-        {/* 14 Hari Tukar Baru */}
-        <Accordion
-          minimal
-          title="14 Hari Tukar Baru"
-          content="Jaminan penukaran kembali jika barang yang diterima tidak sesuai / cacat produksi atau salah ukuran."
-          icon={(
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-              <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.75.75 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-            </svg>
-          )}
-        />
-
-        {/* Pengadaan */}
-        <Accordion
-          minimal
-          title="Pengadaan Barang ?"
-          content="Untuk kebutuhan pengadaan barang silahkan langsung kontak Sales Marketing kami di 0821-1131-1131"
-          icon={(
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-              <path fillRule="evenodd" d="M4.5 2.25a.75.75 0 000 1.5v16.5h-.75a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5h-.75V3.75a.75.75 0 000-1.5h-15zM9 6a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5H9zm-.75 3.75A.75.75 0 019 9h1.5a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75zM9 12a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5H9zm3.75-5.25A.75.75 0 0113.5 6H15a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM13.5 9a.75.75 0 000 1.5H15A.75.75 0 0015 9h-1.5zm-.75 3.75a.75.75 0 01.75-.75H15a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM9 19.5v-2.25a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75h-4.5A.75.75 0 019 19.5z" clipRule="evenodd" />
-            </svg>
-          )}
-        />
-
-    </div>
+    <WhyShopHere />
 
 
           {product.metafields[2]?.value &&
@@ -2489,6 +2451,78 @@ DP : 0
   }
 
 
+
+// "Why shop with us" trust cards (Zalora-style) — replaces the old accordion list
+const GALAXY_STORES = [
+  { name: 'Galaxy Camera Tangerang', addr: 'Ruko Mall Metropolis Town Square, Blok GM3 No.6, Kelapa Indah, Tangerang', maps: 'https://share.google/ZiBByg1aC3SE57Prk' },
+  { name: 'Galaxy Camera Depok', addr: 'Mall Depok Town Square, Lantai 2 Blok SS2 No.8, Beji, Depok', maps: 'https://share.google/vJXAelUjHdYQlkF0b' },
+];
+
+function WhyShopHere() {
+  const [storeOpen, setStoreOpen] = useState(false);
+  const cardBase = 'relative overflow-hidden rounded-xl p-2.5 sm:p-3.5 text-left transition-colors block no-underline';
+  return (
+    <div className="mt-3">
+      <p className="text-sm sm:text-base font-bold text-gray-900 mb-2.5 px-0.5">Mengapa belanja di Galaxy.co.id?</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+
+        {/* Ambil di Toko — expands the store addresses below */}
+        <button
+          type="button"
+          onClick={() => setStoreOpen(o => !o)}
+          className={`${cardBase} ${storeOpen ? 'bg-emerald-100' : 'bg-emerald-50 hover:bg-emerald-100'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 mb-1 relative z-10">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 21v-3.75a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21" />
+          </svg>
+          <p className="text-[11px] sm:text-sm font-bold text-emerald-900 leading-tight relative z-10">Ambil di Toko</p>
+          <p className="text-[9px] sm:text-[11px] text-emerald-700/80 mt-0.5 leading-tight relative z-10 flex items-center gap-0.5">
+            2 cabang
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 transition-transform ${storeOpen ? 'rotate-180' : ''}`}><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" /></svg>
+          </p>
+        </button>
+
+        {/* 14 Hari Tukar Baru */}
+        <div className={`${cardBase} bg-lime-50`}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-lime-600 mb-1 relative z-10">
+            <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 0 0-1.032 0 11.209 11.209 0 0 1-7.877 3.08.75.75 0 0 0-.722.515A12.74 12.74 0 0 0 2.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.75.75 0 0 0 .374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 0 0-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08Zm3.094 8.016a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+          </svg>
+          <p className="text-[11px] sm:text-sm font-bold text-lime-900 leading-tight relative z-10">14 Hari Tukar Baru</p>
+          <p className="text-[9px] sm:text-[11px] text-lime-700/80 mt-0.5 leading-tight relative z-10">Cacat / DOA dijamin</p>
+        </div>
+
+        {/* Pengadaan Barang — WhatsApp */}
+        <a
+          href={`https://wa.me/6282111311131?text=${encodeURIComponent('Halo admin Galaxy Camera, saya mau tanya soal pengadaan barang')}`}
+          target="_blank"
+          rel="noreferrer"
+          className={`${cardBase} bg-sky-50 hover:bg-sky-100`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-sky-600 mb-1 relative z-10">
+            <path fillRule="evenodd" d="M4.5 2.25a.75.75 0 0 0 0 1.5v16.5h-.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 0-1.5h-.75V3.75a.75.75 0 0 0 0-1.5h-15ZM9 6a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm-.75 3.75A.75.75 0 0 1 9 9h1.5a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75ZM9 12a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm3.75-5.25A.75.75 0 0 1 13.5 6H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM13.5 9a.75.75 0 0 0 0 1.5H15A.75.75 0 0 0 15 9h-1.5Zm-.75 3.75a.75.75 0 0 1 .75-.75H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM9 19.5v-2.25a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 9 19.5Z" clipRule="evenodd" />
+          </svg>
+          <p className="text-[11px] sm:text-sm font-bold text-sky-900 leading-tight relative z-10">Pengadaan Barang</p>
+          <p className="text-[9px] sm:text-[11px] text-sky-700/80 mt-0.5 leading-tight relative z-10">Kantor & instansi</p>
+        </a>
+      </div>
+
+      {/* Store addresses — revealed by the Ambil di Toko card */}
+      {storeOpen && (
+        <div className="mt-2 rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 flex flex-col gap-3">
+          {GALAXY_STORES.map(s => (
+            <div key={s.name}>
+              <p className="text-xs sm:text-sm font-semibold text-gray-800">{s.name}</p>
+              <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5 leading-snug">{s.addr}</p>
+              <a href={s.maps} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-blue-600 hover:text-blue-700 mt-1 no-underline">
+                📍 Lihat di Google Maps →
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function MarketPlace({link}){
   
