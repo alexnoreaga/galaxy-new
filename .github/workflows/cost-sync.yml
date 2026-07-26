@@ -1,0 +1,24 @@
+name: Cost Modal Sync
+
+# Syncs Shopify "Cost per item" into Firestore (product_costs + cost_history) daily,
+# so the harga-produk "Monitor Harga Modal" dashboard stays current.
+on:
+  schedule:
+    - cron: '0 20 * * *'   # 20:00 UTC = 03:00 WIB, once daily
+  workflow_dispatch: {}      # allow manual "Run workflow" from the Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run cost sync
+        env:
+          PUBLIC_STORE_DOMAIN: ${{ secrets.PUBLIC_STORE_DOMAIN }}
+          SHOPIFY_APP_CLIENT_ID: ${{ secrets.SHOPIFY_APP_CLIENT_ID }}
+          SHOPIFY_APP_CLIENT_SECRET: ${{ secrets.SHOPIFY_APP_CLIENT_SECRET }}
+        run: node scripts/cost-sync.mjs
