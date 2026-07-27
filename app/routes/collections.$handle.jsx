@@ -8,7 +8,7 @@ import {
 } from '@shopify/hydrogen';
 import {useVariantUrl} from '~/utils';
 import {useLocation} from 'react-router-dom';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {HitunganPersen} from '~/components/HitunganPersen';
 import {CollectionSEOContent} from '~/components/CollectionSEOContent';
 
@@ -307,7 +307,7 @@ export default function Collection() {
       {/* Products */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Pagination connection={collection.products}>
-          {({nodes, isLoading, PreviousLink, NextLink}) => (
+          {({nodes, isLoading, PreviousLink, hasNextPage, nextPageUrl, state}) => (
             <>
               <PreviousLink>
                 <div className="flex justify-center mb-6">
@@ -327,21 +327,13 @@ export default function Collection() {
 
               <ProductsGrid products={nodes} soldCounts={soldCounts} reviewSummaries={reviewSummaries} festive={isCuciGudang} />
 
-              <NextLink>
-                <div className="flex justify-center mt-8">
-                  <span className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all shadow-sm">
-                    {isLoading ? (
-                      <>
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Memuat...
-                      </>
-                    ) : 'Muat lebih banyak ↓'}
-                  </span>
-                </div>
-              </NextLink>
+              {/* Infinite scroll — auto-loads the next page as the sentinel nears the viewport */}
+              <InfiniteLoader
+                hasNextPage={hasNextPage}
+                nextPageUrl={nextPageUrl}
+                isLoading={isLoading}
+                state={state}
+              />
             </>
           )}
         </Pagination>
@@ -358,6 +350,55 @@ export default function Collection() {
           />
         )}
       </div>
+    </div>
+  );
+}
+
+// Infinite scroll: observes a sentinel and navigates to the next page when it nears the viewport.
+// Replicates Hydrogen's <NextLink> (navigate to nextPageUrl with the pagination `state`, replace +
+// no scroll reset) so the new products append instead of replacing the list.
+function InfiniteLoader({hasNextPage, nextPageUrl, isLoading, state}) {
+  const navigate = useNavigate();
+  const sentinelRef = useRef(null);
+  const triggeredRef = useRef(null); // guards against firing twice for the same URL
+
+  useEffect(() => {
+    if (!hasNextPage || !nextPageUrl) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isLoading &&
+          triggeredRef.current !== nextPageUrl
+        ) {
+          triggeredRef.current = nextPageUrl;
+          navigate(nextPageUrl, {replace: true, preventScrollReset: true, state});
+        }
+      },
+      {rootMargin: '600px 0px'}, // begin loading ~600px before the sentinel is visible
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, nextPageUrl, isLoading, state, navigate]);
+
+  if (!hasNextPage) {
+    return (
+      <p className="text-center text-xs text-gray-400 mt-10 mb-2">— Semua produk sudah ditampilkan —</p>
+    );
+  }
+
+  return (
+    <div ref={sentinelRef} className="flex justify-center py-10">
+      <span className="inline-flex items-center gap-2 text-sm text-gray-400">
+        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Memuat produk...
+      </span>
     </div>
   );
 }
