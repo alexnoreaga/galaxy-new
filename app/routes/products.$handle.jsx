@@ -1424,6 +1424,12 @@ DP : 0
       ? autoDiscount
       : null;
 
+    // Effective price for the cart subtotal — reflects the flash sale when active
+    const subtotalBase = parseFloat(selectedVariant?.price?.amount ?? 0);
+    const subtotalPrice = flashForVariant
+      ? Math.max(0, flashForVariant.type === 'amount' ? subtotalBase - flashForVariant.amount : Math.round(subtotalBase * (1 - flashForVariant.percentage / 100)))
+      : subtotalBase;
+
     // Product belongs to the cuci-gudang (clearance) collection?
     const inCuciGudang = product?.collections?.nodes?.some(c => c.handle === 'cuci-gudang');
 
@@ -1905,12 +1911,19 @@ DP : 0
               ref={checkoutCardRef}
               className="sticky top-4 border border-gray-200 rounded-2xl shadow-lg bg-white p-4 flex flex-col gap-4"
             >
-              {/* Subtotal */}
+              {/* Subtotal — reflects the flash-sale price when active */}
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm text-gray-500">Subtotal</span>
-                <span className="text-lg font-bold text-rose-700">
-                  Rp{parseFloat(selectedVariant.price.amount).toLocaleString('id-ID')}
-                </span>
+                <div className="text-right leading-tight">
+                  <span className="text-lg font-bold text-rose-700">
+                    Rp{subtotalPrice.toLocaleString('id-ID')}
+                  </span>
+                  {flashForVariant && subtotalBase > subtotalPrice && (
+                    <span className="block text-xs text-gray-400 line-through">
+                      Rp{subtotalBase.toLocaleString('id-ID')}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Buttons */}

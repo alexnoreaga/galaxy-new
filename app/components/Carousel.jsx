@@ -154,24 +154,40 @@ export const Carousel = ({ images }) => {
 };
 
 function BannerImage({ imgUrl, currentIndex, swipeOffset }) {
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef(null);
+
+  // Reset the skeleton when the slide changes; if the new image is already cached, skip it
+  useEffect(() => {
+    setLoaded(imgRef.current?.complete ?? false);
+  }, [imgUrl]);
+
   if (!imgUrl) return null;
   return (
-    <img
-      className="m-auto w-full rounded-2xl select-none transition-all duration-700 ease-out"
-      width="1280"
-      height="543"
-      src={`${imgUrl}&width=800`}
-      alt="Promo Galaxy Camera"
-      loading={currentIndex === 0 ? 'eager' : 'lazy'}
-      fetchpriority={currentIndex === 0 ? 'high' : 'auto'}
-      style={{
-        maxWidth: '100%',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        transform: swipeOffset !== 0 ? `scale(${1 - Math.abs(swipeOffset) / 1200})` : 'scale(1)',
-      }}
-      srcSet={`${imgUrl}&width=400 400w, ${imgUrl}&width=800 800w, ${imgUrl}&width=1280 1280w`}
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
-    />
+    <div className="relative w-full">
+      {/* Skeleton shimmer while the banner downloads (slow internet) */}
+      {!loaded && (
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse" />
+      )}
+      <img
+        ref={imgRef}
+        onLoad={() => setLoaded(true)}
+        className={`m-auto w-full rounded-2xl select-none transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        width="1280"
+        height="543"
+        src={`${imgUrl}&width=800`}
+        alt="Promo Galaxy Camera"
+        loading={currentIndex === 0 ? 'eager' : 'lazy'}
+        fetchpriority={currentIndex === 0 ? 'high' : 'auto'}
+        style={{
+          maxWidth: '100%',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          transform: swipeOffset !== 0 ? `scale(${1 - Math.abs(swipeOffset) / 1200})` : 'scale(1)',
+        }}
+        srcSet={`${imgUrl}&width=400 400w, ${imgUrl}&width=800 800w, ${imgUrl}&width=1280 1280w`}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
+      />
+    </div>
   );
 }

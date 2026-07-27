@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useMatches } from '@remix-run/react';
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -37,10 +37,11 @@ function calcSorted(latitude, longitude, stores) {
   })).sort((a, b) => a.distance - b.distance);
 }
 
-// Unique gradient ID to avoid conflicts with other SVGs on the page
-const GRADIENT_ID = 'nearestStoreIconGradient';
-
-export function NearestStoreBar() {
+export function NearestStoreBar({ variant = 'bar' } = {}) {
+  const card = variant === 'card';
+  // Per-instance gradient ID — the bar can mount twice on mobile home (hidden desktop copy
+  // + visible hero copy); a shared static ID made the visible icon reference the hidden one.
+  const GRADIENT_ID = `nearestStoreIconGradient-${useId().replace(/:/g, '')}`;
   const [root] = useMatches();
   const rawStores = root?.data?.storeLocations?.metaobjects?.edges?.map(e => parseStore(e.node)) || [];
 
@@ -127,44 +128,60 @@ export function NearestStoreBar() {
     return `${km.toFixed(1)} km`;
   }
 
+  const iconEl = status === 'loading' ? (
+    <svg className="w-5 h-5 animate-spin text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  ) : (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={`url(#${GRADIENT_ID})`} className="w-5 h-5 flex-shrink-0">
+      <defs>
+        <linearGradient id={GRADIENT_ID} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#2563eb" />
+          <stop offset="50%" stopColor="#4f46e5" />
+          <stop offset="100%" stopColor="#9333ea" />
+        </linearGradient>
+      </defs>
+      <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.013 3.5-4.667 3.5-8.077A8.78 8.78 0 0012 2.25a8.78 8.78 0 00-8.79 8.001c0 3.41 1.555 6.064 3.499 8.077a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+    </svg>
+  );
+
   return (
-    <div className="relative w-full bg-gray-50 border-b border-gray-200" ref={dropdownRef}>
-      <div className="max-w-7xl mx-auto px-4">
+    <div className={`relative ${card ? '' : 'w-full bg-gray-50 border-b border-gray-200'}`} ref={dropdownRef}>
+      <div className={card ? '' : 'max-w-7xl mx-auto px-4'}>
         <button
           onClick={handleActivate}
-          className="w-full flex items-center justify-center gap-2.5 py-2 group hover:bg-gray-50 transition-colors"
+          className={`w-full flex items-center transition-all group ${
+            card
+              ? 'gap-3 rounded-2xl border border-gray-200 bg-white shadow-sm px-3.5 py-2.5 hover:border-gray-300 active:scale-[0.99]'
+              : 'justify-center gap-2.5 py-2 hover:bg-gray-50'
+          }`}
         >
-          {/* Store / loading icon */}
-          {status === 'loading' ? (
-            <svg className="w-5 h-5 animate-spin text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-          ) : (
-            // Bug 3 fix: unique gradient ID
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={`url(#${GRADIENT_ID})`} className="w-5 h-5 flex-shrink-0">
-              <defs>
-                <linearGradient id={GRADIENT_ID} x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#2563eb" />
-                  <stop offset="50%" stopColor="#4f46e5" />
-                  <stop offset="100%" stopColor="#9333ea" />
-                </linearGradient>
-              </defs>
-              <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.013 3.5-4.667 3.5-8.077A8.78 8.78 0 0012 2.25a8.78 8.78 0 00-8.79 8.001c0 3.41 1.555 6.064 3.499 8.077a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-            </svg>
-          )}
+          {/* Store / loading icon — soft circle in the card variant */}
+          {card ? (
+            <span className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">{iconEl}</span>
+          ) : iconEl}
 
           {/* Text */}
-          <span className="text-xs sm:text-sm font-semibold text-gray-800">
+          <span className={card ? 'flex-1 min-w-0 text-left text-[13px] font-semibold text-gray-800 leading-snug' : 'text-xs sm:text-sm font-semibold text-gray-800'}>
             {status === 'idle' && 'Aktifkan lokasimu untuk melihat toko terdekat'}
             {status === 'loading' && 'Mendeteksi lokasi...'}
-            {status === 'found' && nearestStore && (
+            {status === 'found' && nearestStore && (card ? (
+              <>
+                <span className="block text-[10px] font-medium uppercase tracking-wide text-gray-400 leading-tight">Toko terdekat</span>
+                <span className="block text-[13px] font-semibold text-gray-900 leading-tight truncate">
+                  {nearestStore.name}
+                  <span className="text-gray-300 mx-1">·</span>
+                  <span className="font-normal text-gray-500">{formatDistance(nearestStore.distance)}</span>
+                </span>
+              </>
+            ) : (
               <>
                 Toko terdekat: <span className="text-gray-900 font-bold">{nearestStore.name}</span>
                 <span className="text-gray-300 mx-1.5">·</span>
                 <span className="font-normal text-gray-500">{formatDistance(nearestStore.distance)}</span>
               </>
-            )}
+            ))}
             {status === 'denied' && (
               <>Izin lokasi ditolak — <a href="/stores" className="text-blue-600 underline hover:opacity-80">lihat semua toko</a></>
             )}

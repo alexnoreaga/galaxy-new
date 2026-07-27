@@ -19,7 +19,8 @@ function useCountUp(target, duration, started) {
   return count;
 }
 
-export function SocialProofStrip() {
+export function SocialProofStrip({ variant = 'light' }) {
+  const dark = variant === 'dark';
   const [started, setStarted] = useState(false);
   const stripRef = useRef(null);
 
@@ -47,24 +48,24 @@ export function SocialProofStrip() {
   ];
 
   return (
-    <div ref={stripRef} className="my-3 sm:my-5">
+    <div ref={stripRef} className={dark ? '' : 'my-3 sm:my-5'}>
       <div className="grid grid-cols-4">
         {displays.map((item, i) => (
           <div
             key={i}
             className={`flex flex-col items-center justify-center py-2 sm:py-3 px-1 sm:px-3 text-center
-              ${i > 0 ? 'border-l border-gray-200' : ''}
+              ${i > 0 ? (dark ? 'border-l border-white/15' : 'border-l border-gray-200') : ''}
             `}
           >
             <div className="flex items-baseline gap-0.5">
-              <span className="text-sm sm:text-2xl font-black tabular-nums leading-none tracking-tight bg-gradient-to-br from-rose-600 via-red-600 to-orange-500 bg-clip-text text-transparent">
+              <span className={`text-sm sm:text-2xl font-black tabular-nums leading-none tracking-tight ${dark ? 'text-white' : 'bg-gradient-to-br from-rose-600 via-red-600 to-orange-500 bg-clip-text text-transparent'}`}>
                 {item.num}
               </span>
               {item.suffix && (
-                <span className="text-[9px] sm:text-sm font-bold text-gray-400 ml-0.5">{item.suffix}</span>
+                <span className={`text-[9px] sm:text-sm font-bold ml-0.5 ${dark ? 'text-amber-400' : 'text-gray-400'}`}>{item.suffix}</span>
               )}
             </div>
-            <span className="text-[9px] sm:text-xs text-gray-500 font-medium mt-1 leading-tight">
+            <span className={`text-[9px] sm:text-xs font-medium mt-1 leading-tight ${dark ? 'text-white/55' : 'text-gray-500'}`}>
               <span className="sm:hidden">{item.short}</span>
               <span className="hidden sm:inline">{item.label}</span>
             </span>

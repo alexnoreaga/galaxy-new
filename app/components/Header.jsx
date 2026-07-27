@@ -22,6 +22,7 @@ export function Header({header, isLoggedIn, cart}) {
   const location = useLocation();
   const navigate = useNavigate();
   const isProduct = location.pathname.includes('/products/');
+  const isHome = location.pathname === '/';
 
   function goBack() {
     // React Router stores a history index; >0 means there's in-app history to pop
@@ -53,10 +54,12 @@ export function Header({header, isLoggedIn, cart}) {
       <div className="hidden sm:block bg-gray-900 text-white">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 h-9 text-xs">
           <div className="flex items-stretch self-stretch">
-            <span className="bg-red-600 px-3 flex items-center font-medium tracking-wide text-[11px]">Part of Galaxycamera.id</span>
+            <span className="px-3 flex items-center text-[11px] text-gray-300">
+              Part of <span className="ml-1 font-semibold text-red-400">Galaxycamera.id</span>
+            </span>
             <Link
               to="/pengadaan"
-              className="bg-gradient-to-r from-blue-600 to-blue-500 px-3 flex items-center hover:from-blue-700 hover:to-blue-600 transition-all duration-200 text-white no-underline text-[11px] font-medium"
+              className="px-3 flex items-center border-l border-white/10 text-[11px] font-medium text-gray-300 hover:text-white transition-colors no-underline"
             >
               Info Pengadaan
             </Link>
@@ -85,9 +88,10 @@ export function Header({header, isLoggedIn, cart}) {
         </div>
       </div>
 
-      {/* Main header + sub-bars all sticky together */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg shadow-sm">
-        <div className="flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto border-b border-gray-100">
+      {/* Main header + sub-bars all sticky together.
+          On mobile HOMEPAGE the bar goes charcoal (curved-hero treatment); white everywhere else and on sm+. */}
+      <header className={`sticky top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-white/95' : 'bg-white/95'}`}>
+        <div className={`flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-gray-100' : 'border-b border-gray-100'}`}>
 
           {/* Back button — mobile product pages only */}
           {isProduct && (
@@ -103,10 +107,11 @@ export function Header({header, isLoggedIn, cart}) {
             </button>
           )}
 
-          {/* Left: hamburger + logo — hidden on mobile product pages */}
+          {/* Left: hamburger + logo. On mobile homepage we keep the hamburger but
+              drop the wordmark (search-first, eraspace-style); logo returns on sm+. */}
           <div className={`${isProduct ? 'hidden sm:flex' : 'flex'} items-center gap-3 flex-shrink-0`}>
-            <HeaderMenuMobileToggle />
-            <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className="flex-shrink-0 hover:opacity-80 transition-opacity">
+            <HeaderMenuMobileToggle onDark={isHome} />
+            <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className="hidden sm:block flex-shrink-0 hover:opacity-80 transition-opacity">
               <img
                 className="h-7 sm:h-8 lg:h-10 w-auto"
                 src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105"
@@ -127,29 +132,30 @@ export function Header({header, isLoggedIn, cart}) {
             <div className="hidden sm:block flex-1 max-w-xl">
               <SearchToggle />
             </div>
-            {isProduct && (
-              <div className="sm:hidden flex-1 min-w-0">
-                <SearchToggleMobile />
-              </div>
-            )}
+            {/* Inline mobile search — now on every mobile page (homepage collapsed to one row) */}
+            <div className="sm:hidden flex-1 min-w-0">
+              <SearchToggleMobile />
+            </div>
           </div>
 
           {/* Right: account + cart */}
-          <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+          <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} onDark={isHome} />
         </div>
 
-        {/* Mobile search bar — hidden on product pages (search moved inline above) */}
-        <div className={`${isProduct ? 'hidden' : 'sm:hidden'} w-full bg-white border-b border-gray-100`}>
-          <div className="px-4 py-2">
-            <SearchToggleMobile />
-          </div>
-        </div>
-
-        {/* Nearest store bar — hidden on mobile product pages */}
-        <div className={isProduct ? 'hidden sm:block' : ''}>
+        {/* Nearest store bar — hidden on mobile product pages AND on mobile home (moves into the curved hero below) */}
+        <div className={isProduct || isHome ? 'hidden sm:block' : ''}>
           <NearestStoreBar />
         </div>
       </header>
+
+      {/* Charcoal curved tail — MOBILE HOMEPAGE ONLY. A short charcoal band with a smooth bottom
+          arc; the homepage banner is pulled up to overlap this curve (eraspace-style layering). */}
+      {isHome && (
+        <div
+          className="sm:hidden bg-gray-900 h-10"
+          style={{borderBottomLeftRadius: '50% 26px', borderBottomRightRadius: '50% 26px'}}
+        />
+      )}
     </>
   );
 }
@@ -197,16 +203,172 @@ export function HeaderMenu({menu, viewport}) {
   );
 }
 
-function HeaderCtas({isLoggedIn, cart}) {
+// Rich, interactive mobile menu drawer content (replaces the old plain link list).
+export function MobileMenuNav({menu, isLoggedIn}) {
+  const [root] = useMatches();
+  const publicStoreDomain = root?.data?.publicStoreDomain;
+  const [openId, setOpenId] = useState(null);
+
+  const items = (menu || FALLBACK_HEADER_MENU).items || [];
+  const norm = (url) => {
+    if (!url) return '/';
+    return url.includes('myshopify.com') || (publicStoreDomain && url.includes(publicStoreDomain))
+      ? new URL(url).pathname
+      : url;
+  };
+  const closeMenu = () => { if (typeof window !== 'undefined') window.location.hash = ''; };
+
+  const tiles = [
+    {to: '/collections', label: 'Kategori', wrap: 'bg-blue-50', tint: 'text-blue-600',
+      path: 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 8.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'},
+    {to: '/flash-sale', label: 'Flash Sale', wrap: 'bg-red-50', tint: 'text-red-600',
+      path: 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z'},
+    {to: '/promo', label: 'Promo', wrap: 'bg-amber-50', tint: 'text-amber-600',
+      path: 'M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z'},
+    {to: '/kredit-kamera', label: 'Cicilan', wrap: 'bg-indigo-50', tint: 'text-indigo-600',
+      path: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z'},
+  ];
+
+  const helpLinks = [
+    {to: '/pengadaan', label: 'Info Pengadaan'},
+    {to: '/stores', label: 'Lokasi Toko'},
+    {to: '/blogs', label: 'Blog & Artikel'},
+    {to: '/pages/about', label: 'Tentang Kami'},
+    {to: '/policies', label: 'Kebijakan & Bantuan'},
+  ];
+
+  const socials = [
+    {href: 'https://instagram.com/galaxycamera99', icon: <FaInstagram size="1.1em" />},
+    {href: 'https://facebook.com/galaxycamera99', icon: <FaFacebookF size="1.1em" />},
+    {href: 'https://www.tiktok.com/@galaxycameraid', icon: <FaTiktok size="1.1em" />},
+    {href: 'https://www.youtube.com/galaxycamera', icon: <FaYoutube size="1.1em" />},
+    {href: 'https://www.x.com/galaxycamera99', icon: <FaXTwitter size="1.1em" />},
+  ];
+
+  return (
+    <nav className="h-full overflow-y-auto pb-8" role="navigation" aria-label="Menu utama">
+      {/* Account card */}
+      {isLoggedIn ? (
+        <Link to="/account" onClick={closeMenu} prefetch="intent"
+          className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white px-4 py-3.5 no-underline active:scale-[0.99] transition-transform">
+          <span className="flex items-center gap-3">
+            <FaRegCircleUser className="w-7 h-7" />
+            <span className="flex flex-col leading-tight">
+              <span className="text-sm font-semibold">Akun Saya</span>
+              <span className="text-[11px] text-white/70">Pesanan, alamat & pengaturan</span>
+            </span>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </Link>
+      ) : (
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+          <p className="text-[13px] text-gray-600 leading-snug mb-3">Masuk untuk melihat pesanan & dapatkan promo khusus member.</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            <Link to="/account/login" onClick={closeMenu} prefetch="intent"
+              className="flex items-center justify-center h-10 rounded-xl border border-gray-900 text-gray-900 text-sm font-semibold no-underline active:scale-95 transition-transform">Masuk</Link>
+            <Link to="/account/register" onClick={closeMenu} prefetch="intent"
+              className="flex items-center justify-center h-10 rounded-xl bg-gray-900 text-white text-sm font-semibold no-underline active:scale-95 transition-transform">Daftar</Link>
+          </div>
+        </div>
+      )}
+
+      {/* Quick tiles */}
+      <div className="grid grid-cols-4 gap-2 mt-4">
+        {tiles.map((t) => (
+          <Link key={t.to} to={t.to} onClick={closeMenu} prefetch="intent"
+            className="flex flex-col items-center gap-1.5 no-underline group">
+            <span className={`w-14 h-14 rounded-2xl flex items-center justify-center ${t.wrap} group-active:scale-95 transition-transform`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className={`w-6 h-6 ${t.tint}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d={t.path} />
+              </svg>
+            </span>
+            <span className="text-[11px] font-medium text-gray-700 text-center leading-tight">{t.label}</span>
+          </Link>
+        ))}
+      </div>
+
+      {/* Categories — accordion */}
+      <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-6 mb-1.5 px-1">Jelajahi</p>
+      <div className="rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-100">
+        {items.map((item) => {
+          if (!item.url && !(item.items || []).length) return null;
+          const kids = item.items || [];
+          if (kids.length) {
+            const open = openId === item.id;
+            return (
+              <div key={item.id}>
+                <button type="button" onClick={() => setOpenId(open ? null : item.id)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-left active:bg-gray-50 transition-colors">
+                  <span className="text-sm font-medium text-gray-800">{item.title}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                </button>
+                {open && (
+                  <div className="bg-gray-50/60 pb-1">
+                    {kids.map((k) => (
+                      <Link key={k.id} to={norm(k.url)} onClick={closeMenu} prefetch="intent"
+                        className="block pl-7 pr-4 py-2.5 text-[13px] text-gray-600 no-underline active:text-gray-900 active:bg-gray-100 transition-colors">
+                        {k.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return (
+            <Link key={item.id} to={norm(item.url)} onClick={closeMenu} prefetch="intent"
+              className="flex items-center justify-between px-4 py-3 no-underline active:bg-gray-50 transition-colors">
+              <span className="text-sm font-medium text-gray-800">{item.title}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Help & info */}
+      <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-6 mb-1.5 px-1">Bantuan & Info</p>
+      <div className="rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-100">
+        {helpLinks.map((l) => (
+          <Link key={l.to} to={l.to} onClick={closeMenu} prefetch="intent"
+            className="flex items-center justify-between px-4 py-3 no-underline active:bg-gray-50 transition-colors">
+            <span className="text-[13px] text-gray-700">{l.label}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </Link>
+        ))}
+      </div>
+
+      {/* Contact */}
+      <a href="https://wa.me/6282111311131" target="_blank" rel="noreferrer" onClick={closeMenu}
+        className="mt-6 flex items-center justify-center gap-2 h-12 rounded-2xl bg-green-600 text-white text-sm font-semibold no-underline active:scale-[0.99] transition-transform">
+        <FaWhatsapp className="w-5 h-5" />
+        Chat Admin via WhatsApp
+      </a>
+      <div className="flex items-center justify-center gap-5 mt-5 text-gray-500">
+        {socials.map((s) => (
+          <a key={s.href} href={s.href} target="_blank" rel="noreferrer" className="hover:text-gray-900 transition-colors no-underline">{s.icon}</a>
+        ))}
+      </div>
+      <p className="text-center text-[11px] text-gray-400 mt-4">
+        Part of <span className="font-semibold text-red-400">Galaxycamera.id</span>
+      </p>
+    </nav>
+  );
+}
+
+function HeaderCtas({isLoggedIn, cart, onDark}) {
+  // onDark (mobile homepage charcoal bar): white icons on mobile, normal gray on sm+.
+  const btnCls = onDark
+    ? 'text-white sm:text-gray-700 hover:bg-white/10 sm:hover:bg-gray-100'
+    : 'text-gray-700 hover:bg-gray-100';
   return (
     <nav className="flex items-center gap-1 sm:gap-2 flex-shrink-0" role="navigation">
 
-      {/* Account */}
+      {/* Account — inline style skipped when onDark so the responsive Tailwind color can win */}
       <NavLink
         prefetch="intent"
         to="/account"
-        style={activeLinkStyle}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
+        style={onDark ? undefined : activeLinkStyle}
+        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors ${btnCls}`}
       >
         <FaRegCircleUser className="w-5 h-5" />
         <span className="hidden sm:inline text-sm font-medium">
@@ -215,7 +377,7 @@ function HeaderCtas({isLoggedIn, cart}) {
       </NavLink>
 
       {/* Cart */}
-      <CartToggle cart={cart} />
+      <CartToggle cart={cart} onDark={onDark} />
     </nav>
   );
 }
@@ -288,9 +450,12 @@ function SearchToggleMobile() {
   );
 }
 
-function HeaderMenuMobileToggle() {
+function HeaderMenuMobileToggle({onDark}) {
+  const cls = onDark
+    ? 'text-white sm:text-gray-700 hover:bg-white/10 sm:hover:bg-gray-100'
+    : 'text-gray-700 hover:bg-gray-100';
   return (
-    <a className="header-menu-mobile-toggle flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 lg:hidden" href="#mobile-menu-aside">
+    <a className={`header-menu-mobile-toggle flex items-center justify-center w-9 h-9 rounded-lg transition-colors lg:hidden ${cls}`} href="#mobile-menu-aside">
       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
       </svg>
@@ -324,11 +489,14 @@ function SearchToggle() {
   );
 }
 
-function CartBadge({count}) {
+function CartBadge({count, onDark}) {
+  const cls = onDark
+    ? 'text-white sm:text-gray-700 hover:bg-white/10 sm:hover:bg-gray-100'
+    : 'text-gray-700 hover:bg-gray-100';
   return (
     <a
       href="#cart-aside"
-      className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
+      className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${cls}`}
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-5 h-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -342,11 +510,11 @@ function CartBadge({count}) {
   );
 }
 
-function CartToggle({cart}) {
+function CartToggle({cart, onDark}) {
   return (
-    <Suspense fallback={<CartBadge count={0} />}>
+    <Suspense fallback={<CartBadge count={0} onDark={onDark} />}>
       <Await resolve={cart}>
-        {(cart) => <CartBadge count={cart?.totalQuantity || 0} />}
+        {(cart) => <CartBadge count={cart?.totalQuantity || 0} onDark={onDark} />}
       </Await>
     </Suspense>
   );

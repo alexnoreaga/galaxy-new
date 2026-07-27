@@ -6,6 +6,13 @@ export const BottomNavbar = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const location = useLocation();
 
+  // Active-tab highlighting — the current page's tab lights up in brand red (Tokopedia-style)
+  const { pathname } = location;
+  const homeActive = pathname === '/';
+  const cariActive = pathname.startsWith('/search');
+  const kategoriActive = pathname.startsWith('/collections');
+  const flashActive = pathname.startsWith('/flash-sale');
+
   function openGrisela() {
     // Product pages have the full-context chat — open it via event
     if (location.pathname.includes('/products/')) {
@@ -22,22 +29,20 @@ export const BottomNavbar = () => {
           {/* Home */}
           <Link className="m-auto" prefetch="intent" to="/">
             <button type="button" className="inline-flex flex-col items-center justify-center py-3 px-2 group relative">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-600 group-hover:text-blue-600 transition-colors duration-300 relative z-10 group-hover:scale-110 transform transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={homeActive ? 2 : 1.5} stroke="currentColor" className={`w-6 h-6 mb-1 transition-all duration-300 relative z-10 group-hover:scale-110 transform ${homeActive ? 'text-red-600' : 'text-gray-500 group-hover:text-red-600'}`}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
               </svg>
-              <p className="text-[10px] font-semibold text-gray-600 group-hover:text-blue-600 transition-colors duration-300 relative z-10">Home</p>
+              <p className={`text-[10px] transition-colors duration-300 relative z-10 ${homeActive ? 'font-bold text-red-600' : 'font-semibold text-gray-500 group-hover:text-red-600'}`}>Home</p>
             </button>
           </Link>
 
           {/* Search */}
           <Link className="m-auto" prefetch="intent" to="/search">
             <button type="button" className="inline-flex flex-col items-center justify-center py-3 px-2 group relative">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-600 group-hover:text-blue-600 transition-colors duration-300 relative z-10 group-hover:scale-110 transform transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={cariActive ? 2 : 1.5} stroke="currentColor" className={`w-6 h-6 mb-1 transition-all duration-300 relative z-10 group-hover:scale-110 transform ${cariActive ? 'text-red-600' : 'text-gray-500 group-hover:text-red-600'}`}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
-              <p className="text-[10px] font-semibold text-gray-600 group-hover:text-blue-600 transition-colors duration-300 relative z-10">Cari</p>
+              <p className={`text-[10px] transition-colors duration-300 relative z-10 ${cariActive ? 'font-bold text-red-600' : 'font-semibold text-gray-500 group-hover:text-red-600'}`}>Cari</p>
             </button>
           </Link>
 
@@ -45,7 +50,7 @@ export const BottomNavbar = () => {
           <Link className="m-auto relative" prefetch="intent" to="/flash-sale" aria-label="Flash Sale">
             <div className="inline-flex flex-col items-center justify-center pb-1.5 px-2 -mt-5">
               <div
-                className="relative flex items-center justify-center w-12 h-12 rounded-full border-4 border-white"
+                className={`relative flex items-center justify-center w-12 h-12 rounded-full border-4 border-white ${flashActive ? 'ring-2 ring-red-300 ring-offset-2' : ''}`}
                 style={{ background: 'linear-gradient(135deg, #e53935 0%, #f4511e 100%)', boxShadow: '0 4px 14px rgba(229,57,53,0.45)' }}
               >
                 <span className="absolute inline-flex h-11 w-11 rounded-full bg-red-400 opacity-30 animate-ping" />
@@ -58,11 +63,10 @@ export const BottomNavbar = () => {
           {/* Categories */}
           <Link className="m-auto" prefetch="intent" to="/collections">
             <button type="button" className="inline-flex flex-col items-center justify-center py-3 px-2 group relative">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1 text-gray-600 group-hover:text-blue-600 transition-colors duration-300 relative z-10 group-hover:scale-110 transform transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={kategoriActive ? 2 : 1.5} stroke="currentColor" className={`w-6 h-6 mb-1 transition-all duration-300 relative z-10 group-hover:scale-110 transform ${kategoriActive ? 'text-red-600' : 'text-gray-500 group-hover:text-red-600'}`}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
-              <p className="text-[10px] font-semibold text-gray-600 group-hover:text-blue-600 transition-colors duration-300 relative z-10">Kategori</p>
+              <p className={`text-[10px] transition-colors duration-300 relative z-10 ${kategoriActive ? 'font-bold text-red-600' : 'font-semibold text-gray-500 group-hover:text-red-600'}`}>Kategori</p>
             </button>
           </Link>
 

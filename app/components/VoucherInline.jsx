@@ -51,10 +51,10 @@ export function VoucherInline({ voucherData }) {
             key={i}
             className="relative flex items-stretch rounded-2xl border border-rose-200 bg-white shadow-sm overflow-hidden"
           >
-            {/* Left stub — discount badge */}
-            <div className="relative flex flex-col items-center justify-center min-w-[76px] px-2 py-3 bg-gradient-to-b from-rose-600 to-rose-500 text-white">
-              <span className="text-[10px] font-medium uppercase tracking-widest opacity-80">Diskon</span>
-              <span className="text-xl font-black leading-tight">
+            {/* Left stub — discount badge (soft tint, red as accent not fill) */}
+            <div className="relative flex flex-col items-center justify-center min-w-[76px] px-2 py-3 bg-rose-50">
+              <span className="text-[10px] font-medium uppercase tracking-widest text-rose-400">Diskon</span>
+              <span className="text-xl font-black leading-tight text-rose-600">
                 {v.discountType === 'percentage' ? formatDiscount(v) : `Rp${formatDiscount(v)}`}
               </span>
             </div>
@@ -98,7 +98,7 @@ export function VoucherInline({ voucherData }) {
                 className={`flex-shrink-0 px-3 py-2 rounded-xl text-[11px] font-bold transition-all duration-200 active:scale-95 ${
                   copied === v.code
                     ? 'bg-emerald-500 text-white'
-                    : 'bg-rose-600 hover:bg-rose-700 text-white'
+                    : 'bg-rose-100 hover:bg-rose-200 text-rose-700'
                 }`}
               >
                 {copied === v.code ? '✓ Tersalin' : 'Salin'}

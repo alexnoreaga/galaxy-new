@@ -8,6 +8,7 @@ import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 import { BrandPopular } from '../components/BrandPopular';
 import { RecentlyViewed } from '../components/RecentlyViewed';
 import { SocialProofStrip } from '../components/SocialProofStrip';
+import { NearestStoreBar } from '~/components/NearestStoreBar';
 import { MiniFaq } from '../components/MiniFaq';
 import {useRef} from "react";
 import { useLayoutEffect, useState, useEffect } from 'react';
@@ -350,9 +351,9 @@ function CuciGudangHomeSection({ cuciGudang }) {
         {({ items }) => {
           if (!items || items.length === 0) return null;
           return (
-            <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
+            <div className="relative -mx-4 sm:mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-6 sm:mt-8">
               <section
-                className="relative overflow-hidden rounded-xl"
+                className="relative overflow-hidden rounded-none sm:rounded-xl"
                 style={{ background: 'linear-gradient(110deg, #6d28d9 0%, #a21caf 48%, #db2777 100%)' }}
               >
                 {/* Diagonal stripes + shine */}
@@ -471,9 +472,9 @@ function FlashSaleHomeSection({ flashSale }) {
         {({ items, saleEndsAt }) => {
           if (!items || items.length === 0) return null;
           return (
-            <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
+            <div className="relative -mx-4 sm:mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-6 sm:mt-8">
               <section
-                className="relative overflow-hidden rounded-xl"
+                className="relative overflow-hidden rounded-none sm:rounded-xl"
                 style={{ background: 'linear-gradient(110deg, #b71c1c 0%, #e53935 45%, #f4511e 100%)' }}
               >
                 {/* Diagonal stripes + shine */}
@@ -614,12 +615,18 @@ export default function Homepage() {
       
 
       
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      {/* Banner — on mobile it's pulled up (-mt) to overlap the charcoal curved tail from the header */}
+      <div className="relative z-10 -mt-7 sm:mt-0 mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0">
         <Carousel images={data.banner.metaobjects} />
         <h1 className="sr-only">Toko Kamera Tangerang Depok Terlengkap — Galaxy Camera Store</h1>
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+      {/* Store locator — mobile only (on desktop it lives in the header) */}
+      <div className="sm:hidden relative z-10 mt-1 px-3">
+        <NearestStoreBar variant="card" />
+      </div>
+
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0 mt-3">
         <SocialProofStrip />
       </div>
 
@@ -629,7 +636,7 @@ export default function Homepage() {
 
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0 mt-6 sm:mt-8">
         <VouchersSection vouchers={data.vouchers} />
       </div>
 
@@ -639,29 +646,22 @@ export default function Homepage() {
       {/* CUCI GUDANG — clearance rail, only renders if the collection has products */}
       <CuciGudangHomeSection cuciGudang={data.cuciGudang} />
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0 mt-2 sm:mt-4">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-md hover:shadow-lg transition-shadow duration-300">
-          {/* Modern gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/10"></div>
-          
-          {/* Animated gradient orbs */}
-          <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 bg-gradient-to-br from-pink-400/20 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-56 sm:h-56 bg-gradient-to-tr from-blue-400/20 to-transparent rounded-full blur-3xl"></div>
-
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0 mt-6 sm:mt-8">
+        <div className="relative overflow-hidden rounded-xl bg-indigo-50 border border-indigo-100">
           {/* Content */}
-          <div className="mb-5 relative px-3 py-2 sm:px-6 sm:py-3 md:py-3.5 flex flex-row items-center justify-between gap-2 sm:gap-4 z-10">
+          <div className="relative px-3 py-3 sm:px-6 sm:py-4 flex flex-row items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <div className="hidden sm:inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-2 py-0.5 mb-1 sm:mb-1.5 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-300">
+              <div className="hidden sm:inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-indigo-100 border border-indigo-200 rounded-full px-2 py-0.5 mb-1 sm:mb-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-500">
                   <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
                 </svg>
-                <span className="text-white">Promo Cicilan</span>
+                <span className="text-indigo-700">Promo Cicilan</span>
               </div>
-              <h2 className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-white tracking-tight leading-tight mb-0.5 sm:mb-1">
+              <h2 className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-indigo-900 tracking-tight leading-tight mb-0.5 sm:mb-1">
                 Cicil Kamera Tanpa Kartu Kredit
               </h2>
-              <p className="text-[10px] sm:text-xs text-blue-50 hidden sm:flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-200">
+              <p className="text-[10px] sm:text-xs text-indigo-500 hidden sm:flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-400">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
                 </svg>
                 Proses cepat sekitar 15 menit
@@ -670,7 +670,7 @@ export default function Homepage() {
             <div className="flex-shrink-0">
               <Link
                 to="/kredit-kamera"
-                className="group inline-flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg bg-white text-indigo-600 font-bold px-3 py-1.5 sm:px-5 sm:py-2 text-[10px] sm:text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 whitespace-nowrap"
+                className="group inline-flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 sm:px-5 sm:py-2 text-[10px] sm:text-sm shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap"
               >
                 <span className="hidden sm:inline">Lihat Caranya</span>
                 <span className="sm:hidden">Lihat</span>
@@ -707,7 +707,7 @@ export default function Homepage() {
       
 
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0">
         <RecentlyViewed />
       </div>
 
@@ -723,7 +723,7 @@ export default function Homepage() {
       <FeaturedBlogs blogs={data.blogs}/>
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-2 sm:px-0">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0">
         <MiniFaq />
       </div>
 
@@ -843,7 +843,7 @@ function RenderCollection({ collections }) {
     <Suspense fallback={<div className="h-40" />}>
       <Await resolve={collections}>
         {({ nodes }) => (
-          <section className="w-full py-5 sm:py-8 px-2 sm:px-0">
+          <section className="w-full py-5 sm:py-8 px-3 sm:px-0">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
               <h2 className="flex items-center gap-2 text-gray-900 text-lg sm:text-2xl font-bold tracking-tight">
@@ -1625,115 +1625,74 @@ function VouchersSection({ vouchers }) {
 
           if (!voucherArray.length) return null;
 
-          const COINS = [
-            { size: 40, top: '8%',  left: '1%',  blur: 0, opacity: 0.9,  rotate: -20, flipX: false, scaleY: 1.0 },
-            { size: 22, top: '60%', left: '5%',  blur: 5, opacity: 0.45, rotate:  18, flipX: true,  scaleY: 0.15 },
-            { size: 30, top: '18%', left: '24%', blur: 7, opacity: 0.28, rotate:  -6, flipX: true,  scaleY: 1.0 },
-            { size: 48, top: '4%',  right: '2%', blur: 0, opacity: 0.82, rotate:  28, flipX: false, scaleY: 0.25 },
-            { size: 20, top: '55%', right: '8%', blur: 4, opacity: 0.5,  rotate: -38, flipX: true,  scaleY: 0.12 },
-            { size: 34, bottom: '6%',  right: '22%', blur: 2, opacity: 0.6,  rotate: 12,  flipX: false, scaleY: 1.0 },
-            { size: 26, bottom: '12%', left: '42%', blur: 6, opacity: 0.32, rotate: -14, flipX: true,  scaleY: 0.2 },
-            { size: 18, top: '35%',   right: '38%', blur: 8, opacity: 0.22, rotate: 42,  flipX: false, scaleY: 1.0 },
-            { size: 32, bottom: '4%', left: '14%', blur: 1, opacity: 0.68, rotate: -9,  flipX: true,  scaleY: 0.18 },
-          ];
-
           return (
-            <div className='w-full rounded-2xl py-4 mb-4 relative overflow-hidden'
-              style={{ background: 'linear-gradient(120deg, #e11d48 0%, #f97316 100%)' }}>
-
-              {/* Dot texture */}
-              <div className='absolute inset-0 pointer-events-none' style={{
-                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.13) 1.5px, transparent 1.5px)',
-                backgroundSize: '18px 18px',
-              }} />
-
-              {/* Coins */}
-              {COINS.map((c, i) => (
-                <div key={i} className='absolute pointer-events-none select-none' style={{
-                  top: c.top, left: c.left, right: c.right, bottom: c.bottom,
-                  filter: `blur(${c.blur}px)`, opacity: c.opacity,
-                  transform: `rotate(${c.rotate}deg) scaleX(${c.flipX ? -1 : 1}) scaleY(${c.scaleY})`,
-                }}>
-                  <svg width={c.size} height={c.size} viewBox="0 0 40 40">
-                    <circle cx="20" cy="20" r="19" fill="#d97706"/>
-                    <circle cx="20" cy="20" r="17" fill="#f59e0b"/>
-                    <circle cx="20" cy="20" r="13" fill="#fbbf24"/>
-                    <circle cx="20" cy="20" r="10" fill="none" stroke="#f59e0b" strokeWidth="1.5"/>
-                    <ellipse cx="14" cy="13" rx="5" ry="3" fill="rgba(255,255,255,0.32)" transform="rotate(-30 14 13)"/>
+            <div className='w-full rounded-2xl py-4 px-4 mb-4 bg-white border border-amber-100'>
+              {/* Header */}
+              <div className='flex items-center justify-between mb-3 gap-2'>
+                <div className='flex items-center gap-1.5'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-amber-500 flex-shrink-0">
+                    <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path d="M6 6h.008v.008H6V6z" />
                   </svg>
+                  <h2 className="text-gray-900 text-sm sm:text-base font-bold tracking-tight">Voucher Eksklusif</h2>
                 </div>
-              ))}
+                <Link to="/promo" className='text-[11px] font-semibold text-amber-600 hover:text-amber-700 whitespace-nowrap'>
+                  Lihat Semua →
+                </Link>
+              </div>
 
-              <div className='relative px-4'>
-                {/* Header */}
-                <div className='flex items-center justify-between mb-3 gap-2'>
-                  <div className='flex items-center gap-1.5'>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-white flex-shrink-0">
-                      <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path d="M6 6h.008v.008H6V6z" />
-                    </svg>
-                    <h2 className="text-white text-sm font-bold tracking-wide">Voucher Eksklusif</h2>
-                  </div>
-                  <Link to="/promo" className='text-[11px] font-semibold whitespace-nowrap' style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    Lihat Semua →
-                  </Link>
-                </div>
+              {/* Voucher cards — soft tickets on a clean section */}
+              <div className='flex overflow-x-auto gap-2.5 pb-1 hide-scroll-bar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible sm:pb-0'>
+                {voucherArray.map((voucher, index) => (
+                  <div key={index} className='flex-shrink-0 w-44 sm:w-auto flex items-stretch rounded-xl overflow-hidden border border-amber-200 shadow-sm'>
 
-                {/* Voucher cards */}
-                <div className='flex overflow-x-auto gap-2.5 pb-1 hide-scroll-bar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible sm:pb-0'>
-                  {voucherArray.map((voucher, index) => (
-                    <div key={index} className='flex-shrink-0 w-44 sm:w-auto flex items-stretch rounded-xl overflow-hidden'
-                      style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                    {/* Left: soft amber stub */}
+                    <div className='flex flex-col items-center justify-center px-2 py-3 sm:px-3 sm:py-5'
+                      style={{ background: 'linear-gradient(160deg, #fbbf24, #f59e0b)', width: '30%', minWidth: '52px', maxWidth: '96px' }}>
+                      <span className='font-black leading-none text-center'
+                        style={{
+                          color: '#7c2d12',
+                          fontSize: voucher.discountType === 'percentage' ? 'clamp(0.9rem,3vw,1.7rem)' : 'clamp(0.55rem,1.5vw,0.9rem)',
+                        }}>
+                        {voucher.discountType === 'percentage'
+                          ? `${voucher.discount}%`
+                          : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
+                      </span>
+                      <span className='font-black uppercase mt-1' style={{ color: 'rgba(124,45,18,0.55)', fontSize: 'clamp(6px,1vw,9px)', letterSpacing: '0.18em' }}>OFF</span>
+                    </div>
 
-                      {/* Left: warm amber-brown panel */}
-                      <div className='flex flex-col items-center justify-center px-2 py-3 sm:px-3 sm:py-5'
-                        style={{ background: 'linear-gradient(160deg, #92400e, #431407)', width: '30%', minWidth: '52px', maxWidth: '96px' }}>
-                        <span className='font-black leading-none text-center'
-                          style={{
-                            color: '#fef08a',
-                            fontSize: voucher.discountType === 'percentage' ? 'clamp(0.9rem,3vw,1.7rem)' : 'clamp(0.55rem,1.5vw,0.9rem)',
-                          }}>
-                          {voucher.discountType === 'percentage'
-                            ? `${voucher.discount}%`
-                            : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
+                    {/* Right: cream info panel */}
+                    <div className='flex-1 flex flex-col justify-center px-2.5 py-2.5 sm:px-4 sm:py-4 min-w-0'
+                      style={{ background: '#fffbeb', borderLeft: '1.5px dashed #fbbf24' }}>
+                      {/* Code + copy */}
+                      <div className='flex items-center gap-1.5 mb-1.5 sm:mb-2'>
+                        <span className='font-mono font-black text-[9.5px] sm:text-sm tracking-widest flex-1 truncate'
+                          style={{ color: '#1c1917' }}>
+                          {voucher.code}
                         </span>
-                        <span className='font-black uppercase mt-1' style={{ color: 'rgba(253,224,71,0.6)', fontSize: 'clamp(6px,1vw,9px)', letterSpacing: '0.18em' }}>OFF</span>
+                        <button
+                          onClick={() => handleCopyCode(voucher.code)}
+                          className={`flex-shrink-0 text-[8px] sm:text-xs font-black uppercase tracking-wide px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded transition-all duration-200 active:scale-95 ${
+                            copiedCode === voucher.code ? 'bg-emerald-500 text-white' : 'bg-amber-100 hover:bg-amber-200 text-amber-800'
+                          }`}>
+                          {copiedCode === voucher.code ? '✓ OK' : 'Salin'}
+                        </button>
                       </div>
-
-                      {/* Right: cream info panel */}
-                      <div className='flex-1 flex flex-col justify-center px-2.5 py-2.5 sm:px-4 sm:py-4 min-w-0'
-                        style={{ background: '#fffbeb', borderLeft: '1.5px dashed #d97706' }}>
-                        {/* Code + copy */}
-                        <div className='flex items-center gap-1.5 mb-1.5 sm:mb-2'>
-                          <span className='font-mono font-black text-[9.5px] sm:text-sm tracking-widest flex-1 truncate'
-                            style={{ color: '#1c1917' }}>
-                            {voucher.code}
+                      {/* Meta */}
+                      <div className='flex flex-wrap items-center gap-x-1.5 gap-y-0.5'>
+                        {voucher.minPurchase && (
+                          <span className='text-[7px] sm:text-[11px] font-semibold leading-none' style={{ color: '#92400e' }}>
+                            Min. {voucher.minPurchase}
                           </span>
-                          <button
-                            onClick={() => handleCopyCode(voucher.code)}
-                            className='flex-shrink-0 text-[8px] sm:text-xs font-black uppercase tracking-wide px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-white transition-all duration-200 active:scale-95'
-                            style={copiedCode === voucher.code
-                              ? { background: '#059669' }
-                              : { background: 'linear-gradient(135deg,#d97706,#b45309)' }}>
-                            {copiedCode === voucher.code ? '✓ OK' : 'Salin'}
-                          </button>
-                        </div>
-                        {/* Meta */}
-                        <div className='flex flex-wrap items-center gap-x-1.5 gap-y-0.5'>
-                          {voucher.minPurchase && (
-                            <span className='text-[7px] sm:text-[11px] font-semibold leading-none' style={{ color: '#92400e' }}>
-                              Min. {voucher.minPurchase}
-                            </span>
-                          )}
-                          {voucher.expiryDate && (
-                            <span className='text-[7px] sm:text-[11px] leading-none' style={{ color: '#a16207' }}>
-                              s/d {new Date(voucher.expiryDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                            </span>
-                          )}
-                        </div>
+                        )}
+                        {voucher.expiryDate && (
+                          <span className='text-[7px] sm:text-[11px] leading-none' style={{ color: '#a16207' }}>
+                            s/d {new Date(voucher.expiryDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           );

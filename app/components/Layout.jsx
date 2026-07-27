@@ -2,7 +2,7 @@ import {Await,Link,useLoaderData} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Aside} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
-import {Header, HeaderMenu} from '~/components/Header';
+import {Header, HeaderMenu, MobileMenuNav} from '~/components/Header';
 import {CartMain} from '~/components/Cart';
 import {
   PredictiveSearchForm,
@@ -56,7 +56,7 @@ export function Layout({cart, children = null, footer, header, isLoggedIn,footer
     <>
       <CartAside cart={cart} />
       <SearchAside />
-      <MobileMenuAside menu={header.menu} />
+      <MobileMenuAside menu={header.menu} isLoggedIn={isLoggedIn} />
       
       <Header header={header} cart={cart} isLoggedIn={isLoggedIn} />
 
@@ -175,10 +175,10 @@ function SearchAside() {
   );
 }
 
-function MobileMenuAside({menu}) {
+function MobileMenuAside({menu, isLoggedIn}) {
   return (
     <Aside id="mobile-menu-aside" heading="MENU">
-      <HeaderMenu menu={menu} viewport="mobile" />
+      <MobileMenuNav menu={menu} isLoggedIn={isLoggedIn} />
     </Aside>
   );
 }

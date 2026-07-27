@@ -29,7 +29,7 @@ export const TombolWa = () => {
   // On product pages the bottom nav is hidden and the checkout bar sits at bottom-0,
   // so lower the floating button on mobile to sit just above it (desktop unchanged).
   const isProduct = location.pathname.includes('/products/');
-  const floatPos = `${isProduct ? 'bottom-24' : 'bottom-40'} right-4 sm:bottom-8 sm:right-6 md:bottom-40`;
+  const floatPos = `${isProduct ? 'bottom-24' : 'bottom-20'} right-4 sm:bottom-8 sm:right-6 md:bottom-40`;
 
   function openWa() {
     window.open(
@@ -54,9 +54,6 @@ export const TombolWa = () => {
         className={`fixed ${floatPos} z-50 cursor-pointer group flex flex-col items-center gap-1`}
       >
         <div className="relative flex items-center justify-center w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-white/70 sm:bg-white/60 shadow-lg sm:shadow-2xl border border-green-200 hover:bg-green-600 transition-all duration-200 backdrop-blur-xl">
-          <span className="absolute inset-0 flex items-center justify-center">
-            <span className="inline-flex h-11 w-11 sm:h-14 sm:w-14 rounded-full bg-green-400 opacity-40 animate-ping"></span>
-          </span>
           <FaWhatsapp className="text-[28px] sm:text-4xl text-green-600 group-hover:text-white drop-shadow-md transition-all z-10" />
           <span className="absolute left-16 sm:left-20 top-1/2 -translate-y-1/2 hidden sm:block bg-green-600 text-white px-4 py-2 rounded-full shadow-lg font-semibold text-base opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">Chat WhatsApp</span>
         </div>
