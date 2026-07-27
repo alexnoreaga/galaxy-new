@@ -90,7 +90,7 @@ export const Carousel = ({ images }) => {
               {/* Prev button */}
               <button
                 aria-label="Slide Kiri"
-                className="absolute left-4 rounded-full p-2 bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30 z-10 transition-all duration-300 active:scale-95 group"
+                className="hidden sm:flex absolute left-4 rounded-full p-2 bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30 z-10 transition-all duration-300 active:scale-95 group"
                 onClick={prevImage}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5 sm:w-7 sm:h-7 text-white group-hover:scale-110 transition-transform">
@@ -124,7 +124,7 @@ export const Carousel = ({ images }) => {
               {/* Next button */}
               <button
                 aria-label="Slide Kanan"
-                className="absolute right-4 rounded-full p-2 bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30 z-10 transition-all duration-300 active:scale-95 group"
+                className="hidden sm:flex absolute right-4 rounded-full p-2 bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30 z-10 transition-all duration-300 active:scale-95 group"
                 onClick={nextImage}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5 sm:w-7 sm:h-7 text-white group-hover:scale-110 transition-transform">
