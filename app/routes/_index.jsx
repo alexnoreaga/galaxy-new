@@ -616,17 +616,17 @@ export default function Homepage() {
 
       
       {/* Banner — on mobile it's pulled up (-mt) to overlap the charcoal curved tail from the header */}
-      <div className="relative z-10 -mt-7 sm:mt-0 mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0">
+      <div className="relative z-10 -mt-7 sm:mt-0 mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0">
         <Carousel images={data.banner.metaobjects} />
         <h1 className="sr-only">Toko Kamera Tangerang Depok Terlengkap — Galaxy Camera Store</h1>
       </div>
 
       {/* Store locator — mobile only (on desktop it lives in the header) */}
-      <div className="sm:hidden relative z-10 mt-1 px-3">
+      <div className="sm:hidden relative z-10 mt-1">
         <NearestStoreBar variant="card" />
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0 mt-3">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-3">
         <SocialProofStrip />
       </div>
 
@@ -636,7 +636,7 @@ export default function Homepage() {
 
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0 mt-6 sm:mt-8">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-6 sm:mt-8">
         <VouchersSection vouchers={data.vouchers} />
       </div>
 
@@ -646,7 +646,7 @@ export default function Homepage() {
       {/* CUCI GUDANG — clearance rail, only renders if the collection has products */}
       <CuciGudangHomeSection cuciGudang={data.cuciGudang} />
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0 mt-6 sm:mt-8">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-6 sm:mt-8">
         <div className="relative overflow-hidden rounded-xl bg-indigo-50 border border-indigo-100">
           {/* Content */}
           <div className="relative px-3 py-3 sm:px-6 sm:py-4 flex flex-row items-center justify-between gap-2 sm:gap-4">
@@ -707,7 +707,7 @@ export default function Homepage() {
       
 
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0">
         <RecentlyViewed />
       </div>
 
@@ -723,7 +723,7 @@ export default function Homepage() {
       <FeaturedBlogs blogs={data.blogs}/>
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl px-3 sm:px-0">
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0">
         <MiniFaq />
       </div>
 
@@ -843,9 +843,9 @@ function RenderCollection({ collections }) {
     <Suspense fallback={<div className="h-40" />}>
       <Await resolve={collections}>
         {({ nodes }) => (
-          <section className="w-full py-5 sm:py-8 px-3 sm:px-0">
+          <section className="w-full py-3 sm:py-6 sm:px-0">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
+            <div className="flex items-center justify-between mb-2.5 sm:mb-4 px-1">
               <h2 className="flex items-center gap-2 text-gray-900 text-lg sm:text-2xl font-bold tracking-tight">
                 <span className="text-amber-400 text-base sm:text-xl">★</span> Kategori Populer
               </h2>
@@ -1626,9 +1626,9 @@ function VouchersSection({ vouchers }) {
           if (!voucherArray.length) return null;
 
           return (
-            <div className='w-full rounded-2xl py-4 px-4 mb-4 bg-white border border-amber-100'>
+            <div className='w-full rounded-2xl py-3 px-4 mb-2 bg-white border border-amber-100'>
               {/* Header */}
-              <div className='flex items-center justify-between mb-3 gap-2'>
+              <div className='flex items-center justify-between mb-2.5 gap-2'>
                 <div className='flex items-center gap-1.5'>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-amber-500 flex-shrink-0">
                     <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path d="M6 6h.008v.008H6V6z" />
