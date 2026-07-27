@@ -1531,11 +1531,46 @@ DP : 0
       return () => observer.disconnect();
     }, []);
 
+    // Flash-aware "copy on title click". When a flash sale applies to this variant, the price block
+    // shows the extra flash discount + flash price, and the date line becomes the flash end date.
+    const rpFmt = (n) => 'Rp ' + Number(Math.max(0, Math.round(n))).toLocaleString('id-ID');
+    const copyBasePrice = Number(parseFloat(selectedVariant?.price?.amount)) || 0;
+    const copyCompareAt = Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) || 0;
+    const copyNormalPrice = copyCompareAt > copyBasePrice ? copyCompareAt : copyBasePrice;
+    const copyRegularDiscount = copyNormalPrice - copyBasePrice;
+
+    let copyFlashPrice = copyBasePrice;
+    let copyFlashDiscount = 0;
+    if (flashForVariant) {
+      copyFlashPrice = Math.max(0, flashForVariant.type === 'amount'
+        ? copyBasePrice - flashForVariant.amount
+        : Math.round(copyBasePrice * (1 - flashForVariant.percentage / 100)));
+      copyFlashDiscount = copyBasePrice - copyFlashPrice;
+    }
+
+    const copyPriceBlock = flashForVariant
+      ? (
+          `Harga Normal : ${rpFmt(copyNormalPrice)}\n` +
+          (copyRegularDiscount > 0
+            ? `Promo Diskon : ${rpFmt(copyRegularDiscount)} + ${rpFmt(copyFlashDiscount)} (Extra Flash Sale)\n`
+            : `Promo Flash Sale : ${rpFmt(copyFlashDiscount)}\n`) +
+          `Harga Flash Sale : ${rpFmt(copyFlashPrice)}\n\n`
+        )
+      : (
+          copyBasePrice < copyCompareAt
+            ? `Harga Normal : ${rpFmt(copyCompareAt)}\nPromo Diskon : ${rpFmt(copyRegularDiscount)}\nHarga Spesial : ${rpFmt(copyBasePrice)}\n`
+            : `Harga : ${rpFmt(copyBasePrice)}\n`
+        );
+
+    const copyDateBlock = (flashForVariant && flashForVariant.endsAt)
+      ? `Berakhir pada : ${new Date(flashForVariant.endsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}\n`
+      : (product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n' : '');
+
     const hargaCashCopy = `${product.title}${selectedVariant?.title && selectedVariant.title !== "Default Title" ? ' - ' + selectedVariant.title.replace(/ \/ /g, ' - ') : ''}\n` +
-      `${Number(parseFloat(selectedVariant?.price?.amount)) < Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) ? 'Harga Normal : Rp ' + parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")  + '\n' + 'Promo Diskon : Rp ' + (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) - Number(parseFloat(selectedVariant?.price?.amount))).toLocaleString("id-ID") + '\n' + 'Harga Spesial : Rp ' + Number(parseFloat(selectedVariant?.price?.amount)).toLocaleString("id-ID") + '\n' : 'Harga : Rp ' + parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")+ '\n'}` +
+      copyPriceBlock +
       `${product?.metafields[1]?.value ? 'FREE : ' + product?.metafields[1].value + '\n' : ''}`+
       `${product?.metafields[0]?.value ? 'Garansi : ' + product?.metafields[0]?.value + ' ' + (product.vendor !== 'galaxy' && product.vendor) + '\n':''}`+
-      `${product?.metafields[3]?.value ? 'Periode : ' + perubahTanggal(product.metafields[3]?.value) + ' - ' + perubahTanggal(product.metafields[4]?.value) + '\n':''}`+
+      copyDateBlock +
       `Info Produk : ${canonicalUrl}`;
 
       
