@@ -1,6 +1,41 @@
-import {Link, Form, useParams, useFetcher, useFetchers} from '@remix-run/react';
+import {Link, Form, useParams, useFetcher, useFetchers, useNavigate} from '@remix-run/react';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
 import React, {useRef, useEffect} from 'react';
+
+// Infinite scroll for search — observes a sentinel and auto-loads the next page (mirrors collections)
+function SearchInfiniteLoader({hasNextPage, nextPageUrl, isLoading, state}) {
+  const navigate = useNavigate();
+  const ref = useRef(null);
+  const triggered = useRef(null);
+  useEffect(() => {
+    if (!hasNextPage || !nextPageUrl) return;
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !isLoading && triggered.current !== nextPageUrl) {
+        triggered.current = nextPageUrl;
+        navigate(nextPageUrl, {replace: true, preventScrollReset: true, state});
+      }
+    }, {rootMargin: '600px 0px'});
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasNextPage, nextPageUrl, isLoading, state, navigate]);
+
+  if (!hasNextPage) {
+    return <p className="text-center text-xs text-gray-400 mt-10 mb-2">— Semua hasil sudah ditampilkan —</p>;
+  }
+  return (
+    <div ref={ref} className="flex justify-center py-10">
+      <span className="inline-flex items-center gap-2 text-sm text-gray-400">
+        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Memuat produk…
+      </span>
+    </div>
+  );
+}
 
 export const NO_PREDICTIVE_SEARCH_RESULTS = [
   {type: 'queries', items: []},
@@ -99,10 +134,9 @@ export function SearchResults({results, soldCounts = {}, reviewSummaries = {}, f
 
 function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries = {}, flashMap = {}}) {
   return (
-    <div className="search-result py-8">
-      <h2 className='text-2xl font-bold mb-6'>Produk</h2>
+    <div className="search-result py-3">
       <Pagination connection={products} >
-        {({nodes, isLoading, NextLink, PreviousLink}) => {
+        {({nodes, isLoading, PreviousLink, hasNextPage, nextPageUrl, state}) => {
           const itemsMarkup = nodes.map((product) => {
             const sold = soldCounts[product.handle] || 0;
             const review = reviewSummaries[product.handle] || null;
@@ -170,11 +204,12 @@ function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries =
               <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4'>
                 {itemsMarkup}
               </div>
-              <div className='flex justify-center mt-8'>
-                <NextLink>
-                  {isLoading ? 'Loading...' : <span className='font-bold text-center bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer text-sm'>Muat Lebih Banyak ↓</span>}
-                </NextLink>
-              </div>
+              <SearchInfiniteLoader
+                hasNextPage={hasNextPage}
+                nextPageUrl={nextPageUrl}
+                isLoading={isLoading}
+                state={state}
+              />
             </div>
           );
         }}
@@ -220,8 +255,49 @@ function SearchResultArticleGrid({articles}) {
   );
 }
 
-export function NoSearchResults() {
-  return <p></p>;
+export function NoSearchResults({searchTerm}) {
+  const brands = ['Canon', 'Sony', 'Nikon', 'Fujifilm', 'DJI', 'GoPro', 'Insta360'];
+  return (
+    <div className="py-12 sm:py-16 text-center">
+      <div className="w-14 h-14 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+      </div>
+      {searchTerm ? (
+        <>
+          <h2 className="text-lg font-bold text-gray-900 mt-4">Produk tidak ditemukan</h2>
+          <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
+            Tidak ada hasil untuk &quot;<span className="font-medium text-gray-700">{searchTerm}</span>&quot;. Coba kata kunci lain atau periksa ejaannya.
+          </p>
+        </>
+      ) : (
+        <>
+          <h2 className="text-lg font-bold text-gray-900 mt-4">Mau cari apa hari ini?</h2>
+          <p className="text-sm text-gray-500 mt-1">Ketik nama produk, brand, atau kategori di atas.</p>
+        </>
+      )}
+
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-8 mb-3">Brand Populer</p>
+      <div className="flex flex-wrap items-center justify-center gap-2 px-4">
+        {brands.map((b) => (
+          <Link
+            key={b}
+            to={`/search?q=${encodeURIComponent(b)}`}
+            className="px-3.5 py-1.5 rounded-full border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors no-underline"
+          >
+            {b}
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-7">
+        <Link to="/collections" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 no-underline">
+          Lihat Semua Kategori →
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 /**

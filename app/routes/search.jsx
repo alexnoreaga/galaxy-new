@@ -1,5 +1,5 @@
 import {defer} from '@shopify/remix-oxygen';
-import {useLoaderData} from '@remix-run/react';
+import {useLoaderData, useSearchParams} from '@remix-run/react';
 import {getPaginationVariables} from '@shopify/hydrogen';
 
 import {SearchForm, SearchResults, NoSearchResults} from '~/components/Search';
@@ -184,16 +184,28 @@ export async function loader({request, context}) {
   const variables = getPaginationVariables(request, {pageBy: 8});
   const searchTerm = String(searchParams.get('q') || '');
 
+  // Sort — Shopify search supports RELEVANCE and PRICE (asc/desc via reverse)
+  const sort = searchParams.get('sort') || 'relevance';
+  const SORT_MAP = {
+    'relevance': {sortKey: 'RELEVANCE', reverse: false},
+    'price-asc': {sortKey: 'PRICE', reverse: false},
+    'price-desc': {sortKey: 'PRICE', reverse: true},
+  };
+  const {sortKey, reverse} = SORT_MAP[sort] || SORT_MAP['relevance'];
+
   if (!searchTerm) {
     return {
       searchResults: {results: null, totalResults: 0},
       searchTerm,
+      sort,
     };
   }
 
   const data = await context.storefront.query(SEARCH_QUERY, {
     variables: {
       query: searchTerm,
+      sortKey,
+      reverse,
       ...variables,
     },
   });
@@ -261,43 +273,78 @@ export async function loader({request, context}) {
     }
   }
 
-  return defer({searchTerm, searchResults, soldCounts, reviewSummaries, flashMap});
+  return defer({searchTerm, searchResults, soldCounts, reviewSummaries, flashMap, sort});
 }
 
 export default function SearchPage() {
-  const {searchTerm, searchResults, soldCounts = {}, reviewSummaries = {}, flashMap = {}} = useLoaderData();
+  const {searchTerm, searchResults, soldCounts = {}, reviewSummaries = {}, flashMap = {}, sort = 'relevance'} = useLoaderData();
+  const [, setSearchParams] = useSearchParams();
+
+  function onSortChange(e) {
+    // Reset pagination (drop cursor params) but keep the query when changing sort
+    const next = new URLSearchParams();
+    if (searchTerm) next.set('q', searchTerm);
+    next.set('sort', e.target.value);
+    setSearchParams(next, {preventScrollReset: true});
+  }
+
   return (
     <div className="search relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <h1>Cari Produk</h1>
-      {/* <SearchForm searchTerm={searchTerm} /> */}
+      <h1 className="sr-only">Cari Produk — Galaxy Camera</h1>
 
-      {/* KODE BARU */}
-      <PredictiveSearchForm>
+      {/* Styled search input */}
+      <div className="pt-4">
+        <PredictiveSearchForm>
           {({fetchResults, inputRef}) => (
-            <>
+            <div className="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
               <input
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}
-                placeholder="Cari Produk"
+                placeholder="Cari kamera, lensa, drone…"
                 ref={inputRef}
                 type="search"
-                className=' border-blue-500 rounded-md w-full'
+                defaultValue={searchTerm}
                 autoFocus
-
+                className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               />
-              <button type="submit" className=''>Cari</button>
-            </>
+            </div>
           )}
         </PredictiveSearchForm>
         <PredictiveSearchResults />
-          {/* KODE BARU */}
+      </div>
 
+      {/* Results header — query echo + sort */}
+      {searchTerm && (
+        <div className="flex items-center justify-between gap-3 mt-5 mb-1">
+          <p className="text-sm text-gray-600 min-w-0 truncate">
+            Hasil untuk <span className="font-semibold text-gray-900">&quot;{searchTerm}&quot;</span>
+          </p>
+          {searchResults.totalResults ? (
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <label htmlFor="sortby" className="text-xs text-gray-400">Urutkan</label>
+              <select
+                id="sortby"
+                value={sort}
+                onChange={onSortChange}
+                className="text-xs font-medium text-gray-800 border border-gray-200 rounded-lg pl-2.5 pr-7 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900 cursor-pointer"
+              >
+                <option value="relevance">Paling Sesuai</option>
+                <option value="price-asc">Harga Terendah</option>
+                <option value="price-desc">Harga Tertinggi</option>
+              </select>
+            </div>
+          ) : null}
+        </div>
+      )}
 
-      {!searchTerm || !searchResults.totalResults ? (
-        <NoSearchResults />
-      ) : (
+      {searchTerm && searchResults.totalResults ? (
         <SearchResults results={searchResults.results} soldCounts={soldCounts} reviewSummaries={reviewSummaries} flashMap={flashMap} />
+      ) : (
+        <NoSearchResults searchTerm={searchTerm} />
       )}
     </div>
   );
@@ -366,13 +413,16 @@ const SEARCH_QUERY = `#graphql
     $last: Int
     $query: String!
     $startCursor: String
+    $sortKey: SearchSortKeys
+    $reverse: Boolean
   ) @inContext(country: $country, language: $language) {
     products: search(
       query: $query,
       unavailableProducts: HIDE,
       types: [PRODUCT],
       first: $first,
-      sortKey: RELEVANCE,
+      sortKey: $sortKey,
+      reverse: $reverse,
       last: $last,
       before: $startCursor,
       after: $endCursor
