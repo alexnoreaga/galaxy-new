@@ -1,5 +1,24 @@
 import {json} from '@shopify/remix-oxygen';
 import {NO_PREDICTIVE_SEARCH_RESULTS} from '~/components/Search';
+import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
+
+// Applies an active flash-sale discount to a search item's price (returns {flashPrice, originalPrice} or null)
+function computeFlash(item, discounts) {
+  if (!item?.price || !discounts?.length) return null;
+  const ad = findProductAutoDiscount(discounts, item.id);
+  if (!ad) return null;
+  // variantIds: null = whole product; array = only those variants (match the item's first variant)
+  if (ad.variantIds && !(item.variantId && ad.variantIds.includes(item.variantId))) return null;
+  const baseAmt = parseFloat(item.price.amount) || 0;
+  const flashAmt = ad.type === 'amount'
+    ? Math.max(0, baseAmt - ad.amount)
+    : Math.max(0, Math.round(baseAmt * (1 - ad.percentage / 100)));
+  if (!(flashAmt > 0 && flashAmt < baseAmt)) return null;
+  return {
+    flashPrice: {amount: String(flashAmt), currencyCode: item.price.currencyCode},
+    originalPrice: item.price,
+  };
+}
 
 const DEFAULT_SEARCH_TYPES = [
   'ARTICLE',
@@ -80,7 +99,7 @@ async function fetchPredictiveSearchResults({params, request, context}) {
 
   if (productItems.length) {
     const handles = productItems.map(p => p.handle);
-    const [soldEntries, reviewEntries] = await Promise.all([
+    const [soldEntries, reviewEntries, discounts] = await Promise.all([
       Promise.all(handles.map(handle =>
         fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
           .then(res => res.ok ? res.json() : null)
@@ -102,6 +121,7 @@ async function fetchPredictiveSearchResults({params, request, context}) {
         })
         .catch(() => [handle, null])
       )),
+      getAutomaticDiscounts(context.env).catch(() => []),
     ]);
     const soldMap = Object.fromEntries(soldEntries);
     const reviewMap = Object.fromEntries(reviewEntries);
@@ -109,6 +129,7 @@ async function fetchPredictiveSearchResults({params, request, context}) {
       ...item,
       sold: soldMap[item.handle] || 0,
       review: reviewMap[item.handle] || null,
+      ...(computeFlash(item, discounts) || {}),
     }));
   }
 
@@ -180,6 +201,7 @@ export function normalizePredictiveSearchResults(predictiveSearch, locale) {
           productType: product.productType || '',
           url: `${localePrefix}/products/${product.handle}${trackingParams}`,
           price: product.variants.nodes[0].price,
+          variantId: product.variants.nodes[0].id,
         };
       }),
     });

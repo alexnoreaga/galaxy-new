@@ -50,7 +50,7 @@ export function SearchForm({searchTerm}) {
   );
 }
 
-export function SearchResults({results, soldCounts = {}, reviewSummaries = {}}) {
+export function SearchResults({results, soldCounts = {}, reviewSummaries = {}, flashMap = {}}) {
   if (!results) {
     return null;
   }
@@ -76,6 +76,7 @@ export function SearchResults({results, soldCounts = {}, reviewSummaries = {}}) 
                 products={productResults}
                 soldCounts={soldCounts}
                 reviewSummaries={reviewSummaries}
+                flashMap={flashMap}
               />
             ) : null;
           }
@@ -96,7 +97,7 @@ export function SearchResults({results, soldCounts = {}, reviewSummaries = {}}) 
   );
 }
 
-function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries = {}}) {
+function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries = {}, flashMap = {}}) {
   return (
     <div className="search-result py-8">
       <h2 className='text-2xl font-bold mb-6'>Produk</h2>
@@ -105,6 +106,8 @@ function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries =
           const itemsMarkup = nodes.map((product) => {
             const sold = soldCounts[product.handle] || 0;
             const review = reviewSummaries[product.handle] || null;
+            const flash = flashMap[product.handle] || null;
+            const baseAmount = product?.variants?.nodes[0]?.price?.amount;
             return (
             <div className="search-results-item" key={product.id}>
               <Link prefetch="intent" to={`/products/${product.handle}`}>
@@ -122,7 +125,17 @@ function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries =
                   </div>
                   <div className='flex flex-col gap-2 flex-grow'>
                     <span className='text-xs font-medium text-gray-700 line-clamp-2 h-8'>{product.title}</span>
-                    <span className='text-base font-bold text-blue-600 mt-auto'>Rp {parseFloat(product?.variants?.nodes[0]?.price?.amount).toLocaleString("id-ID")}</span>
+                    {flash ? (
+                      <div className='mt-auto flex flex-col leading-tight'>
+                        <div className='flex items-center gap-1'>
+                          <span className='text-[9px] font-black text-white bg-red-600 px-1 py-0.5 rounded leading-none'>⚡FLASH</span>
+                          <span className='text-base font-bold text-red-600'>Rp {flash.flashAmount.toLocaleString("id-ID")}</span>
+                        </div>
+                        <span className='text-xs text-gray-400 line-through'>Rp {parseFloat(baseAmount).toLocaleString("id-ID")}</span>
+                      </div>
+                    ) : (
+                      <span className='text-base font-bold text-blue-600 mt-auto'>Rp {parseFloat(baseAmount).toLocaleString("id-ID")}</span>
+                    )}
                     {(review || sold > 0) && (
                       <div className="mt-1 pt-1.5 border-t border-gray-100 flex items-center justify-between gap-1 flex-wrap">
                         {review ? (
@@ -407,7 +420,17 @@ function SearchResultItem({item}) {
           )}
           {item?.price && (
             <div className='mt-auto'>
-              <Money data={item.price} className='text-xs sm:text-sm font-bold text-blue-600' />
+              {item.flashPrice ? (
+                <div className='flex flex-col leading-tight'>
+                  <div className='flex items-center gap-1'>
+                    <span className='text-[8px] sm:text-[9px] font-black text-white bg-red-600 px-1 py-0.5 rounded leading-none'>⚡FLASH</span>
+                    <Money data={item.flashPrice} className='text-xs sm:text-sm font-bold text-red-600' />
+                  </div>
+                  <Money data={item.price} className='text-[10px] text-gray-400 line-through' />
+                </div>
+              ) : (
+                <Money data={item.price} className='text-xs sm:text-sm font-bold text-blue-600' />
+              )}
             </div>
           )}
           {(item.review || item.sold > 0) && (

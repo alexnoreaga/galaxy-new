@@ -7,6 +7,7 @@ import {
   PredictiveSearchForm,
   PredictiveSearchResults,
 } from '~/components/Search';
+import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
 
 export const meta = ({location, data}) => {
   // Get search query from URL
@@ -214,7 +215,7 @@ export async function loader({request, context}) {
   const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
   const productNodes = data.products?.nodes || [];
 
-  const [soldEntries, reviewEntries] = await Promise.all([
+  const [soldEntries, reviewEntries, discounts] = await Promise.all([
     Promise.all(productNodes.map(p =>
       fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
         .then(res => res.ok ? res.json() : null)
@@ -236,16 +237,35 @@ export async function loader({request, context}) {
       })
       .catch(() => [p.handle, null])
     )),
+    getAutomaticDiscounts(context.env).catch(() => []),
   ]);
 
   const soldCounts = Object.fromEntries(soldEntries);
   const reviewSummaries = Object.fromEntries(reviewEntries);
 
-  return defer({searchTerm, searchResults, soldCounts, reviewSummaries});
+  // Flash-sale prices keyed by handle (mirrors the product page's flash logic)
+  const flashMap = {};
+  for (const p of productNodes) {
+    const price = p.variants?.nodes?.[0]?.price;
+    const variantId = p.variants?.nodes?.[0]?.id;
+    if (!price) continue;
+    const ad = findProductAutoDiscount(discounts, p.id);
+    if (!ad) continue;
+    if (ad.variantIds && !(variantId && ad.variantIds.includes(variantId))) continue;
+    const baseAmt = parseFloat(price.amount) || 0;
+    const flashAmt = ad.type === 'amount'
+      ? Math.max(0, baseAmt - ad.amount)
+      : Math.max(0, Math.round(baseAmt * (1 - ad.percentage / 100)));
+    if (flashAmt > 0 && flashAmt < baseAmt) {
+      flashMap[p.handle] = {flashAmount: flashAmt, currencyCode: price.currencyCode, originalAmount: baseAmt};
+    }
+  }
+
+  return defer({searchTerm, searchResults, soldCounts, reviewSummaries, flashMap});
 }
 
 export default function SearchPage() {
-  const {searchTerm, searchResults, soldCounts = {}, reviewSummaries = {}} = useLoaderData();
+  const {searchTerm, searchResults, soldCounts = {}, reviewSummaries = {}, flashMap = {}} = useLoaderData();
   return (
     <div className="search relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <h1>Cari Produk</h1>
@@ -277,7 +297,7 @@ export default function SearchPage() {
       {!searchTerm || !searchResults.totalResults ? (
         <NoSearchResults />
       ) : (
-        <SearchResults results={searchResults.results} soldCounts={soldCounts} reviewSummaries={reviewSummaries} />
+        <SearchResults results={searchResults.results} soldCounts={soldCounts} reviewSummaries={reviewSummaries} flashMap={flashMap} />
       )}
     </div>
   );
