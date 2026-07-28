@@ -209,7 +209,7 @@ export default function Bio() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-white">
-      <div className="max-w-md mx-auto px-4 pt-5 pb-10">
+      <div className="max-w-md mx-auto px-2 pt-5 pb-10">
         {/* Header — compact: logo only, trust line moved to footer */}
         <div className="text-center mb-5">
           <img src={LOGO} alt="Galaxy Camera" className="h-10 mx-auto object-contain" />

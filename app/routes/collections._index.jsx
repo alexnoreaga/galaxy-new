@@ -27,7 +27,7 @@ export default function Collections() {
   const {collections} = useLoaderData();
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-12 py-6 md:py-10">
+    <div className="container mx-auto sm:px-6 lg:px-12 py-6 md:py-10">
 
       {/* Page header */}
       <div className="mb-6 md:mb-8">

@@ -596,7 +596,7 @@ export default function FlashSale() {
       <div style={{ height: 3, background: 'linear-gradient(90deg, #b71c1c, #e53935, #f4511e, #ffb300)' }} />
 
       {/* ── Grid ── */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-5 sm:py-7">
+      <div className="max-w-7xl mx-auto sm:px-6 py-5 sm:py-7">
         {products.length === 0 ? (
           <div className="text-center py-24">
             <p className="text-5xl mb-4">⚡</p>
