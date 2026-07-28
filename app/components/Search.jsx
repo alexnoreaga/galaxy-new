@@ -498,11 +498,12 @@ function SearchResultItem({item}) {
             <div className='mt-auto'>
               {item.flashPrice ? (
                 <div className='flex flex-col leading-tight'>
-                  <div className='flex items-center gap-1'>
-                    <span className='text-[8px] sm:text-[9px] font-black text-white bg-red-600 px-1 py-0.5 rounded leading-none'>⚡FLASH</span>
-                    <Money data={item.flashPrice} className='text-xs sm:text-sm font-bold text-red-600' />
+                  {/* Flash price on its own line so it never overflows the narrow card */}
+                  <Money data={item.flashPrice} className='text-xs sm:text-sm font-bold text-red-600' />
+                  <div className='flex items-center gap-1 flex-wrap'>
+                    <span className='text-[7px] sm:text-[8px] font-black text-white bg-red-600 px-1 rounded leading-tight flex-shrink-0'>⚡FLASH</span>
+                    <Money data={item.price} className='text-[10px] text-gray-400 line-through' />
                   </div>
-                  <Money data={item.price} className='text-[10px] text-gray-400 line-through' />
                 </div>
               ) : (
                 <Money data={item.price} className='text-xs sm:text-sm font-bold text-blue-600' />
