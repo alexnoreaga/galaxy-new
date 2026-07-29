@@ -261,6 +261,33 @@ function checkHarassment(sessionId, question) {
   return null;
 }
 
+// ── Off-topic gate — blatant NON-camera asks (calculator, code, AI-probe, trivia) get an
+// instant canned deflection with ZERO Gemini calls. Deliberately NARROW: anything that
+// mentions cameras/store topics is always passed through, so real buyers never get caught.
+// No block/cooldown (unlike harassment) — a rare false positive just gets a friendly nudge.
+const OFFTOPIC_DEFLECT = 'Hehe itu di luar keahlianku ka 😄 Aku spesialisnya bantu soal kamera, lensa & aksesoris di Galaxy Camera. Lagi cari produk apa nih? 😊';
+
+// Allow-list: if the message touches cameras/store topics, NEVER hard-gate it.
+const CAMERA_RE = /\b(kamera|camera|lensa|lens|drone|gopro|dji|sony|canon|nikon|fuji|fujifilm|panasonic|lumix|leica|ricoh|instax|polaroid|mirrorless|dslr|action ?cam|gimbal|tripod|mic|microphone|mikrofon|memory|sd ?card|micro ?sd|baterai|battery|charger|flash|blitz|filter|hood|strap|tas|garansi|cicilan|kredit|kredivo|harga|promo|voucher|nego|stok|stock|ready|bekas|second|kit|body ?only|shutter|megapixel|sensor|aperture|vlog|foto|video|zoom|wide|tele|adapter|mount|softbox|lighting|studio|film|switcher|mixer|monitor|recorder|stabilizer|rig|toko|galaxy|beli|order|pesan|kirim|ongkir|ambil)\b/i;
+const CODE_RE = /\b(javascript|python|c\+\+|console\.log|def\s+\w+\s*\(|function\s*\(|import\s+\w+|algoritma|source ?code|kodingan|buat(kan|in)?\s+(kode|script|program)|coding|programming)\b|write .*(code|script|function)/i;
+const JAILBREAK_RE = /\b(system ?prompt|prompt ?(kamu|mu|nya)|abaikan\s+[\w\s]{0,25}instruksi|ignore\s+[\w\s]{0,25}instructions?|kamu\s+(pakai\s+)?(ai|bot|gpt|chatgpt|chat gpt|gemini|llm|openai|bard)\s+apa|model\s+apa|pakai\s+(chatgpt|chat gpt|gpt|gemini|ai)\b|kamu\s+(chatgpt|gpt|gemini|openai|robot)\b|act\s+as\b|pretend\s+(you|to be)|role ?play|jailbreak|dev(eloper)? ?mode)\b/i;
+const TRIVIA_RE = /\b(ibu ?kota|presiden|perdana menteri|cuaca hari ini|zodiak|arti mimpi|resep|lirik lagu|nomor togel|siapa\s+(presiden|penemu|pencipta|penulis))\b/i;
+
+function checkOffTopic(question) {
+  const q = (question ?? '').trim();
+  if (!q) return null;
+  const t = q.toLowerCase();
+  // 1) Pure arithmetic — whole message is math chars AND has a digit-operator-digit ("127x9888=?", "5+5*3")
+  if (/^[\s\d()+\-*/x×÷.,=?%^]+$/.test(t) && /\d\s*[+\-*/x×÷]\s*\d/.test(t)) return OFFTOPIC_DEFLECT;
+  // 2) Camera/store topic → always let the AI handle it
+  if (CAMERA_RE.test(t)) return null;
+  // 3) Explicit "berapa/hitung <n> <op> <n>" calculator requests
+  if (/\b(berapa|hitung|hasil)\b[\s\S]*\d\s*[+\-*/x×÷]\s*\d/.test(t)) return OFFTOPIC_DEFLECT;
+  // 4) Code, AI-probe/jailbreak, and obvious non-camera trivia
+  if (CODE_RE.test(t) || JAILBREAK_RE.test(t) || TRIVIA_RE.test(t)) return OFFTOPIC_DEFLECT;
+  return null;
+}
+
 // ── Simple string hash for bubble answer cache keys ──────────────────────────
 function simpleHash(str) {
   let h = 5381;
@@ -787,6 +814,13 @@ export async function action({ request, context }) {
   const junkReply = checkJunk(sessionId, question);
   if (junkReply) {
     return json({ answer: junkReply });
+  }
+
+  // Off-topic gate: blatant non-camera asks (calculator, code, AI-probe, trivia) get an
+  // instant canned deflection — zero Gemini calls. Narrow scope; camera topics pass through.
+  const offTopicReply = checkOffTopic(question);
+  if (offTopicReply) {
+    return json({ answer: offTopicReply });
   }
 
   // Bubble answer cache — bubble questions are fixed per product, so cache their answers

@@ -1,6 +1,42 @@
-import {useLoaderData, Link} from '@remix-run/react';
+import {useLoaderData, Link, useNavigate} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 import {Pagination, getPaginationVariables, Image} from '@shopify/hydrogen';
+import {useEffect, useRef} from 'react';
+
+// Infinite scroll — auto-loads the next page as the sentinel nears the viewport (same as collections handle)
+function InfiniteLoader({hasNextPage, nextPageUrl, isLoading, state}) {
+  const navigate = useNavigate();
+  const ref = useRef(null);
+  const triggered = useRef(null);
+  useEffect(() => {
+    if (!hasNextPage || !nextPageUrl) return;
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !isLoading && triggered.current !== nextPageUrl) {
+        triggered.current = nextPageUrl;
+        navigate(nextPageUrl, {replace: true, preventScrollReset: true, state});
+      }
+    }, {rootMargin: '600px 0px'});
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasNextPage, nextPageUrl, isLoading, state, navigate]);
+
+  if (!hasNextPage) {
+    return <p className="text-center text-xs text-gray-400 mt-10">— Semua kategori sudah ditampilkan —</p>;
+  }
+  return (
+    <div ref={ref} className="flex justify-center py-10">
+      <span className="inline-flex items-center gap-2 text-sm text-gray-400">
+        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Memuat kategori…
+      </span>
+    </div>
+  );
+}
 
 
 
@@ -31,12 +67,17 @@ export default function Collections() {
 
       {/* Page header */}
       <div className="mb-6 md:mb-8">
+        <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
+          <Link to="/" prefetch="intent" className="hover:text-gray-600 no-underline">Home</Link>
+          <span>/</span>
+          <span className="text-gray-600 font-medium">Kategori</span>
+        </nav>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Kategori Produk</h1>
-        <p className="text-sm text-gray-500 mt-1">Temukan produk berdasarkan kategori pilihan</p>
+        <p className="text-sm text-gray-500 mt-1">Jelajahi semua kategori — kamera, lensa, drone, hingga aksesoris.</p>
       </div>
 
       <Pagination connection={collections}>
-        {({nodes, isLoading, PreviousLink, NextLink}) => (
+        {({nodes, isLoading, PreviousLink, hasNextPage, nextPageUrl, state}) => (
           <div>
             <PreviousLink>
               <div className="flex justify-center mb-6">
@@ -58,23 +99,13 @@ export default function Collections() {
 
             <CollectionsGrid collections={nodes} />
 
-            <NextLink>
-              <div className="flex justify-center mt-8">
-                <button className={`inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white text-sm font-semibold shadow hover:bg-gray-700 hover:shadow-md transition-all duration-200 ${isLoading ? 'opacity-60 cursor-wait' : ''}`}>
-                  {isLoading ? (
-                    <svg className="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
-                    </svg>
-                  )}
-                  {isLoading ? 'Memuat...' : 'Muat lebih banyak'}
-                </button>
-              </div>
-            </NextLink>
+            {/* Infinite scroll — replaces the old "Muat lebih banyak" button */}
+            <InfiniteLoader
+              hasNextPage={hasNextPage}
+              nextPageUrl={nextPageUrl}
+              isLoading={isLoading}
+              state={state}
+            />
           </div>
         )}
       </Pagination>
@@ -84,7 +115,7 @@ export default function Collections() {
 
 function CollectionsGrid({collections}) {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4">
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 md:gap-4">
       {collections.map((collection, index) => (
         <CollectionItem key={collection.id} collection={collection} index={index} />
       ))}
@@ -99,8 +130,8 @@ function CollectionItem({collection, index}) {
       to={`/collections/${collection.handle}`}
       prefetch="intent"
     >
-      <div className="flex flex-col items-center gap-2 p-3 md:p-4 rounded-2xl bg-white hover:bg-gray-50 border border-transparent hover:border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+      <div className="flex flex-col items-center gap-2.5 p-2.5 md:p-4 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:shadow-gray-200/60 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+        <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] md:w-20 md:h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center flex-shrink-0 ring-1 ring-inset ring-gray-100">
           {collection?.image ? (
             <img
               src={collection.image.url}
@@ -116,7 +147,7 @@ function CollectionItem({collection, index}) {
             </svg>
           )}
         </div>
-        <span className="text-xs md:text-sm font-medium text-gray-700 text-center group-hover:text-gray-900 transition-colors duration-200 line-clamp-2 leading-tight">
+        <span className="text-[11px] md:text-sm font-semibold text-gray-800 text-center group-hover:text-gray-900 transition-colors duration-200 line-clamp-2 leading-tight">
           {collection.title}
         </span>
       </div>
