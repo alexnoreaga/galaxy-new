@@ -214,22 +214,38 @@ export default function Bio() {
           <img src={LOGO} alt="Galaxy Camera" className="h-10 mx-auto object-contain" />
         </div>
 
-        {/* Website — primary CTA at the very top: cheaper on web, can nego, has voucher */}
-        <a
-          href="/"
-          onClick={() => trackEvent('bio_link_clicked', '', 'Website Resmi Galaxy.co.id')}
-          className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 shadow-lg shadow-orange-200 active:scale-[0.98] transition-all mb-4 text-white"
-          style={{ background: 'linear-gradient(120deg, #b91c1c 0%, #ea580c 55%, #f59e0b 100%)' }}
-        >
-          <span className="w-12 h-12 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
-            <img src="/favicon-96x96.png" alt="" className="w-7 h-7 object-contain" />
-          </span>
-          <div className="flex-1 text-left">
-            <p className="font-bold text-[15px] leading-tight">Beli di Web Galaxy Lebih Murah</p>
-            <p className="text-xs text-orange-50 mt-0.5">Bisa Nego dan Ada voucher Diskon 🎟️</p>
-          </div>
-          <FaChevronRight className="text-orange-100 flex-shrink-0" />
-        </a>
+        {/* Website — primary CTA at the very top: cheaper on web, can nego, has voucher.
+            A periodic "nudge" every few seconds draws the eye to this money button. The wiggle
+            lives on a wrapper so the button's own active:scale press feedback still works. */}
+        <style>{`
+          @keyframes bioNudge {
+            0%, 78%, 100% { transform: translateY(0) rotate(0deg); }
+            82% { transform: translateY(-3px) rotate(-2.5deg); }
+            86% { transform: translateY(0) rotate(2.5deg); }
+            90% { transform: translateY(-2px) rotate(-1.5deg); }
+            94% { transform: translateY(0) rotate(0.8deg); }
+            97% { transform: translateY(0) rotate(0deg); }
+          }
+          .bio-nudge { animation: bioNudge 4.5s ease-in-out infinite; will-change: transform; transform-origin: center; }
+          @media (prefers-reduced-motion: reduce) { .bio-nudge { animation: none; } }
+        `}</style>
+        <div className="bio-nudge mb-4">
+          <a
+            href="/"
+            onClick={() => trackEvent('bio_link_clicked', '', 'Website Resmi Galaxy.co.id')}
+            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 shadow-lg shadow-orange-200 active:scale-[0.98] transition-all text-white"
+            style={{ background: 'linear-gradient(120deg, #b91c1c 0%, #ea580c 55%, #f59e0b 100%)' }}
+          >
+            <span className="w-12 h-12 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <img src="/favicon-96x96.png" alt="" className="w-7 h-7 object-contain" />
+            </span>
+            <div className="flex-1 text-left">
+              <p className="font-bold text-[15px] leading-tight">Beli di Web Galaxy Lebih Murah</p>
+              <p className="text-xs text-orange-50 mt-0.5">Bisa Nego dan Ada voucher Diskon 🎟️</p>
+            </div>
+            <FaChevronRight className="text-orange-100 flex-shrink-0" />
+          </a>
+        </div>
 
         {/* Grisela hero button */}
         <button
