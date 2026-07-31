@@ -115,9 +115,14 @@ export async function createNegoCode(env, { productGid, variantGid }) {
         usageLimit: 1,
         appliesOncePerCustomer: true,
         customerSelection: { all: true },
+        // Lock combining explicitly — never stack with any other order/product/shipping discount
+        combinesWith: { orderDiscounts: false, productDiscounts: false, shippingDiscounts: false },
         customerGets: {
           value: { discountAmount: { amount, appliesOnEachItem: false } },
-          items: { products: { productsToAdd: [productGid] } },
+          // VARIANT-scoped, not product-scoped: the amount was computed from THIS variant's
+          // price + cost, so the code can only apply to it — a customer can't move it onto a
+          // cheaper variant of the same product and push that one below cost.
+          items: { products: { productVariantsToAdd: [v.id] } },
         },
       },
     });

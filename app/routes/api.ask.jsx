@@ -142,6 +142,7 @@ query askPredictiveSearch($searchTerm: String!) {
       availableForSale
       featuredImage { url }
       priceRange { minVariantPrice { amount } }
+      discontinued: metafield(namespace: "custom", key: "produk_discontinue") { value }
     }
   }
 }`;
@@ -409,10 +410,21 @@ query askCollectionRecommend($handle: String!, $filters: [ProductFilter!]) {
         availableForSale
         featuredImage { url }
         priceRange { minVariantPrice { amount } }
+        discontinued: metafield(namespace: "custom", key: "produk_discontinue") { value }
       }
     }
   }
 }`;
+
+const PRODUCT_COLLECTIONS_QUERY = `#graphql
+query askProductCollections($handle: String!) {
+  product(handle: $handle) {
+    collections(first: 6) { nodes { handle title } }
+  }
+}`;
+
+// Generic/utility collections that should NOT be treated as a product "category" for alternatives
+const GENERIC_COLLECTIONS = new Set(['frontpage', 'all', 'flash-sale', 'cuci-gudang', 'home', 'homepage', 'featured', 'new', 'best-seller', 'terlaris', 'sale', 'promo']);
 
 let collectionsCache = { at: 0, list: [] };
 
@@ -450,12 +462,47 @@ function mapProducts(items) {
     image: p.featuredImage?.url ?? null,
     price: Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0)),
     available: p.availableForSale,
+    discontinued: p.discontinued?.value === 'true',
   }));
+}
+
+// Stock label: discontinued (gone for good) is DIFFERENT from merely out of stock (may restock)
+function stockLabel(p) {
+  if (p.discontinued) return 'DISCONTINUED (produk sudah tidak dijual/diproduksi lagi — bukan sekadar stok habis)';
+  return p.available ? 'Ready stock' : 'Stok habis';
+}
+
+// When the searched product is out of stock / discontinued, "swim" into its own category
+// (the product's most specific collection) and pull in-stock, best-selling alternatives — so
+// Grisela offers a real replacement instead of dead-ending the customer.
+async function findCategoryAlternatives(context, handle, excludeHandles = []) {
+  try {
+    const data = await context.storefront.query(PRODUCT_COLLECTIONS_QUERY, { variables: { handle } });
+    const cols = data?.product?.collections?.nodes ?? [];
+    const target = cols.find(c => !GENERIC_COLLECTIONS.has(c.handle)) || cols[0];
+    if (!target) return [];
+    const recData = await context.storefront.query(COLLECTION_RECOMMEND_QUERY, {
+      variables: { handle: target.handle, filters: [{ available: true }] },
+    });
+    const nodes = recData?.collection?.products?.nodes ?? [];
+    const exclude = new Set(excludeHandles);
+    return mapProducts(
+      nodes.filter(p =>
+        p.availableForSale &&
+        p.discontinued?.value !== 'true' &&
+        !isAccessoryText(p.title) &&
+        !exclude.has(p.handle),
+      ),
+    );
+  } catch (e) {
+    console.error('[api.ask] category alternatives failed:', e?.message ?? e);
+    return [];
+  }
 }
 
 function productListText(products) {
   return products
-    .map(p => `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${p.available ? 'Ready stock' : 'Stok habis'}`)
+    .map(p => `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${stockLabel(p)}`)
     .join('\n');
 }
 
@@ -482,7 +529,7 @@ function hitungCicilan(harga) {
 function productListTextWithCicilan(products) {
   return products
     .map(p => {
-      const base = `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${p.available ? 'Ready stock' : 'Stok habis'}`;
+      const base = `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${stockLabel(p)}`;
       const cic = hitungCicilan(p.price);
       return cic ? `${base}\n  Estimasi Cicilan: ${cic}` : base;
     })
@@ -490,7 +537,8 @@ function productListTextWithCicilan(products) {
 }
 
 const CARD_INSTRUCTIONS = `- PENTING: produk di atas akan OTOMATIS ditampilkan sebagai kartu bergambar (foto, harga, link) tepat di bawah jawabanmu. JANGAN tulis link dan JANGAN sebutkan semua harga satu per satu — cukup jawab natural dan singkat, contoh: "Ada kak, ready stock! Ini pilihannya ya 👇"
-- Jika stok habis, beri tahu stoknya habis`;
+- Jika status "Stok habis": beri tahu stoknya sedang habis (masih ada kemungkinan restock).
+- Jika status "DISCONTINUED": produk ini SUDAH TIDAK DIPRODUKSI/DIJUAL LAGI — JANGAN bilang sekadar "stok habis" atau seolah bisa restock. Sampaikan dengan sopan bahwa produknya sudah discontinued, lalu langsung tawarkan alternatif/pengganti yang serupa.`;
 
 // Detect whether the customer is asking about other products or a recommendation, and query the catalog
 async function searchStoreProducts(context, question, messages, currentProduct = '') {
@@ -774,6 +822,26 @@ ${notFoundRules}`,
     }
 
     const products = mapProducts(items);
+
+    // If EVERYTHING we found is out of stock / discontinued, swim into the same category for
+    // in-stock alternatives instead of dead-ending the customer with just "habis".
+    const allUnavailable = products.length > 0 && products.every(p => !p.available || p.discontinued);
+    if (allUnavailable) {
+      const alts = await findCategoryAlternatives(context, items[0].handle, products.map(p => p.handle));
+      if (alts.length > 0) {
+        return {
+          contextText: `Customer menanyakan "${keyword}". Status produk yang dicari:
+${productListText(products)}
+- Produk yang dicari SEDANG TIDAK TERSEDIA. Sampaikan statusnya dengan jujur & sopan (kalau DISCONTINUED jangan bilang sekadar "stok habis" / seolah bisa restock).
+- Kartu produk di bawah jawabanmu adalah ALTERNATIF SEJENIS dari kategori yang sama yang READY STOCK — tawarkan sebagai pengganti, bukan sebagai produk yang dicari. Contoh: "Untuk ${searchKeywords[0]} lagi kosong ka, tapi ini beberapa alternatif sejenis yang ready 👇"
+Alternatif ready stock (dari kategori yang sama):
+${productListTextWithCicilan(alts)}
+${CARD_INSTRUCTIONS}`,
+          products: alts,
+        };
+      }
+    }
+
     return {
       contextText: `Hasil pencarian katalog toko untuk "${keyword}":
 ${productListTextWithCicilan(products)}
