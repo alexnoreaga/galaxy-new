@@ -512,6 +512,11 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
     q => !messages.some(m => m.role === 'user' && m.text === q)
   );
 
+  // Products with a Cost per item filled have margin to give — surface a one-tap nego prompt
+  // as the first bubble so Grisela can offer a "harga best" nego code.
+  const NEGO_Q = 'Bisa nego harganya?';
+  const showNegoBubble = hasHargaModal && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
+
   return (
     <div className="mt-3">
       {/* Section label */}
@@ -532,6 +537,14 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           ))
         ) : (
           <>
+            {showNegoBubble && (
+              <button
+                onClick={() => askQuestion(NEGO_Q, false)}
+                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs rounded-full transition-colors leading-tight text-left font-semibold"
+              >
+                Bisa nego harganya? 🤝
+              </button>
+            )}
             {questions.map((q, i) => (
               <button
                 key={i}
