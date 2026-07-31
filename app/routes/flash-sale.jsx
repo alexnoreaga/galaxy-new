@@ -1,6 +1,6 @@
 import { json } from '@shopify/remix-oxygen';
 import { useLoaderData, Link } from '@remix-run/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAutomaticDiscounts, getActiveFlashProducts, readEnvVar } from '~/lib/autoDiscounts';
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
@@ -432,8 +432,22 @@ export default function FlashSale() {
   const products = loaderProducts ?? collection?.products?.nodes ?? [];
   const [visibleCount, setVisibleCount] = useState(20);
 
+  // Infinite scroll — products are already loaded client-side, so just reveal 20 more as the
+  // sentinel nears the viewport (no network call).
+  const loadMoreRef = useRef(null);
+  useEffect(() => {
+    if (products.length <= visibleCount) return;
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) setVisibleCount((c) => Math.min(c + 20, products.length));
+    }, { rootMargin: '600px 0px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [products.length, visibleCount]);
+
   return (
-    <div className="min-h-screen" style={{ background: '#f5f5f5' }}>
+    <div className="min-h-screen -mx-4 -mb-4" style={{ background: '#f5f5f5' }}>
 
       {/* ── Header ── */}
       <div
@@ -596,7 +610,7 @@ export default function FlashSale() {
       <div style={{ height: 3, background: 'linear-gradient(90deg, #b71c1c, #e53935, #f4511e, #ffb300)' }} />
 
       {/* ── Grid ── */}
-      <div className="max-w-7xl mx-auto sm:px-6 py-5 sm:py-7">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
         {products.length === 0 ? (
           <div className="text-center py-24">
             <p className="text-5xl mb-4">⚡</p>
@@ -609,15 +623,14 @@ export default function FlashSale() {
               {products.slice(0, visibleCount).map(p => <ProductCard key={p.id} product={p} inventoryMap={inventoryMap} flash={autoFlashMap?.[p.id]} social={socialMap?.[p.handle]} />)}
             </div>
             {products.length > visibleCount && (
-              <div className="text-center mt-6">
-                <button
-                  onClick={() => setVisibleCount(c => c + 20)}
-                  className="inline-flex items-center gap-2 font-bold text-sm text-white px-8 py-3 rounded-full transition-all active:scale-95 hover:shadow-lg"
-                  style={{ background: 'linear-gradient(110deg, #e53935, #f4511e)', boxShadow: '0 4px 14px rgba(229,57,53,0.3)' }}
-                >
-                  ⚡ Muat Lebih Banyak
-                  <span className="bg-white/20 rounded-full px-2 py-0.5 text-xs">{products.length - visibleCount} lagi</span>
-                </button>
+              <div ref={loadMoreRef} className="flex justify-center mt-6 py-4">
+                <span className="inline-flex items-center gap-2 text-sm text-gray-400">
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Memuat produk…
+                </span>
               </div>
             )}
           </>
