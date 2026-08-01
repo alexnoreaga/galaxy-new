@@ -33,7 +33,7 @@ import {
       : paramsWithDefaults;
   
     return (
-      <div className="grid gap-4 mb-2">
+      <div className="grid gap-3 mb-1.5">
         {options.map((option) => {
           if (!option.values.length) {
             return null;
@@ -92,9 +92,9 @@ import {
                     >
                       {optionImage ? (
                         // Image + Text variant (compact)
-                        <div className="flex items-center gap-2 p-1.5">
+                        <div className="flex items-center gap-1.5 p-1">
                           <div className={`
-                            w-10 h-10 rounded-md overflow-hidden border flex-shrink-0
+                            w-8 h-8 rounded-md overflow-hidden border flex-shrink-0
                             ${isOutOfStock ? 'opacity-70' : ''}
                             ${isActive ? 'border-rose-300 ring-1 ring-rose-200' : 'border-gray-200'}
                           `}>
@@ -108,7 +108,7 @@ import {
                             />
                           </div>
                           <span className={`
-                            text-xs font-medium pr-2
+                            text-xs font-medium pr-1.5
                             ${isOutOfStock ? 'opacity-70' : ''}
                             ${isActive ? 'text-rose-700' : 'text-gray-700'}
                           `}>
@@ -117,7 +117,7 @@ import {
                         </div>
                       ) : (
                         // Text-only variant (compact)
-                        <div className="px-3 py-2">
+                        <div className="px-2.5 py-1.5">
                           <span className={`
                             text-xs font-medium whitespace-nowrap
                             ${isOutOfStock ? 'opacity-70' : ''}

@@ -129,7 +129,7 @@ function FlashSaleBanner({ autoDiscount }) {
     : `${autoDiscount.percentage}%`;
   return (
     <div
-      className="relative overflow-hidden rounded-xl order-2 md:order-4 mt-3 md:mt-4"
+      className="relative overflow-hidden rounded-xl order-2 md:order-4 mt-1 md:mt-1.5"
       style={{ background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 45%, #f97316 100%)' }}
     >
       {/* Diagonal shine */}
@@ -1654,7 +1654,7 @@ DP : 0
               {inCuciGudang && <CuciGudangBanner />}
 
               {/* PRICE + CICILAN — two-column layout */}
-              <div className="flex items-stretch order-2 md:order-4 md:mt-4">
+              <div className="flex items-stretch order-2 md:order-4 md:mt-1.5">
 
                 {/* Left: main price + discount */}
                 <div
@@ -2031,6 +2031,14 @@ DP : 0
                   Pembayaran Aman
                 </span>
               </div>
+
+              {/* Ships-from line — local trust + speed cue */}
+              <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-3.5 h-3.5 flex-shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-6.375m0-11.25h4.125c.621 0 1.125.504 1.125 1.125v6.375" />
+                </svg>
+                Dikirim dari Galaxy Camera Tangerang
+              </p>
 
               {/* Brand authorized dealer row */}
               <Suspense fallback={null}>
