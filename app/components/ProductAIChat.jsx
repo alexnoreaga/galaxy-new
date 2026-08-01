@@ -513,9 +513,10 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   );
 
   // Products with a Cost per item filled have margin to give — surface a one-tap nego prompt
-  // as the first bubble so Grisela can offer a "harga best" nego code.
+  // as the first bubble so Grisela can offer a "harga best" nego code. Hidden during an active
+  // flash sale (the flash price is already the best — a nego code won't stack on top of it).
   const NEGO_Q = 'Bisa nego harganya?';
-  const showNegoBubble = hasHargaModal && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
+  const showNegoBubble = hasHargaModal && !autoDiscount && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
 
   return (
     <div className="mt-3">
