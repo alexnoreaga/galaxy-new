@@ -273,7 +273,7 @@ export function ChatMessage({ msg, waMessage }) {
   );
 }
 
-export function ProductAIChat({ product, selectedVariant, autoDiscount = null, hasHargaModal = false }) {
+export function ProductAIChat({ product, selectedVariant, autoDiscount = null, hasHargaModal = false, inCuciGudang = false }) {
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [open, setOpen] = useState(false);
@@ -451,6 +451,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           productFlashSale: flashSaleInfo,
           productDiscontinued: isDiscontinued,
           productInStock: inStock,
+          productCuciGudang: inCuciGudang,
           productHandle: handle,
           productId: product?.id ?? '',
           variantId: selectedVariant?.id ?? '',
@@ -516,7 +517,8 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   // as the first bubble so Grisela can offer a "harga best" nego code. Hidden during an active
   // flash sale (the flash price is already the best — a nego code won't stack on top of it).
   const NEGO_Q = 'Bisa nego harganya?';
-  const showNegoBubble = hasHargaModal && !autoDiscount && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
+  // Hidden during flash sale AND on cuci-gudang (clearance) — both are already best-price, no extra nego
+  const showNegoBubble = hasHargaModal && !autoDiscount && !inCuciGudang && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
 
   return (
     <div className="mt-3">

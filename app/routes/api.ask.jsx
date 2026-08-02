@@ -859,7 +859,7 @@ ${CARD_INSTRUCTIONS}
 
 export async function action({ request, context }) {
   const body = await request.json();
-  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
+  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productCuciGudang = false, productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
@@ -957,6 +957,7 @@ ${productDiscontinued ? `- ⚠️ STATUS: DISCONTINUED — produk ini sudah tida
 - Spesifikasi: ${(productSpecs ?? '').slice(0, 800)}
 - Isi Paket/Box: ${(productIsiBox ?? '').slice(0, 300)}
 ${productFlashSale ? `- ⚡ FLASH SALE SEDANG AKTIF untuk produk ini: ${productFlashSale} — diskon OTOMATIS terpotong saat checkout di website, TANPA kode. Sebutkan ini PROAKTIF saat membahas harga/order — ini senjata closing utamamu! Ciptakan urgensi halus dengan menyebut batas waktunya. Harga flash ini khusus checkout website (nego 3% tetap opsi untuk toko/WA — bandingkan jujur mana yang lebih hemat jika ditanya)` : ''}
+${productCuciGudang ? `- 🔥 PRODUK INI MASUK KOLEKSI CUCI GUDANG (clearance) — perlakukan SAMA seperti flash sale: harganya SUDAH harga cuci gudang paling murah / harga terbaik. Sebutkan proaktif sebagai deal terbaik + ciptakan urgensi (stok terbatas, selagi masih ada). JANGAN beri kode nego [NEGOCODE] dan JANGAN janjikan potongan tambahan — harga ini sudah paling bersih. Kalau customer minta kurang lagi, jelaskan dengan ramah bahwa ini sudah harga cuci gudang paling murah (boleh arahkan konfirmasi ke admin kalau perlu)` : ''}
 ${productGaransi ? `- Garansi RESMI produk ini: ${productGaransi} — gunakan info ini (lebih akurat dari aturan umum per brand) saat customer tanya garansi produk ini` : ''}
 ${productFreeBonus ? `- Bonus Gratis KHUSUS produk ini (sedang berlaku, sebutkan ini saat customer tanya bonus/free): ${productFreeBonus.slice(0, 300)}` : ''}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}`}
@@ -1122,7 +1123,11 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
   // [NEGOCODE] marker → create a REAL, product-scoped, single-use discount code.
   // Amount is computed server-side from authoritative Shopify data (never client input).
   let negoCode;
-  if (answer.includes('[NEGOCODE]')) {
+  if (answer.includes('[NEGOCODE]') && productCuciGudang) {
+    // Cuci-gudang is already clearance-priced — no extra nego code (mirror flash-sale behavior)
+    answer = answer.replace(/\s*\[NEGOCODE\]\s*/g, ' ').replace(/ +/g, ' ').trim();
+    answer += '\n\nUntuk produk cuci gudang, harganya sudah paling murah ya ka 😊 Kalau butuh info lebih, boleh hubungi admin di 0821-1131-1131';
+  } else if (answer.includes('[NEGOCODE]')) {
     answer = answer.replace(/\s*\[NEGOCODE\]\s*/g, ' ').replace(/ +/g, ' ').trim();
     const last = sessionId ? negoCodeMap.get(sessionId) : 0;
     const onCooldown = last && Date.now() - last < NEGO_CODE_COOLDOWN_MS;

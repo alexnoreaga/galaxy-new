@@ -1857,7 +1857,7 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} />
+              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} />
 
               {/* KODE VOUCHER — inline strip below Tanya AI Galaxy */}
               <Suspense fallback={null}>
