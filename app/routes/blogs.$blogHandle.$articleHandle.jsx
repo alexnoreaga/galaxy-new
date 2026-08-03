@@ -20,9 +20,7 @@ export const meta = ({data}) => {
     content: `${data.article.title}`},
 
     {name: "description",
-    content: data.article?.seo?.description.substr(0, 155)
-    ?  data.article?.seo?.description.substr(0, 155)
-    : data.article?.content},
+    content: (data.article?.seo?.description || data.article?.content || '').substr(0, 155)},
 
     { tagName:'link',
       rel:'canonical',
@@ -38,9 +36,7 @@ export const meta = ({data}) => {
     },
 
     {name: "og:description",
-    content: data.article?.seo?.description.substr(0, 155)
-    ?  data.article?.seo?.description.substr(0, 155)
-    : data.article?.content},
+    content: (data.article?.seo?.description || data.article?.content || '').substr(0, 155)},
     {
       property: "og:type",
       content: "article",
