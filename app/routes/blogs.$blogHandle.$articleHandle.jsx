@@ -1,64 +1,77 @@
 import {json} from '@shopify/remix-oxygen';
-import {useLoaderData,useMatches,Link} from '@remix-run/react';
+import {useLoaderData, Link} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
-import {useLocation } from 'react-router-dom';
 
-
-export const handle = {
-
-
-  breadcrumb: () => <Link to="/blogs/artikel">Home</Link>,
-};
+const LOGO = 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105';
 
 export const meta = ({data}) => {
-  
-  // console.log('Ini adalah data Blog ',data)
+  const article = data?.article;
+  if (!article) return [{title: 'Artikel tidak ditemukan | Galaxy Camera'}];
+
+  const description = (article.seo?.description || article.content || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 160);
+  const title = article.seo?.title || article.title;
+  const url = data.canonicalUrl;
+  const image = article.image?.url;
 
   return [
-    {title: `${data.article.title}`},
-    {name: "title",
-    content: `${data.article.title}`},
+    {title: `${title} | Galaxy Camera`},
+    {name: 'description', content: description},
+    {name: 'author', content: article.author?.name || 'Galaxy Camera'},
+    {name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1'},
+    {tagName: 'link', rel: 'canonical', href: url},
 
-    {name: "description",
-    content: (data.article?.seo?.description || data.article?.content || '').substr(0, 155)},
+    // Open Graph
+    {property: 'og:type', content: 'article'},
+    {property: 'og:site_name', content: 'Galaxy Camera'},
+    {property: 'og:title', content: title},
+    {property: 'og:description', content: description},
+    {property: 'og:url', content: url},
+    ...(image
+      ? [
+          {property: 'og:image', content: image},
+          {property: 'og:image:width', content: String(article.image?.width || 1200)},
+          {property: 'og:image:height', content: String(article.image?.height || 630)},
+        ]
+      : []),
+    {property: 'article:published_time', content: article.publishedAt},
+    ...(article.author?.name ? [{property: 'article:author', content: article.author.name}] : []),
 
-    { tagName:'link',
-      rel:'canonical',
-      href: data.canonicalUrl
-    },
-    {
-      property: "og:title",
-      content: data?.article?.title,
-    },
-    {
-      name: "og:image",
-      content: data?.article?.image?.url,
-    },
+    // Twitter
+    {name: 'twitter:card', content: 'summary_large_image'},
+    {name: 'twitter:title', content: title},
+    {name: 'twitter:description', content: description},
+    ...(image ? [{name: 'twitter:image', content: image}] : []),
 
-    {name: "og:description",
-    content: (data.article?.seo?.description || data.article?.content || '').substr(0, 155)},
+    // Structured data — BlogPosting
     {
-      property: "og:type",
-      content: "article",
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: article.title,
+        description,
+        ...(image ? {image: [image]} : {}),
+        datePublished: article.publishedAt,
+        dateModified: article.publishedAt,
+        author: {
+          '@type': article.author?.name ? 'Person' : 'Organization',
+          name: article.author?.name || 'Galaxy Camera',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Galaxy Camera',
+          logo: {'@type': 'ImageObject', url: LOGO},
+        },
+        mainEntityOfPage: {'@type': 'WebPage', '@id': url},
+      },
     },
-    {
-      property: "og:site_name",
-      content: "galaxy.co.id",
-    },
-    {
-      property: "og:url",
-      content: data.canonicalUrl,
-    },
-
-];
+  ];
 };
 
-
-
-
-export async function loader({request,params, context}) {
+export async function loader({request, params, context}) {
   const {blogHandle, articleHandle} = params;
-
   if (!articleHandle || !blogHandle) {
     throw new Response('Not found', {status: 404});
   }
@@ -71,60 +84,83 @@ export async function loader({request,params, context}) {
     throw new Response(null, {status: 404});
   }
 
-  const article = blog.articleByHandle;
+  // Clean canonical — strip query/tracking params
+  const u = new URL(request.url);
+  const canonicalUrl = u.origin + u.pathname;
 
-  const canonicalUrl = request.url
-
-  return json({article,canonicalUrl});
+  return json({article: blog.articleByHandle, blogHandle, canonicalUrl});
 }
 
 export default function Article() {
-  const {article} = useLoaderData();
-  const {title, image, contentHtml, author} = article;
+  const {article, blogHandle} = useLoaderData();
+  const {title, image, contentHtml, author, publishedAt} = article;
 
-  const matches = useMatches();
-
-  
-
-  console.log('Artikel adalah, ', matches)
-
-  const publishedDate = new Intl.DateTimeFormat('en-US', {
+  const publishedDate = new Intl.DateTimeFormat('id-ID', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  }).format(new Date(article.publishedAt));
+  }).format(new Date(publishedAt));
 
   return (
-    <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <h1>
-        {title}
-      </h1>
-     
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-5 flex-wrap" aria-label="Breadcrumb">
+        <Link to="/" prefetch="intent" className="hover:text-gray-600 no-underline">Home</Link>
+        <span>/</span>
+        <Link to={`/blogs/${blogHandle}`} prefetch="intent" className="hover:text-gray-600 no-underline">Blog</Link>
+        <span>/</span>
+        <span className="text-gray-600 line-clamp-1">{title}</span>
+      </nav>
 
-     
-
-      <div className="mb-8 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      {image && <Image data={image} sizes="90vw" loading="eager" />}
+      {/* Header */}
+      <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 tracking-tight leading-tight">{title}</h1>
+      <div className="flex items-center flex-wrap gap-2 text-sm text-gray-500 mt-3">
+        {author?.name && (
+          <>
+            <span className="font-medium text-gray-700">{author.name}</span>
+            <span className="text-gray-300">·</span>
+          </>
+        )}
+        <time dateTime={publishedAt}>{publishedDate}</time>
       </div>
 
-      
-  
-      <div
+      {/* Hero image */}
+      {image && (
+        <div className="mt-6 rounded-2xl overflow-hidden bg-gray-50">
+          <Image
+            data={image}
+            alt={image.altText || title}
+            sizes="(min-width: 768px) 768px, 100vw"
+            loading="eager"
+            className="w-full h-auto"
+          />
+        </div>
+      )}
+
+      {/* Content */}
+      <article
+        className="prose prose-gray max-w-none mt-8 prose-img:rounded-xl prose-headings:tracking-tight prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline"
         dangerouslySetInnerHTML={{__html: contentHtml}}
-        className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl prose"
       />
 
-<div className='text-sm text-gray-600 text-right mt-5 mb-10'>
-<span >
-          {publishedDate} &middot; {author?.name}
+      {/* Footer */}
+      <div className="mt-10 pt-6 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
+        <Link
+          to={`/blogs/${blogHandle}`}
+          prefetch="intent"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 no-underline"
+        >
+          ← Semua Artikel
+        </Link>
+        <span className="text-xs text-gray-400">
+          {publishedDate}
+          {author?.name ? ` · ${author.name}` : ''}
         </span>
-        </div>
-   
+      </div>
     </div>
   );
 }
 
-// NOTE: https://shopify.dev/docs/api/storefront/latest/objects/blog#field-blog-articlebyhandle
 const ARTICLE_QUERY = `#graphql
   query Article(
     $articleHandle: String!

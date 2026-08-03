@@ -1131,7 +1131,16 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     if (productId && sessionId && !onCooldown) {
       const result = await createNegoCode(context.env, { productGid: productId, variantGid: variantId });
       if (result?.code) {
-        negoCode = { code: result.code, amount: result.amount, endsAt: result.endsAt };
+        // Carry the base + final price so the card can show "~~base~~ → final (hemat)".
+        // Display-only (the code itself is server-authoritative); price comes from the page.
+        const baseP = Math.round(parseFloat(productPrice) || 0);
+        const finalP = baseP > result.amount ? baseP - result.amount : 0;
+        negoCode = {
+          code: result.code,
+          amount: result.amount,
+          endsAt: result.endsAt,
+          ...(baseP > 0 ? { basePrice: baseP, finalPrice: finalP } : {}),
+        };
         negoCodeMap.set(sessionId, Date.now());
         if (negoCodeMap.size > 2000) {
           for (const [k, v] of negoCodeMap) if (Date.now() - v >= NEGO_CODE_COOLDOWN_MS) negoCodeMap.delete(k);

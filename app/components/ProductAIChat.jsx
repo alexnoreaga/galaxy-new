@@ -185,9 +185,19 @@ function NegoCodeCard({ nego }) {
         <div className="min-w-0">
           <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wide">🎁 Kode Spesial Buat Kaka</p>
           <p className="font-mono text-base font-black text-rose-700 tracking-wider leading-tight">{nego.code}</p>
-          <p className="text-[10px] text-gray-600">
-            Potongan <span className="font-bold">Rp{Number(nego.amount).toLocaleString('id-ID')}</span> · pakai saat checkout
-          </p>
+          {nego.finalPrice ? (
+            <p className="text-[11px] text-gray-700 leading-tight mt-0.5">
+              Harga jadi <span className="font-black text-rose-700">Rp{Number(nego.finalPrice).toLocaleString('id-ID')}</span>
+              {nego.basePrice ? (
+                <span className="text-gray-400 line-through ml-1">Rp{Number(nego.basePrice).toLocaleString('id-ID')}</span>
+              ) : null}
+              <span className="text-emerald-600 font-semibold ml-1">· hemat Rp{Number(nego.amount).toLocaleString('id-ID')}</span>
+            </p>
+          ) : (
+            <p className="text-[10px] text-gray-600">
+              Potongan <span className="font-bold">Rp{Number(nego.amount).toLocaleString('id-ID')}</span> · pakai saat checkout
+            </p>
+          )}
         </div>
         <button
           onClick={copy}
