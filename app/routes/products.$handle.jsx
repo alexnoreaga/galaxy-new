@@ -1595,7 +1595,17 @@ DP : 0
       // Remove the temporary textarea
       document.body.removeChild(textArea);
     };
-  
+
+    // Same copy text but with the "Info Produk : <link>" line removed — used on DOUBLE-click,
+    // for Instagram DM (IG blocks product links). Single-click keeps the link (for WhatsApp).
+    const stripInfoLink = (text) =>
+      (text || '')
+        .split('\n')
+        .filter((line) => !line.trim().startsWith('Info Produk :'))
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/\s+$/, '');
+
 
 
 
@@ -1658,8 +1668,9 @@ DP : 0
 
                 {/* Left: main price + discount */}
                 <div
-                  className="flex flex-col justify-center cursor-pointer pr-4"
+                  className="flex flex-col justify-center cursor-pointer pr-4 select-none"
                   onClick={() => copyToClipboard(listAngsuran(product, selectedVariant, canonicalUrl))}
+                  onDoubleClick={() => copyToClipboard(stripInfoLink(listAngsuran(product, selectedVariant, canonicalUrl)))}
                 >
                   {flashForVariant ? (
                     (() => {
@@ -1710,8 +1721,9 @@ DP : 0
                   <div className="text-xs text-gray-500">Cicilan Mulai dari</div>
                   <div className="text-sm font-bold text-rose-700 leading-tight">
                     <span
-                      className="cursor-pointer"
+                      className="cursor-pointer select-none"
                       onClick={() => copyToClipboard(cicilanKartuKredit(selectedVariant, product, canonicalUrl))}
+                      onDoubleClick={() => copyToClipboard(stripInfoLink(cicilanKartuKredit(selectedVariant, product, canonicalUrl)))}
                     >
                       Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}
                     </span>
@@ -1729,7 +1741,7 @@ DP : 0
               </div>
 
               {/* TITLE — position 4 mobile, 1 desktop */}
-              <h1 className="text-lg mt-2 md:mt-0 mb-0 md:text-xl font-semibold leading-snug whitespace-normal order-4 md:order-1" onClick={()=>copyToClipboard(hargaCashCopy)}>
+              <h1 className="text-lg mt-2 md:mt-0 mb-0 md:text-xl font-semibold leading-snug whitespace-normal order-4 md:order-1 select-none" onClick={()=>copyToClipboard(hargaCashCopy)} onDoubleClick={()=>copyToClipboard(stripInfoLink(hargaCashCopy))}>
                 {product.title}
               </h1>
 
