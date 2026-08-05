@@ -55,17 +55,10 @@ export function Header({header, isLoggedIn, cart}) {
       {/* Top bar — desktop only */}
       <div className="hidden sm:block bg-gray-900 text-white">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 h-9 text-xs">
-          <div className="flex items-stretch self-stretch">
-            <span className="px-3 flex items-center text-[11px] text-gray-300">
-              Part of <span className="ml-1 font-semibold text-red-400">Galaxycamera.id</span>
+          <div className="flex items-center">
+            <span className="text-[11px] text-gray-400">
+              Part of <span className="ml-0.5 font-semibold text-gray-200">Galaxycamera.id</span>
             </span>
-            <Link
-              to="/pengadaan"
-              className="px-3 flex items-center border-l border-white/10 text-[11px] font-medium text-gray-300 hover:text-white transition-colors no-underline"
-            >
-              Info Pengadaan
-            </Link>
-            <span className="ml-3 text-gray-400 hidden md:flex items-center text-[11px]">Toko Kamera Online Terlengkap dan Bergaransi Resmi</span>
           </div>
           <div className="flex items-center gap-3.5">
             <a href="https://wa.me/6282111311131" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors no-underline">
@@ -130,6 +123,14 @@ export function Header({header, isLoggedIn, cart}) {
           <div className="flex-1 flex items-center gap-4 min-w-0">
             <div className="hidden lg:flex items-center flex-shrink-0">
               <HeaderMenu menu={menu} viewport="desktop" />
+              <span className="mx-3 h-4 w-px bg-gray-200" />
+              <Link
+                to="/pengadaan"
+                prefetch="intent"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors no-underline whitespace-nowrap"
+              >
+                Info Pengadaan
+              </Link>
             </div>
             <div className="hidden sm:block flex-1 max-w-xl">
               <SearchToggle />
