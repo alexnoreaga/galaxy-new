@@ -527,8 +527,13 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   // as the first bubble so Grisela can offer a "harga best" nego code. Hidden during an active
   // flash sale (the flash price is already the best — a nego code won't stack on top of it).
   const NEGO_Q = 'Bisa nego harganya?';
-  // Hidden during flash sale AND on cuci-gudang (clearance) — both are already best-price, no extra nego
-  const showNegoBubble = hasHargaModal && !autoDiscount && !inCuciGudang && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
+  // Hidden during flash sale, cuci-gudang (already best-price), and discontinued (can't buy → no nego)
+  const showNegoBubble = hasHargaModal && !autoDiscount && !inCuciGudang && !isDiscontinued && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
+
+  // On discontinued products Grisela's job flips to redirecting toward an in-stock replacement —
+  // swap the generated questions for alternative-focused ones (cicilan/stok are pointless here).
+  const DISCONTINUED_QUESTIONS = ['Ada alternatif penggantinya?', 'Apa bedanya sama versi terbaru?', 'Kenapa produk ini discontinued?'];
+  const displayQuestions = isDiscontinued ? DISCONTINUED_QUESTIONS : questions;
 
   return (
     <div className="mt-3">
@@ -545,13 +550,13 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
             <p className="text-sm font-bold text-gray-900 leading-tight">
               Tanya Grisela <span className={hasHargaModal ? 'text-red-600' : 'text-rose-500'}>· AI Galaxy</span>
             </p>
-            <p className="text-[11px] text-gray-500 leading-tight">Online 24 jam — tanya spesifikasi, cicilan, stok, apa aja 😊</p>
+            <p className="text-[11px] text-gray-500 leading-tight">{isDiscontinued ? 'Produk ini sudah discontinued — tanya aku alternatif penggantinya ya 😊' : 'Online 24 jam — tanya spesifikasi, cicilan, stok, apa aja 😊'}</p>
           </div>
         </div>
 
         {/* Bubble questions */}
         <div className="flex flex-wrap gap-2">
-          {loadingQuestions ? (
+          {(loadingQuestions && !isDiscontinued) ? (
             // Skeleton
             [1, 2, 3, 4, 5].map(i => (
               <div key={i} className="h-7 bg-white rounded-full animate-pulse" style={{ width: `${[112, 96, 128, 104, 88][i - 1]}px` }} />
@@ -566,7 +571,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                   Bisa nego harganya? 🤝
                 </button>
               )}
-              {questions.map((q, i) => (
+              {displayQuestions.map((q, i) => (
                 <button
                   key={i}
                   onClick={() => askQuestion(q, false)}
