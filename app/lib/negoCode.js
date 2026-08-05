@@ -88,6 +88,10 @@ export async function createNegoCode(env, { productGid, variantGid }) {
     const cost = Number(parseFloat(v.inventoryItem?.unitCost?.amount ?? 0));
     const realCost = cost > 0 ? cost - diskonBerjalan : 0;
 
+    // If a real (cashback-adjusted) cost exists but leaves no margin, refuse to nego —
+    // any discount here would sell below cost.
+    if (cost > 0 && realCost >= price) return { skip: true, reason: 'below-cost' };
+
     // 50:50 when a valid cost exists, else flat 3% — both capped at MAX_DISCOUNT_PCT
     let amount;
     let mode;
@@ -100,6 +104,12 @@ export async function createNegoCode(env, { productGid, variantGid }) {
     }
     const ceiling = roundTo1000(price * MAX_DISCOUNT_PCT);
     if (amount > ceiling) amount = ceiling;
+    // Belt-and-suspenders: never let the final price fall below our real cost. Floor (not round)
+    // so the clamp can only make the discount smaller, never nudge it back under cost.
+    if (realCost > 0) {
+      const maxByCost = Math.floor((price - realCost) / 1000) * 1000;
+      if (amount > maxByCost) amount = maxByCost;
+    }
     if (amount < 1000) return { skip: true, reason: 'too-small' };
 
     const now = new Date();

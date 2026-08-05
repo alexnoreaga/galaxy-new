@@ -17,9 +17,11 @@ const CORS = {
 const roundTo1000 = (n) => Math.round(n / 1000) * 1000;
 
 // Mirrors ~/lib/hargaBest.js: realCost = cost − running promo; 50:50 split, clamped to a 10% floor.
+// The running promo (compareAt − price) is treated as the brand's cashback/subsidy, so it lowers our
+// TRUE cost ("modal setelah harga coret" = realCost). We never quote below that real cost.
 function computeHargaBest(price, compareAt, cost) {
   const diskon = compareAt > price ? compareAt - price : 0;
-  const realCost = cost > 0 ? cost - diskon : 0;
+  const realCost = cost > 0 ? cost - diskon : 0; // modal setelah harga coret (cashback-adjusted)
   const pakaiModal = realCost > 0 && realCost < price;
   let hargaBest;
   if (pakaiModal) {
@@ -29,7 +31,15 @@ function computeHargaBest(price, compareAt, cost) {
   } else {
     hargaBest = roundTo1000(price * 0.97); // no cost → 3% ceiling
   }
-  return {hargaBest, pakaiModal};
+  // Guard: never quote below our real (cashback-adjusted) cost…
+  if (realCost > 0) hargaBest = Math.max(hargaBest, realCost);
+  // …and if there's no room left at all, hold the price — never quote a loss.
+  let noNego = false;
+  if (hargaBest >= price) {
+    hargaBest = price;
+    noNego = true;
+  }
+  return {hargaBest, pakaiModal, realCost, noNego};
 }
 
 async function adminGraphql(env, query, variables) {
@@ -93,7 +103,11 @@ export async function action({request, context}) {
         const cost = parseFloat(v.inventoryItem?.unitCost?.amount) || 0;
         const margin = price - cost;
         const marginPct = price > 0 ? margin / price : 0;
-        const {hargaBest, pakaiModal} = computeHargaBest(price, compareAt, cost);
+        const {hargaBest, pakaiModal, realCost, noNego} = computeHargaBest(price, compareAt, cost);
+        const hasCoret = compareAt > price && cost > 0;
+        // Margin at the coret (list) price — equals price − realCost, the true after-cashback margin.
+        const coretMargin = hasCoret ? compareAt - cost : null;
+        const coretMarginPct = hasCoret && compareAt > 0 ? coretMargin / compareAt : null;
         return {
           variantId: v.id,
           inventoryItemId: v.inventoryItem?.id || null,
@@ -103,9 +117,13 @@ export async function action({request, context}) {
           cost,
           margin,
           marginPct,
+          realCost: hasCoret ? realCost : null, // modal setelah harga coret
+          coretMargin,
+          coretMarginPct,
           hargaBest,
           hasCost: cost > 0,
           pakaiModal,
+          noNego,
           copyText: `Harga best menjadi Rp ${hargaBest.toLocaleString('id-ID')} ya ka\nKhusus pembayaran debit, cash atau transfer ya.`,
         };
       });

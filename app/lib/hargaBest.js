@@ -105,6 +105,11 @@ export function buildHargaBest({ variants = [], costs = {} }) {
       hargaBest = roundTo1000(price * 0.97);
     }
 
+    // Guard: never quote below our real (cashback-adjusted) cost, and if there's no room left
+    // at all, hold the price rather than quote a loss.
+    if (realCost > 0) hargaBest = Math.max(hargaBest, realCost);
+    if (hargaBest >= price) hargaBest = price;
+
     if (pakaiModal) withRealCost.push(v.id);
     byVariant[v.id] = `Harga best menjadi Rp ${hargaBest.toLocaleString('id-ID')} ya ka\nKhusus pembayaran debit, cash atau transfer ya.`;
   }
