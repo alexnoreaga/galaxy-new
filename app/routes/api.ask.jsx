@@ -455,6 +455,11 @@ function isAccessoryText(text) {
   return ACCESSORY_RE.test(t) || ACCESSORY_FOR_RE.test(t) || ACCESSORY_KIT_RE.test(t);
 }
 
+// Support / mount gear the customer mounts a camera ONTO. On these pages a mentioned camera
+// model is the customer's OWN camera (a compatibility / "does it fit?" check) — NOT a product
+// they want to buy — so the router must NOT search for that camera.
+const SUPPORT_GEAR_RE = /\b(gimbal|stabilizer|steadicam|glidecam|tripod|monopod|mount|rig|cage|slider|shoulder ?rig|clamp|l-?bracket|quick ?release|base ?plate|selfie ?stick|tongsis|dolly|jib|crane)\b/i;
+
 function mapProducts(items) {
   return items.slice(0, 3).map(p => ({
     title: p.title,
@@ -548,6 +553,7 @@ async function searchStoreProducts(context, question, messages, currentProduct =
     const collectionsText = collections.map(c => `${c.handle} = ${c.title}`).join('\n');
 
     const router = getGemini(context, { search: false, temperature: 0 });
+    const supportGear = SUPPORT_GEAR_RE.test(currentProduct || '');
     const recentHistory = messages.slice(-4).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Analisa pertanyaan customer, output TEPAT SATU baris dengan salah satu format:
 1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna"). Jika customer menyebut DUA produk sekaligus, pisahkan dengan ";" (maksimal 2): SEARCH: produk pertama; produk kedua
@@ -566,6 +572,7 @@ PENTING: pertanyaan harga/nego/diskon/cicilan produk YANG SEDANG DILIHAT ("harga
 PENTING: TAPI jika pertanyaan harga/cicilan itu tentang produk LAIN yang BUKAN sedang dilihat — mis. varian berbeda ("body only" padahal halaman ini versi kit, atau sebaliknya), atau produk lain yang disebut/dibahas di riwayat — output SEARCH untuk produk itu supaya harga & estimasi cicilannya bisa diambil, JANGAN NO. Ambil nama produknya dari riwayat kalau pertanyaan terakhir singkat (mis. "kalau body only cicilannya?" saat riwayat membahas Sony A7 IV → SEARCH: Sony A7 IV Body Only). Contoh: (halaman Sony A7 IV Kit) "body only cicilannya berapa?" → SEARCH: Sony A7 IV Body Only
 PENTING: jika customer sedang MENJAWAB pertanyaan Admin dalam alur mencari produk (lihat riwayat: Admin baru bertanya jenis/kebutuhan/level/budget), jawaban pendek seperti "sony kak", "pemula si kak", "foto dan video" adalah KELANJUTAN alur rekomendasi → output REKOMENDASI dengan koleksi sesuai konteks riwayat, BUKAN NO.
 PENTING: jika customer sudah menyebut BRAND tertentu (Sony/Canon/Fujifilm/dll) di riwayat, WAJIB isi segmen ketiga REKOMENDASI dengan brand itu supaya hasilnya sesuai keinginan customer.
+PENTING — KOMPATIBILITAS AKSESORIS: jika customer sedang di halaman ALAT BANTU / AKSESORIS yang dipasangi kamera (gimbal, stabilizer, tripod, mount, rig, cage, slider, dll — BUKAN kamera) dan menyebut sebuah MODEL KAMERA (mis. "untuk kamera canon eos 800d", "pakai sony a6400", "cocok buat nikon d750?", "kalau kamera saya X gimana", "berat kamera saya Y"), itu artinya customer menanyakan apakah KAMERANYA KOMPATIBEL / MUAT / cukup ringan untuk dipasang di aksesoris ini — BUKAN mau membeli kamera itu. Output NO (dijawab pakai spesifikasi produk + pengetahuan berat & dimensi kamera). JANGAN SEARCH kamera itu, JANGAN tawarkan alternatif kamera.
 PENTING — KATEGORI:
   a) Jika customer menyebut BEBERAPA jenis/kategori sekaligus ("action cam atau pocket", "digicam atau instax", "mirrorless atau dslr", "kamera siap pakai kayak action cam / pocket"), WAJIB sertakan handle koleksi untuk SETIAP kategori yang disebut (sampai 3) — JANGAN hanya satu. Contoh: "budget 1 jutaan, kamera siap pakai action cam atau pocket" → REKOMENDASI: kamera-action,kamera-pocket,camera-compact | 0-1500000 | -
   b) Jika customer menyebut SATU kategori spesifik saja ("mirrorless aja", "dslr", "drone", "action cam"), pilih koleksi kategori ITU SAJA (1 handle) — jangan campur kategori lain.
@@ -591,11 +598,13 @@ Contoh:
 - (halaman Canon EOS R50) "gas order via website" → UPSELL: memory card SD; baterai LP-E17
 - (halaman Yashica DigiPix 100) "mending ini atau charmera millenium?" → SEARCH: Charmera Millenium
 - (halaman Canon EOS R50) "bagusan ini atau sony a6400?" → SEARCH: Sony A6400
+- (halaman DJI RS 4 Mini Gimbal, riwayat: Admin bilang max beban 2kg) "untuk kamera canon eos 800d" → NO (cek kompatibilitas kamera customer, bukan mau beli kamera)
+- (halaman Tripod / Gimbal) "pakai sony a7 iv muat ga?" → NO (cek kompatibilitas)
 - "kamera mirrorless vs dslr bedanya apa?" → NO (opini umum, tanpa produk spesifik lain)
 - "harganya berapa ya?" → NO
 - "Jam buka toko?" → NO
 - "Bisa cicilan ga?" → NO
-${currentProduct ? `\nCustomer sedang berada di halaman produk: "${currentProduct}"` : ''}${recentHistory ? `\nPercakapan terakhir:\n${recentHistory}` : ''}
+${currentProduct ? `\nCustomer sedang berada di halaman produk: "${currentProduct}"${supportGear ? ' — CATATAN: produk ini ALAT BANTU/AKSESORIS (gimbal/tripod/mount/dll), BUKAN kamera. Model kamera yang customer sebut = kamera MILIK customer untuk cek kompatibilitas, bukan mau dibeli → NO.' : ''}` : ''}${recentHistory ? `\nPercakapan terakhir:\n${recentHistory}` : ''}
 Pertanyaan customer: "${question}"
 
 Output:`;
