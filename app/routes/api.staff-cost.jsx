@@ -101,13 +101,13 @@ export async function action({request, context}) {
         const price = parseFloat(v.price) || 0;
         const compareAt = parseFloat(v.compareAtPrice) || 0;
         const cost = parseFloat(v.inventoryItem?.unitCost?.amount) || 0;
-        const margin = price - cost;
-        const marginPct = price > 0 ? margin / price : 0;
         const {hargaBest, pakaiModal, realCost, noNego} = computeHargaBest(price, compareAt, cost);
         const hasCoret = compareAt > price && cost > 0;
-        // Margin at the coret (list) price — equals price − realCost, the true after-cashback margin.
-        const coretMargin = hasCoret ? compareAt - cost : null;
-        const coretMarginPct = hasCoret && compareAt > 0 ? coretMargin / compareAt : null;
+        // ONE margin only — the REAL profit. When there's a coret, that discount is the brand
+        // cashback we claim, so our true cost is realCost (modal setelah cashback), NOT the raw
+        // cost. realCost already equals cost when there's no coret, so this is correct either way.
+        const netMargin = cost > 0 ? price - realCost : 0; // = compareAt − cost when a coret exists
+        const netMarginPct = cost > 0 && price > 0 ? netMargin / price : 0;
         return {
           variantId: v.id,
           inventoryItemId: v.inventoryItem?.id || null,
@@ -115,11 +115,9 @@ export async function action({request, context}) {
           price,
           compareAt,
           cost,
-          margin,
-          marginPct,
-          realCost: hasCoret ? realCost : null, // modal setelah harga coret
-          coretMargin,
-          coretMarginPct,
+          netMargin,
+          netMarginPct,
+          modalAsli: hasCoret ? realCost : null, // after-cashback cost — shown only when a coret exists
           hargaBest,
           hasCost: cost > 0,
           pakaiModal,

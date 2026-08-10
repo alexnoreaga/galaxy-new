@@ -6,6 +6,7 @@ import {HitunganPersen} from '~/components/HitunganPersen';
 import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 
 import { BrandPopular } from '../components/BrandPopular';
+import { KenapaGalaxy } from '../components/KenapaGalaxy';
 import { RecentlyViewed } from '../components/RecentlyViewed';
 import { SocialProofStrip } from '../components/SocialProofStrip';
 import { NearestStoreBar } from '~/components/NearestStoreBar';
@@ -704,8 +705,8 @@ export default function Homepage() {
         <MirrorlessProducts products={data.mirrorlessProducts} />
       </div>
 
-      
-
+      {/* Value-props band — breaks the white stretch, adds rhythm (self-bleeds full-width on mobile) */}
+      <KenapaGalaxy />
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0">
         <RecentlyViewed />
@@ -715,9 +716,8 @@ export default function Homepage() {
       <BannerKecil images={data.bannerKecil.metaobjects.nodes} />
       </div>
 
-      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+      {/* Brand Populer — full-bleed navy band, self-contained (handles its own width/bleed) */}
       <BrandPopular brands={data.kumpulanBrand}/>
-      </div>
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <FeaturedBlogs blogs={data.blogs}/>
