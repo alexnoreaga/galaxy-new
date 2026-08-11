@@ -11,6 +11,7 @@ import {useLocation} from 'react-router-dom';
 import React, {useEffect, useState, useRef} from 'react';
 import {HitunganPersen} from '~/components/HitunganPersen';
 import {CollectionSEOContent} from '~/components/CollectionSEOContent';
+import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
 
 export const handle = {
   breadcrumbType: 'collection',
@@ -128,7 +129,7 @@ export async function loader({request, params, context}) {
   const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
   const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
-  const [soldEntries, reviewEntries] = await Promise.all([
+  const [soldEntries, reviewEntries, discounts] = await Promise.all([
     Promise.all(
       nodes.map(p =>
         fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
@@ -169,7 +170,35 @@ export async function loader({request, params, context}) {
           .catch(() => [p.handle, null])
       )
     ),
+    getAutomaticDiscounts(context.env).catch(() => []),
   ]);
+
+  // Flash sale — enrich each node with the live automatic-discount price so listing cards reflect
+  // the same price as the product page. Product-level discounts apply to all variants; variant-level
+  // ones only apply if the card's representative variant is covered.
+  collection.products.nodes = nodes.map((node) => {
+    const disc = findProductAutoDiscount(discounts, node.id);
+    if (!disc) return node;
+    const variantId = node.variants?.nodes?.[0]?.id;
+    if (disc.variantIds && !(variantId && disc.variantIds.includes(variantId))) return node;
+    const base = parseFloat(node.priceRange?.minVariantPrice?.amount ?? 0);
+    if (!base) return node;
+    const price = disc.type === 'amount'
+      ? Math.max(0, base - disc.amount)
+      : Math.round(base * (1 - disc.percentage / 100));
+    if (!(price < base)) return node;
+    return {
+      ...node,
+      flashSale: {
+        price,
+        base,
+        type: disc.type,
+        amount: disc.amount ?? null,
+        percentage: disc.percentage ?? null,
+        endsAt: disc.endsAt ?? null,
+      },
+    };
+  });
 
   return json({
     collection,
@@ -448,7 +477,9 @@ function ProductItem({product, loading, sold, review, festive = false}) {
   const hasFreeItem = product.metafields[1]?.value?.length > 0;
 
   const harga = parseFloat(product.priceRange.minVariantPrice.amount);
-  const showCicilan = harga >= CICILAN_MIN_HARGA && !isDiscontinued && !isOutOfStock;
+  const flash = product.flashSale || null; // live automatic-discount price from the loader
+  const effectiveHarga = flash ? flash.price : harga;
+  const showCicilan = effectiveHarga >= CICILAN_MIN_HARGA && !isDiscontinued && !isOutOfStock;
 
   return (
     <Link
@@ -490,12 +521,16 @@ function ProductItem({product, loading, sold, review, festive = false}) {
           />
         )}
 
-        {/* Badges */}
-        {hasDiscount && !isDiscontinued && (
+        {/* Badges — flash sale takes precedence over a plain compare-at promo */}
+        {flash && !isDiscontinued ? (
+          <div className="absolute top-2 right-2 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow inline-flex items-center gap-0.5">
+            ⚡ FLASH
+          </div>
+        ) : hasDiscount && !isDiscontinued ? (
           <div className="absolute top-2 right-2 bg-gradient-to-r from-rose-600 to-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             Promo
           </div>
-        )}
+        ) : null}
         {isDiscontinued && (
           <div className="absolute top-2 left-2 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             Discontinue
@@ -516,29 +551,49 @@ function ProductItem({product, loading, sold, review, festive = false}) {
           {product.title}
         </p>
 
-        {/* Price */}
+        {/* Price — flash-sale price wins; else compare-at promo; else plain */}
         <div className="mt-1">
-          {hasDiscount && (
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="bg-rose-600 text-white text-[10px] font-bold px-1 py-0.5 rounded">
-                <HitunganPersen
-                  hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount}
-                  hargaSesudah={product.priceRange.minVariantPrice.amount}
-                />
-              </span>
-              <span className="text-[11px] text-gray-400 line-through">
-                Rp{parseFloat(product.compareAtPriceRange.minVariantPrice.amount).toLocaleString('id-ID')}
-              </span>
-            </div>
+          {flash ? (
+            <>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="bg-red-600 text-white text-[10px] font-bold px-1 py-0.5 rounded whitespace-nowrap">
+                  {flash.type === 'amount'
+                    ? `-Rp${Number(flash.amount).toLocaleString('id-ID')}`
+                    : `-${flash.percentage}%`}
+                </span>
+                <span className="text-[11px] text-gray-400 line-through">
+                  Rp{flash.base.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <p className="text-sm font-bold text-red-600">
+                Rp{flash.price.toLocaleString('id-ID')}
+              </p>
+            </>
+          ) : (
+            <>
+              {hasDiscount && (
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="bg-rose-600 text-white text-[10px] font-bold px-1 py-0.5 rounded">
+                    <HitunganPersen
+                      hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount}
+                      hargaSesudah={product.priceRange.minVariantPrice.amount}
+                    />
+                  </span>
+                  <span className="text-[11px] text-gray-400 line-through">
+                    Rp{parseFloat(product.compareAtPriceRange.minVariantPrice.amount).toLocaleString('id-ID')}
+                  </span>
+                </div>
+              )}
+              <p className={`text-sm font-bold ${hasDiscount ? 'text-rose-700' : 'text-gray-900'}`}>
+                Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString('id-ID')}
+              </p>
+            </>
           )}
-          <p className={`text-sm font-bold ${hasDiscount ? 'text-rose-700' : 'text-gray-900'}`}>
-            Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString('id-ID')}
-          </p>
           {showCicilan && (
             <p className="text-[10px] sm:text-[11px] text-gray-500 leading-tight mt-0.5">
               Cicilan{' '}
               <span className="font-semibold text-rose-700">
-                {formatSingkat(cicilanPerBulan(harga))}
+                {formatSingkat(cicilanPerBulan(effectiveHarga))}
               </span>
               /bln
             </p>
@@ -628,6 +683,7 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
     }
     variants(first: 1) {
       nodes {
+        id
         selectedOptions {
           name
           value

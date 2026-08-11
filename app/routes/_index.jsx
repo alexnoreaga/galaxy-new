@@ -13,7 +13,7 @@ import { NearestStoreBar } from '~/components/NearestStoreBar';
 import { MiniFaq } from '../components/MiniFaq';
 import {useRef} from "react";
 import { useLayoutEffect, useState, useEffect } from 'react';
-import { getAutomaticDiscounts, getActiveFlashProducts } from '~/lib/autoDiscounts';
+import { getAutomaticDiscounts, getActiveFlashProducts, findProductAutoDiscount } from '~/lib/autoDiscounts';
 import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
 
 import { Carousel } from '~/components/Carousel';
@@ -130,7 +130,38 @@ export async function loader({context, request}) {
   // Start deferred promises immediately — run in background while critical queries load
   const mirrorlessProducts = storefront.query(MIRRORLESS_PRODUCTS_QUERY).then(async (data) => {
     const nodes = data?.collection?.products?.nodes || [];
-    const { soldCounts, reviewSummaries } = await getSocialProof(nodes.map(p => p.handle));
+    const [{ soldCounts, reviewSummaries }, discounts] = await Promise.all([
+      getSocialProof(nodes.map(p => p.handle)),
+      getAutomaticDiscounts(context.env).catch(() => []),
+    ]);
+    // Flash sale — reflect the live automatic-discount price on each card (same source as the
+    // product page + flash-sale strip). Product-level discounts apply to all variants; variant-level
+    // ones only if this card's representative variant is covered.
+    if (data?.collection?.products?.nodes) {
+      data.collection.products.nodes = nodes.map((node) => {
+        const disc = findProductAutoDiscount(discounts, node.id);
+        if (!disc) return node;
+        const variantId = node.variants?.nodes?.[0]?.id;
+        if (disc.variantIds && !(variantId && disc.variantIds.includes(variantId))) return node;
+        const base = parseFloat(node.priceRange?.minVariantPrice?.amount ?? 0);
+        if (!base) return node;
+        const price = disc.type === 'amount'
+          ? Math.max(0, base - disc.amount)
+          : Math.round(base * (1 - disc.percentage / 100));
+        if (!(price < base)) return node;
+        return {
+          ...node,
+          flashSale: {
+            price,
+            base,
+            type: disc.type,
+            amount: disc.amount ?? null,
+            percentage: disc.percentage ?? null,
+            endsAt: disc.endsAt ?? null,
+          },
+        };
+      });
+    }
     return { ...data, soldCounts, reviewSummaries };
   });
 
@@ -983,6 +1014,7 @@ function MirrorlessProducts({products}) {
               <div className="flex overflow-x-auto gap-3 pb-4 snap-x snap-mandatory scroll-smooth sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:gap-4 hide-scroll-bar">
                 {productsList.nodes.map((product) => {
                   const sold = soldCounts[product?.handle] || 0;
+                  const flash = product?.flashSale || null; // live automatic-discount price from the loader
                   return (
                   <Link
                     key={product?.id}
@@ -997,7 +1029,12 @@ function MirrorlessProducts({products}) {
                         sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 128px"
                         className="group-hover:scale-105 transition-transform duration-300"
                       />
-                      {parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) && (
+                      {flash ? (
+                        <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 text-white text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-lg shadow-lg"
+                          style={{ background: 'linear-gradient(135deg, #dc2626, #ea580c)' }}>
+                          ⚡<HitunganPersen hargaSebelum={flash.base} hargaSesudah={flash.price} />
+                        </div>
+                      ) : parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) ? (
                         <div className="absolute top-1.5 right-1.5 flex items-center text-white text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-lg shadow-lg"
                           style={{ background: 'linear-gradient(135deg, #f97316, #dc2626)' }}>
                           <HitunganPersen
@@ -1005,7 +1042,7 @@ function MirrorlessProducts({products}) {
                             hargaSesudah={product?.priceRange?.minVariantPrice?.amount || 0}
                           />
                         </div>
-                      )}
+                      ) : null}
                       {product?.metafields?.find(m => m?.key === 'free')?.value && (
                         <div className="absolute top-1.5 left-1.5 flex items-center gap-0.5 text-white text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-lg shadow-lg"
                           style={{ background: 'linear-gradient(135deg, #a855f7, #7c3aed)' }}>
@@ -1029,15 +1066,27 @@ function MirrorlessProducts({products}) {
                         {product?.title || 'Nama Produk'}
                       </h3>
 
-                      {parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) && (
-                        <div className='text-[10px] sm:text-xs text-gray-400 line-through mb-0.5 sm:mb-1'>
-                          Rp{parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
-                        </div>
+                      {flash ? (
+                        <>
+                          <div className='text-[10px] sm:text-xs text-gray-400 line-through mb-0.5 sm:mb-1'>
+                            Rp{flash.base.toLocaleString("id-ID")}
+                          </div>
+                          <div className='text-xs sm:text-base font-bold text-red-600'>
+                            Rp{flash.price.toLocaleString("id-ID")}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) && (
+                            <div className='text-[10px] sm:text-xs text-gray-400 line-through mb-0.5 sm:mb-1'>
+                              Rp{parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
+                            </div>
+                          )}
+                          <div className={`text-xs sm:text-base font-bold ${parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) ? 'text-red-600' : 'text-gray-900'}`}>
+                            Rp{parseFloat(product?.priceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
+                          </div>
+                        </>
                       )}
-
-                      <div className={`text-xs sm:text-base font-bold ${parseFloat(product?.compareAtPriceRange?.minVariantPrice?.amount || 0) > parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) ? 'text-red-600' : 'text-gray-900'}`}>
-                        Rp{parseFloat(product?.priceRange?.minVariantPrice?.amount || 0).toLocaleString("id-ID")}
-                      </div>
 
                       {(reviewSummaries[product?.handle] || sold > 0) && (
                         <div className='flex items-center justify-between mt-1 gap-1'>
@@ -1300,6 +1349,11 @@ const MIRRORLESS_PRODUCTS_QUERY = `#graphql
       minVariantPrice{
         amount
         currencyCode
+      }
+    }
+    variants(first: 1) {
+      nodes {
+        id
       }
     }
     images(first: 1) {
