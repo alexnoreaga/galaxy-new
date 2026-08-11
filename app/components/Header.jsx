@@ -23,6 +23,13 @@ export function Header({header, isLoggedIn, cart}) {
   const navigate = useNavigate();
   const isProduct = location.pathname.includes('/products/');
   const isHome = location.pathname === '/';
+  // Collection HANDLE pages (drill-downs) get the product-style treatment: back button + no store bar.
+  // '/collections/xxx' has the trailing slash; the bare '/collections' index does NOT, so this is precise.
+  const isCollectionHandle = location.pathname.includes('/collections/');
+  // Collections INDEX is a top-level nav tab — keep the hamburger, just drop the store bar.
+  const isCollectionsIndex = location.pathname === '/collections';
+  // Pages that show a mobile back button + hide the hamburger/logo (compact drill-down bar)
+  const isDrillDown = isProduct || isCollectionHandle;
 
   // Full-screen loader: only on a REAL page change to a shopping route — never during same-page
   // pagination (infinite scroll navigates within the same pathname + a cursor, which was blinking black).
@@ -88,8 +95,8 @@ export function Header({header, isLoggedIn, cart}) {
       <header className={`sticky top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-white/95' : 'bg-white/95'}`}>
         <div className={`flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-gray-100' : 'border-b border-gray-100'}`}>
 
-          {/* Back button — mobile product pages only */}
-          {isProduct && (
+          {/* Back button — mobile drill-down pages (product + collection handle) */}
+          {isDrillDown && (
             <button
               type="button"
               onClick={goBack}
@@ -104,7 +111,7 @@ export function Header({header, isLoggedIn, cart}) {
 
           {/* Left: hamburger + logo. On mobile homepage we keep the hamburger but
               drop the wordmark (search-first, eraspace-style); logo returns on sm+. */}
-          <div className={`${isProduct ? 'hidden sm:flex' : 'flex'} items-center gap-3 flex-shrink-0`}>
+          <div className={`${isDrillDown ? 'hidden sm:flex' : 'flex'} items-center gap-3 flex-shrink-0`}>
             <HeaderMenuMobileToggle onDark={isHome} />
             <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className="hidden sm:block flex-shrink-0 hover:opacity-80 transition-opacity">
               <img
@@ -145,8 +152,9 @@ export function Header({header, isLoggedIn, cart}) {
           <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} onDark={isHome} />
         </div>
 
-        {/* Nearest store bar — hidden on mobile product pages AND on mobile home (moves into the curved hero below) */}
-        <div className={isProduct || isHome ? 'hidden sm:block' : ''}>
+        {/* Nearest store bar — hidden on mobile for product, home (moves into curved hero), and all
+            collection pages (handle + index). Still shows on sm+. */}
+        <div className={isProduct || isHome || isCollectionHandle || isCollectionsIndex ? 'hidden sm:block' : ''}>
           <NearestStoreBar />
         </div>
       </header>
