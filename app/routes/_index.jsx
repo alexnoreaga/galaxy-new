@@ -9,6 +9,7 @@ import { BrandPopular } from '../components/BrandPopular';
 import { KenapaGalaxy } from '../components/KenapaGalaxy';
 import { RecentlyViewed } from '../components/RecentlyViewed';
 import { SocialProofStrip } from '../components/SocialProofStrip';
+import { TrustRibbon } from '../components/TrustRibbon';
 import { NearestStoreBar } from '~/components/NearestStoreBar';
 import { MiniFaq } from '../components/MiniFaq';
 import {useRef} from "react";
@@ -653,14 +654,15 @@ export default function Homepage() {
         <h1 className="sr-only">Toko Kamera Tangerang Depok Terlengkap — Galaxy Camera Store</h1>
       </div>
 
-      {/* Store locator — mobile only (on desktop it lives in the header) */}
-      <div className="sm:hidden relative z-10 mt-1">
-        <NearestStoreBar variant="card" />
-      </div>
+      {/* Store locator — moved into the charcoal hero ABOVE the banner (Header.jsx, hero variant).
+          On desktop it still lives in the header. */}
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-3">
         <SocialProofStrip />
       </div>
+
+      {/* Slim scrolling trust ribbon — mobile only, sits right under the stats (Blibli-style) */}
+      <TrustRibbon />
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 

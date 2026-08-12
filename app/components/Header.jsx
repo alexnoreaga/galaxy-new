@@ -159,13 +159,17 @@ export function Header({header, isLoggedIn, cart}) {
         </div>
       </header>
 
-      {/* Charcoal curved tail — MOBILE HOMEPAGE ONLY. A short charcoal band with a smooth bottom
-          arc; the homepage banner is pulled up to overlap this curve (eraspace-style layering). */}
+      {/* Charcoal curved hero — MOBILE HOMEPAGE ONLY. Carries the store-locator line in white
+          (Blibli-style: location above the banner) then curves at the bottom; the homepage banner
+          is pulled up to overlap this curve (eraspace-style layering). The extra pb keeps the navy
+          long enough that the location line sits fully above the banner and the arc still hugs it. */}
       {isHome && (
         <div
-          className="sm:hidden bg-gray-900 h-10"
+          className="sm:hidden bg-gray-900 pt-0.5 pb-8"
           style={{borderBottomLeftRadius: '50% 26px', borderBottomRightRadius: '50% 26px'}}
-        />
+        >
+          <NearestStoreBar variant="hero" />
+        </div>
       )}
     </>
   );

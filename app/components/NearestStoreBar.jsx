@@ -39,6 +39,7 @@ function calcSorted(latitude, longitude, stores) {
 
 export function NearestStoreBar({ variant = 'bar' } = {}) {
   const card = variant === 'card';
+  const hero = variant === 'hero'; // white-on-navy line for the mobile homepage hero (above the banner)
   // Per-instance gradient ID — the bar can mount twice on mobile home (hidden desktop copy
   // + visible hero copy); a shared static ID made the visible icon reference the hidden one.
   const GRADIENT_ID = `nearestStoreIconGradient-${useId().replace(/:/g, '')}`;
@@ -129,9 +130,13 @@ export function NearestStoreBar({ variant = 'bar' } = {}) {
   }
 
   const iconEl = status === 'loading' ? (
-    <svg className="w-5 h-5 animate-spin text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+    <svg className={`w-5 h-5 animate-spin flex-shrink-0 ${hero ? 'text-white/90' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  ) : hero ? (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 flex-shrink-0 text-white">
+      <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.013 3.5-4.667 3.5-8.077A8.78 8.78 0 0012 2.25a8.78 8.78 0 00-8.79 8.001c0 3.41 1.555 6.064 3.499 8.077a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
     </svg>
   ) : (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={`url(#${GRADIENT_ID})`} className="w-5 h-5 flex-shrink-0">
@@ -147,13 +152,15 @@ export function NearestStoreBar({ variant = 'bar' } = {}) {
   );
 
   return (
-    <div className={`relative ${card ? '' : 'w-full bg-gray-50 border-b border-gray-200'}`} ref={dropdownRef}>
-      <div className={card ? '' : 'max-w-7xl mx-auto px-4'}>
+    <div className={`relative ${card || hero ? '' : 'w-full bg-gray-50 border-b border-gray-200'}`} ref={dropdownRef}>
+      <div className={card || hero ? '' : 'max-w-7xl mx-auto px-4'}>
         <button
           onClick={handleActivate}
           className={`w-full flex items-center transition-all group ${
             card
               ? 'gap-3 rounded-2xl border border-gray-200 bg-white shadow-sm px-3.5 py-2.5 hover:border-gray-300 active:scale-[0.99]'
+              : hero
+              ? 'gap-2 px-4 py-2 active:opacity-80'
               : 'justify-center gap-2.5 py-2 hover:bg-gray-50'
           }`}
         >
@@ -163,7 +170,13 @@ export function NearestStoreBar({ variant = 'bar' } = {}) {
           ) : iconEl}
 
           {/* Text */}
-          <span className={card ? 'flex-1 min-w-0 text-left text-[13px] font-semibold text-gray-800 leading-snug' : 'text-xs sm:text-sm font-semibold text-gray-800'}>
+          <span className={
+            card
+              ? 'flex-1 min-w-0 text-left text-[13px] font-semibold text-gray-800 leading-snug'
+              : hero
+              ? 'flex-1 min-w-0 text-left text-[13px] font-medium text-white/95 leading-snug'
+              : 'text-xs sm:text-sm font-semibold text-gray-800'
+          }>
             {status === 'idle' && 'Aktifkan lokasimu untuk melihat toko terdekat'}
             {status === 'loading' && 'Mendeteksi lokasi...'}
             {status === 'found' && nearestStore && (card ? (
@@ -177,23 +190,23 @@ export function NearestStoreBar({ variant = 'bar' } = {}) {
               </>
             ) : (
               <>
-                Toko terdekat: <span className="text-gray-900 font-bold">{nearestStore.name}</span>
-                <span className="text-gray-300 mx-1.5">·</span>
-                <span className="font-normal text-gray-500">{formatDistance(nearestStore.distance)}</span>
+                Toko terdekat: <span className={hero ? 'text-white font-bold' : 'text-gray-900 font-bold'}>{nearestStore.name}</span>
+                <span className={`mx-1.5 ${hero ? 'text-white/40' : 'text-gray-300'}`}>·</span>
+                <span className={`font-normal ${hero ? 'text-white/70' : 'text-gray-500'}`}>{formatDistance(nearestStore.distance)}</span>
               </>
             ))}
             {status === 'denied' && (
-              <>Izin lokasi ditolak — <a href="/stores" className="text-blue-600 underline hover:opacity-80">lihat semua toko</a></>
+              <>Izin lokasi ditolak — <a href="/stores" className={hero ? 'underline text-white' : 'text-blue-600 underline hover:opacity-80'}>lihat semua toko</a></>
             )}
             {status === 'unsupported' && (
-              <>Browser tidak mendukung lokasi — <a href="/stores" className="text-blue-600 underline hover:opacity-80">lihat semua toko</a></>
+              <>Browser tidak mendukung lokasi — <a href="/stores" className={hero ? 'underline text-white' : 'text-blue-600 underline hover:opacity-80'}>lihat semua toko</a></>
             )}
             {status === 'error' && 'Gagal mendeteksi lokasi'}
           </span>
 
           {/* Chevron when found */}
           {status === 'found' && (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-4 h-4 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''} ${hero ? 'text-white/70' : 'text-gray-400'}`}>
               <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
             </svg>
           )}
