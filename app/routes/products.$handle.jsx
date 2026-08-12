@@ -1805,9 +1805,9 @@ DP : 0
                 const showRetur = showStock; // 14-hari tukar baru applies to in-stock, non-discontinued items
                 const Dot = () => <span className="text-gray-300 select-none">·</span>;
                 return (
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 order-6 md:order-5 text-xs border-t border-gray-100 pt-2">
+                  <div className="flex items-center gap-x-2 order-6 md:order-5 text-xs border-t border-gray-100 pt-2 overflow-x-auto whitespace-nowrap hide-scroll-bar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     {showStock && (
-                      <span className="inline-flex items-center gap-1 text-gray-700">
+                      <span className="inline-flex items-center gap-1 text-gray-700 flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-emerald-500 flex-shrink-0">
                           <path fillRule="evenodd" d="M16.403 12.652a3 3 0 000-5.304 3 3 0 00-3.751-3.75 3 3 0 00-5.305 0 3 3 0 00-3.75 3.751 3 3 0 000 5.305 3 3 0 003.75 3.75 3 3 0 005.305 0 3 3 0 003.751-3.75zm-2.546-4.46a.75.75 0 00-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                         </svg>
@@ -1816,7 +1816,7 @@ DP : 0
                     )}
                     {showStock && showGaransi && <Dot />}
                     {showGaransi && (
-                      <span className="inline-flex items-center gap-1 text-gray-700">
+                      <span className="inline-flex items-center gap-1 text-gray-700 flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-sky-500 flex-shrink-0">
                           <path fillRule="evenodd" d="M9.661 2.237a.531.531 0 01.678 0 11.947 11.947 0 007.078 2.749.5.5 0 01.479.425c.069.52.104 1.05.104 1.59 0 5.162-3.26 9.563-7.834 11.256a.48.48 0 01-.332 0C5.26 16.564 2 12.163 2 7c0-.538.035-1.069.104-1.589a.5.5 0 01.48-.425 11.947 11.947 0 007.077-2.749zm4.196 5.954a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.061 1.06l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                         </svg>
@@ -1825,7 +1825,7 @@ DP : 0
                     )}
                     {(showStock || showGaransi) && showRetur && <Dot />}
                     {showRetur && (
-                      <span className="inline-flex items-center gap-1 text-gray-700">
+                      <span className="inline-flex items-center gap-1 text-gray-700 flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-amber-500 flex-shrink-0">
                           <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clipRule="evenodd" />
                         </svg>
