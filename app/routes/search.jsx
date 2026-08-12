@@ -292,28 +292,43 @@ export default function SearchPage() {
     <div className="search relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
       <h1 className="sr-only">Cari Produk — Galaxy Camera</h1>
 
-      {/* Styled search input */}
-      <div className="pt-4">
-        <PredictiveSearchForm>
-          {({fetchResults, inputRef}) => (
-            <div className="relative">
-              <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-              </svg>
-              <input
-                name="q"
-                onChange={fetchResults}
-                onFocus={fetchResults}
-                placeholder="Cari kamera, lensa, drone…"
-                ref={inputRef}
-                type="search"
-                defaultValue={searchTerm}
-                autoFocus
-                className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-              />
-            </div>
-          )}
-        </PredictiveSearchForm>
+      {/* Search-first bar. On MOBILE the shared header is hidden (see Header.jsx isSearch), so this
+          becomes the top bar: a back button + the input, sticky and full-bleed. On desktop it's just
+          the normal styled input below the header. */}
+      <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-white/95 backdrop-blur border-b border-gray-100 sm:static sm:mx-0 sm:px-0 sm:py-0 sm:pt-4 sm:bg-transparent sm:backdrop-blur-none sm:border-0">
+        <div className="flex items-center gap-2">
+          {/* Back — mobile only */}
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            aria-label="Kembali"
+            className="sm:hidden flex-shrink-0 -ml-1 w-9 h-9 flex items-center justify-center rounded-full text-gray-700 hover:bg-gray-100 active:scale-95 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+          <PredictiveSearchForm className="predictive-search-form flex-1 min-w-0">
+            {({fetchResults, inputRef}) => (
+              <div className="relative w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                <input
+                  name="q"
+                  onChange={fetchResults}
+                  onFocus={fetchResults}
+                  placeholder="Cari kamera, lensa, drone…"
+                  ref={inputRef}
+                  type="search"
+                  defaultValue={searchTerm}
+                  autoFocus
+                  className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                />
+              </div>
+            )}
+          </PredictiveSearchForm>
+        </div>
         <PredictiveSearchResults />
       </div>
 

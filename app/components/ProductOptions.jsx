@@ -45,11 +45,11 @@ import {
           return (
             <div key={option.name} className="flex flex-col">
               <div className="flex items-center">
-                <h5 className="text-xs font-medium text-gray-600 uppercase tracking-widest">
+                <h5 className="text-xs font-medium text-gray-600 capitalize leading-none mt-0 mb-2">
                   {option.name}
                 </h5>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
                 {option.values.map((value) => {
                   const linkParams = new URLSearchParams(searchParams);

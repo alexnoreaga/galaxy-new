@@ -28,6 +28,9 @@ export function Header({header, isLoggedIn, cart}) {
   const isCollectionHandle = location.pathname.includes('/collections/');
   // Collections INDEX is a top-level nav tab — keep the hamburger, just drop the store bar.
   const isCollectionsIndex = location.pathname === '/collections';
+  // Search is a task page — on mobile the page renders its own search-first bar (back + input),
+  // so the shared header (and store bar) is hidden there; desktop keeps the normal header.
+  const isSearch = location.pathname === '/search';
   // Pages that show a mobile back button + hide the hamburger/logo (compact drill-down bar)
   const isDrillDown = isProduct || isCollectionHandle;
 
@@ -103,7 +106,7 @@ export function Header({header, isLoggedIn, cart}) {
 
       {/* Main header + sub-bars all sticky together.
           On mobile HOMEPAGE the bar goes charcoal (curved-hero treatment); white everywhere else and on sm+. */}
-      <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-white/95' : 'bg-white/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''}`}>
+      <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-white/95' : 'bg-white/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''} ${isSearch ? 'hidden sm:block' : ''}`}>
         <div className={`flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-gray-100' : 'border-b border-gray-100'}`}>
 
           {/* Back button — mobile drill-down pages (product + collection handle) */}
