@@ -34,8 +34,21 @@ import { FaLink } from "react-icons/fa6";
 import {Await, useMatches} from '@remix-run/react';
 import {Suspense} from 'react';
 
-
-
+// ── Video (YouTube) helpers ──────────────────────────────────────────────────
+// Accept a raw metafield value (full URL or bare 11-char ID) → normalized video ID, else ''.
+function extractYouTubeId(input) {
+  if (!input) return '';
+  const s = String(input).trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+// The product video now lives in the gallery, so strip any YouTube <iframe> out of the description
+// HTML — that raw embed is the heavy thing we're replacing with a click-to-load facade.
+function stripYouTubeIframes(html) {
+  if (!html) return html;
+  return String(html).replace(/<iframe\b[^>]*(?:youtube\.com|youtu\.be)[^>]*>[\s\S]*?<\/iframe>/gi, '');
+}
 
 export const handle = {
   breadcrumbType: 'product',
@@ -636,14 +649,18 @@ DP : 0
 
 
 
-  const ImageGallery = ({ productData, selectedVariant, wishlistHandle, wishlistTitle, wishlistImage, wishlistPrice, wishlistEmail, onSecretCopy }) => {
+  const ImageGallery = ({ productData, selectedVariant, wishlistHandle, wishlistTitle, wishlistImage, wishlistPrice, wishlistEmail, onSecretCopy, youtubeRaw }) => {
     const images = productData.images.edges.map((e) => e.node);
+    const youtubeId = extractYouTubeId(youtubeRaw); // '' when no video metafield → gallery behaves exactly as before
 
     // displayUrl is the source of truth for the main image
     // It is set directly from selectedVariant or from manual navigation
     const [displayUrl, setDisplayUrl] = useState(selectedVariant || images[0]?.src);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [zoomOpen, setZoomOpen] = useState(false);
+    const [videoMode, setVideoMode] = useState(!!youtubeId);   // video-first: video is the default slide when it exists
+    const [videoPlaying, setVideoPlaying] = useState(false);   // facade clicked → real iframe loaded
+    const goToVideo = () => { setVideoMode(true); setVideoPlaying(false); };
     const touchStartXRef = useRef(null);
     const touchEndXRef = useRef(null);
     const thumbRef = useRef(null);
@@ -658,6 +675,7 @@ DP : 0
     }, [selectedVariant]);
 
     const goTo = (idx) => {
+      setVideoMode(false); setVideoPlaying(false); // navigating to a photo leaves video mode
       setIsTransitioning(true);
       setDisplayUrl(images[idx]?.src);
       setTimeout(() => setIsTransitioning(false), 300);
@@ -671,12 +689,14 @@ DP : 0
     const currentIndex = images.findIndex((img) => baseUrl(img.src) === baseUrl(displayUrl));
 
     const goNext = () => {
-      const nextIdx = currentIndex >= 0 ? (currentIndex + 1) % images.length : 0;
-      goTo(nextIdx);
+      if (videoMode) return goTo(0);                                                    // video → first photo
+      if (currentIndex >= images.length - 1) return youtubeId ? goToVideo() : goTo(0);  // last photo → video (loop)
+      goTo(currentIndex + 1);
     };
     const goPrev = () => {
-      const prevIdx = currentIndex >= 0 ? (currentIndex - 1 + images.length) % images.length : 0;
-      goTo(prevIdx);
+      if (videoMode) return goTo(images.length - 1);                                    // video → last photo
+      if (currentIndex <= 0) return youtubeId ? goToVideo() : goTo(images.length - 1);  // first photo → video
+      goTo(currentIndex - 1);
     };
 
     const handleTouchStart = (e) => {
@@ -723,18 +743,52 @@ DP : 0
           onDoubleClick={onSecretCopy}
         >
           <div className="aspect-square w-full">
-            <img
-              src={currentImg?.src}
-              alt={currentImg?.altText || productData?.title}
-              loading="eager"
-              decoding="async"
-              width={600}
-              height={600}
-              className={`w-full h-full object-contain transition-opacity duration-300 ${
-                isTransitioning ? 'opacity-40' : 'opacity-100'
-              }`}
-              style={{ pointerEvents: 'none', userSelect: 'none' }}
-            />
+            {videoMode && youtubeId ? (
+              videoPlaying ? (
+                // Real embed — loaded ONLY after the user clicks play (facade avoids the heavy iframe on load)
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+                  title="Video produk"
+                  className="w-full h-full"
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              ) : (
+                // Facade: lightweight YouTube thumbnail + play button
+                <button
+                  type="button"
+                  onClick={() => setVideoPlaying(true)}
+                  aria-label="Putar video"
+                  className="group/vid relative w-full h-full block bg-black"
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
+                    alt="Video produk"
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/vid:bg-black/30 transition-colors">
+                    <span className="w-16 h-16 rounded-full bg-red-600/95 flex items-center justify-center shadow-xl group-hover/vid:scale-105 transition-transform">
+                      <svg viewBox="0 0 24 24" fill="white" className="w-8 h-8 ml-1"><path d="M8 5v14l11-7z" /></svg>
+                    </span>
+                  </span>
+                </button>
+              )
+            ) : (
+              <img
+                src={currentImg?.src}
+                alt={currentImg?.altText || productData?.title}
+                loading="eager"
+                decoding="async"
+                width={600}
+                height={600}
+                className={`w-full h-full object-contain transition-opacity duration-300 ${
+                  isTransitioning ? 'opacity-40' : 'opacity-100'
+                }`}
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              />
+            )}
           </div>
 
           {/* Floating back — MOBILE only (Blibli-style immersive top). It scrolls away with the
@@ -751,9 +805,26 @@ DP : 0
             </svg>
           </button>
 
+          {/* "Lihat Foto" — MOBILE only, shown on the video slide so users can jump to the photos
+              (needed because a playing iframe swallows swipe gestures). Sits on the video, not the photo. */}
+          {youtubeId && videoMode && (
+            <button
+              type="button"
+              onClick={() => goTo(0)}
+              aria-label="Lihat foto produk"
+              className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 inline-flex items-center gap-1 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-semibold px-3 py-1 active:scale-95 transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-3.5 h-3.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M4.5 19.5h15a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5h-15A1.5 1.5 0 0 0 3 6v12a1.5 1.5 0 0 0 1.5 1.5Z" />
+              </svg>
+              Lihat Foto
+            </button>
+          )}
+
           {/* Zoom / magnifier — opens fullscreen viewer. On mobile it moves to bottom-right so the
               top-left is free for the floating back; on desktop it stays top-left. Separate from the
-              image's double-click, so it never clashes with the staff harga-best shortcut. */}
+              image's double-click, so it never clashes with the staff harga-best shortcut. Hidden in video mode. */}
+          {!videoMode && (
           <button
             type="button"
             onClick={() => setZoomOpen(true)}
@@ -764,9 +835,10 @@ DP : 0
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
             </svg>
           </button>
+          )}
 
-          {/* Free Ongkir badge — products 3jt+ */}
-          {parseFloat(wishlistPrice) >= 3000000 && (
+          {/* Free Ongkir badge — products 3jt+ (hidden in video mode) */}
+          {!videoMode && parseFloat(wishlistPrice) >= 3000000 && (
             <img
               src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
               alt="Free Ongkir"
@@ -802,9 +874,9 @@ DP : 0
 
           {/* Counter badge — mobile only. Moved to bottom-center so it clears the zoom button
               (now bottom-right) and the Free-Ongkir badge (bottom-left). */}
-          {images.length > 1 && currentIndex >= 0 && (
+          {(images.length > 1 || youtubeId) && (
             <div className="md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-medium px-2 py-0.5 rounded-full pointer-events-none">
-              {currentIndex + 1}/{images.length}
+              {videoMode ? 1 : currentIndex + 1 + (youtubeId ? 1 : 0)}/{images.length + (youtubeId ? 1 : 0)}
             </div>
           )}
 
@@ -821,8 +893,8 @@ DP : 0
 
         </div>
 
-        {/* Thumbnail row — desktop only */}
-        {images.length > 1 && (
+        {/* Thumbnail row — desktop only. Shows for a video too, even with a single photo. */}
+        {(images.length > 1 || youtubeId) && (
           <div className="hidden md:flex items-center gap-2">
             {/* Prev thumb page */}
             <button
@@ -836,11 +908,26 @@ DP : 0
               </svg>
             </button>
 
-            {/* 4 thumbnails */}
+            {/* Video thumb (first) + image thumbnails */}
             <div ref={thumbRef} className="flex gap-2 flex-1 py-1">
+              {youtubeId && (
+                <button
+                  type="button"
+                  onClick={() => { setVideoMode(true); setVideoPlaying(false); }}
+                  aria-label="Tonton video"
+                  className={`relative flex-1 aspect-square rounded-lg overflow-hidden transition-all duration-200 ${videoMode ? 'ring-2 ring-rose-500 opacity-100' : 'opacity-70 hover:opacity-100'}`}
+                >
+                  <img src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`} alt="Video produk" loading="lazy" className="w-full h-full object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                    <span className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center shadow">
+                      <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4 ml-0.5"><path d="M8 5v14l11-7z" /></svg>
+                    </span>
+                  </span>
+                </button>
+              )}
               {visibleThumbs.map((img, i) => {
                 const realIdx = thumbPage * THUMBS_PER_PAGE + i;
-                const isActive = realIdx === currentIndex;
+                const isActive = !videoMode && realIdx === currentIndex;
                 return (
                   <button
                     key={img.src}
@@ -1657,6 +1744,7 @@ DP : 0
                 wishlistPrice={String(selectedVariant?.price?.amount || '')}
                 wishlistEmail={custEmail?.customer?.email || null}
                 onSecretCopy={() => hargaBestCopy && copyToClipboard(hargaBestCopy)}
+                youtubeRaw={product?.metafields[15]?.value}
               />
             </div>
           </div>
@@ -2265,7 +2353,7 @@ DP : 0
         
         <InfoProduk
         deskripsi={(<div className="w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-img:max-w-full prose-ul:my-2 prose-ol:my-2 pt-2 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl [&_iframe]:my-4 [&_iframe]:max-w-full"
-              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}/></div>)}
+              dangerouslySetInnerHTML={{ __html: stripYouTubeIframes(product.descriptionHtml) }}/></div>)}
         isibox={product.metafields[2]?.value}
         specs={(<div className="overflow-x-auto w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-semibold prose-table:text-sm pt-2"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/></div>)}
@@ -2741,6 +2829,7 @@ function TombolWaDiscontinue({product}){
         {namespace:"custom" key:"produk_discontinue"}
         {namespace:"custom" key:"produk_serupa"}
         {namespace:"custom" key:"tebus_murah"}
+        {namespace:"custom" key:"youtube"}
       ]){
         key
         value
