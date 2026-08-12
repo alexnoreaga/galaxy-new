@@ -1757,7 +1757,7 @@ DP : 0
               </div>
 
               {/* TITLE — position 4 mobile, 1 desktop */}
-              <h1 className="text-lg mt-2 md:mt-0 mb-0 md:text-xl font-semibold leading-snug whitespace-normal order-4 md:order-1 select-none" onClick={()=>copyToClipboard(hargaCashCopy)} onDoubleClick={()=>copyToClipboard(stripInfoLink(hargaCashCopy))}>
+              <h1 className="text-base mt-2 md:mt-0 mb-0 md:text-lg font-medium leading-snug whitespace-normal order-4 md:order-1 select-none" onClick={()=>copyToClipboard(hargaCashCopy)} onDoubleClick={()=>copyToClipboard(stripInfoLink(hargaCashCopy))}>
                 {product.title}
               </h1>
 

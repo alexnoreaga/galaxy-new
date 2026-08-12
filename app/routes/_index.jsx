@@ -267,6 +267,7 @@ export async function loader({context, request}) {
     admgalaxy,
     blogs,
     balasCepat,
+    featuredCategoriesMeta,
   ] = await Promise.all([
     storefront.query(COLLECTIONS_QUERY),
     storefront.query(BANNER_QUERY),
@@ -277,7 +278,16 @@ export async function loader({context, request}) {
     storefront.query(METAOBJECT_ADMIN_GALAXY, {variables: {type: 'admin_galaxy', first: 20}}),
     storefront.query(GET_ARTIKEL, {variables: {first: 3, reverse: true}}),
     storefront.query(BALAS_CEPAT, {variables: {first: 100}}),
+    storefront.query(FEATURED_CATEGORIES_QUERY).catch(() => null),
   ]);
+
+  // Kategori Populer — prefer the admin-curated metaobject list (ordered) so staff can pick & reorder
+  // categories in Shopify admin without code; fall back to the smart collections if it's not set up.
+  const featuredFields = featuredCategoriesMeta?.metaobjects?.nodes?.[0]?.fields ?? [];
+  const featuredMetaNodes =
+    (featuredFields.find((f) => f?.references?.nodes?.length)?.references?.nodes ?? []).filter(Boolean);
+  const kategoriPopuler =
+    featuredMetaNodes.length > 0 ? {nodes: featuredMetaNodes} : (collections2?.collections ?? {nodes: []});
 
   const canonicalUrl = request.url;
 
@@ -291,7 +301,7 @@ export async function loader({context, request}) {
     bannerKecil,
     blogs,
     kumpulanBrand: kumpulanBrandPromise,
-    hasilCollection: collections2,
+    hasilCollection: {collections: kategoriPopuler},
     banner,
     mirrorlessProducts,
     flashSale: flashSalePromise,
@@ -1381,6 +1391,36 @@ const MIRRORLESS_PRODUCTS_QUERY = `#graphql
   }
 `;
 
+
+// Admin-curated "Kategori Populer" — a metaobject (type "kategori_populer") whose "collections"
+// field is an ordered list of collection references. Staff pick & reorder them in Shopify admin.
+const FEATURED_CATEGORIES_QUERY = `#graphql
+  query FeaturedCategoriesMeta {
+    metaobjects(type: "kategori_populer", first: 1) {
+      nodes {
+        id
+        fields {
+          key
+          references(first: 12) {
+            nodes {
+              ... on Collection {
+                id
+                title
+                handle
+                image {
+                  altText
+                  width
+                  height
+                  url
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 const COLLECTIONS_QUERY = `#graphql
   query FeaturedCollections {
