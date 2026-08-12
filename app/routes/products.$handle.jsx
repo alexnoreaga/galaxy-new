@@ -737,13 +737,28 @@ DP : 0
             />
           </div>
 
-          {/* Zoom / magnifier — opens fullscreen viewer. Separate from the image's
-              double-click, so it never clashes with the staff harga-best shortcut. */}
+          {/* Floating back — MOBILE only (Blibli-style immersive top). It scrolls away with the
+              image; the sticky header's back button slides in once you scroll down. Double-click
+              secret-copy is unaffected — it fires on the image body, not this corner circle. */}
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            aria-label="Kembali"
+            className="sm:hidden absolute top-2 left-2 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+
+          {/* Zoom / magnifier — opens fullscreen viewer. On mobile it moves to bottom-right so the
+              top-left is free for the floating back; on desktop it stays top-left. Separate from the
+              image's double-click, so it never clashes with the staff harga-best shortcut. */}
           <button
             type="button"
             onClick={() => setZoomOpen(true)}
             aria-label="Perbesar foto"
-            className="absolute top-2 left-2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
+            className="absolute bottom-2 right-2 sm:top-2 sm:left-2 sm:bottom-auto sm:right-auto z-10 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
@@ -785,9 +800,10 @@ DP : 0
             </>
           )}
 
-          {/* Counter badge — mobile only */}
+          {/* Counter badge — mobile only. Moved to bottom-center so it clears the zoom button
+              (now bottom-right) and the Free-Ongkir badge (bottom-left). */}
           {images.length > 1 && currentIndex >= 0 && (
-            <div className="md:hidden absolute bottom-2 right-2 bg-black/50 text-white text-xs font-medium px-2 py-0.5 rounded-full pointer-events-none">
+            <div className="md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-medium px-2 py-0.5 rounded-full pointer-events-none">
               {currentIndex + 1}/{images.length}
             </div>
           )}

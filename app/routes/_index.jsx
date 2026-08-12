@@ -879,34 +879,35 @@ function RenderCollection({ collections }) {
           <section className="w-full py-3 sm:py-6 sm:px-0">
             {/* Header */}
             <div className="flex items-center justify-between mb-2.5 sm:mb-4 px-1">
-              <h2 className="flex items-center gap-2 text-gray-900 text-lg sm:text-2xl font-bold tracking-tight">
-                <span className="text-amber-400 text-base sm:text-xl">★</span> Kategori Populer
+              <h2 className="flex items-center gap-1.5 text-gray-900 text-sm sm:text-2xl font-bold tracking-tight">
+                <span className="text-amber-400 text-sm sm:text-xl">★</span> Kategori Populer
               </h2>
               <Link to="/collections/" className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap">
                 Lihat Semua →
               </Link>
             </div>
 
-            {/* Clean bordered grid — one responsive layout for mobile + desktop.
-                Capped at 8 so it fills exactly 1 row (desktop) / 2 rows (mobile), never an orphan. */}
-            <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8 bg-white border-t border-l border-gray-200 rounded-xl overflow-hidden">
+            {/* Seamless grid with HAIRLINE dividers (gap-px over a gray bg) — tighter than the old
+                table borders. Bigger icons + no tall min-height kill the wasted white space; subtle
+                rose hover adds life. All 8 visible (1 row desktop / 2 rows mobile), never an orphan. */}
+            <div className="grid grid-cols-4 lg:grid-cols-8 gap-px bg-gray-100 rounded-2xl overflow-hidden ring-1 ring-gray-100">
               {nodes.slice(0, 8).map((collection) => (
                 <Link
                   to={`/collections/${collection.handle}`}
                   key={collection.id}
-                  className="group flex flex-col items-center justify-center gap-1.5 sm:gap-2 p-2.5 sm:p-4 border-r border-b border-gray-200 hover:bg-gray-50 transition-colors min-h-[104px] sm:min-h-[144px]"
+                  className="group flex flex-col items-center justify-center gap-1 sm:gap-1.5 bg-white px-1 py-2.5 sm:py-3.5 hover:bg-rose-50/50 transition-colors"
                 >
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-[72px] md:h-[72px] flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center flex-shrink-0">
                     {collection?.image && (
                       <Image
                         alt={`Image of ${collection.title}`}
                         data={collection.image}
-                        sizes="(max-width: 640px) 48px, 72px"
-                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 640px) 56px, 80px"
+                        className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
                       />
                     )}
                   </div>
-                  <p className="text-gray-700 text-center text-[10px] sm:text-sm font-medium line-clamp-2 leading-tight">
+                  <p className="text-gray-700 text-center text-[10px] sm:text-sm font-medium line-clamp-2 leading-tight group-hover:text-rose-600 transition-colors">
                     {collection.title}
                   </p>
                 </Link>

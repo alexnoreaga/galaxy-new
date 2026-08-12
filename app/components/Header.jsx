@@ -37,6 +37,17 @@ export function Header({header, isLoggedIn, cart}) {
   const navTarget = navigation.state === 'loading' ? (navigation.location?.pathname ?? '') : '';
   const showNavOverlay = !!navTarget && navTarget !== location.pathname && routes.some((r) => navTarget.startsWith(r.path));
 
+  // Immersive product header (MOBILE): the bar is hidden over the image at the top and slides in
+  // once you scroll down past the gallery (Blibli-style). Desktop is always-visible/sticky.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (!isProduct) { setScrolled(false); return; }
+    const onScroll = () => setScrolled(window.scrollY > 200);
+    onScroll();
+    window.addEventListener('scroll', onScroll, {passive: true});
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isProduct]);
+
   function goBack() {
     // React Router stores a history index; >0 means there's in-app history to pop
     const idx = typeof window !== 'undefined' ? window.history.state?.idx ?? 0 : 0;
@@ -92,7 +103,7 @@ export function Header({header, isLoggedIn, cart}) {
 
       {/* Main header + sub-bars all sticky together.
           On mobile HOMEPAGE the bar goes charcoal (curved-hero treatment); white everywhere else and on sm+. */}
-      <header className={`sticky top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-white/95' : 'bg-white/95'}`}>
+      <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-white/95' : 'bg-white/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''}`}>
         <div className={`flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-gray-100' : 'border-b border-gray-100'}`}>
 
           {/* Back button — mobile drill-down pages (product + collection handle) */}
