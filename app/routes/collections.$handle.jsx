@@ -309,7 +309,7 @@ export default function Collection() {
   );
 
   return (
-    <div className={`min-h-screen ${isCuciGudang ? 'bg-gradient-to-b from-orange-50 via-red-50 to-white' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen -mx-4 ${isCuciGudang ? 'bg-gradient-to-b from-orange-50 via-red-50 to-white' : 'bg-gray-50'}`}>
       {/* Collection header */}
       {isCuciGudang ? (
         <CuciGudangHero count={collection.products.nodes.length}>
@@ -317,7 +317,7 @@ export default function Collection() {
         </CuciGudangHero>
       ) : (
         <div className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto sm:px-4 py-5 sm:py-6">
+          <div className="max-w-7xl mx-auto px-4 py-5 sm:py-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{collection.title}</h1>
@@ -334,7 +334,7 @@ export default function Collection() {
       )}
 
       {/* Products */}
-      <div className="max-w-7xl mx-auto sm:px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         <Pagination connection={collection.products}>
           {({nodes, isLoading, PreviousLink, hasNextPage, nextPageUrl, state}) => (
             <>

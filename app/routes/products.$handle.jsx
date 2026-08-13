@@ -733,9 +733,10 @@ DP : 0
           />
         )}
 
-        {/* Main image */}
+        {/* Main image — full-bleed edge-to-edge on mobile (Shopee-style), contained + rounded on desktop.
+            w-auto + -mx-4 widens a block element past the 16px body gutter to the screen edges. */}
         <div
-          className="relative w-full bg-white rounded-xl overflow-hidden"
+          className="relative w-auto sm:w-full -mx-4 sm:mx-0 bg-white rounded-none sm:rounded-xl overflow-hidden"
           style={{ touchAction: 'pan-y' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -1730,7 +1731,7 @@ DP : 0
         />
       )}
 
-      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 overflow-x-hidden">
+      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 sm:overflow-x-hidden">
         <div className="grid grid-cols-1 items-start gap-2 lg:gap-4 md:grid-cols-2 lg:grid-cols-[2fr_2fr_1fr] min-w-0">
           <div className="grid md:grid-flow-row md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full min-w-0">
             <div className="md:col-span-2 md:w-full lg:w-full min-w-0">
