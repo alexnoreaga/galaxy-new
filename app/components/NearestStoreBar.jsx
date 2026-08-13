@@ -39,6 +39,7 @@ function calcSorted(latitude, longitude, stores) {
 
 export function NearestStoreBar({ variant = 'bar' } = {}) {
   const card = variant === 'card';
+  const subbar = variant === 'subbar'; // right side of the light desktop sub-bar — compact, gray text, popover dropdown
   const hero = variant === 'hero'; // white-on-navy line for the mobile homepage hero (above the banner)
   // Per-instance gradient ID — the bar can mount twice on mobile home (hidden desktop copy
   // + visible hero copy); a shared static ID made the visible icon reference the hidden one.
@@ -152,16 +153,18 @@ export function NearestStoreBar({ variant = 'bar' } = {}) {
   );
 
   return (
-    <div className={`relative ${card || hero ? '' : 'w-full bg-gray-50 border-b border-gray-200'}`} ref={dropdownRef}>
-      <div className={card || hero ? '' : 'max-w-7xl mx-auto px-4'}>
+    <div className={`relative ${card || hero || subbar ? '' : 'w-full bg-gray-50 border-b border-gray-200'}`} ref={dropdownRef}>
+      <div className={card || hero || subbar ? '' : 'max-w-7xl mx-auto px-4'}>
         <button
           onClick={handleActivate}
           className={`w-full flex items-center transition-all group ${
             card
               ? 'gap-3 rounded-2xl border border-gray-200 bg-white shadow-sm px-3.5 py-2.5 hover:border-gray-300 active:scale-[0.99]'
+              : subbar
+              ? 'gap-2 py-2 hover:opacity-75'
               : hero
               ? 'gap-2 px-4 py-2 active:opacity-80'
-              : 'justify-center gap-2.5 py-2 hover:bg-gray-50'
+              : 'justify-end gap-2.5 py-2 hover:bg-gray-50'
           }`}
         >
           {/* Store / loading icon — soft circle in the card variant */}
@@ -213,10 +216,10 @@ export function NearestStoreBar({ variant = 'bar' } = {}) {
         </button>
       </div>
 
-      {/* Dropdown */}
+      {/* Dropdown — full-width bar normally; a right-anchored popover panel in the sub-bar */}
       {open && status === 'found' && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-white shadow-lg border-t border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className={`absolute top-full z-50 bg-white shadow-lg ${subbar ? 'right-0 w-[26rem] max-w-[92vw] rounded-b-xl border border-gray-100' : 'left-0 right-0 border-t border-gray-100'}`}>
+          <div className={`${subbar ? '' : 'max-w-7xl mx-auto'} px-4 py-3`}>
             <div className="flex items-center justify-between mb-2">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Toko Terdekat</p>
               <div className="flex items-center gap-3">

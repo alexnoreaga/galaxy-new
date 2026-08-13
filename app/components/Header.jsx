@@ -75,7 +75,7 @@ export function Header({header, isLoggedIn, cart}) {
 
       {/* Top bar — desktop only. Charcoal strip over the near-black gray-950 header — the two-tone
           split keeps the masthead from reading as one flat slab. */}
-      <div className="hidden sm:block bg-gray-900 text-white">
+      <div className="hidden sm:block bg-gray-900 text-white border-b border-white/5">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 h-9 text-xs">
           <div className="flex items-center">
             <span className="text-[11px] text-gray-400">
@@ -168,10 +168,27 @@ export function Header({header, isLoggedIn, cart}) {
           <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} onDark={isHome} />
         </div>
 
-        {/* Nearest store bar — hidden on mobile for product, home (moves into curved hero), and all
-            collection pages (handle + index). Still shows on sm+. */}
-        <div className={isProduct || isHome || isCollectionHandle || isCollectionsIndex ? 'hidden sm:block' : ''}>
+        {/* Mobile inner pages: light store bar (unchanged). Hidden on product/home/collection pages. */}
+        <div className={`sm:hidden ${isProduct || isHome || isCollectionHandle || isCollectionsIndex ? 'hidden' : ''}`}>
           <NearestStoreBar />
+        </div>
+
+        {/* Desktop sub-bar — eraspace-style layout on the original light strip: Kategori
+            (Blibli-style grid icon) on the left, store locator on the right. */}
+        <div className="hidden sm:block bg-gray-50 border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4">
+            <Link
+              to="/collections"
+              prefetch="intent"
+              className="flex items-center gap-2 py-2 text-[13px] font-semibold text-gray-800 hover:text-black no-underline group"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-600 group-hover:text-gray-900 transition-colors">
+                <path fillRule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z" clipRule="evenodd" />
+              </svg>
+              Kategori
+            </Link>
+            <NearestStoreBar variant="subbar" />
+          </div>
         </div>
       </header>
 
@@ -212,6 +229,8 @@ export function HeaderMenu({menu, viewport}) {
       )}
       {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
         if (!item.url) return null;
+        // Desktop: "Kategori" now lives in the charcoal sub-bar below — drop it here to avoid duplication
+        if (viewport === 'desktop' && /kategori/i.test(item.title)) return null;
         const url =
           item.url.includes('myshopify.com') || item.url.includes(publicStoreDomain)
             ? new URL(item.url).pathname

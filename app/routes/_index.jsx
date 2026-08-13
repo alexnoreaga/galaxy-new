@@ -900,12 +900,14 @@ function RenderCollection({ collections }) {
             {/* Seamless grid with HAIRLINE dividers (gap-px over a gray bg) — tighter than the old
                 table borders. Bigger icons + no tall min-height kill the wasted white space; subtle
                 rose hover adds life. All 8 visible (1 row desktop / 2 rows mobile), never an orphan. */}
-            <div className="grid grid-cols-4 lg:grid-cols-8 gap-px bg-gray-100 rounded-2xl overflow-hidden ring-1 ring-gray-100">
+            {/* Mobile/tablet: hairline-divided grid (tight cells need separation).
+                Desktop (lg+): borderless — icons float free, hover tint is the only structure. */}
+            <div className="grid grid-cols-4 lg:grid-cols-8 gap-px lg:gap-1 bg-gray-100 lg:bg-transparent rounded-2xl overflow-hidden ring-1 ring-gray-100 lg:ring-0">
               {nodes.slice(0, 8).map((collection) => (
                 <Link
                   to={`/collections/${collection.handle}`}
                   key={collection.id}
-                  className="group flex flex-col items-center justify-center gap-1 sm:gap-1.5 bg-white px-1 py-2.5 sm:py-3.5 hover:bg-rose-50/50 transition-colors"
+                  className="group flex flex-col items-center justify-center gap-1 sm:gap-1.5 bg-white px-1 py-2.5 sm:py-3.5 hover:bg-rose-50/50 transition-colors lg:rounded-xl"
                 >
                   <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center flex-shrink-0">
                     {collection?.image && (
