@@ -799,7 +799,7 @@ DP : 0
             type="button"
             onClick={() => window.history.back()}
             aria-label="Kembali"
-            className="sm:hidden absolute top-2 left-2 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
+            className="sm:hidden absolute top-3 left-3 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -1731,7 +1731,7 @@ DP : 0
         />
       )}
 
-      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 sm:overflow-x-hidden">
+      <section className="lg:container mx-auto w-full gap-2 md:gap-2 grid px-0 md:px-8 lg:px-12 sm:overflow-x-hidden pt-0 md:pt-8">
         <div className="grid grid-cols-1 items-start gap-2 lg:gap-4 md:grid-cols-2 lg:grid-cols-[2fr_2fr_1fr] min-w-0">
           <div className="grid md:grid-flow-row md:p-0 md:overflow-x-hidden md:grid-cols-2 md:w-full min-w-0">
             <div className="md:col-span-2 md:w-full lg:w-full min-w-0">

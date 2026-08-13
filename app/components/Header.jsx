@@ -73,7 +73,8 @@ export function Header({header, isLoggedIn, cart}) {
         </div>
       )}
 
-      {/* Top bar — desktop only */}
+      {/* Top bar — desktop only. Charcoal strip over the near-black gray-950 header — the two-tone
+          split keeps the masthead from reading as one flat slab. */}
       <div className="hidden sm:block bg-gray-900 text-white">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 h-9 text-xs">
           <div className="flex items-center">
@@ -105,9 +106,10 @@ export function Header({header, isLoggedIn, cart}) {
       </div>
 
       {/* Main header + sub-bars all sticky together.
-          On mobile HOMEPAGE the bar goes charcoal (curved-hero treatment); white everywhere else and on sm+. */}
-      <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-white/95' : 'bg-white/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''} ${isSearch ? 'hidden sm:block' : ''}`}>
-        <div className={`flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-gray-100' : 'border-b border-gray-100'}`}>
+          DESKTOP (sm+): charcoal everywhere — matches the dark top strip, mobile hero and footer.
+          MOBILE: charcoal on the homepage (curved-hero treatment), white on inner pages. */}
+      <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-gray-950/95' : 'bg-white/95 sm:bg-gray-950/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''} ${isSearch ? 'hidden sm:block' : ''}`}>
+        <div className={`flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-white/10' : 'border-b border-gray-100 sm:border-white/10'}`}>
 
           {/* Back button — mobile drill-down pages (product + collection handle) */}
           {isDrillDown && (
@@ -129,7 +131,7 @@ export function Header({header, isLoggedIn, cart}) {
             <HeaderMenuMobileToggle onDark={isHome} />
             <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className="hidden sm:block flex-shrink-0 hover:opacity-80 transition-opacity">
               <img
-                className="h-7 sm:h-8 lg:h-10 w-auto"
+                className="h-7 sm:h-8 lg:h-10 w-auto brightness-0 invert"
                 src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png?v=1731132105"
                 alt="Logo Galaxy Camera"
                 width={160}
@@ -144,11 +146,11 @@ export function Header({header, isLoggedIn, cart}) {
           <div className="flex-1 flex items-center gap-4 min-w-0">
             <div className="hidden lg:flex items-center flex-shrink-0">
               <HeaderMenu menu={menu} viewport="desktop" />
-              <span className="mx-3 h-4 w-px bg-gray-200" />
+              <span className="mx-3 h-4 w-px bg-white/20" />
               <Link
                 to="/pengadaan"
                 prefetch="intent"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors no-underline whitespace-nowrap"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors no-underline whitespace-nowrap"
               >
                 Info Pengadaan
               </Link>
@@ -216,12 +218,14 @@ export function HeaderMenu({menu, viewport}) {
             : item.url;
         return (
           <NavLink
-            className="header-menu-item"
+            // Desktop menu sits on the charcoal header — light links + !important hover so the
+            // Tailwind class can beat the inline style color. Mobile keeps the original styling.
+            className={viewport === 'desktop' ? 'header-menu-item hover:!text-white transition-colors' : 'header-menu-item'}
             end
             key={item.id}
             onClick={closeAside}
             prefetch="intent"
-            style={activeLinkStyle}
+            style={viewport === 'desktop' ? activeLinkStyleDark : activeLinkStyle}
             to={url}
           >
             <span className="text-sm font-medium">{item.title}</span>
@@ -385,18 +389,18 @@ export function MobileMenuNav({menu, isLoggedIn}) {
 }
 
 function HeaderCtas({isLoggedIn, cart, onDark}) {
-  // onDark (mobile homepage charcoal bar): white icons on mobile, normal gray on sm+.
+  // Desktop (sm+) header is charcoal everywhere → always white there.
+  // Mobile: white on the homepage charcoal bar (onDark), gray on white inner pages.
   const btnCls = onDark
-    ? 'text-white sm:text-gray-700 hover:bg-white/10 sm:hover:bg-gray-100'
-    : 'text-gray-700 hover:bg-gray-100';
+    ? 'text-white hover:bg-white/10'
+    : 'text-gray-700 hover:bg-gray-100 sm:text-white sm:hover:bg-white/10';
   return (
     <nav className="flex items-center gap-1 sm:gap-2 flex-shrink-0" role="navigation">
 
-      {/* Account — inline style skipped when onDark so the responsive Tailwind color can win */}
+      {/* Account — no inline style so the responsive Tailwind colors can win on the dark desktop bar */}
       <NavLink
         prefetch="intent"
         to="/account"
-        style={onDark ? undefined : activeLinkStyle}
         className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors ${btnCls}`}
       >
         <FaRegCircleUser className="w-5 h-5" />
@@ -481,8 +485,8 @@ function SearchToggleMobile() {
 
 function HeaderMenuMobileToggle({onDark}) {
   const cls = onDark
-    ? 'text-white sm:text-gray-700 hover:bg-white/10 sm:hover:bg-gray-100'
-    : 'text-gray-700 hover:bg-gray-100';
+    ? 'text-white hover:bg-white/10'
+    : 'text-gray-700 hover:bg-gray-100 sm:text-white sm:hover:bg-white/10';
   return (
     <a className={`header-menu-mobile-toggle flex items-center justify-center w-9 h-9 rounded-lg transition-colors lg:hidden ${cls}`} href="#mobile-menu-aside">
       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -497,7 +501,7 @@ function SearchToggle() {
 
   if (location.pathname === '/search') {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-500 px-1">
+      <div className="flex items-center gap-2 text-sm text-gray-300 px-1">
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
@@ -508,7 +512,8 @@ function SearchToggle() {
 
   return (
     <Link to="/search" className="block w-full">
-      <div className="flex items-center w-full h-10 bg-gray-50 border border-gray-200 rounded-xl px-3 gap-2 hover:border-gray-300 hover:bg-gray-100 transition-colors cursor-pointer">
+      {/* Solid white pill — pops against the charcoal desktop header */}
+      <div className="flex items-center w-full h-10 bg-white rounded-xl px-3 gap-2 shadow-sm hover:bg-gray-50 transition-colors cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
@@ -520,8 +525,8 @@ function SearchToggle() {
 
 function CartBadge({count, onDark}) {
   const cls = onDark
-    ? 'text-white sm:text-gray-700 hover:bg-white/10 sm:hover:bg-gray-100'
-    : 'text-gray-700 hover:bg-gray-100';
+    ? 'text-white hover:bg-white/10'
+    : 'text-gray-700 hover:bg-gray-100 sm:text-white sm:hover:bg-white/10';
   return (
     <a
       href="#cart-aside"
@@ -563,6 +568,14 @@ function activeLinkStyle({isActive, isPending}) {
   return {
     fontWeight: isActive ? 'bold' : undefined,
     color: isPending ? 'grey' : 'black',
+  };
+}
+
+// Light variant for links sitting on the charcoal desktop header
+function activeLinkStyleDark({isActive, isPending}) {
+  return {
+    fontWeight: isActive ? 'bold' : undefined,
+    color: isPending ? '#9ca3af' : isActive ? '#ffffff' : '#e5e7eb',
   };
 }
 
