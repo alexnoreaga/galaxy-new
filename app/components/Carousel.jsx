@@ -165,14 +165,18 @@ function BannerImage({ imgUrl, currentIndex, swipeOffset }) {
   if (!imgUrl) return null;
   return (
     <div className="relative w-full">
-      {/* Skeleton shimmer while the banner downloads (slow internet) */}
+      {/* Skeleton shimmer while the banner downloads (slow internet). Kept BEHIND the image
+          (-z-10): an unloaded <img> is transparent so the shimmer shows through, and the picture
+          covers it the moment it decodes — no JS needed for the swap. */}
       {!loaded && (
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse" />
+        <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse" />
       )}
       <img
         ref={imgRef}
         onLoad={() => setLoaded(true)}
-        className={`m-auto w-full rounded-2xl select-none transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        // LCP: the FIRST slide is never opacity-gated — hiding it until hydration + onLoad was
+        // delaying LCP by the entire JS download/hydrate phase. Later slides keep the fade-in.
+        className={`m-auto w-full rounded-2xl select-none transition-opacity duration-500 ${currentIndex === 0 || loaded ? 'opacity-100' : 'opacity-0'}`}
         width="1280"
         height="543"
         src={`${imgUrl}&width=800`}

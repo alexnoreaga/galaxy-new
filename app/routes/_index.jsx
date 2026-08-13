@@ -7,6 +7,7 @@ import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 
 import { BrandPopular } from '../components/BrandPopular';
 import { KenapaGalaxy } from '../components/KenapaGalaxy';
+import { YoutubeLink } from '../components/YoutubeLink';
 import { RecentlyViewed } from '../components/RecentlyViewed';
 import { SocialProofStrip } from '../components/SocialProofStrip';
 import { TrustRibbon } from '../components/TrustRibbon';
@@ -258,26 +259,35 @@ export async function loader({context, request}) {
   // VouchersSection has <Await> — defer vouchers
   const vouchersPromise = storefront.query(GET_VOUCHERS, {variables: {first: 10}});
 
-  // All critical queries run in parallel — replaces 9+ sequential awaits
+  // Admin quick-reply data — only the floating admin button uses this, so customers never wait on
+  // it. Deferred, and short-circuited: anonymous visitors (no token) skip ALL of it; only a real
+  // admin ever pays for the 100 quick replies.
+  const adminDataPromise = (async () => {
+    const token = customerAccessToken?.accessToken;
+    if (!token) return {isAdmin: false, balasCepat: null};
+    const custEmail = await storefront.query(CUSTOMER_EMAIL_QUERY, {variables: {customertoken: token}});
+    const email = custEmail?.customer?.email;
+    if (!email) return {isAdmin: false, balasCepat: null};
+    const admgalaxy = await storefront.query(METAOBJECT_ADMIN_GALAXY, {variables: {type: 'admin_galaxy', first: 20}});
+    const isAdmin = (admgalaxy?.metaobjects?.edges ?? []).some((a) => a?.node?.fields[0]?.value === email);
+    if (!isAdmin) return {isAdmin: false, balasCepat: null};
+    const balasCepat = await storefront.query(BALAS_CEPAT, {variables: {first: 100}});
+    return {isAdmin: true, balasCepat};
+  })();
+
+  // Blogs render far below the fold — deferred, streams in via <Await>
+  const blogsPromise = storefront.query(GET_ARTIKEL, {variables: {first: 3, reverse: true}});
+
+  // Only what the top of the page needs stays blocking
   const [
     collections2,
     banner,
     bannerKecil,
-    custEmail,
-    admgalaxy,
-    blogs,
-    balasCepat,
     featuredCategoriesMeta,
   ] = await Promise.all([
     storefront.query(COLLECTIONS_QUERY),
     storefront.query(BANNER_QUERY),
     storefront.query(BANNER_KECIL_QUERY),
-    storefront.query(CUSTOMER_EMAIL_QUERY, {
-      variables: {customertoken: customerAccessToken?.accessToken || ''},
-    }),
-    storefront.query(METAOBJECT_ADMIN_GALAXY, {variables: {type: 'admin_galaxy', first: 20}}),
-    storefront.query(GET_ARTIKEL, {variables: {first: 3, reverse: true}}),
-    storefront.query(BALAS_CEPAT, {variables: {first: 100}}),
     storefront.query(FEATURED_CATEGORIES_QUERY).catch(() => null),
   ]);
 
@@ -292,14 +302,12 @@ export async function loader({context, request}) {
   const canonicalUrl = request.url;
 
   return defer({
-    admgalaxy,
-    balasCepat,
+    adminData: adminDataPromise,
     vouchers: vouchersPromise,
-    custEmail,
     customerAccessToken,
     canonicalUrl,
     bannerKecil,
-    blogs,
+    blogs: blogsPromise,
     kumpulanBrand: kumpulanBrandPromise,
     hasilCollection: {collections: kategoriPopuler},
     banner,
@@ -644,15 +652,16 @@ export default function Homepage() {
   const [bukaModalBalasCepat, setBukaModalBalasCepat] = useState(false)
 
 
-  const foundAdmin = data?.admgalaxy?.metaobjects?.edges.find(admin => admin?.node?.fields[0]?.value === data?.custEmail?.customer?.email);
-
-
   return (
     <div>
 
       {bukaModalBalasCepat && (
         <Suspense fallback={null}>
-          <ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={data?.balasCepat?.metaobjects?.nodes}/>
+          <Await resolve={data.adminData}>
+            {(ad) => (
+              <ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={ad?.balasCepat?.metaobjects?.nodes}/>
+            )}
+          </Await>
         </Suspense>
       )}
       
@@ -751,6 +760,11 @@ export default function Homepage() {
       {/* Value-props band — breaks the white stretch, adds rhythm (self-bleeds full-width on mobile) */}
       <KenapaGalaxy />
 
+      {/* Brand video — click-to-load facade, so it no longer weighs the homepage down */}
+      <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0">
+        <YoutubeLink />
+      </div>
+
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0">
         <RecentlyViewed />
       </div>
@@ -763,7 +777,12 @@ export default function Homepage() {
       <BrandPopular brands={data.kumpulanBrand}/>
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
-      <FeaturedBlogs blogs={data.blogs}/>
+        {/* blogs is deferred — resolve here because FeaturedBlogs reads blogs.articles in an effect */}
+        <Suspense fallback={null}>
+          <Await resolve={data.blogs}>
+            {(blogs) => <FeaturedBlogs blogs={blogs}/>}
+          </Await>
+        </Suspense>
       </div>
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0">
@@ -774,7 +793,11 @@ export default function Homepage() {
         <AboutSeo/>
       </Suspense>
 
-      {foundAdmin && <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} />}
+      <Suspense fallback={null}>
+        <Await resolve={data.adminData}>
+          {(ad) => ad?.isAdmin ? <TombolBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} /> : null}
+        </Await>
+      </Suspense>
 
     
     </div>
