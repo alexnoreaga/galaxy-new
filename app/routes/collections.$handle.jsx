@@ -13,6 +13,7 @@ import {HitunganPersen} from '~/components/HitunganPersen';
 import {CollectionSEOContent} from '~/components/CollectionSEOContent';
 import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
 import {FreeOngkirBadge} from '~/components/FreeOngkirBadge';
+import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
 
 export const handle = {
   breadcrumbType: 'collection',
@@ -263,6 +264,8 @@ export default function Collection() {
   const params = useParams();
   const isCuciGudang = params.handle === 'cuci-gudang';
   const location = useLocation();
+  // Seasonal ornament — same monthly schedule (+ ?theme= preview) as the masthead
+  const mastheadTheme = resolveMastheadTheme(location.search);
   const [formData, setFormData] = useState('');
   const submit = useSubmit();
 
@@ -284,7 +287,8 @@ export default function Collection() {
   const sortControl = (
     <Form method="get">
       <div className="flex items-center gap-2">
-        <label htmlFor="reverse" className={`text-sm font-medium whitespace-nowrap ${isCuciGudang ? 'text-white/90' : 'text-gray-600'}`}>
+        {/* Both headers are dark now (cuci-gudang hero + charcoal collection band) → white label */}
+        <label htmlFor="reverse" className="text-sm font-medium whitespace-nowrap text-white/90">
           Urutkan:
         </label>
         <select
@@ -292,10 +296,10 @@ export default function Collection() {
           id="reverse"
           value={formData}
           onChange={handleInputChange}
-          className={`text-sm rounded-xl px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 ${
+          className={`text-sm rounded-xl px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 border-0 shadow-lg ${
             isCuciGudang
-              ? 'bg-white/95 text-red-700 font-semibold border-0 focus:ring-white shadow-lg'
-              : 'border border-gray-200 bg-white text-gray-700 focus:ring-gray-900 focus:border-transparent'
+              ? 'bg-white/95 text-red-700 font-semibold focus:ring-white'
+              : 'bg-white text-gray-700 focus:ring-white/40'
           }`}
         >
           <option value="" disabled defaultValue>Pilih...</option>
@@ -317,19 +321,41 @@ export default function Collection() {
           {sortControl}
         </CuciGudangHero>
       ) : (
-        <div className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 py-5 sm:py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{collection.title}</h1>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {collection.products.nodes.length > 0
-                    ? `${collection.products.nodes.length}+ produk tersedia`
-                    : 'Tidak ada produk'}
-                </p>
-              </div>
-              {sortControl}
+        <div className="sm:max-w-7xl sm:mx-auto sm:px-4 sm:pt-5">
+          {/* MOBILE: full-bleed dark hero merging seamlessly with the charcoal header, wavy bottom.
+              DESKTOP: contained rounded card (like the Brand Populer / Flash bands) — a full-width
+              dark bar under the light sub-bar read as zebra-striping against the masthead. */}
+          <div className="relative overflow-hidden bg-gray-900 sm:rounded-2xl">
+            {/* Seasonal ornament — right side only (title/count sit left; keeps text legible).
+                Follows the same monthly schedule + ?theme= preview as the masthead. */}
+            <div aria-hidden="true" className="absolute inset-y-0 right-0 w-56 pointer-events-none opacity-60 -scale-x-100 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
+              <MastheadOrnament theme={mastheadTheme} id="gxOrnCol" />
             </div>
+            <div className="relative px-4 sm:px-6 pt-5 pb-10 sm:py-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-white">{collection.title}</h1>
+                  <p className="text-sm text-gray-400 mt-0.5">
+                    {collection.products.nodes.length > 0
+                      ? `${collection.products.nodes.length}+ produk tersedia`
+                      : 'Tidak ada produk'}
+                  </p>
+                </div>
+                {sortControl}
+              </div>
+            </div>
+            {/* Wave bottom edge — MOBILE only (the desktop card has rounded corners instead) */}
+            <svg
+              aria-hidden="true"
+              className="sm:hidden absolute bottom-0 inset-x-0 w-full h-5"
+              viewBox="0 0 1440 26"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0 14 C180 26 360 2 540 10 C720 18 900 24 1080 14 C1260 4 1380 10 1440 16 L1440 26 L0 26 Z"
+                fill="#f9fafb"
+              />
+            </svg>
           </div>
         </div>
       )}

@@ -5,6 +5,7 @@ import {PredictiveSearchForm, PredictiveSearchResults} from '~/components/Search
 import {useLocation, useNavigate, useNavigation} from '@remix-run/react';
 import {FaRegCircleUser} from 'react-icons/fa6';
 import {NearestStoreBar} from '~/components/NearestStoreBar';
+import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
 
 export function Header({header, isLoggedIn, cart}) {
   const routes = [
@@ -31,8 +32,14 @@ export function Header({header, isLoggedIn, cart}) {
   // Search is a task page — on mobile the page renders its own search-first bar (back + input),
   // so the shared header (and store bar) is hidden there; desktop keeps the normal header.
   const isSearch = location.pathname === '/search';
+
+  // Seasonal masthead ornament — month schedule (WIB), previewable via ?theme=<name>
+  const mastheadTheme = resolveMastheadTheme(location.search);
   // Pages that show a mobile back button + hide the hamburger/logo (compact drill-down bar)
   const isDrillDown = isProduct || isCollectionHandle;
+  // Mobile header goes charcoal on the homepage (curved hero) AND collection pages (flows into the
+  // dark collection band beneath). Product/inner pages stay white on mobile.
+  const mobileDarkHeader = isHome || isCollectionHandle;
 
   // Full-screen loader: only on a REAL page change to a shopping route — never during same-page
   // pagination (infinite scroll navigates within the same pathname + a cursor, which was blinking black).
@@ -108,19 +115,20 @@ export function Header({header, isLoggedIn, cart}) {
       {/* Main header + sub-bars all sticky together.
           DESKTOP (sm+): charcoal everywhere — matches the dark top strip, mobile hero and footer.
           MOBILE: charcoal on the homepage (curved-hero treatment), white on inner pages. */}
-      <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-gray-950/95' : 'bg-white/95 sm:bg-gray-950/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''} ${isSearch ? 'hidden sm:block' : ''}`}>
+      <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${mobileDarkHeader ? 'bg-gray-900 sm:bg-gray-950/95' : 'bg-white/95 sm:bg-gray-950/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''} ${isSearch ? 'hidden sm:block' : ''}`}>
         <div className="relative overflow-hidden">
-          {/* Batik edge ornaments — Blibli-style decorative artwork on the masthead edges.
-              Wide screens only (xl+), faded toward the center, purely decorative. */}
+          {/* Seasonal edge ornaments — Blibli-style decorative artwork on the masthead edges.
+              Theme rotates by month (batik default, merdeka in August, …), previewable via
+              ?theme=<name>. Wide screens only (xl+), faded toward the center, purely decorative. */}
           <div aria-hidden="true" className="hidden xl:block absolute inset-y-0 left-0 w-56 pointer-events-none opacity-75 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
-            <BatikPattern id="gxBatikL" />
+            <MastheadOrnament theme={mastheadTheme} id="gxOrnL" />
           </div>
           {/* Right side mirrors the left: scaleX(-1) flips the artwork AND its fade mask together */}
           <div aria-hidden="true" className="hidden xl:block absolute inset-y-0 right-0 w-56 pointer-events-none opacity-75 -scale-x-100 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
-            <BatikPattern id="gxBatikR" />
+            <MastheadOrnament theme={mastheadTheme} id="gxOrnR" />
           </div>
 
-        <div className={`relative flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-white/10' : 'border-b border-gray-100 sm:border-white/10'}`}>
+        <div className={`relative flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${mobileDarkHeader ? 'sm:border-b sm:border-white/10' : 'border-b border-gray-100 sm:border-white/10'}`}>
 
           {/* Back button — mobile drill-down pages (product + collection handle) */}
           {isDrillDown && (
@@ -128,7 +136,7 @@ export function Header({header, isLoggedIn, cart}) {
               type="button"
               onClick={goBack}
               aria-label="Kembali"
-              className="sm:hidden -ml-1.5 flex items-center justify-center w-9 h-9 rounded-full text-gray-700 hover:bg-gray-100 active:scale-95 transition-all flex-shrink-0"
+              className={`sm:hidden -ml-1.5 flex items-center justify-center w-9 h-9 rounded-full active:scale-95 transition-all flex-shrink-0 ${mobileDarkHeader ? 'text-white hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -139,7 +147,7 @@ export function Header({header, isLoggedIn, cart}) {
           {/* Left: hamburger + logo. On mobile homepage we keep the hamburger but
               drop the wordmark (search-first, eraspace-style); logo returns on sm+. */}
           <div className={`${isDrillDown ? 'hidden sm:flex' : 'flex'} items-center gap-3 flex-shrink-0`}>
-            <HeaderMenuMobileToggle onDark={isHome} />
+            <HeaderMenuMobileToggle onDark={mobileDarkHeader} />
             <NavLink prefetch="intent" to="/" style={activeLinkStyle} end className="hidden sm:block flex-shrink-0 hover:opacity-80 transition-opacity">
               <img
                 className="h-7 sm:h-8 lg:h-10 w-auto brightness-0 invert"
@@ -176,7 +184,7 @@ export function Header({header, isLoggedIn, cart}) {
           </div>
 
           {/* Right: account + cart */}
-          <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} onDark={isHome} />
+          <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} onDark={mobileDarkHeader} />
         </div>
         </div>
 
@@ -222,7 +230,7 @@ export function Header({header, isLoggedIn, cart}) {
             style={{borderBottomLeftRadius: '50% 26px', borderBottomRightRadius: '50% 26px'}}
           >
             <div className="absolute inset-y-0 right-0 w-44 opacity-60 -scale-x-100 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
-              <BatikPattern id="gxBatikMob" />
+              <MastheadOrnament theme={mastheadTheme} id="gxOrnMob" />
             </div>
           </div>
           <NearestStoreBar variant="hero" />
@@ -612,76 +620,6 @@ function activeLinkStyle({isActive, isPending}) {
     fontWeight: isActive ? 'bold' : undefined,
     color: isPending ? 'grey' : 'black',
   };
-}
-
-// Batik edge ornament — a composed gold illustration (not a repeating tile): a flowing vine with
-// kawung flowers that shrink toward the center for depth, leaves, and isen-isen filler dots.
-// Gold gradients give the metallic/luxury read on the charcoal masthead. Swap this component's
-// contents for real campaign artwork (an <img> from Shopify Files) anytime.
-// `id` must be unique per instance: duplicate SVG ids resolve to the first one in the DOM.
-function BatikPattern({id}) {
-  const gold = `url(#${id}-gold)`;
-  const goldHi = `url(#${id}-goldHi)`;
-  return (
-    <svg className="w-full h-full" viewBox="0 0 240 64" preserveAspectRatio="xMinYMid slice" aria-hidden="true" focusable="false">
-      <defs>
-        {/* Metallic golds: bright champagne → deep amber */}
-        <linearGradient id={`${id}-gold`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f9e08e" />
-          <stop offset="55%" stopColor="#e0b34a" />
-          <stop offset="100%" stopColor="#a9761f" />
-        </linearGradient>
-        <linearGradient id={`${id}-goldHi`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fff3c4" />
-          <stop offset="100%" stopColor="#e8b94e" />
-        </linearGradient>
-        <g id={`${id}-flower`}>
-          <ellipse cx="0" cy="-9" rx="4.5" ry="8" />
-          <ellipse cx="0" cy="9" rx="4.5" ry="8" />
-          <ellipse cx="-9" cy="0" rx="8" ry="4.5" />
-          <ellipse cx="9" cy="0" rx="8" ry="4.5" />
-        </g>
-        <path id={`${id}-leaf`} d="M0 0 Q8 -7 17 0 Q8 7 0 0 Z" />
-      </defs>
-
-      {/* Vines — a faint one behind, the main one in front */}
-      <path d="M-8 12 C40 8, 80 46, 140 40 S200 46 244 36" fill="none" stroke={gold} strokeWidth="1" opacity="0.28" />
-      <path d="M-8 54 C30 50, 56 30, 96 32 S172 20 244 30" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.55" />
-
-      {/* Leaves along the vine */}
-      <use href={`#${id}-leaf`} transform="translate(52,42) rotate(-28) scale(0.9)" fill={gold} opacity="0.45" />
-      <use href={`#${id}-leaf`} transform="translate(104,26) rotate(24) scale(0.75)" fill={gold} opacity="0.35" />
-      <use href={`#${id}-leaf`} transform="translate(146,38) rotate(-8) scale(0.6)" fill={gold} opacity="0.3" />
-
-      {/* Flowers — large & bright at the edge, smaller & dimmer toward center (depth) */}
-      <g fill="none" stroke={gold} strokeWidth="1.5" opacity="0.9">
-        <use href={`#${id}-flower`} transform="translate(26,32) scale(1.35)" />
-      </g>
-      <circle cx="26" cy="32" r="3" fill={goldHi} opacity="0.95" />
-      <g fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6">
-        <use href={`#${id}-flower`} transform="translate(80,17) rotate(22) scale(0.9)" />
-      </g>
-      <circle cx="80" cy="17" r="2" fill={goldHi} opacity="0.7" />
-      <g fill="none" stroke={gold} strokeWidth="1.2" opacity="0.4">
-        <use href={`#${id}-flower`} transform="translate(126,46) rotate(-14) scale(0.65)" />
-      </g>
-      <circle cx="126" cy="46" r="1.5" fill={goldHi} opacity="0.5" />
-      <g fill="none" stroke={gold} strokeWidth="1" opacity="0.28">
-        <use href={`#${id}-flower`} transform="translate(168,22) scale(0.5)" />
-      </g>
-
-      {/* Isen-isen — batik filler dots */}
-      <g fill={gold}>
-        <circle cx="44" cy="20" r="1.4" opacity="0.5" />
-        <circle cx="58" cy="14" r="1" opacity="0.4" />
-        <circle cx="66" cy="48" r="1.3" opacity="0.45" />
-        <circle cx="96" cy="44" r="1" opacity="0.35" />
-        <circle cx="112" cy="12" r="1.1" opacity="0.3" />
-        <circle cx="150" cy="20" r="1" opacity="0.25" />
-        <circle cx="184" cy="40" r="0.9" opacity="0.2" />
-      </g>
-    </svg>
-  );
 }
 
 // Light variant for links sitting on the charcoal desktop header
