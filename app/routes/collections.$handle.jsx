@@ -12,6 +12,7 @@ import React, {useEffect, useState, useRef} from 'react';
 import {HitunganPersen} from '~/components/HitunganPersen';
 import {CollectionSEOContent} from '~/components/CollectionSEOContent';
 import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
+import {FreeOngkirBadge} from '~/components/FreeOngkirBadge';
 
 export const handle = {
   breadcrumbType: 'collection',
@@ -514,11 +515,7 @@ function ProductItem({product, loading, sold, review, festive = false}) {
 
         {/* Free Ongkir badge */}
         {parseFloat(product.priceRange.minVariantPrice.amount) >= 3000000 && !isDiscontinued && !isOutOfStock && (
-          <img
-            src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
-            alt="Free Ongkir"
-            className="absolute bottom-2 left-2 w-11 sm:w-14 h-auto pointer-events-none z-10"
-          />
+          <FreeOngkirBadge className="absolute bottom-2 left-2 z-10" />
         )}
 
         {/* Badges — flash sale takes precedence over a plain compare-at promo */}

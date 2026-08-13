@@ -1,9 +1,6 @@
-// Mid-page guarantee bar ("Kenapa Galaxy") — breaks the long white stretch between the product
-// rails and adds rhythm, the way premium retailers (B&H, Apple) use a refined trust row.
-// Full-bleed on mobile (-mx-4 cancels the 16px body gutter), contained rounded card on desktop.
-//
-// Design: one cohesive palette (monochrome slate icons in ringed circles), thin vertical dividers,
-// a small red eyebrow — deliberately NOT four rainbow tiles, which read cheap.
+// Mid-page trust band ("Kenapa Galaxy") — a charcoal anchor matching the site's dark masthead,
+// Brand Populer band and footer: slate gradient + subtle dot texture, frosted-glass icon tiles,
+// red reserved for the accent bar/eyebrow. Full-bleed on mobile, rounded card on desktop.
 
 const ITEMS = [
   {
@@ -32,41 +29,49 @@ export function KenapaGalaxy() {
   return (
     <div className="relative -mx-4 sm:mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 my-6 sm:my-8">
       <section
-        className="relative overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-200/80"
-        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)' }}
+        className="relative overflow-hidden rounded-none sm:rounded-2xl"
+        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 70%, #263447 100%)' }}
       >
-        {/* Hairline red accent along the very top */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-400/50 to-transparent" />
+        {/* Subtle dotted texture (same language as the Brand Populer band) */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            opacity: 0.05,
+            backgroundImage: 'radial-gradient(circle at center, #ffffff 0.6px, transparent 0.6px)',
+            backgroundSize: '22px 22px',
+          }}
+        />
+        {/* Faint red glow — gives the guarantee band its own identity without shouting */}
+        <div className="absolute -top-20 -left-16 w-56 h-56 rounded-full bg-red-600/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-12 w-64 h-64 rounded-full bg-amber-500/[0.07] blur-3xl pointer-events-none" />
 
-        <div className="relative px-4 sm:px-6 py-3.5 sm:py-4">
-          {/* Eyebrow + heading — compact, left-aligned to save vertical space */}
-          <div className="flex items-baseline gap-2 mb-3 sm:mb-3.5">
+        <div className="relative px-4 sm:px-6 py-4 sm:py-5">
+          {/* Header */}
+          <div className="flex items-baseline gap-2 mb-3.5 sm:mb-4">
             <div className="w-1 h-4 sm:h-5 bg-gradient-to-b from-red-500 to-rose-600 rounded-full flex-shrink-0 self-center" />
-            <h2 className="text-slate-900 text-sm sm:text-lg font-bold tracking-tight leading-none">
+            <h2 className="text-white text-sm sm:text-lg font-bold tracking-tight leading-none">
               Kenapa Belanja di Galaxy?
             </h2>
-            <span className="hidden sm:inline text-[10px] font-semibold tracking-[0.2em] uppercase text-red-500/90 ml-1">
+            <span className="hidden sm:inline text-[10px] font-semibold tracking-[0.2em] uppercase text-red-400/90 ml-1">
               Jaminan Galaxy
             </span>
           </div>
 
-          {/* Compact icon-left rows: 4-up on desktop with thin dividers, 2×2 on mobile */}
-          <div className="grid grid-cols-2 gap-x-3 gap-y-3.5 md:grid-cols-4 md:gap-0 md:divide-x md:divide-slate-200">
+          {/* Compact icon-left rows: 4-up on desktop with hairline dividers, 2×2 on mobile */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-3.5 md:grid-cols-4 md:gap-0 md:divide-x md:divide-white/10">
             {ITEMS.map((it, i) => (
               <div key={i} className="flex items-center gap-2.5 sm:gap-3 md:px-4 lg:px-5 md:first:pl-0">
-                <div
-                  className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ring-1 ring-slate-200 shadow-sm"
-                  style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f1f5f9 100%)' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[18px] h-[18px] sm:w-5 sm:h-5 text-slate-700">
+                {/* Frosted-glass icon tile */}
+                <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-white/15 to-white/5 ring-1 ring-white/15 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[18px] h-[18px] sm:w-5 sm:h-5 text-white">
                     <path strokeLinecap="round" strokeLinejoin="round" d={it.path} />
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-slate-900 font-semibold text-[11.5px] sm:text-[13px] leading-tight">
+                  <p className="text-white font-semibold text-[11.5px] sm:text-[13px] leading-tight">
                     {it.title}
                   </p>
-                  <p className="text-slate-500 text-[9.5px] sm:text-[11px] leading-snug mt-0.5">
+                  <p className="text-slate-400 text-[9.5px] sm:text-[11px] leading-snug mt-0.5">
                     {it.sub}
                   </p>
                 </div>

@@ -109,7 +109,18 @@ export function Header({header, isLoggedIn, cart}) {
           DESKTOP (sm+): charcoal everywhere — matches the dark top strip, mobile hero and footer.
           MOBILE: charcoal on the homepage (curved-hero treatment), white on inner pages. */}
       <header className={`${isProduct ? 'fixed sm:sticky left-0 right-0 transition-transform duration-300' : 'sticky'} top-0 z-40 backdrop-blur-lg shadow-sm ${isHome ? 'bg-gray-900 sm:bg-gray-950/95' : 'bg-white/95 sm:bg-gray-950/95'} ${isProduct && !scrolled ? '-translate-y-full sm:translate-y-0' : ''} ${isSearch ? 'hidden sm:block' : ''}`}>
-        <div className={`flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-white/10' : 'border-b border-gray-100 sm:border-white/10'}`}>
+        <div className="relative overflow-hidden">
+          {/* Batik edge ornaments — Blibli-style decorative artwork on the masthead edges.
+              Wide screens only (xl+), faded toward the center, purely decorative. */}
+          <div aria-hidden="true" className="hidden xl:block absolute inset-y-0 left-0 w-56 pointer-events-none opacity-75 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
+            <BatikPattern id="gxBatikL" />
+          </div>
+          {/* Right side mirrors the left: scaleX(-1) flips the artwork AND its fade mask together */}
+          <div aria-hidden="true" className="hidden xl:block absolute inset-y-0 right-0 w-56 pointer-events-none opacity-75 -scale-x-100 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
+            <BatikPattern id="gxBatikR" />
+          </div>
+
+        <div className={`relative flex items-center gap-3 w-full px-4 py-2.5 max-w-7xl mx-auto ${isHome ? 'sm:border-b sm:border-white/10' : 'border-b border-gray-100 sm:border-white/10'}`}>
 
           {/* Back button — mobile drill-down pages (product + collection handle) */}
           {isDrillDown && (
@@ -167,6 +178,7 @@ export function Header({header, isLoggedIn, cart}) {
           {/* Right: account + cart */}
           <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} onDark={isHome} />
         </div>
+        </div>
 
         {/* Mobile inner pages: light store bar (unchanged). Hidden on product/home/collection pages. */}
         <div className={`sm:hidden ${isProduct || isHome || isCollectionHandle || isCollectionsIndex ? 'hidden' : ''}`}>
@@ -198,9 +210,21 @@ export function Header({header, isLoggedIn, cart}) {
           long enough that the location line sits fully above the banner and the arc still hugs it. */}
       {isHome && (
         <div
-          className="sm:hidden bg-gray-900 pt-0.5 pb-8"
+          className="sm:hidden bg-gray-900 pt-0.5 pb-8 relative"
           style={{borderBottomLeftRadius: '50% 26px', borderBottomRightRadius: '50% 26px'}}
         >
+          {/* Gold batik ornament — clipped to the same curve in its own stage (a sibling, so the
+              store-locator dropdown below isn't clipped). Right side only: the location text is
+              left-aligned and gold under white text would hurt legibility. */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 overflow-hidden pointer-events-none"
+            style={{borderBottomLeftRadius: '50% 26px', borderBottomRightRadius: '50% 26px'}}
+          >
+            <div className="absolute inset-y-0 right-0 w-44 opacity-60 -scale-x-100 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
+              <BatikPattern id="gxBatikMob" />
+            </div>
+          </div>
           <NearestStoreBar variant="hero" />
         </div>
       )}
@@ -588,6 +612,76 @@ function activeLinkStyle({isActive, isPending}) {
     fontWeight: isActive ? 'bold' : undefined,
     color: isPending ? 'grey' : 'black',
   };
+}
+
+// Batik edge ornament — a composed gold illustration (not a repeating tile): a flowing vine with
+// kawung flowers that shrink toward the center for depth, leaves, and isen-isen filler dots.
+// Gold gradients give the metallic/luxury read on the charcoal masthead. Swap this component's
+// contents for real campaign artwork (an <img> from Shopify Files) anytime.
+// `id` must be unique per instance: duplicate SVG ids resolve to the first one in the DOM.
+function BatikPattern({id}) {
+  const gold = `url(#${id}-gold)`;
+  const goldHi = `url(#${id}-goldHi)`;
+  return (
+    <svg className="w-full h-full" viewBox="0 0 240 64" preserveAspectRatio="xMinYMid slice" aria-hidden="true" focusable="false">
+      <defs>
+        {/* Metallic golds: bright champagne → deep amber */}
+        <linearGradient id={`${id}-gold`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#f9e08e" />
+          <stop offset="55%" stopColor="#e0b34a" />
+          <stop offset="100%" stopColor="#a9761f" />
+        </linearGradient>
+        <linearGradient id={`${id}-goldHi`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff3c4" />
+          <stop offset="100%" stopColor="#e8b94e" />
+        </linearGradient>
+        <g id={`${id}-flower`}>
+          <ellipse cx="0" cy="-9" rx="4.5" ry="8" />
+          <ellipse cx="0" cy="9" rx="4.5" ry="8" />
+          <ellipse cx="-9" cy="0" rx="8" ry="4.5" />
+          <ellipse cx="9" cy="0" rx="8" ry="4.5" />
+        </g>
+        <path id={`${id}-leaf`} d="M0 0 Q8 -7 17 0 Q8 7 0 0 Z" />
+      </defs>
+
+      {/* Vines — a faint one behind, the main one in front */}
+      <path d="M-8 12 C40 8, 80 46, 140 40 S200 46 244 36" fill="none" stroke={gold} strokeWidth="1" opacity="0.28" />
+      <path d="M-8 54 C30 50, 56 30, 96 32 S172 20 244 30" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.55" />
+
+      {/* Leaves along the vine */}
+      <use href={`#${id}-leaf`} transform="translate(52,42) rotate(-28) scale(0.9)" fill={gold} opacity="0.45" />
+      <use href={`#${id}-leaf`} transform="translate(104,26) rotate(24) scale(0.75)" fill={gold} opacity="0.35" />
+      <use href={`#${id}-leaf`} transform="translate(146,38) rotate(-8) scale(0.6)" fill={gold} opacity="0.3" />
+
+      {/* Flowers — large & bright at the edge, smaller & dimmer toward center (depth) */}
+      <g fill="none" stroke={gold} strokeWidth="1.5" opacity="0.9">
+        <use href={`#${id}-flower`} transform="translate(26,32) scale(1.35)" />
+      </g>
+      <circle cx="26" cy="32" r="3" fill={goldHi} opacity="0.95" />
+      <g fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6">
+        <use href={`#${id}-flower`} transform="translate(80,17) rotate(22) scale(0.9)" />
+      </g>
+      <circle cx="80" cy="17" r="2" fill={goldHi} opacity="0.7" />
+      <g fill="none" stroke={gold} strokeWidth="1.2" opacity="0.4">
+        <use href={`#${id}-flower`} transform="translate(126,46) rotate(-14) scale(0.65)" />
+      </g>
+      <circle cx="126" cy="46" r="1.5" fill={goldHi} opacity="0.5" />
+      <g fill="none" stroke={gold} strokeWidth="1" opacity="0.28">
+        <use href={`#${id}-flower`} transform="translate(168,22) scale(0.5)" />
+      </g>
+
+      {/* Isen-isen — batik filler dots */}
+      <g fill={gold}>
+        <circle cx="44" cy="20" r="1.4" opacity="0.5" />
+        <circle cx="58" cy="14" r="1" opacity="0.4" />
+        <circle cx="66" cy="48" r="1.3" opacity="0.45" />
+        <circle cx="96" cy="44" r="1" opacity="0.35" />
+        <circle cx="112" cy="12" r="1.1" opacity="0.3" />
+        <circle cx="150" cy="20" r="1" opacity="0.25" />
+        <circle cx="184" cy="40" r="0.9" opacity="0.2" />
+      </g>
+    </svg>
+  );
 }
 
 // Light variant for links sitting on the charcoal desktop header

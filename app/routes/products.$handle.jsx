@@ -15,6 +15,7 @@ import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
 import { WishlistButton } from '~/components/WishlistButton';
+import { FreeOngkirBadge } from '~/components/FreeOngkirBadge';
 import {AnalyticsPageType} from '@shopify/hydrogen';
 import { ProdukRelated } from '~/components/ProdukRelated';
 import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
@@ -840,11 +841,7 @@ DP : 0
 
           {/* Free Ongkir badge — products 3jt+ (hidden in video mode) */}
           {!videoMode && parseFloat(wishlistPrice) >= 3000000 && (
-            <img
-              src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
-              alt="Free Ongkir"
-              className="absolute bottom-2 left-2 w-20 h-auto pointer-events-none z-10"
-            />
+            <FreeOngkirBadge size="md" className="absolute bottom-2 left-2 z-10" />
           )}
 
           {/* Prev / Next buttons — desktop only */}

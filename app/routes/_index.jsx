@@ -8,6 +8,7 @@ import {ProductFeatureHalDepan} from '~/components/ProductFeatureHalDepan';
 import { BrandPopular } from '../components/BrandPopular';
 import { KenapaGalaxy } from '../components/KenapaGalaxy';
 import { YoutubeLink } from '../components/YoutubeLink';
+import { FreeOngkirBadge } from '../components/FreeOngkirBadge';
 import { RecentlyViewed } from '../components/RecentlyViewed';
 import { SocialProofStrip } from '../components/SocialProofStrip';
 import { TrustRibbon } from '../components/TrustRibbon';
@@ -1091,11 +1092,7 @@ function MirrorlessProducts({products}) {
                         </div>
                       )}
                       {parseFloat(product?.priceRange?.minVariantPrice?.amount || 0) >= 3000000 && (
-                        <img
-                          src="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/free-ongkir-1.png?v=1782805426"
-                          alt="Free Ongkir"
-                          className="absolute bottom-1.5 left-1.5 w-10 sm:w-14 h-auto pointer-events-none z-10"
-                        />
+                        <FreeOngkirBadge className="absolute bottom-1.5 left-1.5 z-10" />
                       )}
                     </div>
 
