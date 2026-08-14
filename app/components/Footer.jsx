@@ -13,7 +13,7 @@ const socials = [
 
 export function Footer({menu}) {
   return (
-    <footer className="text-white" style={{ background: 'linear-gradient(180deg, #0d1526 0%, #080d1a 100%)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+    <footer className="text-white" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 70%, #263447 100%)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
       {/* Main footer content */}
       <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
