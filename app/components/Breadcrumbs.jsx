@@ -25,17 +25,23 @@ if(isvalidBreadcrumbType){
             });
             break;
 
-        case 'collection':
+        case 'collection': {
             pages.push({
                 href:'/collections',
                 name: 'Collections'
             });
 
-            pages.push({
-                href:`/collections/${deepestRoute?.data.collection.handle}`,
-                name: `${deepestRoute?.data.collection.title}`,
-            });
+            // Null-safe: on slow connections React may render before route data is ready —
+            // reading .collection off undefined here crashed the whole page (Application Error)
+            const col = deepestRoute?.data?.collection;
+            if (col) {
+                pages.push({
+                    href:`/collections/${col.handle}`,
+                    name: `${col.title}`,
+                });
+            }
             break;
+        }
 
 
         case 'product': {

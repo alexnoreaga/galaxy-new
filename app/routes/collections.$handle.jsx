@@ -14,6 +14,7 @@ import {CollectionSEOContent} from '~/components/CollectionSEOContent';
 import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
 import {FreeOngkirBadge} from '~/components/FreeOngkirBadge';
 import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
+import {getSocialProof} from '~/lib/socialProof';
 
 export const handle = {
   breadcrumbType: 'collection',
@@ -128,50 +129,11 @@ export async function loader({request, params, context}) {
   }
 
   const nodes = collection.products.nodes;
-  const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
-  const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
-  const [soldEntries, reviewEntries, discounts] = await Promise.all([
-    Promise.all(
-      nodes.map(p =>
-        fetch(`${FIRESTORE_BASE}/sold_counts/${p.handle}?key=${FIRESTORE_KEY}`)
-          .then(res => res.ok ? res.json() : null)
-          .then(doc => [p.handle, parseInt(doc?.fields?.count?.integerValue || 0)])
-          .catch(() => [p.handle, 0])
-      )
-    ),
-    Promise.all(
-      nodes.map(p =>
-        fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            structuredQuery: {
-              from: [{collectionId: 'reviews'}],
-              where: {
-                fieldFilter: {
-                  field: {fieldPath: 'productHandle'},
-                  op: 'EQUAL',
-                  value: {stringValue: p.handle},
-                },
-              },
-              select: {fields: [{fieldPath: 'rating'}]},
-              limit: 100,
-            },
-          }),
-        })
-          .then(res => res.ok ? res.json() : null)
-          .then(rows => {
-            const ratings = (rows || [])
-              .filter(r => r.document)
-              .map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
-            const count = ratings.length;
-            const avg = count > 0 ? parseFloat((ratings.reduce((s, r) => s + r, 0) / count).toFixed(1)) : 0;
-            return [p.handle, count > 0 ? {count, avg} : null];
-          })
-          .catch(() => [p.handle, null])
-      )
-    ),
+  // Batched social proof (2 requests total) + module-cached discounts — the old version fired
+  // 2 Firestore round-trips PER product (16+/page), which made slow connections crawl.
+  const [{soldCounts, reviewSummaries}, discounts] = await Promise.all([
+    getSocialProof(nodes.map((p) => p.handle)),
     getAutomaticDiscounts(context.env).catch(() => []),
   ]);
 
@@ -204,8 +166,8 @@ export async function loader({request, params, context}) {
 
   return json({
     collection,
-    soldCounts: Object.fromEntries(soldEntries),
-    reviewSummaries: Object.fromEntries(reviewEntries),
+    soldCounts,
+    reviewSummaries,
   });
 }
 
@@ -263,6 +225,18 @@ export default function Collection() {
   const {collection, soldCounts, reviewSummaries} = useLoaderData();
   const params = useParams();
   const isCuciGudang = params.handle === 'cuci-gudang';
+
+  // Infinite scroll replaces loader data with each page, but <Pagination> keeps ALL products on
+  // screen — so sold/rating maps must be accumulated across pages or earlier cards lose theirs.
+  // Reset when the collection changes.
+  const socialRef = useRef({key: null, sold: {}, reviews: {}});
+  if (socialRef.current.key !== collection.handle) {
+    socialRef.current = {key: collection.handle, sold: {}, reviews: {}};
+  }
+  Object.assign(socialRef.current.sold, soldCounts);
+  Object.assign(socialRef.current.reviews, reviewSummaries);
+  const allSoldCounts = socialRef.current.sold;
+  const allReviewSummaries = socialRef.current.reviews;
   const location = useLocation();
   // Seasonal ornament — same monthly schedule (+ ?theme= preview) as the masthead
   const mastheadTheme = resolveMastheadTheme(location.search);
@@ -314,7 +288,7 @@ export default function Collection() {
   );
 
   return (
-    <div className={`min-h-screen -mx-4 ${isCuciGudang ? 'bg-gradient-to-b from-orange-50 via-red-50 to-white' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen -mx-4 ${isCuciGudang ? 'bg-gradient-to-b from-orange-50 via-red-50 to-white' : 'bg-white'}`}>
       {/* Collection header */}
       {isCuciGudang ? (
         <CuciGudangHero count={collection.products.nodes.length}>
@@ -353,7 +327,7 @@ export default function Collection() {
             >
               <path
                 d="M0 14 C180 26 360 2 540 10 C720 18 900 24 1080 14 C1260 4 1380 10 1440 16 L1440 26 L0 26 Z"
-                fill="#f9fafb"
+                fill="#ffffff"
               />
             </svg>
           </div>
@@ -381,7 +355,7 @@ export default function Collection() {
                 </div>
               </PreviousLink>
 
-              <ProductsGrid products={nodes} soldCounts={soldCounts} reviewSummaries={reviewSummaries} festive={isCuciGudang} />
+              <ProductsGrid products={nodes} soldCounts={allSoldCounts} reviewSummaries={allReviewSummaries} festive={isCuciGudang} />
 
               {/* Infinite scroll — auto-loads the next page as the sentinel nears the viewport */}
               <InfiniteLoader
@@ -508,19 +482,27 @@ function ProductItem({product, loading, sold, review, festive = false}) {
   const effectiveHarga = flash ? flash.price : harga;
   const showCicilan = effectiveHarga >= CICILAN_MIN_HARGA && !isDiscontinued && !isOutOfStock;
 
+  // Discount % for the Blibli-style ribbon (flash beats compare-at promo)
+  const compareAtNum = parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount || 0);
+  const pctOff = flash
+    ? Math.round(((flash.base - flash.price) / flash.base) * 100)
+    : hasDiscount && compareAtNum > 0
+    ? Math.round(((compareAtNum - harga) / compareAtNum) * 100)
+    : 0;
+
   return (
     <Link
-      className={`group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col no-underline ${
+      className={`group relative bg-white rounded-xl flex flex-col no-underline ${
         festive
-          ? 'border-2 border-red-400 hover:border-red-500 hover:shadow-red-100'
-          : 'border border-gray-100 hover:border-gray-200'
+          ? 'border-2 border-red-400 hover:border-red-500 shadow-sm hover:shadow-md hover:shadow-red-100 transition-shadow duration-200'
+          : ''
       }`}
       key={product.id}
       prefetch="intent"
       to={variantUrl}
     >
-      {/* Image */}
-      <div className="relative overflow-hidden bg-gray-50 aspect-square">
+      {/* Image — rounded on all four corners (it's the visible block now that cards are borderless) */}
+      <div className="relative overflow-hidden bg-gray-50 aspect-square rounded-xl">
         {festive && !isDiscontinued && !isOutOfStock && (
           <span className="absolute top-0 left-0 z-20 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] sm:text-[10px] font-black px-2 py-1 rounded-br-xl shadow tracking-wide">
             🔥 CUCI GUDANG
@@ -533,27 +515,28 @@ function ProductItem({product, loading, sold, review, festive = false}) {
             data={product.featuredImage}
             loading={loading}
             sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+            className={`w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300 ${
               isDiscontinued || isOutOfStock ? 'opacity-50' : ''
             }`}
           />
         )}
+
+        {/* Tokopedia-style tint — a ~3% black veil over the photo so white product backgrounds
+            read as a soft gray card instead of blending into the page. Deepens slightly on hover
+            (the product "responds" instead of a card-shadow box materializing). Badges sit above. */}
+        <div aria-hidden="true" className="absolute inset-0 bg-black/[0.03] group-hover:bg-black/[0.06] transition-colors duration-300 pointer-events-none" />
 
         {/* Free Ongkir badge */}
         {parseFloat(product.priceRange.minVariantPrice.amount) >= 3000000 && !isDiscontinued && !isOutOfStock && (
           <FreeOngkirBadge className="absolute bottom-2 left-2 z-10" />
         )}
 
-        {/* Badges — flash sale takes precedence over a plain compare-at promo */}
-        {flash && !isDiscontinued ? (
+        {/* Flash badge — top right (the % now lives in the ribbon, so no more "Promo" pill) */}
+        {flash && !isDiscontinued && (
           <div className="absolute top-2 right-2 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow inline-flex items-center gap-0.5">
             ⚡ FLASH
           </div>
-        ) : hasDiscount && !isDiscontinued ? (
-          <div className="absolute top-2 right-2 bg-gradient-to-r from-rose-600 to-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
-            Promo
-          </div>
-        ) : null}
+        )}
         {isDiscontinued && (
           <div className="absolute top-2 left-2 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             Discontinue
@@ -568,9 +551,24 @@ function ProductItem({product, loading, sold, review, festive = false}) {
         )}
       </div>
 
+      {/* Discount ribbon — Blibli-style: overhangs the card's left edge, with a dark fold
+          triangle under the overhang so it reads as wrapping from behind the image */}
+      {pctOff > 0 && !isDiscontinued && (
+        <div className="absolute top-2 -left-1 z-20 pointer-events-none">
+          <div className="bg-gradient-to-r from-red-700 via-red-600 to-rose-500 text-white text-[10px] sm:text-[11px] font-black leading-none px-1.5 py-1 rounded-r-md shadow-md">
+            -{pctOff}%
+          </div>
+          <svg width="4" height="4" viewBox="0 0 4 4" className="block" aria-hidden="true">
+            <path d="M0 0 L4 0 L4 4 Z" fill="#881337" />
+          </svg>
+        </div>
+      )}
+
       {/* Info */}
       <div className="flex flex-col gap-1 p-2.5 sm:p-3 flex-1">
-        <p className="text-xs sm:text-sm text-gray-800 leading-snug line-clamp-2 flex-1">
+        {/* No flex-1: content stacks tight from the top (Tokopedia-style). With borderless cards,
+            leftover space at the card BOTTOM is invisible — a mid-card gap before the price isn't. */}
+        <p className="text-xs sm:text-sm text-gray-800 leading-snug line-clamp-2 group-hover:text-rose-600 transition-colors duration-200">
           {product.title}
         </p>
 
@@ -579,7 +577,8 @@ function ProductItem({product, loading, sold, review, festive = false}) {
           {flash ? (
             <>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="bg-red-600 text-white text-[10px] font-bold px-1 py-0.5 rounded whitespace-nowrap">
+                {/* Faded hemat pill (matches the product page) — the PRICE is the loud red element */}
+                <span className="bg-red-50 border border-red-200 text-red-600 text-[10px] font-bold px-1 py-[1px] rounded whitespace-nowrap">
                   {flash.type === 'amount'
                     ? `-Rp${Number(flash.amount).toLocaleString('id-ID')}`
                     : `-${flash.percentage}%`}
@@ -594,14 +593,9 @@ function ProductItem({product, loading, sold, review, festive = false}) {
             </>
           ) : (
             <>
+              {/* % pill moved to the image ribbon — only the strikethrough stays here */}
               {hasDiscount && (
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="bg-rose-600 text-white text-[10px] font-bold px-1 py-0.5 rounded">
-                    <HitunganPersen
-                      hargaSebelum={product.compareAtPriceRange.minVariantPrice.amount}
-                      hargaSesudah={product.priceRange.minVariantPrice.amount}
-                    />
-                  </span>
                   <span className="text-[11px] text-gray-400 line-through">
                     Rp{parseFloat(product.compareAtPriceRange.minVariantPrice.amount).toLocaleString('id-ID')}
                   </span>

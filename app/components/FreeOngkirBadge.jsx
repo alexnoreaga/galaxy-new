@@ -5,7 +5,12 @@
 export function FreeOngkirBadge({ size = 'sm', className = '' }) {
   const s = size === 'md'
     ? { pad: 'pl-2 pr-2.5 py-1.5', icon: 'w-5 h-5', text: 'text-[13px]' }
-    : { pad: 'pl-1.5 pr-2 py-1', icon: 'w-4 h-4', text: 'text-[10px]' };
+    : {
+        // sm is responsive: compact on mobile (cards are ~half the screen), fuller on sm+
+        pad: 'pl-1 pr-1.5 py-[3px] sm:pl-1.5 sm:pr-2 sm:py-1',
+        icon: 'w-3 h-3 sm:w-4 sm:h-4',
+        text: 'text-[8px] sm:text-[10px]',
+      };
   return (
     <div
       className={`inline-flex items-center gap-1.5 rounded bg-gradient-to-br from-rose-600 via-red-600 to-red-700 shadow-md ring-1 ring-white/25 pointer-events-none select-none ${s.pad} ${className}`}
