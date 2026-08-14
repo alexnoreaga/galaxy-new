@@ -317,7 +317,7 @@ export function MobileMenuNav({menu, isLoggedIn}) {
     {to: '/pengadaan', label: 'Info Pengadaan'},
     {to: '/stores', label: 'Lokasi Toko'},
     {to: '/blogs', label: 'Blog & Artikel'},
-    {to: '/pages/about', label: 'Tentang Kami'},
+    {to: '/pages/tentang-kami', label: 'Tentang Kami'},
     {to: '/policies', label: 'Kebijakan & Bantuan'},
   ];
 
