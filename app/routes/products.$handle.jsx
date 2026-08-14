@@ -246,20 +246,19 @@ export async function loader({params, context, request}) {
     {shop, product},
     custEmail,
     admgalaxy,
-    balasCepat,
     marketplace,
   ] = await Promise.all([
     context.storefront.query(PRODUCT_QUERY, {
       variables: { handle, selectedOptions },
     }),
-    context.storefront.query(CUSTOMER_EMAIL_QUERY, {
-      variables: { customertoken: customerAccessToken?.accessToken || '' },
-    }),
+    // Anonymous visitors (the vast majority) skip this round-trip entirely
+    customerAccessToken?.accessToken
+      ? context.storefront.query(CUSTOMER_EMAIL_QUERY, {
+          variables: { customertoken: customerAccessToken.accessToken },
+        })
+      : Promise.resolve(null),
     context.storefront.query(METAOBJECT_ADMIN_GALAXY, {
       variables: { type: "admin_galaxy", first: 20 },
-    }),
-    context.storefront.query(BALAS_CEPAT, {
-      variables: { first: 20 },
     }),
     context.storefront.query(METAOBJECT_MARKETPLACE, {
       variables: { type: "marketplace", first: 10 },
@@ -318,11 +317,22 @@ export async function loader({params, context, request}) {
   // Match active automatic discount (flash sale) for this product
   const autoDiscount = findProductAutoDiscount(await autoDiscountsPromise, product?.id);
 
-  // Staff-only "harga best" — computed server-side so raw cost never reaches the browser
-  const hargaBest = buildHargaBest({
-    variants: product?.variants?.nodes ?? [],
-    costs: await getVariantCosts(context.env, product?.id).catch(() => ({})),
-  });
+  // Staff "harga best" + nego-bubble gate — DEFERRED. getVariantCosts hits the Admin API
+  // sequentially after Round 1; on cache misses that added ~0.5s of first-byte latency for data
+  // nobody needs at first paint. It now streams in right after the page renders.
+  const hargaBestPromise = (async () => {
+    try {
+      return buildHargaBest({
+        variants: product?.variants?.nodes ?? [],
+        costs: await getVariantCosts(context.env, product?.id),
+      });
+    } catch {
+      return { byVariant: {}, withRealCost: [] };
+    }
+  })();
+
+  // Admin quick replies — only the admin modal uses this; deferred, streams in
+  const balasCepatPromise = context.storefront.query(BALAS_CEPAT, { variables: { first: 20 } });
 
   const productNumId = product?.id?.split('/').pop();
   const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value;
@@ -377,7 +387,7 @@ export async function loader({params, context, request}) {
 
   return defer({
     // Critical — resolved before first byte
-    balasCepat,
+    balasCepat: balasCepatPromise,
     custEmail,
     admgalaxy,
     shop,
@@ -392,7 +402,7 @@ export async function loader({params, context, request}) {
       pageType: AnalyticsPageType.product,
       products: [product],
     },
-    hargaBest,
+    hargaBest: hargaBestPromise,
     // Deferred — stream in after page renders
     related: relatedPromise,
     metaobject: metaobjectPromise,
@@ -1675,9 +1685,16 @@ DP : 0
       `Info Produk : ${canonicalUrl}`;
 
       
-    // Staff-only "harga best" — precomputed per variant in the loader (see ~/lib/hargaBest)
-    const hargaBestCopy = hargaBest?.byVariant?.[selectedVariant?.id] ?? '';
-    const variantPunyaModal = !!hargaBest?.withRealCost?.includes(selectedVariant?.id);
+    // hargaBest is DEFERRED (the Admin-API cost lookup no longer blocks first byte). Resolve the
+    // streamed promise into state — the nego bubble & staff secret-copy activate once it lands.
+    const [hargaBestData, setHargaBestData] = useState(null);
+    useEffect(() => {
+      let active = true;
+      Promise.resolve(hargaBest).then((v) => { if (active) setHargaBestData(v); }).catch(() => {});
+      return () => { active = false; };
+    }, [hargaBest]);
+    const hargaBestCopy = hargaBestData?.byVariant?.[selectedVariant?.id] ?? '';
+    const variantPunyaModal = !!hargaBestData?.withRealCost?.includes(selectedVariant?.id);
 
     const copyToClipboard = (objekCopy) => {
 
@@ -1713,7 +1730,13 @@ DP : 0
 
     return (
       <>
-      {bukaModalBalasCepat&&<ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={balasCepat?.metaobjects?.nodes}/>}
+      {bukaModalBalasCepat && (
+        <Suspense fallback={null}>
+          <Await resolve={balasCepat}>
+            {(bc) => <ModalBalasCepat setBukaModalBalasCepat={setBukaModalBalasCepat} data={bc?.metaobjects?.nodes}/>}
+          </Await>
+        </Suspense>
+      )}
       {bukaModalBandingkan && (
         <BandingkanModal
           productA={{
