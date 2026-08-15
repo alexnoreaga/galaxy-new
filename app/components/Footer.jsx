@@ -1,7 +1,8 @@
-import {useMatches, NavLink} from '@remix-run/react';
+import {useMatches, NavLink, useLocation} from '@remix-run/react';
 import {FaInstagram, FaFacebookF, FaTiktok, FaYoutube, FaXTwitter, FaWhatsapp} from 'react-icons/fa6';
 import {FooterColumn1} from '~/components/FooterColumn1';
 import {FooterColumn2} from '~/components/FooterColumn2';
+import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
 
 const socials = [
   {href: 'https://www.instagram.com/galaxycamera99', icon: <FaInstagram />, label: 'Instagram'},
@@ -11,12 +12,40 @@ const socials = [
   {href: 'https://www.x.com/galaxycamera99', icon: <FaXTwitter />, label: 'X'},
 ];
 
-export function Footer({menu}) {
+// Column heading — tiny tracked caps + the site's red accent bar
+function FooterHeading({children}) {
   return (
-    <footer className="text-white" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 70%, #263447 100%)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+    <div>
+      <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-200 m-0">{children}</h3>
+      <span className="block w-6 h-0.5 rounded-full bg-gradient-to-r from-red-500 to-rose-600 mt-1.5" />
+    </div>
+  );
+}
+
+export function Footer({menu}) {
+  const location = useLocation();
+  // The footer bookends the masthead: same near-black, same seasonal gold ornament
+  const mastheadTheme = resolveMastheadTheme(location.search);
+
+  return (
+    <footer className="relative overflow-hidden text-white bg-gray-950 border-t border-white/10">
+      {/* Subtle dot texture — same language as the dark bands */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{opacity: 0.04, backgroundImage: 'radial-gradient(circle at center, #fff 0.6px, transparent 0.6px)', backgroundSize: '22px 22px'}}
+      />
+      {/* Seasonal gold ornament — fixed height so the artwork renders at its natural scale */}
+      <div
+        aria-hidden="true"
+        className="hidden sm:block absolute right-0 bottom-16 h-16 w-64 pointer-events-none opacity-40 -scale-x-100 [mask-image:linear-gradient(to_right,black_35%,transparent)]"
+      >
+        <MastheadOrnament theme={mastheadTheme} id="gxOrnFooter" />
+      </div>
+
       {/* Main footer content */}
-      <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+      <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-9 lg:gap-10">
 
           {/* Col 1: Logo + contact */}
           <div className="sm:col-span-2 lg:col-span-1">
@@ -30,26 +59,26 @@ export function Footer({menu}) {
           <FooterMenu menu={menu} />
 
           {/* Col 4: Jam operasional + social */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-5">
             <div>
-              <h3 className="text-white text-sm font-semibold uppercase tracking-wider mb-2">Jam Operasional</h3>
-              <p className="text-gray-400 text-sm">Buka setiap hari</p>
-              <p className="text-gray-300 text-sm font-medium">10.00 – 19.00</p>
+              <FooterHeading>Jam Operasional</FooterHeading>
+              <p className="text-gray-400 text-sm mt-3 mb-0.5">Buka setiap hari</p>
+              <p className="text-white text-xl font-bold tracking-tight m-0">10.00 – 19.00</p>
             </div>
 
             <a
               href="https://wa.me/6282111311131"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors no-underline w-fit"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors no-underline w-fit shadow-lg shadow-emerald-950/40"
             >
               <FaWhatsapp className="w-4 h-4" />
               Chat via WhatsApp
             </a>
 
-            <div className="mt-1">
-              <h3 className="text-white text-sm font-semibold uppercase tracking-wider mb-3">Ikuti Kami</h3>
-              <div className="flex items-center gap-2.5">
+            <div>
+              <FooterHeading>Ikuti Kami</FooterHeading>
+              <div className="flex items-center gap-2.5 mt-3">
                 {socials.map(({href, icon, label}) => (
                   <a
                     key={href}
@@ -57,7 +86,7 @@ export function Footer({menu}) {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition-colors no-underline" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 bg-white/5 ring-1 ring-white/10 hover:text-white hover:bg-white/15 hover:-translate-y-0.5 transition-all duration-200 no-underline"
                   >
                     {icon}
                   </a>
@@ -68,10 +97,13 @@ export function Footer({menu}) {
         </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="max-w-7xl mx-auto px-4 py-2 text-center" style={{ fontSize: '9px', color: 'rgba(255,255,255,0.18)' }}>
-          <p>© {new Date().getFullYear()} Galaxy Camera — PT Galaxy Digital Niaga. All rights reserved. · Toko Kamera Online Terpercaya Sejak 2014</p>
+      {/* Bottom bar — mirrors the masthead's charcoal utility strip */}
+      <div className="relative bg-gray-900 border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px] text-gray-500">
+          <p className="m-0">© {new Date().getFullYear()} Galaxy Camera — PT Galaxy Digital Niaga. All rights reserved.</p>
+          <p className="m-0">
+            Part of <span className="text-gray-300 font-semibold">Galaxycamera.id</span> · Toko Kamera Terpercaya Sejak 2014
+          </p>
         </div>
       </div>
     </footer>
@@ -83,9 +115,9 @@ function FooterMenu({menu}) {
   const publicStoreDomain = root?.data?.publicStoreDomain;
 
   return (
-    <div className="flex flex-col gap-3">
-      <h3 className="text-white text-sm font-semibold uppercase tracking-wider">Informasi</h3>
-      <ul className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
+      <FooterHeading>Informasi</FooterHeading>
+      <ul className="flex flex-col gap-2.5 m-0 p-0 list-none">
         {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
           if (!item.url) return null;
           const url =
@@ -93,24 +125,15 @@ function FooterMenu({menu}) {
               ? new URL(item.url).pathname
               : item.url;
           const isExternal = !url.startsWith('/');
+          const cls = 'inline-block text-gray-400 hover:text-white hover:translate-x-0.5 text-sm transition-all duration-200 no-underline';
           return (
-            <li key={item.id}>
+            <li key={item.id} className="m-0">
               {isExternal ? (
-                <a
-                  href={url}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  className="text-gray-400 hover:text-white text-sm transition-colors no-underline"
-                >
+                <a href={url} rel="noopener noreferrer" target="_blank" className={cls}>
                   {item.title}
                 </a>
               ) : (
-                <NavLink
-                  end
-                  prefetch="intent"
-                  to={url}
-                  className="text-gray-400 hover:text-white text-sm transition-colors no-underline"
-                >
+                <NavLink end prefetch="intent" to={url} className={cls}>
                   {item.title}
                 </NavLink>
               )}
