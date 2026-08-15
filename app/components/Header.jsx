@@ -37,9 +37,9 @@ export function Header({header, isLoggedIn, cart}) {
   const mastheadTheme = resolveMastheadTheme(location.search);
   // Pages that show a mobile back button + hide the hamburger/logo (compact drill-down bar)
   const isDrillDown = isProduct || isCollectionHandle;
-  // Mobile header goes charcoal on the homepage (curved hero) AND collection pages (flows into the
-  // dark collection band beneath). Product/inner pages stay white on mobile.
-  const mobileDarkHeader = isHome || isCollectionHandle;
+  // Mobile header goes charcoal on the homepage (curved hero) AND collection pages — index and
+  // handle — (flows into the dark band beneath). Product/inner pages stay white on mobile.
+  const mobileDarkHeader = isHome || isCollectionHandle || isCollectionsIndex;
 
   // Full-screen loader: only on a REAL page change to a shopping route — never during same-page
   // pagination (infinite scroll navigates within the same pathname + a cursor, which was blinking black).

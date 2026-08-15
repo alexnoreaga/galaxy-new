@@ -1,7 +1,8 @@
-import {useLoaderData, Link, useNavigate} from '@remix-run/react';
+import {useLoaderData, Link, useNavigate, useLocation} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 import {Pagination, getPaginationVariables, Image} from '@shopify/hydrogen';
 import {useEffect, useRef} from 'react';
+import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
 
 // Infinite scroll — auto-loads the next page as the sentinel nears the viewport (same as collections handle)
 function InfiniteLoader({hasNextPage, nextPageUrl, isLoading, state}) {
@@ -61,19 +62,34 @@ export async function loader({context, request}) {
 
 export default function Collections() {
   const {collections} = useLoaderData();
+  const location = useLocation();
+  // Seasonal ornament — same monthly schedule (+ ?theme= preview) as the masthead
+  const mastheadTheme = resolveMastheadTheme(location.search);
 
   return (
-    <div className="container mx-auto sm:px-6 lg:px-12 py-6 md:py-10">
+    <div className="container mx-auto sm:px-6 lg:px-12 pb-6 md:pb-10 pt-0 sm:pt-5">
 
-      {/* Page header */}
-      <div className="mb-6 md:mb-8">
-        <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
-          <Link to="/" prefetch="intent" className="hover:text-gray-600 no-underline">Home</Link>
-          <span>/</span>
-          <span className="text-gray-600 font-medium">Kategori</span>
-        </nav>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Kategori Produk</h1>
-        <p className="text-sm text-gray-500 mt-1">Jelajahi semua kategori — kamera, lensa, drone, hingga aksesoris.</p>
+      {/* Themed header band — full-bleed + wavy bottom on mobile, rounded card on desktop
+          (same recipe as the collection handle pages) */}
+      <div className="-mx-4 sm:mx-0 mb-6 md:mb-8">
+        <div className="relative overflow-hidden bg-gray-900 sm:rounded-2xl">
+          <div aria-hidden="true" className="absolute inset-y-0 right-0 w-56 pointer-events-none opacity-60 -scale-x-100 [mask-image:linear-gradient(to_right,black_35%,transparent)]">
+            <MastheadOrnament theme={mastheadTheme} id="gxOrnColIdx" />
+          </div>
+          <div className="relative px-4 sm:px-6 pt-5 pb-10 sm:py-6">
+            <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
+              <Link to="/" prefetch="intent" className="text-gray-400 hover:text-white no-underline">Home</Link>
+              <span>/</span>
+              <span className="text-gray-200 font-medium">Kategori</span>
+            </nav>
+            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Kategori Produk</h1>
+            <p className="text-sm text-gray-400 mt-1">Jelajahi semua kategori — kamera, lensa, drone, hingga aksesoris.</p>
+          </div>
+          {/* Wave bottom edge — mobile only (desktop card has rounded corners) */}
+          <svg aria-hidden="true" className="sm:hidden absolute bottom-0 inset-x-0 w-full h-5" viewBox="0 0 1440 26" preserveAspectRatio="none">
+            <path d="M0 14 C180 26 360 2 540 10 C720 18 900 24 1080 14 C1260 4 1380 10 1440 16 L1440 26 L0 26 Z" fill="#ffffff" />
+          </svg>
+        </div>
       </div>
 
       <Pagination connection={collections}>
