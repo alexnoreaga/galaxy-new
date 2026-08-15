@@ -1,5 +1,5 @@
 import {Await, NavLink, useMatches, Link} from '@remix-run/react';
-import {Suspense, useState, useEffect} from 'react';
+import {Suspense, useState, useEffect, useRef} from 'react';
 import {FaInstagram, FaTiktok, FaYoutube, FaXTwitter, FaWhatsapp, FaFacebookF} from 'react-icons/fa6';
 import {PredictiveSearchForm, PredictiveSearchResults} from '~/components/Search';
 import {useLocation, useNavigate, useNavigation} from '@remix-run/react';
@@ -35,6 +35,61 @@ export function Header({header, isLoggedIn, cart}) {
 
   // Seasonal masthead ornament — month schedule (WIB), previewable via ?theme=<name>
   const mastheadTheme = resolveMastheadTheme(location.search);
+
+  // Kategori mega-menu (desktop sub-bar hover) — admin-curated metaobject loaded once in root.
+  // Field is matched by having collection references, so its exact name doesn't matter.
+  const [rootMatch] = useMatches();
+  const katFields = rootMatch?.data?.kategoriMenu?.metaobjects?.nodes?.[0]?.fields ?? [];
+  const kategoriItems = (katFields.find((f) => f?.references?.nodes?.length)?.references?.nodes ?? []).filter(Boolean);
+
+  // "Semua Kategori" — the FULL collection list, lazy-loaded only when the menu is first opened
+  // (nothing ships in the page HTML) and infinite-scrolled inside the panel.
+  const [katAll, setKatAll] = useState([]);
+  const [katStarted, setKatStarted] = useState(false);
+  const [katHasMore, setKatHasMore] = useState(true);
+  const katCursorRef = useRef(null);
+  const katLoadingRef = useRef(false);
+  const katListRef = useRef(null);
+  const katSentinelRef = useRef(null);
+
+  const loadMoreKategori = async () => {
+    if (katLoadingRef.current) return;
+    katLoadingRef.current = true;
+    try {
+      const cur = katCursorRef.current;
+      const r = await fetch(`/api/kategori${cur ? `?cursor=${encodeURIComponent(cur)}` : ''}`);
+      const d = await r.json();
+      setKatAll((prev) => [...prev, ...(d.nodes || [])]);
+      katCursorRef.current = d.endCursor;
+      setKatHasMore(!!d.hasNextPage);
+    } catch { /* menu just stops growing — curated tiles still work */ }
+    katLoadingRef.current = false;
+  };
+
+  const startKategoriAll = () => {
+    if (!katStarted) {
+      setKatStarted(true);
+      loadMoreKategori();
+    }
+  };
+
+  // Infinite scroll INSIDE the panel: the sentinel observes against the panel's scroll area
+  useEffect(() => {
+    if (!katStarted || !katHasMore) return;
+    const el = katSentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMoreKategori(); },
+      {root: katListRef.current, rootMargin: '120px'},
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [katStarted, katHasMore, katAll.length]);
+
+  // Don't repeat the curated tiles inside the full list
+  const curatedHandles = new Set(kategoriItems.map((c) => c.handle));
+  const katAllVisible = katAll.filter((c) => !curatedHandles.has(c.handle));
   // Pages that show a mobile back button + hide the hamburger/logo (compact drill-down bar)
   const isDrillDown = isProduct || isCollectionHandle;
   // Mobile header goes charcoal on the homepage (curved hero) AND collection pages — index and
@@ -197,16 +252,100 @@ export function Header({header, isLoggedIn, cart}) {
             (Blibli-style grid icon) on the left, store locator on the right. */}
         <div className="hidden sm:block bg-gray-50 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4">
-            <Link
-              to="/collections"
-              prefetch="intent"
-              className="flex items-center gap-2 py-2 text-[13px] font-semibold text-gray-800 hover:text-black no-underline group"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-600 group-hover:text-gray-900 transition-colors">
-                <path fillRule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z" clipRule="evenodd" />
-              </svg>
-              Kategori
-            </Link>
+            <div className="relative group/kat" onMouseEnter={startKategoriAll} onFocus={startKategoriAll}>
+              <Link
+                to="/collections"
+                prefetch="intent"
+                className="flex items-center gap-2 py-2 text-[13px] font-semibold text-gray-800 hover:text-black no-underline"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-600 group-hover/kat:text-gray-900 transition-colors">
+                  <path fillRule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z" clipRule="evenodd" />
+                </svg>
+                Kategori
+                {kategoriItems.length > 0 && (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-400 group-hover/kat:rotate-180 transition-transform duration-200">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                )}
+              </Link>
+
+              {/* Mega-menu — pure CSS hover (pt bridge keeps the hover unbroken across the gap) */}
+              {kategoriItems.length > 0 && (
+                <div className="absolute left-0 top-full z-50 pt-1.5 invisible opacity-0 translate-y-1 group-hover/kat:visible group-hover/kat:opacity-100 group-hover/kat:translate-y-0 transition-all duration-200">
+                  <div className="w-[560px] bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 overflow-hidden">
+                    <div className="px-5 pt-4 pb-1">
+                      <p className="text-[10px] font-semibold tracking-[0.22em] uppercase text-red-600 m-0">Kategori Produk</p>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1 p-3">
+                      {kategoriItems.slice(0, 8).map((c) => (
+                        <Link
+                          key={c.id}
+                          to={`/collections/${c.handle}`}
+                          prefetch="intent"
+                          className="group/tile flex flex-col items-center gap-2 rounded-xl px-2 py-3 hover:bg-gray-50 no-underline transition-colors"
+                        >
+                          <span className="w-14 h-14 flex items-center justify-center">
+                            {c.image?.url ? (
+                              <img
+                                src={c.image.url.includes('?') ? `${c.image.url}&width=112` : `${c.image.url}?width=112`}
+                                alt={c.title}
+                                loading="lazy"
+                                width={56}
+                                height={56}
+                                className="max-w-full max-h-full object-contain group-hover/tile:scale-110 transition-transform duration-200"
+                              />
+                            ) : (
+                              <span className="w-10 h-10 rounded-xl bg-gray-100" />
+                            )}
+                          </span>
+                          <span className="text-[12px] font-medium text-gray-700 group-hover/tile:text-red-600 text-center leading-tight transition-colors">
+                            {c.title}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                    {/* Semua Kategori — full list, infinite-scrolls inside the panel */}
+                    {katStarted && (katAllVisible.length > 0 || katHasMore) && (
+                      <div className="border-t border-gray-100">
+                        <p className="px-5 pt-3 pb-1 text-[10px] font-semibold tracking-[0.22em] uppercase text-gray-400 m-0">
+                          Semua Kategori
+                        </p>
+                        <div ref={katListRef} className="max-h-52 overflow-y-auto px-3 pb-2 overscroll-contain">
+                          <div className="grid grid-cols-2 gap-x-2">
+                            {katAllVisible.map((c) => (
+                              <Link
+                                key={c.id}
+                                to={`/collections/${c.handle}`}
+                                prefetch="intent"
+                                className="block text-[12.5px] text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg px-2 py-1.5 no-underline transition-colors truncate"
+                              >
+                                {c.title}
+                              </Link>
+                            ))}
+                          </div>
+                          {katHasMore && (
+                            <div ref={katSentinelRef} className="flex justify-center py-2">
+                              <svg className="w-4 h-4 animate-spin text-gray-300" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <Link
+                      to="/collections"
+                      prefetch="intent"
+                      className="block text-center text-[13px] font-semibold text-red-600 hover:bg-red-50 py-3 border-t border-gray-100 no-underline transition-colors"
+                    >
+                      Lihat Semua Kategori →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
             <NearestStoreBar variant="subbar" />
           </div>
         </div>

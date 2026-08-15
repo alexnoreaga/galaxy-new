@@ -9,6 +9,7 @@ import { BrandPopular } from '../components/BrandPopular';
 import { KenapaGalaxy } from '../components/KenapaGalaxy';
 import { YoutubeLink } from '../components/YoutubeLink';
 import { FreeOngkirBadge } from '../components/FreeOngkirBadge';
+import { GriselaHomeBar } from '../components/GriselaHomeBar';
 import { RecentlyViewed } from '../components/RecentlyViewed';
 import { SocialProofStrip } from '../components/SocialProofStrip';
 import { TrustRibbon } from '../components/TrustRibbon';
@@ -683,6 +684,9 @@ export default function Homepage() {
 
       {/* Slim scrolling trust ribbon — mobile only, sits right under the stats (Blibli-style) */}
       <TrustRibbon />
+
+      {/* Tanya Grisela smart-bar — desktop only (mobile has the bottom-nav Grisela tab) */}
+      <GriselaHomeBar />
 
       <div className="relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
 

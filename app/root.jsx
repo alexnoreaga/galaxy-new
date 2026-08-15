@@ -116,7 +116,7 @@ export async function loader({context}) {
 
   // Run non-critical queries in parallel with individual fallbacks
   // so one failure never crashes the whole page
-  const [header, footer, footerSatu, storeLocations] = await Promise.all([
+  const [header, footer, footerSatu, storeLocations, kategoriMenu] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: { headerMenuHandle: 'main-menu' },
@@ -135,6 +135,12 @@ export async function loader({context}) {
     storefront.query(STORE_LOCATIONS_QUERY, {
       cache: storefront.CacheLong(),
     }).catch(() => ({ metaobjects: { edges: [] } })),
+
+    // Kategori mega-menu (desktop sub-bar hover) — same admin-curated metaobject as the
+    // homepage's Kategori Populer; menu simply hides if it's missing
+    storefront.query(KATEGORI_MENU_QUERY, {
+      cache: storefront.CacheLong(),
+    }).catch(() => null),
   ]);
 
   const analyticsData = {
@@ -152,11 +158,38 @@ export async function loader({context}) {
       publicStoreDomain,
       footerSatu,
       storeLocations,
+      kategoriMenu,
     },
     {headers},
     {analyticsData},
   );
 }
+
+// Admin-curated "Kategori Populer" metaobject — powers the desktop Kategori hover menu
+const KATEGORI_MENU_QUERY = `#graphql
+  query KategoriMenu {
+    metaobjects(type: "kategori_populer", first: 1) {
+      nodes {
+        id
+        fields {
+          key
+          references(first: 12) {
+            nodes {
+              ... on Collection {
+                id
+                title
+                handle
+                image {
+                  url
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 export default function App() {
   const nonce = useNonce();
