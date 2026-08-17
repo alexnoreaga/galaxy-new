@@ -1838,10 +1838,12 @@ DP : 0
                         : Math.round(basePrice * (1 - flashForVariant.percentage / 100)));
                       return (
                         <>
-                          <div className="text-2xl max-[389px]:text-lg font-bold text-red-600 leading-tight">
+                          <div className="text-2xl max-[389px]:text-xl font-bold text-red-600 leading-tight">
                             Rp{flashPrice.toLocaleString("id-ID")}
                           </div>
-                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {/* Mobile: HEMAT sits BELOW the coret price (keeps the column narrow so
+                              the cicilan side never crops). Desktop: back on one row. */}
+                          <div className="flex flex-col items-start gap-1 mt-1 sm:flex-row sm:items-center sm:gap-1.5 sm:flex-wrap">
                             <div className="text-xs line-through text-slate-400 whitespace-nowrap">
                               Rp{basePrice.toLocaleString("id-ID")}
                             </div>
@@ -1854,7 +1856,7 @@ DP : 0
                     })()
                   ) : (
                     <>
-                      <div className="text-2xl max-[389px]:text-lg font-bold text-rose-700 leading-tight">
+                      <div className="text-2xl max-[389px]:text-xl font-bold text-rose-700 leading-tight">
                         Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}
                       </div>
                       {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
