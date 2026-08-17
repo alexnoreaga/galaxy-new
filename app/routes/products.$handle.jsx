@@ -95,9 +95,13 @@ function CheckSeal({ className = 'w-3 h-3' }) {
 
 // ── Flash sale banner + live countdown ────────────────────────────────────────
 
-function CountdownBox({ value }) {
+// White card digits (marketplace convention) — navy numerals, red on the seconds so the
+// fastest-changing unit carries the urgency.
+function CountdownBox({ value, accent = false }) {
   return (
-    <span className="bg-gray-900/85 text-white font-mono font-bold text-xs sm:text-sm rounded-md px-1 sm:px-1.5 py-0.5 min-w-[24px] sm:min-w-[28px] text-center inline-block tabular-nums leading-tight">
+    <span
+      className={`bg-white ${accent ? 'text-red-600' : 'text-slate-900'} font-mono font-bold text-xs sm:text-sm rounded-md px-1.5 sm:px-2 py-1 min-w-[26px] sm:min-w-[30px] text-center inline-block tabular-nums leading-none shadow-sm`}
+    >
       {value}
     </span>
   );
@@ -125,14 +129,14 @@ function FlashSaleCountdown({ endsAt }) {
       {(left === null ? false : d > 0) && (
         <>
           <CountdownBox value={d} />
-          <span className="text-white/90 text-[9px] sm:text-[10px] font-bold mr-0.5">hari</span>
+          <span className="text-white/70 text-[9px] sm:text-[10px] font-semibold mr-0.5">hari</span>
         </>
       )}
       <CountdownBox value={h} />
-      <span className="text-white font-black text-xs">:</span>
+      <span className="text-white/50 font-bold text-xs">:</span>
       <CountdownBox value={m} />
-      <span className="text-white font-black text-xs">:</span>
-      <CountdownBox value={s} />
+      <span className="text-white/50 font-bold text-xs">:</span>
+      <CountdownBox value={s} accent />
     </div>
   );
 }

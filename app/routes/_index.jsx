@@ -342,8 +342,9 @@ function HomeMiniCountdown({ endsAt }) {
   const h = left === null ? '--' : v(Math.floor((left % 86400000) / 3600000));
   const m = left === null ? '--' : v(Math.floor((left % 3600000) / 60000));
   const s = left === null ? '--' : v(Math.floor((left % 60000) / 1000));
-  const Box = ({ val }) => (
-    <span className="bg-black/40 text-white font-mono font-bold text-[11px] sm:text-xs rounded px-1 sm:px-1.5 py-0.5 min-w-[20px] sm:min-w-[24px] text-center inline-block tabular-nums leading-tight">
+  // White card digits — matches the product-page banner countdown
+  const Box = ({ val, accent = false }) => (
+    <span className={`bg-white ${accent ? 'text-red-600' : 'text-slate-900'} font-mono font-bold text-[11px] sm:text-xs rounded px-1.5 py-1 min-w-[22px] sm:min-w-[26px] text-center inline-block tabular-nums leading-none shadow-sm`}>
       {val}
     </span>
   );
@@ -352,14 +353,14 @@ function HomeMiniCountdown({ endsAt }) {
       {(left === null ? false : d > 0) && (
         <>
           <Box val={d} />
-          <span className="text-white/90 text-[9px] font-bold mx-0.5">hr</span>
+          <span className="text-white/70 text-[9px] font-semibold mx-0.5">hr</span>
         </>
       )}
       <Box val={h} />
-      <span className="text-white font-black text-[11px]">:</span>
+      <span className="text-white/50 font-bold text-[11px]">:</span>
       <Box val={m} />
-      <span className="text-white font-black text-[11px]">:</span>
-      <Box val={s} />
+      <span className="text-white/50 font-bold text-[11px]">:</span>
+      <Box val={s} accent />
     </div>
   );
 }
