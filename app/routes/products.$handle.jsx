@@ -147,36 +147,53 @@ function FlashSaleBanner({ autoDiscount }) {
     : `${autoDiscount.percentage}%`;
   return (
     <div
-      className="relative overflow-hidden rounded-xl order-2 md:order-4 mt-1 md:mt-1.5"
+      className="relative overflow-hidden rounded-lg order-2 md:order-4 mt-1 md:mt-1.5"
       style={{ background: ed.bg }}
     >
-      {/* Diagonal shine */}
+      {/* Fine diagonal weave — drifts very slowly, so the surface feels alive without shimmering */}
       <div
-        className="absolute inset-y-0 w-24 pointer-events-none"
+        aria-hidden="true"
+        className="gx-flash-weave absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%)',
-          animation: 'flashShine 2.8s ease-in-out infinite',
+          opacity: 0.07,
+          backgroundImage: 'repeating-linear-gradient(115deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)',
         }}
       />
-      <style>{`@keyframes flashShine { 0% { left: -25%; } 60% { left: 110%; } 100% { left: 110%; } }`}</style>
+      {/* Occasional light catch — one narrow pass, then a long idle (not a shimmer loop) */}
+      <div aria-hidden="true" className="gx-flash-gleam absolute inset-0 pointer-events-none" />
 
-      <div className="relative flex items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <span className="text-xl sm:text-2xl animate-pulse flex-shrink-0">⚡</span>
+      <div className="relative flex items-center justify-between gap-3 px-3 py-2.5 sm:px-4">
+        <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
+          {/* Drawn bolt in a quiet tile — an icon, not an emoji */}
+          <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-white/12 ring-1 ring-white/20 flex items-center justify-center mt-[1px]">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="w-[15px] h-[15px] sm:w-4 sm:h-4 text-white">
+              <path d="M13.5 2 4 13.2h5.6L8.9 22 19 10.6h-5.9L13.5 2z" />
+            </svg>
+          </span>
+
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <p className="text-white font-black italic text-sm sm:text-lg tracking-wider leading-none drop-shadow-sm">FLASH SALE</p>
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="m-0 text-white font-bold uppercase text-[13px] sm:text-[15px] tracking-[0.15em] leading-none whitespace-nowrap">
+                Flash Sale
+              </p>
+              <span aria-hidden="true" className="flex-shrink-0 w-px h-3 bg-white/25" />
               <FlashEditionBadge ed={ed} />
-              <span className="hidden md:inline"><FlashEditionName ed={ed} /></span>
+              <span className="hidden md:inline-flex items-center"><FlashEditionName ed={ed} /></span>
             </div>
-            <p className="text-white/95 text-[10px] sm:text-xs font-semibold mt-0.5 leading-tight whitespace-nowrap">
-              Hemat {hemat}<span className="hidden sm:inline"> · otomatis di checkout</span>
+            <p className="m-0 mt-1.5 text-white/70 text-[11px] sm:text-xs leading-tight whitespace-nowrap">
+              Hemat <span className="font-semibold text-white">{hemat}</span>
+              <span className="hidden sm:inline"> · otomatis di checkout</span>
             </p>
           </div>
         </div>
+
         {autoDiscount.endsAt && (
           <div className="text-right flex-shrink-0">
-            <p className="text-white/85 text-[8px] sm:text-[10px] font-bold uppercase tracking-wide mb-0.5">Berakhir dalam</p>
+            <p className="m-0 flex items-center justify-end gap-1.5 text-white/50 text-[8px] sm:text-[9px] font-semibold uppercase tracking-[0.18em] mb-1.5">
+              {/* Live dot — signals the timer is actually running */}
+              <span aria-hidden="true" className="gx-flash-dot inline-block w-[5px] h-[5px] rounded-full bg-white/80" />
+              Berakhir dalam
+            </p>
             <FlashSaleCountdown endsAt={autoDiscount.endsAt} />
           </div>
         )}

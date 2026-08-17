@@ -534,28 +534,27 @@ function FlashSaleHomeSection({ flashSale }) {
                 className="relative overflow-hidden rounded-none sm:rounded-xl"
                 style={{ background: ed.bg }}
               >
-                {/* Diagonal stripes + shine */}
+                {/* Fine diagonal weave — drifts very slowly; plus an occasional light catch */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 16px)' }}
+                  aria-hidden="true"
+                  className="gx-flash-weave absolute inset-0 pointer-events-none"
+                  style={{ opacity: 0.07, backgroundImage: 'repeating-linear-gradient(115deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)' }}
                 />
-                <div
-                  className="absolute inset-y-0 w-28 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.22) 50%, transparent 80%)',
-                    animation: 'homeFlashShine 3s ease-in-out infinite',
-                  }}
-                />
-                <style>{`@keyframes homeFlashShine { 0% { left: -30%; } 60% { left: 115%; } 100% { left: 115%; } }`}</style>
+                <div aria-hidden="true" className="gx-flash-gleam absolute inset-0 pointer-events-none" />
 
                 {/* Header — countdown drops to its own row on mobile */}
-                <div className="relative px-3 sm:px-4 pt-2.5 pb-2">
+                <div className="relative px-3 sm:px-4 pt-3 pb-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                      <span className="text-lg sm:text-2xl animate-pulse flex-shrink-0">⚡</span>
-                      <h2 className="text-white font-black italic text-base sm:text-2xl tracking-wider leading-none drop-shadow-sm whitespace-nowrap m-0">
-                        FLASH SALE
+                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-white/12 ring-1 ring-white/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="w-[15px] h-[15px] sm:w-4 sm:h-4 text-white">
+                          <path d="M13.5 2 4 13.2h5.6L8.9 22 19 10.6h-5.9L13.5 2z" />
+                        </svg>
+                      </span>
+                      <h2 className="text-white font-bold uppercase text-sm sm:text-lg tracking-[0.15em] leading-none whitespace-nowrap m-0">
+                        Flash Sale
                       </h2>
+                      <span aria-hidden="true" className="flex-shrink-0 w-px h-3.5 bg-white/25" />
                       <FlashEditionBadge ed={ed} />
                       <span className="hidden lg:flex items-center"><FlashEditionName ed={ed} /></span>
                     </div>
@@ -572,6 +571,7 @@ function FlashSaleHomeSection({ flashSale }) {
                   </div>
                   {saleEndsAt && (
                     <div className="sm:hidden mt-1.5 flex items-center gap-1.5">
+                      <span aria-hidden="true" className="gx-flash-dot inline-block w-[5px] h-[5px] rounded-full bg-white/80" />
                       <span className="text-white/85 font-bold uppercase tracking-wider" style={{ fontSize: 9 }}>Berakhir dalam</span>
                       <HomeMiniCountdown endsAt={saleEndsAt} />
                     </div>

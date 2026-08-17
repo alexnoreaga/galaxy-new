@@ -604,3 +604,38 @@ aside li {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* ── Flash-sale banner motion ────────────────────────────────────────────────
+   Deliberately restrained: a slowly drifting weave, an occasional light catch
+   (long idle between passes — not a constant shimmer loop), and a live pulse on
+   the countdown label. All disabled under prefers-reduced-motion. */
+@keyframes gxFlashWeave {
+  from { background-position: 0 0; }
+  to   { background-position: 120px 0; }
+}
+@keyframes gxFlashGleam {
+  0%   { background-position: -130% 0; }
+  20%  { background-position: 230% 0; }
+  100% { background-position: 230% 0; }
+}
+@keyframes gxFlashDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.8); }
+}
+
+.gx-flash-weave { animation: gxFlashWeave 16s linear infinite; }
+
+.gx-flash-gleam {
+  background-image: linear-gradient(105deg, transparent 43%, rgba(255, 255, 255, 0.17) 50%, transparent 57%);
+  background-size: 230% 100%;
+  background-repeat: no-repeat;
+  animation: gxFlashGleam 7.5s ease-in-out infinite;
+}
+
+.gx-flash-dot { animation: gxFlashDot 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gx-flash-weave,
+  .gx-flash-gleam,
+  .gx-flash-dot { animation: none; }
+}

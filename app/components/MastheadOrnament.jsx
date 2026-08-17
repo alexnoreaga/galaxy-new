@@ -485,15 +485,18 @@ const MONTH_THEME = {
 // skins on themed months. Preview any month's banner with ?edisi=<1-12> on any URL.
 // NOTE: no flag emoji for Merdeka — Windows has no flag glyphs and renders 🇮🇩 as the letters
 // "ID". The badge draws a real merah-putih flag SVG instead (renders identically everywhere).
+// Skins are deliberately DEEP and 2-stop: multi-hue neon gradients read as generic/templated,
+// while a near-monochrome deep ground reads as brand. Seasonality comes from hue + the small
+// mark, not from brightness.
 const FLASH_EDITIONS = {
-  2:  {name: 'Edisi Imlek',     emoji: '🏮', bg: 'linear-gradient(110deg, #991b1b 0%, #dc2626 55%, #d97706 100%)'},
-  3:  {name: 'Edisi Ramadan',   emoji: '🌙', bg: 'linear-gradient(110deg, #065f46 0%, #059669 55%, #d97706 100%)'},
-  5:  {name: 'Edisi Idul Adha', emoji: '🕌', bg: 'linear-gradient(110deg, #134e4a 0%, #0f766e 55%, #b45309 100%)'},
-  8:  {name: 'Edisi Merdeka',   flag: true, bg: 'linear-gradient(110deg, #7f1d1d 0%, #dc2626 60%, #f43f5e 100%)'},
-  11: {name: 'Harbolnas',       emoji: '🛍️', bg: 'linear-gradient(110deg, #6d28d9 0%, #db2777 55%, #f97316 100%)'},
-  12: {name: 'Edisi Natal',     emoji: '🎄', bg: 'linear-gradient(110deg, #b91c1c 0%, #dc2626 55%, #15803d 100%)'},
+  2:  {name: 'Edisi Imlek',     emoji: '🏮', bg: 'linear-gradient(100deg, #7f1d1d 0%, #a81b1b 100%)'},
+  3:  {name: 'Edisi Ramadan',   emoji: '🌙', bg: 'linear-gradient(100deg, #064e3b 0%, #0b6b4f 100%)'},
+  5:  {name: 'Edisi Idul Adha', emoji: '🕌', bg: 'linear-gradient(100deg, #134e4a 0%, #115e59 100%)'},
+  8:  {name: 'Edisi Merdeka',   flag: true, bg: 'linear-gradient(100deg, #7f1516 0%, #b01a1a 100%)'},
+  11: {name: 'Harbolnas',       emoji: '🛍️', bg: 'linear-gradient(100deg, #4c1d6b 0%, #9d174d 100%)'},
+  12: {name: 'Edisi Natal',     emoji: '🎄', bg: 'linear-gradient(100deg, #7f1d1d 0%, #14532d 100%)'},
 };
-const FLASH_DEFAULT_BG = 'linear-gradient(110deg, #b71c1c 0%, #e53935 45%, #f4511e 100%)';
+const FLASH_DEFAULT_BG = 'linear-gradient(100deg, #8f1414 0%, #c01c1c 100%)';
 
 /** Flash-sale banner branding for the current WIB month (or ?edisi=N preview). */
 export function resolveFlashEdition(search) {
@@ -512,31 +515,28 @@ export function resolveFlashEdition(search) {
   };
 }
 
-/** Edition ticket — solid white pill: gradient-red number + flag SVG / emoji. Pops on any skin. */
+/** Edition mark — quiet inline "8.8" + small flag/emoji. Metadata, not a second logo. */
 export function FlashEditionBadge({ed}) {
   return (
-    <span className="flex-shrink-0 inline-flex items-center gap-1 bg-white rounded-md px-1.5 py-[3px] shadow-md leading-none">
-      <span className="font-black italic tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 text-[11px] sm:text-sm">
-        {ed.edition}
-      </span>
+    <span className="flex-shrink-0 inline-flex items-center gap-1.5 leading-none">
+      <span className="text-white font-semibold tabular-nums text-[12px] sm:text-sm">{ed.edition}</span>
       {ed.flag ? (
-        <svg width="13" height="9" viewBox="0 0 13 9" aria-hidden="true" className="rounded-[1.5px]">
-          <rect x="0" y="0" width="13" height="4.5" fill="#dc2626" />
-          <rect x="0" y="4.5" width="13" height="4.5" fill="#f1f5f9" />
-          <rect x="0.3" y="0.3" width="12.4" height="8.4" fill="none" stroke="rgba(15,23,42,0.25)" strokeWidth="0.6" rx="1" />
+        <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true" className="rounded-[1px]">
+          <rect x="0" y="0" width="14" height="5" fill="#e5252a" />
+          <rect x="0" y="5" width="14" height="5" fill="#ffffff" />
         </svg>
       ) : ed.emoji ? (
-        <span className="text-[10px] sm:text-xs">{ed.emoji}</span>
+        <span className="text-[11px] sm:text-xs">{ed.emoji}</span>
       ) : null}
     </span>
   );
 }
 
-/** Edition name — gold italic caps, the site's luxury accent on the hot banner. */
+/** Edition name — restrained caps in muted white; the ground colour carries the season. */
 export function FlashEditionName({ed}) {
   if (!ed.name) return null;
   return (
-    <span className="font-black italic uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 drop-shadow-sm whitespace-nowrap text-[10px] sm:text-xs leading-none">
+    <span className="text-white/65 font-medium uppercase tracking-[0.16em] whitespace-nowrap text-[9px] sm:text-[10px] leading-none">
       {ed.name}
     </span>
   );
