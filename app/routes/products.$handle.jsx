@@ -1822,11 +1822,11 @@ DP : 0
 
               {/* PRICE + CICILAN — two-column layout. min-w-0 on the row + the cicilan column lets
                   the text wrap instead of overflowing (was cropping "Lihat ›" on narrow phones). */}
-              <div className="flex items-stretch order-2 md:order-4 md:mt-1.5 min-w-0 max-[389px]:flex-col max-[389px]:items-start max-[389px]:gap-2">
+              <div className="flex items-stretch order-2 md:order-4 md:mt-1.5 min-w-0">
 
                 {/* Left: main price + discount — never shrinks, it's the hero */}
                 <div
-                  className="flex flex-col justify-center cursor-pointer pr-3 sm:pr-4 select-none flex-shrink-0 max-[389px]:pr-0"
+                  className="flex flex-col justify-center cursor-pointer pr-3 sm:pr-4 select-none flex-shrink-0"
                   onClick={() => copyToClipboard(listAngsuran(product, selectedVariant, canonicalUrl))}
                   onDoubleClick={() => copyToClipboard(stripInfoLink(listAngsuran(product, selectedVariant, canonicalUrl)))}
                 >
@@ -1838,7 +1838,7 @@ DP : 0
                         : Math.round(basePrice * (1 - flashForVariant.percentage / 100)));
                       return (
                         <>
-                          <div className="text-2xl font-bold text-red-600 leading-tight">
+                          <div className="text-2xl max-[389px]:text-lg font-bold text-red-600 leading-tight">
                             Rp{flashPrice.toLocaleString("id-ID")}
                           </div>
                           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -1854,7 +1854,7 @@ DP : 0
                     })()
                   ) : (
                     <>
-                      <div className="text-2xl font-bold text-rose-700 leading-tight">
+                      <div className="text-2xl max-[389px]:text-lg font-bold text-rose-700 leading-tight">
                         Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}
                       </div>
                       {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
@@ -1872,12 +1872,12 @@ DP : 0
                 </div>
 
                 {/* Vertical divider — hidden when the columns stack on ultra-narrow screens */}
-                <div className="w-px bg-gray-200 self-stretch flex-shrink-0 max-[389px]:hidden" />
+                <div className="w-px bg-gray-200 self-stretch flex-shrink-0" />
 
                 {/* Right: cicilan info — takes the remaining width and wraps if tight */}
-                <div className="flex flex-col justify-center pl-3 sm:pl-4 gap-0.5 min-w-0 flex-1 max-[389px]:pl-0 max-[389px]:w-full max-[389px]:border-t max-[389px]:border-gray-100 max-[389px]:pt-2">
-                  <div className="text-xs text-gray-500">Cicilan</div>
-                  <div className="text-sm font-bold text-rose-700 leading-tight">
+                <div className="flex flex-col justify-center pl-3 sm:pl-4 gap-0.5 min-w-0 flex-1">
+                  <div className="text-xs max-[389px]:text-[10px] text-gray-500">Cicilan</div>
+                  <div className="text-sm max-[389px]:text-[11.5px] font-bold text-rose-700 leading-tight">
                     <span
                       className="cursor-pointer select-none"
                       onClick={() => copyToClipboard(cicilanKartuKredit(selectedVariant, product, canonicalUrl))}
@@ -1893,7 +1893,7 @@ DP : 0
                       Lihat ›
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500">Cukup KTP · ±30 menit</div>
+                  <div className="text-xs max-[389px]:text-[10px] text-gray-500">Cukup KTP · ±30 menit</div>
                 </div>
 
               </div>
