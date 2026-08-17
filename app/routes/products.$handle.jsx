@@ -18,7 +18,6 @@ import { WishlistButton } from '~/components/WishlistButton';
 import { FreeOngkirBadge } from '~/components/FreeOngkirBadge';
 import {AnalyticsPageType} from '@shopify/hydrogen';
 import { ProdukRelated } from '~/components/ProdukRelated';
-import { ProdukTebusMurah } from '~/components/ProdukTebusMurah';
 import { RecentlyViewed } from '~/components/RecentlyViewed';
 import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
@@ -533,7 +532,6 @@ export async function loader({params, context, request}) {
 
   const productNumId = product?.id?.split('/').pop();
   const brandValue = product.metafields[6]?.key == 'brand' && product.metafields[6].value;
-  const tebusMurahRaw = product?.metafields[14]?.value;
 
   const selectedVariant =
     product.selectedVariant ??
@@ -567,21 +565,6 @@ export async function loader({params, context, request}) {
       return parsed.length ? parsed : null;
     }).catch(() => null);
 
-  // tebusMurah is the slowest (sequential Shopify calls) — always deferred
-  const tebusMurahPromise = (async () => {
-    if (!tebusMurahRaw) return [];
-    const dataArray = JSON.parse(tebusMurahRaw);
-    const kumpulanTebusMurah = await Promise.all(
-      dataArray.map(item => context.storefront.query(TEBUS_MURAH, { variables: { id: item } }))
-    );
-    const hasilTebusMurah = await Promise.all(
-      kumpulanTebusMurah.map(item =>
-        context.storefront.query(TEBUS_MURAH_2, { variables: { id: item.metaobject?.fields[1]?.value } })
-      )
-    );
-    return [kumpulanTebusMurah, hasilTebusMurah];
-  })();
-
   return defer({
     // Critical — resolved before first byte
     balasCepat: balasCepatPromise,
@@ -607,7 +590,6 @@ export async function loader({params, context, request}) {
     liveshopee: liveshopeePromise,
     discountVouchers: discountVouchersPromise,
     cachedFaqs: cachedFaqsPromise,
-    finalTebusMurah: tebusMurahPromise,
     autoDiscount,
   });
 
@@ -1714,7 +1696,7 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount,hargaBest,pwp} = useLoaderData();
+    const {balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount,hargaBest,pwp} = useLoaderData();
 
     // Compute selected variant from URL params — all 50 variants are already in product.variants.nodes
     // so this is instant, no server call needed on variant switch
@@ -1751,14 +1733,6 @@ DP : 0
     // console.log('cartttt',cart)
 
     // console.log(customerAccessToken)
-    // console.log('produk ',finalTebusMurah)
-
-    // if (finalTebusMurah.length > 0){
-    //   console.log('Yes ada')
-    // }else{
-    //   console.log('Maaf tidak ada')
-    // }
-    
     // console.log('liveshopee',liveshopee)
     // console.log('marketplace',marketplace)
 
@@ -2418,15 +2392,7 @@ DP : 0
           </div>
 
 
-          <Suspense fallback={null}>
-            <Await resolve={finalTebusMurah}>
-              {(tm) => tm?.length > 0 ? (
-                <div className='w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 pt-3 lg:col-span-3 rounded-md shadow-md mb-5'>
-                  <ProdukTebusMurah related={tm}/>
-                </div>
-              ) : null}
-            </Await>
-          </Suspense>
+          {/* (Tebus Murah removed — replaced by the PWP "Tambah & Lebih Hemat" section) */}
           
           
 
@@ -3046,6 +3012,8 @@ function TombolWaDiscontinue({product}){
         {namespace:"custom" key:"lazada"}
         {namespace:"custom" key:"produk_discontinue"}
         {namespace:"custom" key:"produk_serupa"}
+        # tebus_murah feature removed, but the identifier stays: metafields are read by POSITION
+        # (metafields[15] = youtube) — removing this row would shift every index after it
         {namespace:"custom" key:"tebus_murah"}
         {namespace:"custom" key:"youtube"}
       ]){
@@ -3154,39 +3122,6 @@ const METAOBJECT_QUERY = `#graphql
   }
 `;
 
-const TEBUS_MURAH = `#graphql
-query metaobject($id:ID!){
-
-metaobject(id:$id) {
-  id
-  fields {
-    value
-  }
-}
-
-
-}`
-
-const TEBUS_MURAH_2 = `#graphql
-query product($id:ID!){
-
-product(id:$id) {
-    title
-
-    priceRange{
-      minVariantPrice{
-        amount
-      }
-    }
-
-  	featuredImage{
-      url
-    }
-    handle
-  }
-
-
-}`
 
 
 
