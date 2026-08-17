@@ -151,7 +151,9 @@ function FlashSaleBanner({ autoDiscount }) {
     : `${autoDiscount.percentage}%`;
   return (
     <div
-      className="relative overflow-hidden rounded-lg order-2 md:order-4 mt-1 md:mt-1.5"
+      // Full-bleed edge-to-edge on mobile (square corners — rounded corners look cut at the
+      // screen edge); contained rounded card from sm+.
+      className="relative overflow-hidden -mx-4 sm:mx-0 rounded-none sm:rounded-lg order-2 md:order-4 mt-1 md:mt-1.5"
       style={{ background: ed.bg }}
     >
       {/* Fine diagonal weave — drifts very slowly, so the surface feels alive without shimmering */}
@@ -1799,7 +1801,8 @@ DP : 0
             </div>
           </div>
           <div className="min-w-0">
-          <div className="rounded-lg w-full flex flex-col gap-2 py-2 md:px-4 md:py-4 min-w-0 overflow-x-hidden">
+          {/* Clip only from sm+ — on mobile the flash banner bleeds past the 16px body gutter */}
+          <div className="rounded-lg w-full flex flex-col gap-2 py-2 md:px-4 md:py-4 min-w-0 sm:overflow-x-hidden">
 
 
             <div className="flex flex-col gap-2 w-full">
@@ -1872,7 +1875,7 @@ DP : 0
 
                 {/* Right: cicilan info */}
                 <div className="flex flex-col justify-center pl-4 gap-0.5">
-                  <div className="text-xs text-gray-500">Cicilan Mulai dari</div>
+                  <div className="text-xs text-gray-500">Cicilan</div>
                   <div className="text-sm font-bold text-rose-700 leading-tight">
                     <span
                       className="cursor-pointer select-none"
@@ -1881,15 +1884,15 @@ DP : 0
                     >
                       Rp{mulaiDari(selectedVariant).toLocaleString("id-ID")}
                     </span>
-                    <span className="font-normal text-gray-600"> /bln. </span>
+                    <span className="font-normal text-gray-600">/bln.</span>
                     <span
                       onClick={() => setBukaModal(true)}
-                      className="cursor-pointer text-rose-600 underline underline-offset-2 font-semibold"
+                      className="cursor-pointer text-rose-600 underline underline-offset-2 font-semibold ml-2 whitespace-nowrap"
                     >
-                      Lihat
+                      Lihat ›
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500">Proses ±30 menit · Cukup KTP</div>
+                  <div className="text-xs text-gray-500">Cukup KTP · ±30 menit</div>
                 </div>
 
               </div>
