@@ -1822,11 +1822,11 @@ DP : 0
 
               {/* PRICE + CICILAN — two-column layout. min-w-0 on the row + the cicilan column lets
                   the text wrap instead of overflowing (was cropping "Lihat ›" on narrow phones). */}
-              <div className="flex items-stretch order-2 md:order-4 md:mt-1.5 min-w-0">
+              <div className="flex items-stretch order-2 md:order-4 md:mt-1.5 min-w-0 max-[389px]:flex-col max-[389px]:items-start max-[389px]:gap-2">
 
                 {/* Left: main price + discount — never shrinks, it's the hero */}
                 <div
-                  className="flex flex-col justify-center cursor-pointer pr-3 sm:pr-4 select-none flex-shrink-0"
+                  className="flex flex-col justify-center cursor-pointer pr-3 sm:pr-4 select-none flex-shrink-0 max-[389px]:pr-0"
                   onClick={() => copyToClipboard(listAngsuran(product, selectedVariant, canonicalUrl))}
                   onDoubleClick={() => copyToClipboard(stripInfoLink(listAngsuran(product, selectedVariant, canonicalUrl)))}
                 >
@@ -1871,11 +1871,11 @@ DP : 0
                   )}
                 </div>
 
-                {/* Vertical divider */}
-                <div className="w-px bg-gray-200 self-stretch flex-shrink-0" />
+                {/* Vertical divider — hidden when the columns stack on ultra-narrow screens */}
+                <div className="w-px bg-gray-200 self-stretch flex-shrink-0 max-[389px]:hidden" />
 
                 {/* Right: cicilan info — takes the remaining width and wraps if tight */}
-                <div className="flex flex-col justify-center pl-3 sm:pl-4 gap-0.5 min-w-0 flex-1">
+                <div className="flex flex-col justify-center pl-3 sm:pl-4 gap-0.5 min-w-0 flex-1 max-[389px]:pl-0 max-[389px]:w-full max-[389px]:border-t max-[389px]:border-gray-100 max-[389px]:pt-2">
                   <div className="text-xs text-gray-500">Cicilan</div>
                   <div className="text-sm font-bold text-rose-700 leading-tight">
                     <span
