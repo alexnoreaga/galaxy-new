@@ -1820,12 +1820,13 @@ DP : 0
               {/* CUCI GUDANG clearance banner — only if product is in that collection */}
               {inCuciGudang && <CuciGudangBanner />}
 
-              {/* PRICE + CICILAN — two-column layout */}
-              <div className="flex items-stretch order-2 md:order-4 md:mt-1.5">
+              {/* PRICE + CICILAN — two-column layout. min-w-0 on the row + the cicilan column lets
+                  the text wrap instead of overflowing (was cropping "Lihat ›" on narrow phones). */}
+              <div className="flex items-stretch order-2 md:order-4 md:mt-1.5 min-w-0">
 
-                {/* Left: main price + discount */}
+                {/* Left: main price + discount — never shrinks, it's the hero */}
                 <div
-                  className="flex flex-col justify-center cursor-pointer pr-4 select-none"
+                  className="flex flex-col justify-center cursor-pointer pr-3 sm:pr-4 select-none flex-shrink-0"
                   onClick={() => copyToClipboard(listAngsuran(product, selectedVariant, canonicalUrl))}
                   onDoubleClick={() => copyToClipboard(stripInfoLink(listAngsuran(product, selectedVariant, canonicalUrl)))}
                 >
@@ -1873,8 +1874,8 @@ DP : 0
                 {/* Vertical divider */}
                 <div className="w-px bg-gray-200 self-stretch flex-shrink-0" />
 
-                {/* Right: cicilan info */}
-                <div className="flex flex-col justify-center pl-4 gap-0.5">
+                {/* Right: cicilan info — takes the remaining width and wraps if tight */}
+                <div className="flex flex-col justify-center pl-3 sm:pl-4 gap-0.5 min-w-0 flex-1">
                   <div className="text-xs text-gray-500">Cicilan</div>
                   <div className="text-sm font-bold text-rose-700 leading-tight">
                     <span
