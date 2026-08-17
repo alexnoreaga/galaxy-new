@@ -1876,10 +1876,11 @@ DP : 0
                 {/* Vertical divider — hidden when the columns stack on ultra-narrow screens */}
                 <div className="w-px bg-gray-200 self-stretch flex-shrink-0" />
 
-                {/* Right: cicilan info — takes the remaining width and wraps if tight */}
-                <div className="flex flex-col justify-center pl-3 sm:pl-4 gap-0.5 min-w-0 flex-1">
-                  <div className="text-xs max-[389px]:text-[10px] text-gray-500">Cicilan</div>
-                  <div className="text-sm max-[389px]:text-[11.5px] font-bold text-rose-700 leading-tight">
+                {/* Right: cicilan info — centered (as before), with slightly LARGER text on mobile
+                    so the column fills its height and sits balanced next to the price block. */}
+                <div className="flex flex-col justify-center pl-3 sm:pl-4 gap-1 sm:gap-0.5 min-w-0 flex-1">
+                  <div className="text-[13px] sm:text-xs max-[389px]:text-[11px] text-gray-500">Cicilan</div>
+                  <div className="text-[15px] sm:text-sm max-[389px]:text-[12.5px] font-bold text-rose-700 leading-tight">
                     <span
                       className="cursor-pointer select-none"
                       onClick={() => copyToClipboard(cicilanKartuKredit(selectedVariant, product, canonicalUrl))}
@@ -1895,7 +1896,7 @@ DP : 0
                       Lihat ›
                     </span>
                   </div>
-                  <div className="text-xs max-[389px]:text-[10px] text-gray-500">Cukup KTP · ±30 menit</div>
+                  <div className="text-[13px] sm:text-xs max-[389px]:text-[11px] text-gray-500">Cukup KTP · ±30 menit</div>
                 </div>
 
               </div>
