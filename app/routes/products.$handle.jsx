@@ -32,8 +32,9 @@ import { FaComment } from "react-icons/fa6";
 import { FaBagShopping } from "react-icons/fa6";
 import { FaShareFromSquare } from "react-icons/fa6";
 import { FaLink } from "react-icons/fa6";
-import {Await, useMatches} from '@remix-run/react';
+import {Await, useMatches, useLocation} from '@remix-run/react';
 import {Suspense} from 'react';
+import {resolveFlashEdition, FlashEditionBadge, FlashEditionName} from '~/components/MastheadOrnament';
 
 // ── Video (YouTube) helpers ──────────────────────────────────────────────────
 // Accept a raw metafield value (full URL or bare 11-char ID) → normalized video ID, else ''.
@@ -137,14 +138,17 @@ function FlashSaleCountdown({ endsAt }) {
 }
 
 function FlashSaleBanner({ autoDiscount }) {
+  // Monthly twin-date edition (8.8, 11.11, …) + seasonal skin — auto-follows the WIB month
+  const location = useLocation();
   if (!autoDiscount) return null;
+  const ed = resolveFlashEdition(location.search);
   const hemat = autoDiscount.type === 'amount'
     ? `Rp${autoDiscount.amount.toLocaleString('id-ID')}`
     : `${autoDiscount.percentage}%`;
   return (
     <div
       className="relative overflow-hidden rounded-xl order-2 md:order-4 mt-1 md:mt-1.5"
-      style={{ background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 45%, #f97316 100%)' }}
+      style={{ background: ed.bg }}
     >
       {/* Diagonal shine */}
       <div
@@ -160,7 +164,11 @@ function FlashSaleBanner({ autoDiscount }) {
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <span className="text-xl sm:text-2xl animate-pulse flex-shrink-0">⚡</span>
           <div className="min-w-0">
-            <p className="text-white font-black italic text-sm sm:text-lg tracking-wider leading-none drop-shadow-sm">FLASH SALE</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-white font-black italic text-sm sm:text-lg tracking-wider leading-none drop-shadow-sm">FLASH SALE</p>
+              <FlashEditionBadge ed={ed} />
+              <span className="hidden md:inline"><FlashEditionName ed={ed} /></span>
+            </div>
             <p className="text-white/95 text-[10px] sm:text-xs font-semibold mt-0.5 leading-tight whitespace-nowrap">
               Hemat {hemat}<span className="hidden sm:inline"> · otomatis di checkout</span>
             </p>

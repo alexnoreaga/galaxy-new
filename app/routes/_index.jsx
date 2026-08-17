@@ -1,5 +1,6 @@
 import {defer} from '@shopify/remix-oxygen';
-import {Await, useLoaderData, Link,useOutletContext} from '@remix-run/react';
+import {Await, useLoaderData, Link, useOutletContext, useLocation} from '@remix-run/react';
+import {resolveFlashEdition, FlashEditionBadge, FlashEditionName} from '../components/MastheadOrnament';
 import {Suspense, lazy} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import {HitunganPersen} from '~/components/HitunganPersen';
@@ -519,6 +520,9 @@ function CuciGudangHomeSection({ cuciGudang }) {
 }
 
 function FlashSaleHomeSection({ flashSale }) {
+  // Monthly twin-date edition (8.8, 11.11, …) + seasonal skin — same engine as the product banner
+  const location = useLocation();
+  const ed = resolveFlashEdition(location.search);
   return (
     <Suspense fallback={null}>
       <Await resolve={flashSale}>
@@ -528,7 +532,7 @@ function FlashSaleHomeSection({ flashSale }) {
             <div className="relative -mx-4 sm:mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-6 sm:mt-8">
               <section
                 className="relative overflow-hidden rounded-none sm:rounded-xl"
-                style={{ background: 'linear-gradient(110deg, #b71c1c 0%, #e53935 45%, #f4511e 100%)' }}
+                style={{ background: ed.bg }}
               >
                 {/* Diagonal stripes + shine */}
                 <div
@@ -549,9 +553,11 @@ function FlashSaleHomeSection({ flashSale }) {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                       <span className="text-lg sm:text-2xl animate-pulse flex-shrink-0">⚡</span>
-                      <h2 className="text-white font-black italic text-base sm:text-2xl tracking-wider leading-none drop-shadow-sm whitespace-nowrap">
+                      <h2 className="text-white font-black italic text-base sm:text-2xl tracking-wider leading-none drop-shadow-sm whitespace-nowrap m-0">
                         FLASH SALE
                       </h2>
+                      <FlashEditionBadge ed={ed} />
+                      <span className="hidden lg:flex items-center"><FlashEditionName ed={ed} /></span>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
                       {saleEndsAt && (
