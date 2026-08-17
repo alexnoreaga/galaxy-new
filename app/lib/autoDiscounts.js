@@ -54,6 +54,37 @@ export async function getAutomaticDiscounts(env) {
                     }
                   }
                 }
+                ... on DiscountAutomaticBxgy {
+                  title
+                  startsAt
+                  endsAt
+                  customerBuys {
+                    value { ... on DiscountQuantity { quantity } }
+                    items {
+                      ... on DiscountProducts {
+                        products(first: 20) { nodes { id } }
+                        productVariants(first: 20) { nodes { id product { id } } }
+                      }
+                    }
+                  }
+                  customerGets {
+                    value {
+                      ... on DiscountOnQuantity {
+                        quantity { quantity }
+                        effect {
+                          ... on DiscountAmount { amount { amount } }
+                          ... on DiscountPercentage { percentage }
+                        }
+                      }
+                    }
+                    items {
+                      ... on DiscountProducts {
+                        products(first: 20) { nodes { id } }
+                        productVariants(first: 20) { nodes { id product { id } } }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -61,9 +92,11 @@ export async function getAutomaticDiscounts(env) {
       }),
     });
     const data = await gqlRes.json();
+    // Basic = flash sales; Bxgy = PWP (purchase-with-purchase). The flash helpers below only match
+    // DiscountAmount/DiscountPercentage values, so Bxgy entries pass through them harmlessly.
     const list = (data?.data?.automaticDiscountNodes?.nodes ?? [])
       .map(n => n.automaticDiscount)
-      .filter(d => d?.__typename === 'DiscountAutomaticBasic');
+      .filter(d => d?.__typename === 'DiscountAutomaticBasic' || d?.__typename === 'DiscountAutomaticBxgy');
     autoDiscountsCache = { at: Date.now(), list };
   } catch (e) {
     console.error('[flash] auto discount fetch failed:', e?.message ?? e);
@@ -118,6 +151,54 @@ export function getActiveFlashProducts(discounts, max = 20) {
     }
   }
   return map;
+}
+
+/**
+ * PWP (Buy X Get Y) deals where THIS product is the trigger ("customer buys").
+ * Returns [{title, endsAt, buysQuantity, getsQuantity, discount, addOnProductIds, addOnVariantIds}].
+ * addOnVariantIds non-empty = the deal is scoped to those variants only.
+ */
+export function findProductPwp(discounts, productGid) {
+  const now = Date.now();
+  const deals = [];
+  for (const d of discounts) {
+    if (d?.__typename !== 'DiscountAutomaticBxgy') continue;
+    const startsOk = !d.startsAt || new Date(d.startsAt).getTime() <= now;
+    const endsOk = !d.endsAt || new Date(d.endsAt).getTime() >= now;
+    if (!startsOk || !endsOk) continue;
+    const buysItems = d.customerBuys?.items;
+    const buysProduct =
+      (buysItems?.products?.nodes ?? []).some(p => p.id === productGid) ||
+      (buysItems?.productVariants?.nodes ?? []).some(v => v.product?.id === productGid);
+    if (!buysProduct) continue;
+    const effect = d.customerGets?.value?.effect;
+    let discount = null;
+    if (effect?.amount?.amount) {
+      const amount = parseFloat(effect.amount.amount);
+      if (amount > 0) discount = { type: 'amount', amount };
+    } else if (effect?.percentage) {
+      const pct = Number(effect.percentage); // Admin API returns 0–1
+      if (pct > 0) discount = { type: 'percentage', percentage: pct };
+    }
+    if (!discount) continue;
+    const getsItems = d.customerGets?.items;
+    const addOnVariants = getsItems?.productVariants?.nodes ?? [];
+    const addOnProductIds = [...new Set([
+      ...(getsItems?.products?.nodes ?? []).map(p => p.id),
+      ...addOnVariants.map(v => v.product?.id).filter(Boolean),
+    ])];
+    if (addOnProductIds.length === 0) continue;
+    deals.push({
+      title: d.title,
+      endsAt: d.endsAt ?? null,
+      buysQuantity: d.customerBuys?.value?.quantity ?? 1,
+      getsQuantity: d.customerGets?.value?.quantity?.quantity ?? 1,
+      discount,
+      addOnProductIds,
+      addOnVariantIds: addOnVariants.map(v => v.id),
+    });
+  }
+  return deals;
 }
 
 export function findProductAutoDiscount(discounts, productGid) {

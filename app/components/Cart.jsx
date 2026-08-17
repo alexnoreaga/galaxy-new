@@ -27,7 +27,7 @@ function CartDetails({layout, cart}) {
         {/* Summary */}
         {cartHasItems && (
           <div className="lg:col-span-1">
-            <CartSummary cost={cart.cost} layout={layout}>
+            <CartSummary cost={cart.cost} layout={layout} lines={cart.lines}>
               <CartDiscounts discountCodes={cart.discountCodes} />
               <CartCheckoutActions checkoutUrl={cart.checkoutUrl} lines={cart.lines} />
             </CartSummary>
@@ -41,7 +41,7 @@ function CartDetails({layout, cart}) {
     <div className="flex flex-col flex-1 min-h-0">
       <CartLines lines={cart?.lines} layout={layout} />
       {cartHasItems && (
-        <CartSummary cost={cart.cost} layout={layout}>
+        <CartSummary cost={cart.cost} layout={layout} lines={cart.lines}>
           <CartDiscounts discountCodes={cart.discountCodes} />
           <CartCheckoutActions checkoutUrl={cart.checkoutUrl} lines={cart.lines} />
         </CartSummary>
@@ -172,11 +172,25 @@ function CartCheckoutActions({checkoutUrl, lines}) {
   );
 }
 
-export function CartSummary({cost, layout, children = null}) {
+export function CartSummary({cost, layout, lines = null, children = null}) {
+  // Total savings from automatic discounts / codes across all lines (already subtracted from
+  // the subtotal by Shopify — this row just makes the win visible)
+  const hemat = (lines?.nodes ?? []).reduce(
+    (s, l) => s + (l.discountAllocations ?? []).reduce((x, a) => x + parseFloat(a?.discountedAmount?.amount ?? 0), 0),
+    0,
+  );
+  const hematRow = hemat > 0 && (
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-medium text-emerald-700">🎉 Hemat diskon</span>
+      <span className="text-sm font-bold text-emerald-700">−Rp{Math.round(hemat).toLocaleString('id-ID')}</span>
+    </div>
+  );
+
   if (layout !== 'aside') {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:sticky lg:top-24 flex flex-col gap-4">
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Ringkasan Pesanan</h2>
+        {hematRow}
         <div className="flex items-center justify-between py-3 border-t border-b border-gray-100">
           <span className="text-sm text-gray-700">Subtotal</span>
           <span className="font-bold text-lg text-gray-900">
@@ -190,7 +204,8 @@ export function CartSummary({cost, layout, children = null}) {
   }
 
   return (
-    <div className="flex-shrink-0 border-t border-gray-100 bg-white px-4 pt-3 pb-5 flex flex-col gap-3">
+    <div className="flex-shrink-0 border-t border-gray-100 bg-white px-4 pt-3 pb-5 flex flex-col gap-2.5">
+      {hematRow}
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-500">Subtotal</span>
         <span className="text-lg font-bold text-gray-900">
@@ -261,6 +276,37 @@ function CartLineQuantity({line, onRemove}) {
 
 function CartLinePrice({line, priceType = 'regular', ...passthroughProps}) {
   if (!line?.cost?.amountPerQuantity || !line?.cost?.totalAmount) return null;
+
+  // Discounts applied to this line (PWP / flash / codes) — Shopify already subtracts them from
+  // totalAmount; without this the customer sees the lower price with no explanation.
+  const hemat = (line.discountAllocations ?? []).reduce(
+    (s, a) => s + parseFloat(a?.discountedAmount?.amount ?? 0),
+    0,
+  );
+
+  if (priceType === 'regular' && hemat > 0) {
+    const total = parseFloat(line.cost.totalAmount.amount);
+    const label =
+      (line.discountAllocations ?? []).map((a) => a?.title || a?.code).filter(Boolean)[0] || 'Diskon';
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-sm font-bold text-red-600">
+            <Money withoutTrailingZeros {...passthroughProps} data={line.cost.totalAmount} />
+          </span>
+          <span className="text-xs text-gray-400 line-through">
+            <Money
+              withoutTrailingZeros
+              data={{amount: String(total + hemat), currencyCode: line.cost.totalAmount.currencyCode}}
+            />
+          </span>
+        </div>
+        <span className="self-start bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold px-1.5 py-[1px] rounded leading-tight">
+          {label} · Hemat Rp{Math.round(hemat).toLocaleString('id-ID')}
+        </span>
+      </div>
+    );
+  }
 
   const moneyV2 =
     priceType === 'regular'

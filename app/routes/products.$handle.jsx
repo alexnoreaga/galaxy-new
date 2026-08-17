@@ -24,7 +24,7 @@ import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
-import { getAutomaticDiscounts, findProductAutoDiscount } from '~/lib/autoDiscounts';
+import { getAutomaticDiscounts, findProductAutoDiscount, findProductPwp } from '~/lib/autoDiscounts';
 import { getVariantCosts, buildHargaBest } from '~/lib/hargaBest';
 import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
@@ -208,6 +208,160 @@ function FlashSaleBanner({ autoDiscount }) {
   );
 }
 
+// ── PWP "Tambah & Lebih Hemat" — auto-detected from Buy X Get Y automatic discounts ───────────
+// Renders only when this product is the trigger of an active BXGY deal. Prices always match what
+// checkout will charge (both derive from the same discount). Add-to-cart adds the ADD-ON only;
+// the discount applies automatically at checkout once the main product is in the cart too.
+function PwpSection({ pwp }) {
+  if (!pwp?.deals?.length || !pwp?.products?.length) return null;
+  const byId = new Map(pwp.products.map((p) => [p.id, p]));
+
+  const rows = new Map();
+  for (const deal of pwp.deals) {
+    for (const pid of deal.addOnProductIds) {
+      const prod = byId.get(pid);
+      if (!prod || !prod.availableForSale) continue;
+      const available = (prod.variants?.nodes ?? []).filter((v) => v.availableForSale);
+      const scoped = deal.addOnVariantIds?.length
+        ? available.filter((v) => deal.addOnVariantIds.includes(v.id))
+        : available;
+      const v = scoped[0] ?? available[0];
+      if (!v) continue;
+      const price = parseFloat(v.price?.amount ?? 0);
+      if (!price) continue;
+      const hemat = deal.discount.type === 'amount'
+        ? Math.min(deal.discount.amount, price)
+        : Math.round(price * deal.discount.percentage);
+      if (hemat <= 0) continue;
+      const key = prod.id + '|' + v.id;
+      if (!rows.has(key)) {
+        rows.set(key, { prod, variant: v, price, hemat, pwpPrice: Math.max(0, price - hemat), endsAt: deal.endsAt });
+      }
+    }
+  }
+  const list = [...rows.values()];
+  if (!list.length) return null;
+
+  const img = (u) => (u ? (u.includes('?') ? `${u}&width=112` : `${u}?width=112`) : null);
+
+  return (
+    <div className="border border-gray-200 rounded-xl mt-2 bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 px-3 py-2.5 border-b border-gray-100 bg-gray-50">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+            <path fillRule="evenodd" d="M7.5 6v.75H5.513c-.96 0-1.764.724-1.865 1.679l-1.263 12A1.875 1.875 0 0 0 4.25 22.5h15.5a1.875 1.875 0 0 0 1.865-2.071l-1.263-12a1.875 1.875 0 0 0-1.865-1.679H16.5V6a4.5 4.5 0 1 0-9 0ZM12 3a3 3 0 0 0-3 3v.75h6V6a3 3 0 0 0-3-3Zm-3 8.25a3 3 0 1 0 6 0v-.75a.75.75 0 0 1 1.5 0v.75a4.5 4.5 0 1 1-9 0v-.75a.75.75 0 0 1 1.5 0v.75Z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <span className="flex-1 text-sm font-semibold text-gray-800">Tambah &amp; Lebih Hemat</span>
+        <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 rounded-full px-2 py-0.5 flex-shrink-0">PWP</span>
+      </div>
+
+      <p className="px-3 pt-2.5 pb-1 text-[11px] text-gray-500 m-0">
+        Diskon otomatis di checkout saat dibeli bersama produk ini.
+      </p>
+
+      {/* Horizontal tile rail (Sony "Add More & Save More" style) — scales to many add-ons
+          without eating vertical space; half-visible next card is the swipe cue */}
+      <div
+        className="flex gap-2.5 overflow-x-auto px-3 pb-3 pt-1.5"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {list.map((row) => (
+          <div
+            key={row.prod.id + row.variant.id}
+            className="flex-shrink-0 w-36 rounded-xl border border-gray-100 bg-white overflow-hidden flex flex-col"
+          >
+            <Link
+              to={`/products/${row.prod.handle}`}
+              prefetch="intent"
+              className="block bg-gray-50 aspect-square p-2 flex-shrink-0"
+            >
+              {row.prod.featuredImage?.url ? (
+                <img
+                  src={img(row.prod.featuredImage.url)}
+                  alt={row.prod.featuredImage.altText || row.prod.title}
+                  loading="lazy"
+                  width={128}
+                  height={128}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📷</span>
+              )}
+            </Link>
+            <div className="p-2 flex flex-col gap-1 flex-1">
+              <Link
+                to={`/products/${row.prod.handle}`}
+                prefetch="intent"
+                className="text-[11px] text-gray-800 leading-snug line-clamp-2 no-underline hover:text-red-600 transition-colors"
+                style={{ minHeight: 28 }}
+              >
+                {row.prod.title}
+              </Link>
+              <div className="mt-0.5">
+                <span className="block text-[13px] font-bold text-red-600 leading-tight">
+                  Rp{row.pwpPrice.toLocaleString('id-ID')}
+                </span>
+                <span className="block text-[10px] text-gray-400 line-through leading-tight">
+                  Rp{row.price.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <span className="self-start bg-red-50 border border-red-200 text-red-600 text-[9px] font-bold px-1.5 py-[1px] rounded">
+                HEMAT Rp{row.hemat.toLocaleString('id-ID')}
+              </span>
+              <CartForm
+                route="/cart"
+                inputs={{ lines: [{ merchandiseId: row.variant.id }] }}
+                action={CartForm.ACTIONS.LinesAdd}
+              >
+                {(fetcher) => (
+                  <button
+                    type="submit"
+                    onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                    disabled={fetcher.state !== 'idle'}
+                    className="mt-auto w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-60 text-white text-[11px] font-semibold py-1.5 rounded-lg transition-colors"
+                  >
+                    + Tambah
+                  </button>
+                )}
+              </CartForm>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Bonus Gratis — quiet card (replaces the gradient-tile version that read as "AI-designed").
+// Mobile/tablet: middle column. Desktop (lg+): lives in the sticky checkout card instead, under
+// the "Dikirim dari" line, to declutter the crowded middle column.
+function BonusGratis({ value, className = '' }) {
+  const items = (value ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
+  if (!items.length) return null;
+  return (
+    <div className={`border border-gray-100 rounded-lg bg-gray-50/60 overflow-hidden ${className}`}>
+      <div className="flex items-center gap-2 px-3 pt-2.5 pb-2 border-b border-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="currentColor" className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H4.5a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+        </svg>
+        <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-gray-600">Bonus Gratis</span>
+        <span className="ml-auto text-[10px] text-gray-400">{items.length} item</span>
+      </div>
+      <ul className="px-3 py-2 m-0 list-none flex flex-col gap-1.5">
+        {items.map((str, i) => (
+          <li key={i} className="flex items-start gap-2 m-0 text-[13px] text-gray-700 leading-snug">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0">
+              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+            </svg>
+            {str}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 // Festive clearance banner — shown on product pages when the product is in the cuci-gudang collection
 function CuciGudangBanner() {
   return (
@@ -345,8 +499,20 @@ export async function loader({params, context, request}) {
       }).catch(() => {}),
   ]);
 
-  // Match active automatic discount (flash sale) for this product
-  const autoDiscount = findProductAutoDiscount(await autoDiscountsPromise, product?.id);
+  // Match active automatic discounts for this product — flash sale (Basic) + PWP (Buy X Get Y)
+  const discounts = await autoDiscountsPromise;
+  const autoDiscount = findProductAutoDiscount(discounts, product?.id);
+  const pwpDeals = findProductPwp(discounts, product?.id);
+
+  // PWP add-on display data (price/image/handle from Storefront) — deferred, below the fold
+  const pwpPromise = (async () => {
+    if (!pwpDeals.length) return null;
+    const ids = [...new Set(pwpDeals.flatMap((dd) => dd.addOnProductIds))];
+    if (!ids.length) return null;
+    const data = await context.storefront.query(PWP_ADDONS_QUERY, { variables: { ids } });
+    const products = (data?.nodes ?? []).filter(Boolean);
+    return products.length ? { deals: pwpDeals, products } : null;
+  })().catch(() => null);
 
   // Staff "harga best" + nego-bubble gate — DEFERRED. getVariantCosts hits the Admin API
   // sequentially after Round 1; on cache misses that added ~0.5s of first-byte latency for data
@@ -434,6 +600,7 @@ export async function loader({params, context, request}) {
       products: [product],
     },
     hargaBest: hargaBestPromise,
+    pwp: pwpPromise,
     // Deferred — stream in after page renders
     related: relatedPromise,
     metaobject: metaobjectPromise,
@@ -1547,7 +1714,7 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount,hargaBest} = useLoaderData();
+    const {finalTebusMurah,balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount,hargaBest,pwp} = useLoaderData();
 
     // Compute selected variant from URL params — all 50 variants are already in product.variants.nodes
     // so this is instant, no server call needed on variant switch
@@ -2009,27 +2176,9 @@ DP : 0
 
  
 
+          {/* Bonus Gratis — mobile/tablet only here; on lg+ it lives in the sticky checkout card */}
           {product.metafields[1] && (
-            <div className="border border-gray-200 rounded-xl mt-2 bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center gap-3 px-3 py-2.5 border-b border-gray-100 bg-gray-50">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
-                    <path d="M9.375 3a1.875 1.875 0 000 3.75h1.875v4.5H3.375A1.875 1.875 0 011.5 9.375v-.75a1.875 1.875 0 011.875-1.875h.375A3.75 3.75 0 019.375 3zM11.25 3.75v4.5h1.5v-4.5a3.75 3.75 0 016.375 2.625h.375a1.875 1.875 0 011.875 1.875v.75a1.875 1.875 0 01-1.875 1.875H12.75v-4.5H11.25zM2.625 12.75h8.625v8.625a2.625 2.625 0 01-2.625 2.625H5.25a2.625 2.625 0 01-2.625-2.625V12.75zM12.75 12.75v8.625a2.625 2.625 0 002.625 2.625h3.375a2.625 2.625 0 002.625-2.625V12.75H12.75z" />
-                  </svg>
-                </div>
-                <span className="text-sm font-semibold text-gray-800">Bonus Gratis</span>
-              </div>
-              <div className="px-3 py-2.5 flex flex-col gap-2">
-                {product.metafields[1]?.value.split('\n').map((str, i) => str.trim() && (
-                  <div key={i} className="flex items-start gap-2.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm text-gray-700 leading-snug">{str}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <BonusGratis value={product.metafields[1].value} className="mt-2 lg:hidden" />
           )}
 
 
@@ -2055,6 +2204,13 @@ DP : 0
               <Suspense fallback={null}>
                 <Await resolve={discountVouchers}>
                   {(vd) => <VoucherInline voucherData={vd} />}
+                </Await>
+              </Suspense>
+
+              {/* PWP — Tambah & Lebih Hemat (auto-detected from Buy X Get Y automatic discounts) */}
+              <Suspense fallback={null}>
+                <Await resolve={pwp}>
+                  {(pw) => <PwpSection pwp={pw} />}
                 </Await>
               </Suspense>
 
@@ -2231,6 +2387,11 @@ DP : 0
                 </svg>
                 Dikirim dari Galaxy Camera Tangerang
               </p>
+
+              {/* Bonus Gratis — desktop home (middle column shows it below lg) */}
+              {product.metafields[1] && (
+                <BonusGratis value={product.metafields[1].value} />
+              )}
 
               {/* Brand authorized dealer row */}
               <Suspense fallback={null}>
@@ -3484,3 +3645,29 @@ export const meta = ({data}) => {
 
 
 
+
+// PWP add-on display data — customer-visible price/image/availability from the Storefront API
+const PWP_ADDONS_QUERY = `#graphql
+  query PwpAddons($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        id
+        title
+        handle
+        availableForSale
+        featuredImage {
+          url
+          altText
+        }
+        variants(first: 10) {
+          nodes {
+            id
+            title
+            availableForSale
+            price { amount }
+          }
+        }
+      }
+    }
+  }
+`;

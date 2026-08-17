@@ -171,6 +171,20 @@ const CART_QUERY_FRAGMENT = `#graphql
         ...Money
       }
     }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
+      ... on CartAutomaticDiscountAllocation {
+        title
+      }
+      ... on CartCodeDiscountAllocation {
+        code
+      }
+      ... on CartCustomDiscountAllocation {
+        title
+      }
+    }
     merchandise {
       ... on ProductVariant {
         id
