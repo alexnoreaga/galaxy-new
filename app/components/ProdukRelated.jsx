@@ -1,6 +1,22 @@
 import { Link } from '@remix-run/react';
 import { useRef, useState, useEffect } from 'react';
 
+// Cheapest tenor (Kredivo 12x) — mirrors the collection cards
+const ADM_KREDIVO = 2.6;
+const CICILAN_MIN_HARGA = 1000000; // below this a monthly figure is meaningless
+
+function cicilanPerBulan(price) {
+  const bunga = (ADM_KREDIVO * price) / 100;
+  return Math.ceil((price / 12 + bunga) / 10) * 10;
+}
+
+// Compact: 939.000 -> "939rb", 1.093.330 -> "1,1jt"
+function formatSingkat(n) {
+  const rb = Math.round(n / 1000);
+  if (rb >= 1000) return `${(n / 1000000).toFixed(1).replace('.', ',')}jt`;
+  return `${rb}rb`;
+}
+
 export const ProdukRelated = ({ related }) => {
   const scrollRef = useRef(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -26,6 +42,8 @@ export const ProdukRelated = ({ related }) => {
   };
 
   const products = related?.productRecommendations ?? [];
+  const soldCounts = related?.soldCounts || {};
+  const reviewSummaries = related?.reviewSummaries || {};
   if (!products.length) return null;
 
   return (
@@ -64,6 +82,9 @@ export const ProdukRelated = ({ related }) => {
           const compareAt = parseFloat(product?.priceRange?.maxVariantPrice?.amount ?? 0);
           const hasDiscount = compareAt > price && compareAt > 0;
           const discountPct = hasDiscount ? Math.round((1 - price / compareAt) * 100) : 0;
+          const sold = soldCounts[product.handle] || 0;
+          const review = reviewSummaries[product.handle] || null;
+          const showCicilan = price >= CICILAN_MIN_HARGA;
 
           return (
             <Link
@@ -73,14 +94,15 @@ export const ProdukRelated = ({ related }) => {
               className="flex-none w-[160px] sm:w-[180px] snap-start group no-underline"
               style={{ textDecoration: 'none' }}
             >
-              <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                {/* Image */}
-                <div className="relative w-full aspect-square bg-gray-50 overflow-hidden">
+              {/* Borderless Tokopedia-style card — matches collections/homepage grids */}
+              <div className="bg-white rounded-xl overflow-hidden">
+                {/* Image — rounded all corners, subtle tint so white photos stay defined */}
+                <div className="relative w-full aspect-square bg-gray-50 overflow-hidden rounded-xl">
                   {product.featuredImage?.url ? (
                     <img
                       src={product.featuredImage.url}
                       alt={product.featuredImage.altText || product.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                       width={180}
                       height={180}
                       loading="lazy"
@@ -92,6 +114,7 @@ export const ProdukRelated = ({ related }) => {
                       </svg>
                     </div>
                   )}
+                  <div aria-hidden="true" className="absolute inset-0 bg-black/[0.03] group-hover:bg-black/[0.06] transition-colors duration-300 pointer-events-none" />
                   {hasDiscount && (
                     <span className="absolute top-1.5 left-1.5 bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
                       -{discountPct}%
@@ -100,17 +123,37 @@ export const ProdukRelated = ({ related }) => {
                 </div>
 
                 {/* Info */}
-                <div className="p-2.5">
-                  <p className="text-xs text-gray-700 font-medium leading-snug line-clamp-2 mb-1.5">
+                <div className="p-2.5 pt-2">
+                  <p className="text-xs text-gray-700 font-medium leading-snug line-clamp-2 mb-1.5 group-hover:text-rose-600 transition-colors duration-200">
                     {product.title}
                   </p>
-                  <p className="text-sm font-bold text-rose-700">
-                    Rp{price.toLocaleString('id-ID')}
-                  </p>
                   {hasDiscount && (
-                    <p className="text-[10px] text-gray-400 line-through">
+                    <p className="text-[10px] text-gray-400 line-through leading-tight m-0">
                       Rp{compareAt.toLocaleString('id-ID')}
                     </p>
+                  )}
+                  <p className="text-sm font-bold text-rose-700 m-0">
+                    Rp{price.toLocaleString('id-ID')}
+                  </p>
+                  {showCicilan && (
+                    <p className="text-[10px] sm:text-[11px] text-gray-500 leading-tight mt-0.5 m-0">
+                      Cicilan <span className="font-semibold text-rose-700">{formatSingkat(cicilanPerBulan(price))}</span>/bln
+                    </p>
+                  )}
+                  {(review || sold > 0) && (
+                    <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-500 leading-none flex-wrap">
+                      {review && (
+                        <>
+                          <span className="text-amber-400 text-[11px]">★</span>
+                          <span className="font-bold text-gray-700">{review.avg}</span>
+                          <span className="text-gray-400">({review.count})</span>
+                        </>
+                      )}
+                      {review && sold > 0 && <span className="text-gray-300">·</span>}
+                      {sold > 0 && (
+                        <span>Terjual <span className="font-semibold text-gray-600">{sold.toLocaleString('id-ID')}</span></span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

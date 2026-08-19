@@ -1068,17 +1068,20 @@ function MirrorlessProducts({products}) {
                   return (
                   <Link
                     key={product?.id}
-                    className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex-shrink-0 w-32 sm:w-auto snap-start"
+                    className="group bg-white rounded-xl overflow-hidden flex-shrink-0 w-32 sm:w-auto snap-start"
                     to={`/products/${product?.handle}`}
                   >
-                    <div className='relative overflow-hidden bg-gray-50'>
+                    <div className='relative overflow-hidden bg-gray-50 rounded-xl'>
                       <Image
                         data={product?.images?.nodes?.[0]}
                         alt={product?.title || 'Product'}
                         aspectRatio="1/1"
                         sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 128px"
-                        className="group-hover:scale-105 transition-transform duration-300"
+                        className="group-hover:scale-[1.03] transition-transform duration-300"
                       />
+                      {/* Tokopedia-style tint — same as collection cards: keeps white product
+                          photos from blending into the page; deepens slightly on hover */}
+                      <div aria-hidden="true" className="absolute inset-0 bg-black/[0.03] group-hover:bg-black/[0.06] transition-colors duration-300 pointer-events-none" />
                       {flash ? (
                         <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 text-white text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-lg shadow-lg"
                           style={{ background: 'linear-gradient(135deg, #dc2626, #ea580c)' }}>
@@ -1108,7 +1111,7 @@ function MirrorlessProducts({products}) {
                     </div>
 
                     <div className='p-2 sm:p-3'>
-                      <h3 className='text-xs sm:text-sm font-medium text-gray-800 mb-1 sm:mb-2 line-clamp-2 min-h-[32px] sm:min-h-[40px]'>
+                      <h3 className='text-xs sm:text-sm font-medium text-gray-800 mb-1 sm:mb-2 line-clamp-2 min-h-[32px] sm:min-h-[40px] group-hover:text-rose-600 transition-colors duration-200'>
                         {product?.title || 'Nama Produk'}
                       </h3>
 

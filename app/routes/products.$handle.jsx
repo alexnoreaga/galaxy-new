@@ -24,6 +24,7 @@ import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
 import { getAutomaticDiscounts, findProductAutoDiscount, findProductPwp } from '~/lib/autoDiscounts';
+import { getSocialProof } from '~/lib/socialProof';
 import { getVariantCosts, buildHargaBest } from '~/lib/hargaBest';
 import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
 import { FaPhone } from "react-icons/fa6";
@@ -546,8 +547,15 @@ export async function loader({params, context, request}) {
       : null) ??
     product?.variants?.nodes[0];
 
-  // ROUND 2 — deferred promises, depend on product.id but do NOT block the response
-  const relatedPromise = context.storefront.query(PRODUK_RELATED, { variables: { productId: product?.id } });
+  // ROUND 2 — deferred promises, depend on product.id but do NOT block the response.
+  // Related products get batched social proof (2 Firestore calls) so their cards can show
+  // rating + terjual like every other product grid.
+  const relatedPromise = (async () => {
+    const data = await context.storefront.query(PRODUK_RELATED, { variables: { productId: product?.id } });
+    const nodes = data?.productRecommendations ?? [];
+    const { soldCounts, reviewSummaries } = await getSocialProof(nodes.map((p) => p.handle));
+    return { ...data, soldCounts, reviewSummaries };
+  })();
 
   const metaobjectPromise = brandValue
     ? context.storefront.query(METAOBJECT_QUERY, { variables: { id: brandValue } })
@@ -1123,7 +1131,7 @@ DP : 0
                   type="button"
                   onClick={() => { setVideoMode(true); setVideoPlaying(false); }}
                   aria-label="Tonton video"
-                  className={`relative flex-1 aspect-square rounded-lg overflow-hidden transition-all duration-200 ${videoMode ? 'ring-2 ring-rose-500 opacity-100' : 'opacity-70 hover:opacity-100'}`}
+                  className={`relative flex-1 aspect-square rounded-lg overflow-hidden transition-all duration-200 ${videoMode ? 'ring-2 ring-gray-900 opacity-100' : 'opacity-70 hover:opacity-100'}`}
                 >
                   <img src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`} alt="Video produk" loading="lazy" className="w-full h-full object-cover" />
                   <span className="absolute inset-0 flex items-center justify-center bg-black/25">
@@ -1143,7 +1151,7 @@ DP : 0
                     aria-label={`View image ${realIdx + 1}`}
                     className={`flex-1 aspect-square rounded-lg transition-all duration-200 ${
                       isActive
-                        ? 'ring-2 ring-rose-500 opacity-100'
+                        ? 'ring-2 ring-gray-900 opacity-100'
                         : 'opacity-50 hover:opacity-100'
                     }`}
                   >
@@ -1170,7 +1178,7 @@ DP : 0
               onClick={() => goTo(Math.min(images.length - 1, (thumbPage + 1) * THUMBS_PER_PAGE))}
               disabled={thumbPage >= totalThumbPages - 1}
               aria-label="Next thumbnails"
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 bg-white disabled:opacity-30 hover:border-rose-400 transition-all"
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 bg-white disabled:opacity-30 hover:border-gray-500 transition-all"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-600">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

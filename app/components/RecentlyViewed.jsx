@@ -119,18 +119,21 @@ export function RecentlyViewed() {
               prefetch="intent"
               className="flex-none w-[150px] sm:w-[168px] snap-start no-underline group"
             >
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col h-full">
-                <div className="relative aspect-square bg-gray-50 overflow-hidden">
+              {/* Borderless Tokopedia-style card — matches the collection & Mirrorless cards */}
+              <div className="bg-white rounded-xl overflow-hidden flex flex-col h-full">
+                <div className="relative aspect-square bg-gray-50 overflow-hidden rounded-xl">
                   {item.image ? (
                     <img
                       src={item.image}
                       alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                       loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-100" />
                   )}
+                  {/* Subtle tint so white product photos read as a defined block */}
+                  <div aria-hidden="true" className="absolute inset-0 bg-black/[0.03] group-hover:bg-black/[0.06] transition-colors duration-300 pointer-events-none" />
                   {hasDiscount && (
                     <span className="absolute top-1.5 right-1.5 bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
                       -{discPct}%
@@ -138,7 +141,7 @@ export function RecentlyViewed() {
                   )}
                 </div>
                 <div className="p-2.5 flex flex-col flex-1">
-                  <p className="text-xs text-gray-700 font-medium leading-snug line-clamp-2 mb-1.5">
+                  <p className="text-xs text-gray-700 font-medium leading-snug line-clamp-2 mb-1.5 group-hover:text-rose-600 transition-colors duration-200">
                     {item.title}
                   </p>
 
