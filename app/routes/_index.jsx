@@ -1722,6 +1722,16 @@ function VouchersSection({ vouchers }) {
     setTimeout(() => setCopiedCode(null), 2000);
   }
 
+  // Compact amount for the stub: 50000 → "Rp50rb", 1500000 → "Rp1,5jt", percentage → "10%"
+  function fmtAmount(voucher) {
+    if (voucher.discountType === 'percentage') return `${voucher.discount}%`;
+    const n = parseFloat(voucher.discount);
+    if (isNaN(n)) return voucher.discount;
+    if (n >= 1000000) return `Rp${(n / 1000000).toLocaleString('id-ID')}jt`;
+    if (n >= 1000) return `Rp${Math.round(n / 1000)}rb`;
+    return `Rp${n.toLocaleString('id-ID')}`;
+  }
+
   return (
     <Suspense fallback={
       <div className='py-2 mb-4'>
@@ -1756,66 +1766,53 @@ function VouchersSection({ vouchers }) {
           if (!voucherArray.length) return null;
 
           return (
-            <div className='w-full rounded-2xl py-3 px-4 mb-2 bg-white border border-amber-100'>
-              {/* Header */}
+            <div className='w-full rounded-2xl py-3 px-4 mb-2 bg-white border border-gray-100'>
+              {/* Header — house style: red accent bar */}
               <div className='flex items-center justify-between mb-2.5 gap-2'>
-                <div className='flex items-center gap-1.5'>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-amber-500 flex-shrink-0">
-                    <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path d="M6 6h.008v.008H6V6z" />
-                  </svg>
-                  <h2 className="text-gray-900 text-sm sm:text-base font-bold tracking-tight">Voucher Eksklusif</h2>
+                <div className='flex items-center gap-2'>
+                  <div className='w-1 h-4 bg-gradient-to-b from-red-500 to-rose-600 rounded-full flex-shrink-0' />
+                  <h2 className="text-gray-900 text-sm sm:text-base font-bold tracking-tight m-0">Voucher Eksklusif</h2>
                 </div>
-                <Link to="/promo" className='text-[11px] font-semibold text-amber-600 hover:text-amber-700 whitespace-nowrap'>
+                <Link to="/promo" className='text-[11px] font-semibold text-red-600 hover:text-red-700 whitespace-nowrap no-underline'>
                   Lihat Semua →
                 </Link>
               </div>
 
-              {/* Voucher cards — soft tickets on a clean section */}
+              {/* Clean coupon tickets — red stub, perforated divider, mono code + Salin */}
               <div className='flex overflow-x-auto gap-2.5 pb-1 hide-scroll-bar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible sm:pb-0'>
                 {voucherArray.map((voucher, index) => (
-                  <div key={index} className='flex-shrink-0 w-44 sm:w-auto flex items-stretch rounded-xl overflow-hidden border border-amber-200 shadow-sm'>
+                  <div key={index} className='relative flex-shrink-0 w-60 sm:w-auto flex items-stretch rounded-xl overflow-hidden border border-gray-200 bg-white'>
 
-                    {/* Left: soft amber stub */}
-                    <div className='flex flex-col items-center justify-center px-2 py-3 sm:px-3 sm:py-5'
-                      style={{ background: 'linear-gradient(160deg, #fbbf24, #f59e0b)', width: '30%', minWidth: '52px', maxWidth: '96px' }}>
-                      <span className='font-black leading-none text-center'
-                        style={{
-                          color: '#7c2d12',
-                          fontSize: voucher.discountType === 'percentage' ? 'clamp(0.9rem,3vw,1.7rem)' : 'clamp(0.55rem,1.5vw,0.9rem)',
-                        }}>
-                        {voucher.discountType === 'percentage'
-                          ? `${voucher.discount}%`
-                          : `Rp${parseFloat(voucher.discount).toLocaleString('id-ID')}`}
-                      </span>
-                      <span className='font-black uppercase mt-1' style={{ color: 'rgba(124,45,18,0.55)', fontSize: 'clamp(6px,1vw,9px)', letterSpacing: '0.18em' }}>OFF</span>
+                    {/* Left stub — soft red, compact amount */}
+                    <div className='w-20 sm:w-24 flex-shrink-0 flex flex-col items-center justify-center bg-red-50/70 border-r border-dashed border-gray-300 px-2 py-3.5'>
+                      <span className='font-black text-red-600 leading-none text-base sm:text-xl'>{fmtAmount(voucher)}</span>
+                      <span className='text-[8px] sm:text-[9px] font-semibold uppercase tracking-[0.18em] text-red-400 mt-1'>Voucher</span>
                     </div>
 
-                    {/* Right: cream info panel */}
-                    <div className='flex-1 flex flex-col justify-center px-2.5 py-2.5 sm:px-4 sm:py-4 min-w-0'
-                      style={{ background: '#fffbeb', borderLeft: '1.5px dashed #fbbf24' }}>
-                      {/* Code + copy */}
-                      <div className='flex items-center gap-1.5 mb-1.5 sm:mb-2'>
-                        <span className='font-mono font-black text-[9.5px] sm:text-sm tracking-widest flex-1 truncate'
-                          style={{ color: '#1c1917' }}>
+                    {/* Perforation bites — half-clipped circles at the divider */}
+                    <div aria-hidden="true" className='absolute top-0 left-20 sm:left-24 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border border-gray-200' />
+                    <div aria-hidden="true" className='absolute bottom-0 left-20 sm:left-24 -translate-x-1/2 translate-y-1/2 w-3 h-3 rounded-full bg-white border border-gray-200' />
+
+                    {/* Right: code + meta */}
+                    <div className='flex-1 min-w-0 flex flex-col justify-center px-3 py-2.5 sm:px-4'>
+                      <div className='flex items-center gap-2 mb-1'>
+                        <span className='font-mono font-bold text-[12px] sm:text-sm tracking-widest text-gray-900 flex-1 truncate'>
                           {voucher.code}
                         </span>
                         <button
                           onClick={() => handleCopyCode(voucher.code)}
-                          className={`flex-shrink-0 text-[8px] sm:text-xs font-black uppercase tracking-wide px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded transition-all duration-200 active:scale-95 ${
-                            copiedCode === voucher.code ? 'bg-emerald-500 text-white' : 'bg-amber-100 hover:bg-amber-200 text-amber-800'
+                          className={`flex-shrink-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-md transition-all duration-200 active:scale-95 ${
+                            copiedCode === voucher.code ? 'bg-emerald-500 text-white' : 'bg-gray-900 hover:bg-gray-800 text-white'
                           }`}>
-                          {copiedCode === voucher.code ? '✓ OK' : 'Salin'}
+                          {copiedCode === voucher.code ? '✓ Tersalin' : 'Salin'}
                         </button>
                       </div>
-                      {/* Meta */}
-                      <div className='flex flex-wrap items-center gap-x-1.5 gap-y-0.5'>
+                      <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] sm:text-[11px]'>
                         {voucher.minPurchase && (
-                          <span className='text-[7px] sm:text-[11px] font-semibold leading-none' style={{ color: '#92400e' }}>
-                            Min. {voucher.minPurchase}
-                          </span>
+                          <span className='text-gray-500'>Min. {voucher.minPurchase}</span>
                         )}
                         {voucher.expiryDate && (
-                          <span className='text-[7px] sm:text-[11px] leading-none' style={{ color: '#a16207' }}>
+                          <span className='text-gray-400'>
                             s/d {new Date(voucher.expiryDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                           </span>
                         )}
