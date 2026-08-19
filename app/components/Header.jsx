@@ -92,9 +92,10 @@ export function Header({header, isLoggedIn, cart}) {
   const katAllVisible = katAll.filter((c) => !curatedHandles.has(c.handle));
   // Pages that show a mobile back button + hide the hamburger/logo (compact drill-down bar)
   const isDrillDown = isProduct || isCollectionHandle;
-  // Mobile header goes charcoal on the homepage (curved hero) AND collection pages — index and
-  // handle — (flows into the dark band beneath). Product/inner pages stay white on mobile.
-  const mobileDarkHeader = isHome || isCollectionHandle || isCollectionsIndex;
+  // Mobile header goes charcoal on the homepage (curved hero), collection pages (flows into the
+  // dark band beneath), AND product pages (the slide-in immersive bar matches the masthead).
+  // Other inner pages (blog, account, …) stay white on mobile.
+  const mobileDarkHeader = isHome || isCollectionHandle || isCollectionsIndex || isProduct;
 
   // Full-screen loader: only on a REAL page change to a shopping route — never during same-page
   // pagination (infinite scroll navigates within the same pathname + a cursor, which was blinking black).

@@ -849,7 +849,7 @@ DP : 0
     const [displayUrl, setDisplayUrl] = useState(selectedVariant || images[0]?.src);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [zoomOpen, setZoomOpen] = useState(false);
-    const [videoMode, setVideoMode] = useState(!!youtubeId);   // video-first: video is the default slide when it exists
+    const [videoMode, setVideoMode] = useState(false);   // B&H style: photo is the hero; video opens via the "Lihat Video" button
     const [videoPlaying, setVideoPlaying] = useState(false);   // facade clicked → real iframe loaded
     const goToVideo = () => { setVideoMode(true); setVideoPlaying(false); };
     const touchStartXRef = useRef(null);
@@ -879,15 +879,15 @@ DP : 0
     const baseUrl = (url) => url?.split('?')[0];
     const currentIndex = images.findIndex((img) => baseUrl(img.src) === baseUrl(displayUrl));
 
+    // Photos cycle among themselves; the video is entered ONLY via its button/thumbnail,
+    // and any swipe/arrow while watching exits back to the photos.
     const goNext = () => {
-      if (videoMode) return goTo(0);                                                    // video → first photo
-      if (currentIndex >= images.length - 1) return youtubeId ? goToVideo() : goTo(0);  // last photo → video (loop)
-      goTo(currentIndex + 1);
+      if (videoMode) return goTo(0);
+      goTo(currentIndex >= 0 ? (currentIndex + 1) % images.length : 0);
     };
     const goPrev = () => {
-      if (videoMode) return goTo(images.length - 1);                                    // video → last photo
-      if (currentIndex <= 0) return youtubeId ? goToVideo() : goTo(images.length - 1);  // first photo → video
-      goTo(currentIndex - 1);
+      if (videoMode) return goTo(0);
+      goTo(currentIndex >= 0 ? (currentIndex - 1 + images.length) % images.length : 0);
     };
 
     const handleTouchStart = (e) => {
@@ -1004,7 +1004,8 @@ DP : 0
               type="button"
               onClick={() => goTo(0)}
               aria-label="Lihat foto produk"
-              className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 inline-flex items-center gap-1 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-semibold px-3 py-1 active:scale-95 transition"
+              style={{ background: 'rgba(17, 24, 39, 0.75)', backdropFilter: 'blur(4px)' }}
+              className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 inline-flex items-center gap-1 rounded-full text-white text-[11px] font-semibold px-3 py-1 active:scale-95 transition shadow-md"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-3.5 h-3.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M4.5 19.5h15a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5h-15A1.5 1.5 0 0 0 3 6v12a1.5 1.5 0 0 0 1.5 1.5Z" />
@@ -1062,9 +1063,9 @@ DP : 0
 
           {/* Counter badge — mobile only. Moved to bottom-center so it clears the zoom button
               (now bottom-right) and the Free-Ongkir badge (bottom-left). */}
-          {(images.length > 1 || youtubeId) && (
+          {!videoMode && images.length > 1 && currentIndex >= 0 && (
             <div className="md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-medium px-2 py-0.5 rounded-full pointer-events-none">
-              {videoMode ? 1 : currentIndex + 1 + (youtubeId ? 1 : 0)}/{images.length + (youtubeId ? 1 : 0)}
+              {currentIndex + 1}/{images.length}
             </div>
           )}
 
@@ -1078,6 +1079,25 @@ DP : 0
               customerEmail={wishlistEmail}
             />
           </div>
+
+          {/* Lihat Video — B&H-style floating entry below the wishlist. Photo stays the hero;
+              double-click secret-copy on the image body is unaffected (this is a small corner
+              button). Pairs with the "Lihat Foto" pill shown while in video mode. */}
+          {youtubeId && !videoMode && (
+            <button
+              type="button"
+              onClick={goToVideo}
+              aria-label="Lihat video produk"
+              // Inline background: the pill must ALWAYS be visible over white product photos
+              style={{ background: 'rgba(17, 24, 39, 0.75)', backdropFilter: 'blur(4px)' }}
+              className="absolute top-14 right-3 z-10 inline-flex items-center gap-1.5 rounded-full hover:opacity-90 pl-1.5 pr-3 py-1 active:scale-95 transition shadow-md"
+            >
+              <span className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="white" className="w-3 h-3 ml-0.5" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+              <span className="text-white text-[11px] font-semibold leading-none whitespace-nowrap">Lihat Video</span>
+            </button>
+          )}
 
         </div>
 
