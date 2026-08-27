@@ -109,6 +109,12 @@ export class HydrogenSession {
         httpOnly: true,
         path: '/',
         sameSite: 'lax',
+        // Secure in production; off on the http dev server so local login still works
+        secure: new URL(request.url).protocol === 'https:',
+        // Without maxAge this is a *browser session* cookie: the browser drops it
+        // on quit / restart / memory pressure, which logged customers out after a
+        // few unpredictable days. 30 days, refreshed on every session.commit().
+        maxAge: 60 * 60 * 24 * 30,
         secrets,
       },
     });

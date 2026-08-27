@@ -109,6 +109,7 @@ export async function loader({context}) {
   const {isLoggedIn, headers} = await validateCustomerAccessToken(
     session,
     customerAccessToken,
+    storefront,
   );
 
   // defer the cart query by not awaiting it
@@ -894,7 +895,13 @@ export function ErrorBoundary() {
  * );
  * ```
  */
-async function validateCustomerAccessToken(session, customerAccessToken) {
+// Shopify issues customer access tokens with a hard 2-week life. Renewing resets
+// that clock, so anyone who visits at least once inside the window stays signed in
+// indefinitely. We renew once the token is inside its final week — early enough to
+// survive a fortnight-long gap, rare enough to cost ~1 extra mutation per week.
+const TOKEN_RENEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+async function validateCustomerAccessToken(session, customerAccessToken, storefront) {
   let isLoggedIn = false;
   const headers = new Headers();
   if (!customerAccessToken?.accessToken || !customerAccessToken?.expiresAt) {
@@ -908,12 +915,47 @@ async function validateCustomerAccessToken(session, customerAccessToken) {
   if (customerAccessTokenExpired) {
     session.unset('customerAccessToken');
     headers.append('Set-Cookie', await session.commit());
-  } else {
-    isLoggedIn = true;
+    return {isLoggedIn, headers};
+  }
+
+  isLoggedIn = true;
+
+  // Rolling renewal. Any failure here is non-fatal: the existing token is still
+  // valid, so the customer stays logged in and we simply retry next request.
+  if (storefront && expiresAt - dateNow < TOKEN_RENEW_WINDOW_MS) {
+    try {
+      const {customerAccessTokenRenew} = await storefront.mutate(
+        CUSTOMER_ACCESS_TOKEN_RENEW_MUTATION,
+        {variables: {customerAccessToken: customerAccessToken.accessToken}},
+      );
+
+      const renewed = customerAccessTokenRenew?.customerAccessToken;
+      if (renewed?.accessToken && renewed?.expiresAt) {
+        session.set('customerAccessToken', renewed);
+        headers.append('Set-Cookie', await session.commit());
+      }
+    } catch (error) {
+      console.error('customerAccessTokenRenew failed', error);
+    }
   }
 
   return {isLoggedIn, headers};
 }
+
+const CUSTOMER_ACCESS_TOKEN_RENEW_MUTATION = `#graphql
+  mutation customerAccessTokenRenew($customerAccessToken: String!) {
+    customerAccessTokenRenew(customerAccessToken: $customerAccessToken) {
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
 
 const MENU_FRAGMENT = `#graphql
   fragment MenuItem on MenuItem {
