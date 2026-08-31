@@ -47,8 +47,8 @@ export async function getAutomaticDiscounts(env) {
                     items {
                       __typename
                       ... on DiscountProducts {
-                        products(first: 100) { nodes { id } }
-                        productVariants(first: 100) { nodes { id product { id } } }
+                        products(first: 250) { nodes { id } }
+                        productVariants(first: 250) { nodes { id product { id } } }
                       }
                       ... on AllDiscountItems { allItems }
                     }
