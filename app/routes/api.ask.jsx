@@ -64,6 +64,49 @@ function fsString(val) { return { stringValue: String(val) } }
 function fsArray(arr) { return { arrayValue: { values: arr.map(v => fsString(v)) } } }
 function fsTimestamp() { return { timestampValue: new Date().toISOString() } }
 
+// ── Nego cooldown, persisted ─────────────────────────────────────────────────
+// negoCodeMap above is only a fast path: on Vercel every instance has its own
+// memory (reset on cold start), so real enforcement reads the nego_codes audit
+// log in Firestore. sessionId is client-chosen (localStorage) and therefore
+// replaceable — the salted IP hash is the second key that survives incognito.
+async function hashClientIp(ip, env) {
+  if (!ip) return '';
+  try {
+    const salt = env?.SESSION_SECRET ?? (typeof process !== 'undefined' ? process.env?.SESSION_SECRET : '') ?? '';
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${salt}|${ip}`));
+    return [...new Uint8Array(buf)].slice(0, 12).map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return '';
+  }
+}
+
+// Cooldown marks are direct-by-ID documents (nego_cooldowns/s_<sessionId> and
+// /i_<ipHash>) instead of a query over nego_codes: the server holds no Firebase
+// auth, so once rules deny `list` to the public, only unguessable-ID `get`s keep
+// working. The doc ID *is* the capability.
+async function negoCooldownActive(sessionId, ipHash) {
+  try {
+    const [bySession, byIp] = await Promise.all([
+      sessionId ? firestoreGet('nego_cooldowns', `s_${sessionId}`) : null,
+      ipHash ? firestoreGet('nego_cooldowns', `i_${ipHash}`) : null,
+    ]);
+    const now = Date.now();
+    const hit = (f) => !!f && now - new Date(f.at?.timestampValue ?? 0).getTime() < NEGO_CODE_COOLDOWN_MS;
+    return hit(bySession) || hit(byIp);
+  } catch {
+    // Fail-open: the nego code is a sales tool — a Firestore hiccup must not block a sale.
+    return false;
+  }
+}
+
+async function markNegoCooldown(sessionId, ipHash) {
+  const fields = { at: fsTimestamp() };
+  await Promise.all([
+    sessionId ? firestorePatch('nego_cooldowns', `s_${sessionId}`, fields) : null,
+    ipHash ? firestorePatch('nego_cooldowns', `i_${ipHash}`, fields) : null,
+  ]);
+}
+
 function readFsArray(field) {
   return field?.arrayValue?.values?.map(v => v.stringValue) ?? [];
 }
@@ -331,6 +374,70 @@ async function getKurasiText() {
     kurasiCache = { at: Date.now(), text: DEFAULT_KURASI };
   }
   return kurasiCache.text;
+}
+
+// ── Grisela long-term memory ─────────────────────────────────────────────────
+// One doc per session: grisela_memory/{sessionId}, read directly by ID — keeps
+// working after Firestore rules deny public `list` (sessionId is unguessable).
+// Tracks the last 5 products the customer asked about + visit count, injected
+// into the prompt so Grisela greets returning customers with real context.
+async function getGriselaMemoryContext(sessionId) {
+  try {
+    const f = await firestoreGet('grisela_memory', sessionId);
+    // Legacy fallback for sessions that predate the memory doc; this old query
+    // path dies gracefully (returns '') once rules lock down `list`.
+    if (!f) return getReturningCustomerContext(sessionId);
+    const lastSeen = new Date(f.last_seen?.timestampValue ?? 0);
+    const hoursAgo = (Date.now() - lastSeen.getTime()) / 36e5;
+    if (hoursAgo < 3) return ''; // same visit — continuation, not a "return"
+    const products = (f.products?.arrayValue?.values ?? []).map((v) => v.mapValue?.fields).filter(Boolean);
+    if (products.length === 0) return '';
+    const when = lastSeen.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', timeZone: 'Asia/Jakarta' });
+    const visits = parseInt(f.visits?.integerValue ?? '1', 10);
+    const list = products.slice(0, 3).map((p) => {
+      const t = p.title?.stringValue ?? '';
+      const q = (p.q?.stringValue ?? '').slice(0, 120);
+      return `  • ${t}${q ? ` (pertanyaan terakhirnya: "${q}")` : ''}`;
+    }).join('\n');
+    return `CUSTOMER YANG KEMBALI (pernah chat sebelumnya${visits > 2 ? `, sudah ${visits}x berkunjung` : ''}):
+- Terakhir chat: ${when}
+- Produk yang pernah dia tanyakan:
+${list}
+- Sapa hangat sebagai customer yang kembali jika konteksnya cocok (contoh: "eh, balik lagi ka 😊") dan jika relevan tanyakan kelanjutan pertimbangannya — singkat dan natural, JANGAN berlebihan menyebut detail lama`;
+  } catch {
+    return '';
+  }
+}
+
+async function updateGriselaMemory(sessionId, { productTitle, productHandle, question }) {
+  try {
+    const f = await firestoreGet('grisela_memory', sessionId);
+    const now = Date.now();
+    const lastSeen = f ? new Date(f.last_seen?.timestampValue ?? 0).getTime() : 0;
+    // A gap of >3h counts as a new visit (same threshold as the greeting above)
+    const visits = parseInt(f?.visits?.integerValue ?? '0', 10) + (now - lastSeen > 3 * 36e5 ? 1 : 0);
+    const fields = {
+      last_seen: fsTimestamp(),
+      visits: { integerValue: String(Math.max(visits, 1)) },
+      updated_at: fsTimestamp(),
+    };
+    if (productHandle || productTitle) {
+      const entry = { mapValue: { fields: {
+        title: fsString(productTitle ?? ''),
+        handle: fsString(productHandle ?? ''),
+        q: fsString(String(question ?? '').slice(0, 200)),
+        at: fsTimestamp(),
+      } } };
+      // most-recent-first, dedupe by handle, keep 5
+      const prev = (f?.products?.arrayValue?.values ?? [])
+        .filter((v) => (v.mapValue?.fields?.handle?.stringValue ?? '') !== (productHandle ?? ''))
+        .slice(0, 4);
+      fields.products = { arrayValue: { values: [entry, ...prev] } };
+    }
+    await firestorePatch('grisela_memory', sessionId, fields);
+  } catch {
+    // non-fatal — memory must never break the chat response
+  }
 }
 
 // Returning customer: fetch their most recent past conversation (equality filter only — no composite index needed)
@@ -935,7 +1042,7 @@ export async function action({ request, context }) {
     searchStoreProducts(context, question, messages, productTitle ?? ''),
     getActiveVouchers(context),
     sessionId && messages.length === 0 && !conversationId
-      ? getReturningCustomerContext(sessionId)
+      ? getGriselaMemoryContext(sessionId)
       : Promise.resolve(''),
     getKurasiText(),
   ]);
@@ -1135,7 +1242,15 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
   } else if (answer.includes('[NEGOCODE]')) {
     answer = answer.replace(/\s*\[NEGOCODE\]\s*/g, ' ').replace(/ +/g, ' ').trim();
     const last = sessionId ? negoCodeMap.get(sessionId) : 0;
-    const onCooldown = last && Date.now() - last < NEGO_CODE_COOLDOWN_MS;
+    let onCooldown = !!(last && Date.now() - last < NEGO_CODE_COOLDOWN_MS);
+    let ipHash = '';
+    if (productId && sessionId && !onCooldown) {
+      const clientIp =
+        (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+        request.headers.get('x-real-ip') || '';
+      ipHash = await hashClientIp(clientIp, context.env);
+      onCooldown = await negoCooldownActive(sessionId, ipHash);
+    }
     // Only on a product page, once per session per cooldown window
     if (productId && sessionId && !onCooldown) {
       const result = await createNegoCode(context.env, { productGid: productId, variantGid: variantId });
@@ -1151,6 +1266,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
           ...(baseP > 0 ? { basePrice: baseP, finalPrice: finalP } : {}),
         };
         negoCodeMap.set(sessionId, Date.now());
+        await markNegoCooldown(sessionId, ipHash).catch(() => {});
         if (negoCodeMap.size > 2000) {
           for (const [k, v] of negoCodeMap) if (Date.now() - v >= NEGO_CODE_COOLDOWN_MS) negoCodeMap.delete(k);
         }
@@ -1162,6 +1278,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
           product_handle: fsString(productHandle ?? ''),
           product_title: fsString(productTitle ?? ''),
           session_id: fsString(sessionId),
+          ip_hash: fsString(ipHash),
           ends_at: fsString(result.endsAt ?? ''),
           created_at: fsTimestamp(),
         }).catch(() => {});
@@ -1222,6 +1339,8 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
       },
     });
 
+    // Update long-term memory in parallel with the conversation write below
+    const memPromise = updateGriselaMemory(sessionId, { productTitle, productHandle, question });
     if (conversationId) {
       // Append to existing conversation — fetch current messages first
       const existing = await firestoreGet('conversations', conversationId);
@@ -1236,6 +1355,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         // updateMask only writes listed fields — omitting when false preserves an earlier true
         ...(needsReview ? { needs_review: { booleanValue: true } } : {}),
       });
+      await memPromise;
     } else {
       // Create new conversation — include prior chat history (e.g. bubble Q&A before the customer typed)
       const historyMaps = messages.map(m => ({
@@ -1264,6 +1384,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
           },
         },
       });
+      await memPromise;
       return json({ answer, conversationId: newConvId, products: foundProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
     }
   }
