@@ -84,11 +84,14 @@ async function hashClientIp(ip, env) {
 // /i_<ipHash>) instead of a query over nego_codes: the server holds no Firebase
 // auth, so once rules deny `list` to the public, only unguessable-ID `get`s keep
 // working. The doc ID *is* the capability.
-async function negoCooldownActive(sessionId, ipHash) {
+// Cooldown is per-person-PER-PRODUCT: re-haggling the SAME product is blocked
+// (the actual abuse), but a genuine shopper buying a different product still gets
+// a code. productKey is the numeric product id, appended to both keys.
+async function negoCooldownActive(sessionId, ipHash, productKey) {
   try {
     const [bySession, byIp] = await Promise.all([
-      sessionId ? firestoreGet('nego_cooldowns', `s_${sessionId}`) : null,
-      ipHash ? firestoreGet('nego_cooldowns', `i_${ipHash}`) : null,
+      sessionId ? firestoreGet('nego_cooldowns', `s_${sessionId}_${productKey}`) : null,
+      ipHash ? firestoreGet('nego_cooldowns', `i_${ipHash}_${productKey}`) : null,
     ]);
     const now = Date.now();
     const hit = (f) => !!f && now - new Date(f.at?.timestampValue ?? 0).getTime() < NEGO_CODE_COOLDOWN_MS;
@@ -99,12 +102,76 @@ async function negoCooldownActive(sessionId, ipHash) {
   }
 }
 
-async function markNegoCooldown(sessionId, ipHash) {
+async function markNegoCooldown(sessionId, ipHash, productKey) {
   const fields = { at: fsTimestamp() };
   await Promise.all([
-    sessionId ? firestorePatch('nego_cooldowns', `s_${sessionId}`, fields) : null,
-    ipHash ? firestorePatch('nego_cooldowns', `i_${ipHash}`, fields) : null,
+    sessionId ? firestorePatch('nego_cooldowns', `s_${sessionId}_${productKey}`, fields) : null,
+    ipHash ? firestorePatch('nego_cooldowns', `i_${ipHash}_${productKey}`, fields) : null,
   ]);
+}
+
+// ── AI budget guard: cap the money a spammer can burn ────────────────────────
+// The goal is NOT to ban a determined human (they rotate IP/session) — it's to
+// make spam cost us almost nothing. Per-IP daily cap lives in Firestore (survives
+// serverless cold starts, unlike the in-memory rate limiter) keyed by an
+// unguessable IP hash so a customer can't reset their own counter. Repeat-day
+// offenders get escalating blocks. A best-effort in-memory global breaker is the
+// coarse backstop (see note: robust global metering waits for Jalur B).
+const IP_DAILY_CAP = 40;                 // Gemini-bound questions per IP per WIB day
+const GLOBAL_DAILY_CAP = 3000;           // whole-store Gemini-bound questions per day
+const ESCALATION_MS = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 24 * 60 * 60 * 1000]; // 1h→6h→24h
+const AI_BUDGET_IP_MSG = 'Wah, sudah banyak sekali pertanyaannya hari ini ka 😊 Biar lebih cepat dan pasti, lanjut ngobrol langsung dengan admin kami ya di 0821-1131-1131 🙏';
+const AI_BUDGET_GLOBAL_MSG = 'Maaf ka, Grisela lagi ramai banget nih 🙏 Coba sebentar lagi ya, atau langsung hubungi admin di 0821-1131-1131 😊';
+let globalAiCounter = { day: '', count: 0 }; // module-level; resets on cold start (fine for a breaker)
+
+function wibDay() {
+  return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10); // YYYY-MM-DD WIB
+}
+
+// Returns a canned refusal string if this request must be blocked, else null.
+// On allow it increments both the per-IP (Firestore) and global (memory) counters.
+async function checkAiBudget(ipHash) {
+  if (!ipHash) return null; // no IP → can't meter here; session gates still apply
+  const today = wibDay();
+  const now = Date.now();
+  try {
+    const doc = await firestoreGet('grisela_limits', `ip_${ipHash}`);
+    const blockedUntil = doc?.blocked_until?.timestampValue ? new Date(doc.blocked_until.timestampValue).getTime() : 0;
+    if (blockedUntil > now) return AI_BUDGET_IP_MSG; // still inside an escalated block
+
+    const sameDay = doc?.day?.stringValue === today;
+    const count = sameDay ? parseInt(doc?.count?.integerValue ?? '0', 10) : 0;
+    const strikes = parseInt(doc?.strikes?.integerValue ?? '0', 10);
+
+    if (count >= IP_DAILY_CAP) {
+      // Trip an escalating block; strikes grow across days this IP maxes out.
+      const tier = Math.min(strikes, ESCALATION_MS.length - 1);
+      await firestorePatch('grisela_limits', `ip_${ipHash}`, {
+        day: fsString(today),
+        count: { integerValue: String(count) },
+        strikes: { integerValue: String(strikes + 1) },
+        blocked_until: { timestampValue: new Date(now + ESCALATION_MS[tier]).toISOString() },
+        updated_at: fsTimestamp(),
+      });
+      return AI_BUDGET_IP_MSG;
+    }
+
+    // Global breaker (in-memory, coarse)
+    if (globalAiCounter.day !== today) globalAiCounter = { day: today, count: 0 };
+    if (globalAiCounter.count >= GLOBAL_DAILY_CAP) return AI_BUDGET_GLOBAL_MSG;
+    globalAiCounter.count++;
+
+    // Allow: bump the per-IP counter. On a fresh day, decay one strike as good behavior.
+    await firestorePatch('grisela_limits', `ip_${ipHash}`, {
+      day: fsString(today),
+      count: { integerValue: String(count + 1) },
+      strikes: { integerValue: String(sameDay ? strikes : Math.max(0, strikes - 1)) },
+      updated_at: fsTimestamp(),
+    });
+    return null;
+  } catch {
+    return null; // fail-open: a metering hiccup must never block a real customer
+  }
 }
 
 function readFsArray(field) {
@@ -1035,6 +1102,16 @@ export async function action({ request, context }) {
     }
   }
 
+  // AI budget guard — the real cost cap. Placed AFTER the cache check so cheap
+  // cache hits don't consume budget, and BEFORE any Gemini call so a spammer who
+  // gets past the junk/rate gates still can't burn money past the per-IP daily cap.
+  const clientIpForBudget =
+    (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+    request.headers.get('x-real-ip') || '';
+  const budgetIpHash = await hashClientIp(clientIpForBudget, context.env);
+  const budgetBlock = await checkAiBudget(budgetIpHash);
+  if (budgetBlock) return json({ answer: budgetBlock, blocked: true });
+
   const model = getGemini(context, { search: true });
 
   // Search catalog + fetch vouchers + returning-customer history + curated picks in parallel
@@ -1241,7 +1318,10 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     answer += '\n\nUntuk produk cuci gudang, harganya sudah paling murah ya ka 😊 Kalau butuh info lebih, boleh hubungi admin di 0821-1131-1131';
   } else if (answer.includes('[NEGOCODE]')) {
     answer = answer.replace(/\s*\[NEGOCODE\]\s*/g, ' ').replace(/ +/g, ' ').trim();
-    const last = sessionId ? negoCodeMap.get(sessionId) : 0;
+    // per-product cooldown key (numeric product id); memory fast path keyed the same
+    const productKey = String(productId).split('/').pop() || 'x';
+    const cdMemKey = `${sessionId}_${productKey}`;
+    const last = sessionId ? negoCodeMap.get(cdMemKey) : 0;
     let onCooldown = !!(last && Date.now() - last < NEGO_CODE_COOLDOWN_MS);
     let ipHash = '';
     if (productId && sessionId && !onCooldown) {
@@ -1249,7 +1329,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
         request.headers.get('x-real-ip') || '';
       ipHash = await hashClientIp(clientIp, context.env);
-      onCooldown = await negoCooldownActive(sessionId, ipHash);
+      onCooldown = await negoCooldownActive(sessionId, ipHash, productKey);
     }
     // Only on a product page, once per session per cooldown window
     if (productId && sessionId && !onCooldown) {
@@ -1265,8 +1345,8 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
           endsAt: result.endsAt,
           ...(baseP > 0 ? { basePrice: baseP, finalPrice: finalP } : {}),
         };
-        negoCodeMap.set(sessionId, Date.now());
-        await markNegoCooldown(sessionId, ipHash).catch(() => {});
+        negoCodeMap.set(cdMemKey, Date.now());
+        await markNegoCooldown(sessionId, ipHash, productKey).catch(() => {});
         if (negoCodeMap.size > 2000) {
           for (const [k, v] of negoCodeMap) if (Date.now() - v >= NEGO_CODE_COOLDOWN_MS) negoCodeMap.delete(k);
         }
