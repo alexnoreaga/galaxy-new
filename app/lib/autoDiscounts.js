@@ -128,7 +128,9 @@ export function getActiveFlashProducts(discounts, max = 20) {
       if (amount > 0) info = { title: d.title, type: 'amount', amount, endsAt: d.endsAt ?? null };
     }
     if (value?.__typename === 'DiscountPercentage') {
-      const pct = Number(value.percentage ?? 0);
+      // Admin API returns a 0–1 fraction (4% = 0.04); every consumer computes
+      // `price * (1 - percentage / 100)` and renders "X%", so normalize to 0–100
+      const pct = Math.round(Number(value.percentage ?? 0) * 10000) / 100;
       if (pct > 0) info = { title: d.title, type: 'percentage', percentage: pct, endsAt: d.endsAt ?? null };
     }
     if (!info) continue;
@@ -221,7 +223,8 @@ export function findProductAutoDiscount(discounts, productGid) {
       if (amount > 0) return { title: d.title, type: 'amount', amount, endsAt: d.endsAt ?? null, variantIds };
     }
     if (value?.__typename === 'DiscountPercentage') {
-      const pct = Number(value.percentage ?? 0);
+      // Admin API 0–1 fraction → 0–100 (see getActiveFlashProducts note)
+      const pct = Math.round(Number(value.percentage ?? 0) * 10000) / 100;
       if (pct > 0) return { title: d.title, type: 'percentage', percentage: pct, endsAt: d.endsAt ?? null, variantIds };
     }
   }
