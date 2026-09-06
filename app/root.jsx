@@ -198,6 +198,12 @@ export default function App() {
   const matches = useMatches();
   const [installPrompt, setInstallPrompt] = useState(null);
 
+  // LCP: preload the homepage hero (first banner slide) from <head>, so the browser
+  // starts fetching it at byte ~2KB instead of after discovering the <img> mid-HTML.
+  // srcSet/sizes MUST mirror Carousel.jsx exactly or the preload is wasted.
+  const indexData = matches.find((m) => m.id === 'routes/_index')?.data;
+  const heroUrl = indexData?.banner?.metaobjects?.nodes?.[0]?.fields?.[0]?.reference?.image?.url;
+
   useEffect(() => {
     const handleAppInstalled = () => {
       setInstallPrompt(null);
@@ -297,7 +303,16 @@ export default function App() {
   return (
     <html lang="en">
       <head>
-
+        {heroUrl && (
+          <link
+            rel="preload"
+            as="image"
+            href={`${heroUrl}&width=800`}
+            imageSrcSet={`${heroUrl}&width=400 400w, ${heroUrl}&width=800 800w, ${heroUrl}&width=1280 1280w`}
+            imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
+            fetchpriority="high"
+          />
+        )}
 
 
 <script nonce={nonce}
