@@ -473,9 +473,9 @@ function ProductItem({product, loading, sold, review, festive = false}) {
   const hasDiscount =
     parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) >
     parseFloat(product.priceRange.minVariantPrice.amount);
-  const isDiscontinued = product?.metafields[12]?.value === 'true';
+  const isDiscontinued = product?.metafields?.find((m) => m?.key === 'produk_discontinue')?.value === 'true';
   const isOutOfStock = !product.availableForSale && !isDiscontinued;
-  const hasFreeItem = product.metafields[1]?.value?.length > 0;
+  const hasFreeItem = (product.metafields?.find((m) => m?.key === 'free')?.value?.length ?? 0) > 0;
 
   const harga = parseFloat(product.priceRange.minVariantPrice.amount);
   const flash = product.flashSale || null; // live automatic-discount price from the loader
@@ -666,12 +666,12 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       height
     }
     metafields(identifiers:[
+      # HTML-diet: spesifikasi (tabel HTML puluhan KB/produk) & isi_dalam_box dibuang —
+      # grid collection tak menampilkannya. Pembaca posisi sudah diubah ke find(key).
       {namespace:"custom" key:"garansi"}
       {namespace:"custom" key:"free"}
-      {namespace:"custom" key:"isi_dalam_box"}
       {namespace:"custom" key:"periode_promo"}
       {namespace:"custom" key:"periode_promo_akhir"}
-      {namespace:"custom" key:"spesifikasi"}
       {namespace:"custom" key:"brand"}
       {namespace:"custom" key:"tokopedia"}
       {namespace:"custom" key:"shopee"}

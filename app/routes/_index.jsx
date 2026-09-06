@@ -1320,12 +1320,13 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
       height
     }
     metafields(identifiers:[
+      # HTML-diet: spesifikasi (60KB/produk, tabel B&H!) & isi_dalam_box DIBUANG —
+      # homepage tak menampilkannya, tapi ikut terserialisasi ~227KB ke HTML.
+      # HATI-HATI: metafields[1] dibaca BY POSITION (= free) — jangan ubah urutan 0-1.
       {namespace:"custom" key:"garansi"}
       {namespace:"custom" key:"free"}
-      {namespace:"custom" key:"isi_dalam_box"}
       {namespace:"custom" key:"periode_promo"}
       {namespace:"custom" key:"periode_promo_akhir"}
-      {namespace:"custom" key:"spesifikasi"}
       {namespace:"custom" key:"brand"}
     ]){
       key
@@ -1377,12 +1378,11 @@ const MIRRORLESS_PRODUCTS_QUERY = `#graphql
       height
     }
     metafields(identifiers:[
+      # HTML-diet: spesifikasi & isi_dalam_box dibuang (lihat catatan di query atas)
       {namespace:"custom", key:"garansi"},
       {namespace:"custom", key:"free"},
-      {namespace:"custom", key:"isi_dalam_box"},
       {namespace:"custom", key:"periode_promo"},
       {namespace:"custom", key:"periode_promo_akhir"},
-      {namespace:"custom", key:"spesifikasi"},
       {namespace:"custom", key:"brand"}
     ]){
       key
