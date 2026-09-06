@@ -204,6 +204,13 @@ export default function App() {
   const indexData = matches.find((m) => m.id === 'routes/_index')?.data;
   const heroUrl = indexData?.banner?.metaobjects?.nodes?.[0]?.fields?.[0]?.reference?.image?.url;
 
+  // Same trick for the product page: its gallery <img> has no srcSet and starts as
+  // variant-image ?? first-image (mirrors ImageGallery's displayUrl initial state).
+  const pdpData = matches.find((m) => m.id === 'routes/products.$handle')?.data;
+  const pdpImgUrl =
+    pdpData?.selectedVariant?.image?.url ??
+    pdpData?.product?.images?.edges?.[0]?.node?.src;
+
   useEffect(() => {
     const handleAppInstalled = () => {
       setInstallPrompt(null);
@@ -312,6 +319,9 @@ export default function App() {
             imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
             fetchpriority="high"
           />
+        )}
+        {pdpImgUrl && (
+          <link rel="preload" as="image" href={pdpImgUrl} fetchpriority="high" />
         )}
 
 
