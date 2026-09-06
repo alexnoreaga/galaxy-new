@@ -102,6 +102,44 @@ async function negoCooldownActive(sessionId, ipHash, productKey) {
   }
 }
 
+// On cooldown, re-surface the code the customer already got for THIS product instead
+// of deflecting to admin (the nego amount is deterministic, so re-asking = same deal;
+// and code TTL == cooldown window, so a cooldown-active code is still valid). Queried
+// from the nego_codes audit log by session equality only (no composite index needed).
+async function getRecentNegoCode(sessionId, productHandle) {
+  if (!sessionId || !productHandle) return null;
+  try {
+    const res = await fetch(`${FIREBASE_BASE}:runQuery?key=${FIREBASE_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'nego_codes' }],
+          where: { fieldFilter: { field: { fieldPath: 'session_id' }, op: 'EQUAL', value: { stringValue: sessionId } } },
+          limit: 50,
+        },
+      }),
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    const cutoff = Date.now() - NEGO_CODE_COOLDOWN_MS;
+    const hits = (Array.isArray(rows) ? rows : [])
+      .map((r) => r.document?.fields)
+      .filter((f) => f && f.product_handle?.stringValue === productHandle
+        && new Date(f.created_at?.timestampValue ?? 0).getTime() > cutoff);
+    if (!hits.length) return null;
+    hits.sort((a, b) => new Date(b.created_at?.timestampValue ?? 0) - new Date(a.created_at?.timestampValue ?? 0));
+    const f = hits[0];
+    return {
+      code: f.code?.stringValue ?? '',
+      amount: parseInt(f.amount?.integerValue ?? '0', 10),
+      endsAt: f.ends_at?.stringValue ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function markNegoCooldown(sessionId, ipHash, productKey) {
   const fields = { at: fsTimestamp() };
   await Promise.all([
@@ -1334,27 +1372,30 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
       ipHash = await hashClientIp(clientIp, context.env);
       onCooldown = await negoCooldownActive(sessionId, ipHash, productKey);
     }
+    // productPrice arrives as display text ("Rp28.500.000") — parseFloat alone gives
+    // NaN and the card silently loses its "Harga jadi Rp…" line. Try a plain parse
+    // first (handles "28500000.0"), then strip non-digits. Hoisted so the cooldown
+    // re-surface path below can rebuild the price card too.
+    const basePParsed = parseFloat(productPrice);
+    const baseP = Math.round(
+      Number.isFinite(basePParsed)
+        ? basePParsed
+        : parseFloat(String(productPrice ?? '').replace(/[^\d]/g, '')) || 0
+    );
+    const finalOf = (amt) => (baseP > amt ? baseP - amt : 0);
+    const priceFields = (amt) => (baseP > 0 ? { basePrice: baseP, finalPrice: finalOf(amt) } : {});
     // Only on a product page, once per session per cooldown window
     if (productId && sessionId && !onCooldown) {
       const result = await createNegoCode(context.env, { productGid: productId, variantGid: variantId });
       if (result?.code) {
         // Carry the base + final price so the card can show "~~base~~ → final (hemat)".
         // Display-only (the code itself is server-authoritative); price comes from the page.
-        // productPrice arrives as display text ("Rp28.500.000") — parseFloat alone
-        // gives NaN and the card silently loses its "Harga jadi Rp…" line. Try a
-        // plain parse first (handles "28500000.0"), then strip non-digits.
-        const basePParsed = parseFloat(productPrice);
-        const baseP = Math.round(
-          Number.isFinite(basePParsed)
-            ? basePParsed
-            : parseFloat(String(productPrice ?? '').replace(/[^\d]/g, '')) || 0
-        );
-        const finalP = baseP > result.amount ? baseP - result.amount : 0;
+        const finalP = finalOf(result.amount);
         negoCode = {
           code: result.code,
           amount: result.amount,
           endsAt: result.endsAt,
-          ...(baseP > 0 ? { basePrice: baseP, finalPrice: finalP } : {}),
+          ...priceFields(result.amount),
         };
         negoCodeMap.set(cdMemKey, Date.now());
         await markNegoCooldown(sessionId, ipHash, productKey).catch(() => {});
@@ -1381,7 +1422,20 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         answer += '\n\nUntuk harga spesialnya, boleh langsung ke admin kami di 0821-1131-1131 ya ka 🙏';
       }
     } else if (onCooldown) {
-      answer += '\n\nUntuk penawaran lebih lanjut, hubungi admin kami di 0821-1131-1131 ya ka 😊';
+      // Re-surface the code the customer already received for this product (deterministic
+      // amount + still-valid TTL) instead of an unhelpful "hubungi admin".
+      const existing = await getRecentNegoCode(sessionId, productHandle);
+      if (existing?.code) {
+        negoCode = {
+          code: existing.code,
+          amount: existing.amount,
+          endsAt: existing.endsAt,
+          ...priceFields(existing.amount),
+        };
+        answer += '\n\nIni kode spesial yang tadi aku kasih ya ka, masih berlaku kok 😊 Harga spesialnya juga berlaku kalau kaka mau langsung ke toko atau order via WA admin di 0821-1131-1131 (khusus debit/cash/transfer).';
+      } else {
+        answer += '\n\nUntuk penawaran lebih lanjut, hubungi admin kami di 0821-1131-1131 ya ka 😊';
+      }
     }
   }
 
