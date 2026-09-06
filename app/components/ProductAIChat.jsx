@@ -9,6 +9,48 @@ export function getSessionId() {
   return id;
 }
 
+// ── Per-product chat persistence ─────────────────────────────────────────────
+// The visible chat used to live only in React state, so closing the widget wiped
+// it (including a still-valid nego code). Persist it per product in localStorage,
+// expiring after 24h — same window as the nego code TTL, so a customer never loses
+// a code that still works, but old chats don't pile up forever.
+const CHAT_TTL_MS = 24 * 60 * 60 * 1000;
+const chatKey = (handle) => `grisela_chat_v1_${handle}`;
+
+function loadChat(handle) {
+  if (!handle) return null;
+  try {
+    const raw = localStorage.getItem(chatKey(handle));
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data?.savedAt || Date.now() - data.savedAt > CHAT_TTL_MS) {
+      localStorage.removeItem(chatKey(handle));
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function saveChat(handle, messages, conversationId, product) {
+  try {
+    if (!handle || !messages?.length) return;
+    localStorage.setItem(
+      chatKey(handle),
+      JSON.stringify({ messages, conversationId, product, savedAt: Date.now() }),
+    );
+  } catch {
+    // quota / private mode — non-fatal, chat just won't persist
+  }
+}
+
+function clearChat(handle) {
+  try {
+    localStorage.removeItem(chatKey(handle));
+  } catch {}
+}
+
 const AVATAR = '/Grisela.png';
 
 export function GriselaAvatar({ size = 'w-6 h-6' }) {
@@ -302,9 +344,35 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   const [conversationId, setConversationId] = useState(null);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const restoredRef = useRef(false);
 
   const handle = product?.handle ?? '';
   const title = product?.title ?? '';
+
+  // Restore a saved conversation for THIS product once on mount (per-handle key,
+  // so product A's chat never bleeds into product B's page).
+  useEffect(() => {
+    if (restoredRef.current || !handle) return;
+    restoredRef.current = true;
+    const saved = loadChat(handle);
+    if (saved?.messages?.length) {
+      setMessages(saved.messages);
+      if (saved.conversationId) setConversationId(saved.conversationId);
+    }
+  }, [handle]);
+
+  // Persist after every change — but only once there's a real exchange (skip a lone
+  // greeting bubble), so an untouched widget doesn't leave stale storage behind.
+  useEffect(() => {
+    if (!handle) return;
+    if (messages.some((m) => m.role === 'user')) {
+      saveChat(handle, messages, conversationId, {
+        title,
+        handle,
+        image: product?.featuredImage?.url ?? '',
+      });
+    }
+  }, [messages, conversationId]); // eslint-disable-line react-hooks/exhaustive-deps
   const price = selectedVariant?.price?.amount
     ? `Rp${Number(parseFloat(selectedVariant.price.amount)).toLocaleString('id-ID')}`
     : '';
@@ -504,11 +572,18 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
     askQuestion(text, true);
   }
 
+  // Close = hide only. The conversation is kept (in state + localStorage) so
+  // reopening restores it — including a still-valid nego code.
   function handleClose() {
     setOpen(false);
-    setMessages([]);
     setIsCustomMode(false);
+  }
+
+  // Explicit "start fresh" — wipes the visible chat and its saved copy.
+  function handleClearChat() {
+    setMessages([]);
     setConversationId(null);
+    clearChat(handle);
   }
 
   function openCustomMode() {
@@ -627,12 +702,36 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                   <p className="text-[10px] text-emerald-500 font-medium mt-0.5">● AI Asisten Galaxy</p>
                 </div>
               </div>
-              <button onClick={handleClose} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-gray-500">
-                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-1.5">
+                {messages.some((m) => m.role === 'user') && (
+                  <button
+                    onClick={handleClearChat}
+                    title="Mulai obrolan baru"
+                    className="text-[10px] font-medium text-gray-400 hover:text-rose-500 px-1.5 py-1 rounded-md transition-colors"
+                  >
+                    Mulai baru
+                  </button>
+                )}
+                <button onClick={handleClose} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-gray-500">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                  </svg>
+                </button>
+              </div>
             </div>
+
+            {/* Product context — which product this conversation is about (helps when
+                the customer reopens a restored chat and needs orientation) */}
+            {messages.some((m) => m.role === 'user') && title && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100">
+                {product?.featuredImage?.url && (
+                  <img src={product.featuredImage.url} alt="" className="w-7 h-7 rounded-md object-contain bg-white flex-shrink-0" />
+                )}
+                <p className="text-[11px] text-gray-500 leading-tight line-clamp-1">
+                  Obrolan tentang <span className="font-semibold text-gray-700">{title}</span>
+                </p>
+              </div>
+            )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2.5">
