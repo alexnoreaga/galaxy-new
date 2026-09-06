@@ -303,12 +303,15 @@ function isJunkMessage(q) {
   return false;
 }
 
-function checkJunk(sessionId, question) {
+function checkJunk(sessionId, question, productHandle) {
   if (!sessionId) return null;
   if (junkMap.size > 1000) junkMap.clear();
   if (lastMsgMap.size > 1000) lastMsgMap.clear();
 
-  const norm = question.trim().toLowerCase().replace(/\s+/g, ' ');
+  // Repeat-detection is scoped to the product: "bisa nego?" on product B right
+  // after asking it on product A is a NEW question, not spam — without the scope,
+  // customers browsing several products got "pesannya sama seperti sebelumnya".
+  const norm = `${productHandle ?? ''}|` + question.trim().toLowerCase().replace(/\s+/g, ' ');
   const junk = isJunkMessage(question);
   const repeat = lastMsgMap.get(sessionId) === norm;
   lastMsgMap.set(sessionId, norm);
@@ -1062,7 +1065,7 @@ export async function action({ request, context }) {
 
   // Junk gate: gibberish, single letters, and repeated messages get a canned
   // reply — zero Gemini calls, zero Firestore writes
-  const junkReply = checkJunk(sessionId, question);
+  const junkReply = checkJunk(sessionId, question, productHandle);
   if (junkReply) {
     return json({ answer: junkReply });
   }
