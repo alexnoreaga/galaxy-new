@@ -1337,7 +1337,15 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
       if (result?.code) {
         // Carry the base + final price so the card can show "~~base~~ → final (hemat)".
         // Display-only (the code itself is server-authoritative); price comes from the page.
-        const baseP = Math.round(parseFloat(productPrice) || 0);
+        // productPrice arrives as display text ("Rp28.500.000") — parseFloat alone
+        // gives NaN and the card silently loses its "Harga jadi Rp…" line. Try a
+        // plain parse first (handles "28500000.0"), then strip non-digits.
+        const basePParsed = parseFloat(productPrice);
+        const baseP = Math.round(
+          Number.isFinite(basePParsed)
+            ? basePParsed
+            : parseFloat(String(productPrice ?? '').replace(/[^\d]/g, '')) || 0
+        );
         const finalP = baseP > result.amount ? baseP - result.amount : 0;
         negoCode = {
           code: result.code,
