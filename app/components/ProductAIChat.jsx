@@ -51,6 +51,41 @@ function clearChat(handle) {
   } catch {}
 }
 
+// Cross-page history: scan every saved per-product chat (fresh ones only) so the
+// global Grisela panel can list "obrolan sebelumnya" from any page. Read-only —
+// each entry links back to its product page, where the chat restores itself.
+export function listSavedChats() {
+  const out = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith('grisela_chat_v1_')) continue;
+      let data;
+      try {
+        data = JSON.parse(localStorage.getItem(k));
+      } catch {
+        continue;
+      }
+      if (!data?.savedAt || Date.now() - data.savedAt > CHAT_TTL_MS) {
+        try { localStorage.removeItem(k); } catch {}
+        continue;
+      }
+      const msgs = data.messages ?? [];
+      const last = [...msgs].reverse().find((m) => m?.text)?.text ?? '';
+      out.push({
+        handle: data.product?.handle ?? k.replace('grisela_chat_v1_', ''),
+        title: data.product?.title ?? '',
+        image: data.product?.image ?? '',
+        lastMessage: last.slice(0, 70),
+        savedAt: data.savedAt,
+      });
+    }
+  } catch {
+    return [];
+  }
+  return out.sort((a, b) => b.savedAt - a.savedAt);
+}
+
 const AVATAR = '/Grisela.png';
 
 export function GriselaAvatar({ size = 'w-6 h-6' }) {

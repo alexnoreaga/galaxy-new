@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from '@remix-run/react';
 import {
   getSessionId,
   trackEvent,
   GriselaAvatar,
   TypingIndicator,
   ChatMessage,
+  listSavedChats,
 } from '~/components/ProductAIChat';
 
 const QUICK_QUESTIONS = [
@@ -23,6 +25,11 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
+  const [history, setHistory] = useState([]);
+  // Load the cross-page product-chat history when the panel opens (localStorage only)
+  useEffect(() => {
+    if (open) setHistory(listSavedChats());
+  }, [open]);
   // Silent block: server flags abusive sessions; keep the input disabled through the cooldown
   const [blocked, setBlocked] = useState(false);
   useEffect(() => {
@@ -139,6 +146,41 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
           {loading && (
             <div className="flex justify-start">
               <TypingIndicator />
+            </div>
+          )}
+
+          {/* Cross-page history — obrolan produk sebelumnya (from any page). Only at
+              the start, so it never interrupts an active conversation. */}
+          {!loading && messages.length <= 1 && history.length > 0 && (
+            <div className="mt-1">
+              <p className="text-[11px] font-semibold text-gray-500 mb-1.5">Lanjutkan obrolan sebelumnya</p>
+              <div className="flex flex-col gap-1.5">
+                {history.slice(0, 5).map((h) => (
+                  <Link
+                    key={h.handle}
+                    to={`/products/${h.handle}`}
+                    onClick={onClose}
+                    prefetch="intent"
+                    className="flex items-center gap-2.5 p-2 rounded-xl border border-gray-100 hover:border-rose-200 hover:bg-rose-50/40 transition-colors no-underline"
+                  >
+                    {h.image ? (
+                      <img src={h.image} alt="" className="w-9 h-9 rounded-lg object-contain bg-gray-50 flex-shrink-0" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-lg bg-gray-100 flex-shrink-0" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-semibold text-gray-700 leading-tight line-clamp-1">{h.title || 'Produk'}</p>
+                      {h.lastMessage && (
+                        <p className="text-[10px] text-gray-400 leading-tight line-clamp-1">{h.lastMessage}</p>
+                      )}
+                    </div>
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-gray-300 flex-shrink-0">
+                      <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clipRule="evenodd" />
+                    </svg>
+                  </Link>
+                ))}
+              </div>
+              <div className="border-t border-gray-100 mt-3 mb-1" />
             </div>
           )}
 
