@@ -336,9 +336,61 @@ function PwpSection({ pwp }) {
 // ── Bonus Gratis — quiet card (replaces the gradient-tile version that read as "AI-designed").
 // Mobile/tablet: middle column. Desktop (lg+): lives in the sticky checkout card instead, under
 // the "Dikirim dari" line, to declutter the crowded middle column.
+
+// Keyword → themed line icon. Pure lookup (NO AI, no external images): honest symbols,
+// one consistent emerald color so the SHAPES carry the variety, not a rainbow of hues.
+// Order matters — first match wins, so put specific rules before generic ones.
+const BONUS_ICON_RULES = [
+  { re: /screen ?guard|tempered|anti ?gores|pelindung layar/i, icon: 'shield' },
+  { re: /baterai|batre|battery|np-?f|lp-?e|dmw|db-?110|rechargeable|power\b/i, icon: 'battery' },
+  { re: /tripod|monopod|light ?stand|stand\b/i, icon: 'tripod' },
+  { re: /memory|micro ?sd|sd ?card|sdcard|kartu memori|kioxia|sandisk|micro-?sd/i, icon: 'memory' },
+  { re: /charger|adaptor|adapter|kabel|cable|usb|colokan/i, icon: 'bolt' },
+  { re: /filter|uv\b|cpl|nd\b|marumi|lens ?protect|protect/i, icon: 'lens' },
+  { re: /holder|grip|handle|selfie|stick|mount|clamp|cage|rig/i, icon: 'grip' },
+  { re: /cleaning|pembersih|blower|lap|cleaning ?kit/i, icon: 'clean' },
+  { re: /remote|shutter|ml-?l7|trigger/i, icon: 'remote' },
+  { re: /kaos|topi|tumbler|bottle|botol|mug|drawstring|merch|souvenir|payung|jaket|sticker/i, icon: 'merch' },
+  { re: /tas|bag|backpack|daypack|ransel|pouch|case|sling|tenba/i, icon: 'bag' },
+];
+// Lines that are terms/notes, not physical items — rendered as a muted footnote instead.
+const isBonusNote = (t) =>
+  /^(periode\b|senilai\b|free berlaku|berlaku selama|selama persediaan|syarat|s&k|\*)/i.test(t.trim());
+
+function bonusIconName(text) {
+  for (const r of BONUS_ICON_RULES) if (r.re.test(text)) return r.icon;
+  return 'gift';
+}
+
+const BONUS_ICON_PATHS = {
+  gift: 'M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H4.5a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z',
+  bag: 'M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z',
+  battery: 'M3.75 9.75A1.5 1.5 0 0 1 5.25 8.25h11.25a1.5 1.5 0 0 1 1.5 1.5v4.5a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-4.5ZM20.25 11.25v1.5M6 10.5v3',
+  tripod: 'M12 4.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3ZM12 7.5v3m0 0-4.5 9m4.5-9 4.5 9',
+  memory: 'M8.25 3.75h6.19a1.5 1.5 0 0 1 1.06.44l2.31 2.31a1.5 1.5 0 0 1 .44 1.06V19.5a1.5 1.5 0 0 1-1.5 1.5H8.25a1.5 1.5 0 0 1-1.5-1.5V5.25a1.5 1.5 0 0 1 1.5-1.5ZM10.5 3.75v2.25M12.75 3.75v2.25M15 3.75v2.25',
+  bolt: 'M3.75 13.5 14.25 2.25 12 10.5h8.25L9.75 21.75 12 13.5H3.75Z',
+  lens: 'M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.9 47.9 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.8 48.8 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316ZM16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z',
+  grip: 'M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3',
+  clean: 'M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z',
+  remote: 'M9 3.75h6a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5H9a1.5 1.5 0 0 1-1.5-1.5V5.25A1.5 1.5 0 0 1 9 3.75ZM12 6.75h.008v.008H12V6.75Zm-1.5 3.75h3',
+  merch: 'M8.25 6.75h7.5l1.5 3v9.75a.75.75 0 0 1-.75.75h-9a.75.75 0 0 1-.75-.75V9.75l1.5-3ZM6.75 9.75h10.5M9.75 6.75a2.25 2.25 0 0 1 4.5 0',
+  shield: 'M9 12.75 11.25 15 15 9.75m-3-7.036A11.96 11.96 0 0 1 3.598 6 12 12 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.25-8.25-3.285Z',
+};
+
+function BonusItemIcon({ text }) {
+  const path = BONUS_ICON_PATHS[bonusIconName(text)];
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="currentColor" className="w-3.5 h-3.5 text-emerald-600 mt-0.5 flex-shrink-0">
+      <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+    </svg>
+  );
+}
+
 function BonusGratis({ value, className = '' }) {
-  const items = (value ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
-  if (!items.length) return null;
+  const rows = (value ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
+  if (!rows.length) return null;
+  const items = rows.filter((r) => !isBonusNote(r));
+  const notes = rows.filter((r) => isBonusNote(r));
   return (
     <div className={`border border-gray-100 rounded-lg bg-gray-50/60 overflow-hidden ${className}`}>
       <div className="flex items-center gap-2 px-3 pt-2.5 pb-2 border-b border-gray-100">
@@ -346,18 +398,23 @@ function BonusGratis({ value, className = '' }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H4.5a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
         </svg>
         <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-gray-600">Bonus Gratis</span>
-        <span className="ml-auto text-[10px] text-gray-400">{items.length} item</span>
+        {items.length > 0 && <span className="ml-auto text-[10px] text-gray-400">{items.length} item</span>}
       </div>
       <ul className="px-3 py-2 m-0 list-none flex flex-col gap-1.5">
         {items.map((str, i) => (
           <li key={i} className="flex items-start gap-2 m-0 text-[13px] text-gray-700 leading-snug">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0">
-              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-            </svg>
+            <BonusItemIcon text={str} />
             {str}
           </li>
         ))}
       </ul>
+      {notes.length > 0 && (
+        <div className="px-3 pb-2 -mt-1">
+          {notes.map((n, i) => (
+            <p key={i} className="text-[10.5px] text-gray-400 italic leading-snug m-0">{n}</p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
