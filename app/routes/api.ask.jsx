@@ -2,6 +2,7 @@ import { json } from '@shopify/remix-oxygen';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { storeKnowledge } from '~/lib/storeKnowledge';
 import { createNegoCode } from '~/lib/negoCode';
+import { lookupOrder, ORDER_INTENT_RE, extractResiAndPhone } from '~/lib/lacakOrder';
 
 // One nego discount code per session (prevents farming codes by re-haggling)
 const negoCodeMap = new Map(); // sessionId -> timestamp of last issued code
@@ -433,6 +434,8 @@ function checkOffTopic(question) {
   if (/^[\s\d()+\-*/x×÷.,=?%^]+$/.test(t) && /\d\s*[+\-*/x×÷]\s*\d/.test(t)) return OFFTOPIC_DEFLECT;
   // 2) Camera/store topic → always let the AI handle it
   if (CAMERA_RE.test(t)) return null;
+  // 2b) Order-status replies ("JNE123… 0812…") carry no camera words — never deflect them
+  if (ORDER_INTENT_RE.test(t) || /\b[a-z0-9-]{8,25}\b/i.test(t) && /(?:\+?62|0)8\d{7,11}/.test(t.replace(/[\s\-.()]/g, ''))) return null;
   // 3) Explicit "berapa/hitung <n> <op> <n>" calculator requests
   if (/\b(berapa|hitung|hasil)\b[\s\S]*\d\s*[+\-*/x×÷]\s*\d/.test(t)) return OFFTOPIC_DEFLECT;
   // 4) Code, AI-probe/jailbreak, and obvious non-camera trivia
@@ -1081,6 +1084,42 @@ ${CARD_INSTRUCTIONS}
   }
 }
 
+// ── Order status ("pesanan saya sampai mana?") ──────────────────────────────
+// Grisela's first real "tool": the server looks the order up (same /api/lacak
+// used by galaxy.co.id/lacak) and feeds the RESULT into the prompt, so she answers
+// from data instead of guessing. Never invents a status.
+function fmtWib(iso) {
+  if (!iso) return '-';
+  try {
+    return new Date(iso).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB';
+  } catch { return iso; }
+}
+function buildOrderContext(result, resi, hp) {
+  if (!resi || !hp) {
+    const kurang = [!resi && 'NOMOR RESI', !hp && 'NO HP yang dipakai saat order'].filter(Boolean).join(' dan ');
+    return `STATUS PESANAN — customer menanyakan status pesanan/paket, tapi BELUM memberikan ${kurang}.
+- Minta dengan sopan & singkat: nomor resi (ada di email "Paket kamu sudah dikirim" dari Galaxy) DAN No HP yang dipakai saat order. Keduanya wajib untuk keamanan data.
+- JANGAN mengarang status apa pun sebelum data ada.`;
+  }
+  if (!result?.ok) {
+    return `STATUS PESANAN — sistem SUDAH mencari resi "${resi}" + No HP yang diberikan, hasil: ${result?.error ?? 'tidak ditemukan'}.
+- Sampaikan sopan bahwa datanya tidak ketemu; minta customer cek ulang nomor resi & No HP (harus sama dengan saat order).
+- Jika tetap tidak ketemu, arahkan ke admin 0821-1131-1131. JANGAN mengarang status.`;
+  }
+  const o = result.order;
+  const dikirim = o.status === 'dikirim';
+  const lacakUrl = `https://www.galaxy.co.id/lacak?resi=${encodeURIComponent(o.noResi)}&kurir=${encodeURIComponent(o.ekspedisi || '')}`;
+  return `STATUS PESANAN (DATA RESMI dari sistem Galaxy — jawab HANYA berdasarkan ini):
+- Nama customer: ${o.nama}
+- Pesanan: ${o.order || '-'}
+- Diterima: ${fmtWib(o.createdAt)}
+- Status: ${dikirim ? `SUDAH DIKIRIM via ${o.ekspedisi || 'ekspedisi'} pada ${fmtWib(o.shippedAt)}, nomor resi ${o.noResi}` : 'BELUM DIKIRIM — sedang disiapkan'}
+Cara menjawab: sapa dengan namanya. ${dikirim
+    ? `Sampaikan sudah dikirim + kurir + tanggal + nomor resi (tulis resi apa adanya). Untuk posisi paket real-time, berikan link ini: ${lacakUrl} (di situ ada tombol ke situs kurir).`
+    : 'Tenangkan: pesanan sudah kami terima dan sedang disiapkan; customer akan dapat email otomatis begitu paket diserahkan ke ekspedisi. Kalau sudah >2 hari kerja, tawarkan bantuan cek ke admin 0821-1131-1131.'}
+JANGAN menebak posisi paket di jalan — itu hanya bisa dilihat di situs kurir.`;
+}
+
 export async function action({ request, context }) {
   const body = await request.json();
   const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productCuciGudang = false, productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
@@ -1156,13 +1195,27 @@ export async function action({ request, context }) {
   const model = getGemini(context, { search: true });
 
   // Search catalog + fetch vouchers + returning-customer history + curated picks in parallel
-  const [storeSearch, activeVouchers, returningContext, kurasiText] = await Promise.all([
+  // Order-status intent: detect in this message or the last few turns (the customer
+  // usually asks first, then sends resi + HP in the next message).
+  const recentUser = messages.slice(-6).filter((m) => m.role === 'user').map((m) => m.text ?? '');
+  const wantsOrderStatus = ORDER_INTENT_RE.test(question) || recentUser.slice(-3).some((t) => ORDER_INTENT_RE.test(t));
+  const { resi: orderResi, hp: orderHp } = wantsOrderStatus
+    ? extractResiAndPhone([question, ...recentUser.reverse()])
+    : { resi: '', hp: '' };
+  const orderLookupPromise = !wantsOrderStatus
+    ? Promise.resolve('')
+    : orderResi && orderHp
+      ? lookupOrder(orderResi, orderHp, context.env).then((r) => buildOrderContext(r, orderResi, orderHp)).catch(() => buildOrderContext(null, orderResi, orderHp))
+      : Promise.resolve(buildOrderContext(null, orderResi, orderHp));
+
+  const [storeSearch, activeVouchers, returningContext, kurasiText, orderContext] = await Promise.all([
     searchStoreProducts(context, question, messages, productTitle ?? ''),
     getActiveVouchers(context),
     sessionId && messages.length === 0 && !conversationId
       ? getGriselaMemoryContext(sessionId)
       : Promise.resolve(''),
     getKurasiText(),
+    orderLookupPromise,
   ]);
 
   const nowWib = new Date().toLocaleString('id-ID', {
@@ -1182,7 +1235,7 @@ ${kurasiText}
 WAKTU SEKARANG: ${nowWib} WIB
 - Gunakan untuk menjawab pertanyaan jam buka secara AKURAT: toko buka setiap hari 10.00–19.00 WIB. Jika sekarang di luar jam itu, bilang toko sedang tutup dan sebutkan kapan buka lagi. Jangan asal bilang "masih buka"
 - Jam kerja ADMIN manusia (WhatsApp): setiap hari 09.00–19.00 WIB. Jika customer minta chat dengan admin/manusia DI LUAR jam itu: beri tahu ramah bahwa admin online lagi jam 9 pagi, dan tawarkan bantu dulu — contoh: "Admin kami online lagi jam 9 pagi ya ka, sementara aku bantu dulu 😊". Customer tetap boleh kirim pesan WA sekarang, akan dibalas begitu admin online
-${returningContext ? `\n${returningContext}\n` : ''}
+${returningContext ? `\n${returningContext}\n` : ''}${orderContext ? `\n${orderContext}\n` : ''}
 ${!productTitle ? `KONTEKS: Customer chat dari link bio Instagram Galaxy Camera — BELUM melihat produk tertentu. Gali kebutuhannya (mau kamera buat apa, budget berapa) lalu bantu rekomendasikan produk dari katalog. Jangan mengarang data produk, harga, atau cicilan.` : `PRODUK YANG SEDANG DILIHAT CUSTOMER:
 - Nama: ${productTitle ?? ''}
 - Harga: ${productPrice ?? ''}
@@ -1238,6 +1291,12 @@ INSTRUKSI:
 - Jangan memaksa: jika customer bilang cuma tanya-tanya atau menolak, jawab santai dan tawarkan bantuan lain tanpa mengulang ajakan yang sama
 - INGAT NIAT CICILAN: jika di riwayat customer sudah bilang mau CICILAN (apalagi sudah pilih metode seperti AEON/Kredivo/Homecredit), JANGAN tanya "budget berapa" — customer cicilan berpikir dalam ANGSURAN PER BULAN, bukan uang tunai. Tanyakan "nyamannya angsuran berapa per bulan ka?" lalu pakai patokan internal: angsuran nyaman × 12 ≈ kisaran harga produk yang cocok. Saat merekomendasikan, framing-nya per bulan ("cicilannya sekitar sejutaan per bulan ka") — angka pasti bilang akan dihitungkan saat pengajuan
 - Jika metode cicilan yang dipilih customer WAJIB ke toko (AEON, Homecredit, Indodana): arahkan closing ke KUNJUNGAN TOKO — tawarkan keep unit tanpa DP, sebutkan prosesnya cuma ±15 menit langsung bawa pulang, dan minta nama + nomor WA supaya tim toko siapkan (marker LEAD alasan=kunjungan)
+
+STATUS PESANAN / LACAK PAKET:
+- Jika customer tanya status pesanan/paket/resi ("sampai mana", "sudah dikirim belum", "cek resi"), lihat blok "STATUS PESANAN" di atas jika ada — itu DATA RESMI dari sistem, jawab berdasarkan itu saja.
+- Jika blok itu bilang data belum lengkap: minta nomor resi + No HP saat order (keduanya), singkat dan ramah. Jangan minta data lain.
+- DILARANG mengarang/menebak status, tanggal, atau posisi paket. Kalau tidak ada data, bilang jujur dan arahkan ke halaman https://www.galaxy.co.id/lacak atau admin 0821-1131-1131.
+- Untuk pertanyaan pesanan dari marketplace (Tokopedia/Shopee/dll), arahkan cek di aplikasi marketplace masing-masing — sistem ini hanya untuk order via website Galaxy.
 
 PENANGANAN KEBERATAN (jurus sales — selalu empati dulu, singkat, satu langkah kecil berikutnya):
 - "Mahal" / "kemahalan": jangan defensif. Reframe ke cicilan per bulan dari data produk ("kalau dicicil cuma Rp X/bln ka"), lalu tawarkan harga nego (khusus toko/WA admin) atau voucher website
