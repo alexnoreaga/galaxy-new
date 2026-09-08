@@ -471,7 +471,7 @@ export async function loader({params, context, request}) {
   const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
   const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
-  let productReviews = [];
+  let reviewStats = { count: 0, avg: 0 };
   let soldCount = 0;
 
   // Start non-critical queries immediately — do NOT block on them
@@ -505,6 +505,10 @@ export async function loader({params, context, request}) {
     context.storefront.query(METAOBJECT_MARKETPLACE, {
       variables: { type: "marketplace", first: 10 },
     }),
+    // Rating summary (count + avg) via a rating-only PROJECTION query — tiny payload
+    // (~350 B/review) on the existing composite index. (An avg() aggregation would need a
+    // brand-new index — verified 400 in prod.) Round 1 no longer waits for the full review
+    // list; that streams in via reviewsPromise below.
     fetch(
       `${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`,
       {
@@ -522,14 +526,49 @@ export async function loader({params, context, request}) {
                 ],
               },
             },
-            limit: 50,
+            select: { fields: [{ fieldPath: 'rating' }] },
+            limit: 500,
           },
         }),
       }
     ).then(async res => {
       if (!res.ok) return;
-      const reviewData = await res.json();
-      productReviews = (reviewData || [])
+      const ratings = ((await res.json()) || [])
+        .filter(r => r.document)
+        .map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
+      const count = ratings.length;
+      reviewStats = { count, avg: count ? Number((ratings.reduce((a, b) => a + b, 0) / count).toFixed(1)) : 0 };
+    }).catch(() => {}),
+    fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
+      .then(async res => {
+        if (!res.ok) return;
+        const doc = await res.json();
+        soldCount = parseInt(doc.fields?.count?.integerValue || 0);
+      }).catch(() => {}),
+  ]);
+
+  // Full review list — DEFERRED (streams into the Ulasan tab via <Await>).
+  // Used to be a Round-1 blocker: every product page waited on Firestore before first byte.
+  const reviewsPromise = fetch(
+    `${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'reviews' }],
+          where: { compositeFilter: { op: 'AND', filters: [
+                    { fieldFilter: { field: { fieldPath: 'productHandle' }, op: 'EQUAL', value: { stringValue: handle } } },
+                    { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'approved' } } },
+                  ] } },
+          limit: 50,
+        },
+      }),
+    }
+  ).then(async res => {
+    if (!res.ok) return [];
+    const reviewData = await res.json();
+    return (reviewData || [])
         .filter(r => r.document)
         .map(r => {
           const f = r.document.fields || {};
@@ -547,14 +586,7 @@ export async function loader({params, context, request}) {
         })
         .filter(r => r.customerName && r.reviewText)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    }).catch(() => {}),
-    fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
-      .then(async res => {
-        if (!res.ok) return;
-        const doc = await res.json();
-        soldCount = parseInt(doc.fields?.count?.integerValue || 0);
-      }).catch(() => {}),
-  ]);
+  }).catch(() => []);
 
   // Match active automatic discounts for this product — flash sale (Basic) + PWP (Buy X Get Y)
   const discounts = await autoDiscountsPromise;
@@ -641,7 +673,8 @@ export async function loader({params, context, request}) {
     marketplace,
     customerAccessToken,
     canonicalUrl,
-    productReviews,
+    reviewStats,
+    reviewsList: reviewsPromise,
     soldCount,
     analytics: {
       pageType: AnalyticsPageType.product,
@@ -1315,7 +1348,34 @@ DP : 0
     return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encoded}?alt=media`;
   }
 
-  function ReviewSection({ product, initialReviews }) {
+  // Streams the review list in (deferred loader data) while the rest of the page paints.
+  function ReviewSection({ product, reviewsPromise }) {
+    return (
+      <Suspense fallback={<ReviewSkeleton />}>
+        <Await resolve={reviewsPromise} errorElement={<ReviewSectionInner product={product} initialReviews={[]} />}>
+          {(list) => <ReviewSectionInner product={product} initialReviews={Array.isArray(list) ? list : []} />}
+        </Await>
+      </Suspense>
+    );
+  }
+
+  function ReviewSkeleton() {
+    return (
+      <div className="animate-pulse space-y-4 py-2" aria-busy="true" aria-label="Memuat ulasan">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex gap-3">
+            <div className="w-9 h-9 rounded-full bg-gray-200 flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3 w-1/3 bg-gray-200 rounded" />
+              <div className="h-3 w-5/6 bg-gray-100 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  function ReviewSectionInner({ product, initialReviews }) {
     const [reviews, setReviews] = useState(initialReviews || []);
     const [showForm, setShowForm] = useState(false);
     const [rating, setRating] = useState(5);
@@ -1331,6 +1391,7 @@ DP : 0
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState('');
     const [expandedPhoto, setExpandedPhoto] = useState(null);
+    const [visibleCount, setVisibleCount] = useState(5); // "Lihat lebih banyak" — keeps the DOM small
 
     const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
     const source = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('source');
@@ -1544,7 +1605,7 @@ DP : 0
           <p className="text-sm text-gray-400 py-4">Belum ada ulasan. Jadilah yang pertama!</p>
         ) : (
           <div className="flex flex-col divide-y divide-gray-100">
-            {reviews.map(r => (
+            {reviews.slice(0, visibleCount).map(r => (
               <div key={r.id} className="py-4">
                 <div className="flex items-start gap-3 mb-1">
                   {/* Avatar */}
@@ -1591,6 +1652,16 @@ DP : 0
               </div>
             ))}
           </div>
+        )}
+
+        {reviews.length > visibleCount && (
+          <button
+            type="button"
+            onClick={() => setVisibleCount((n) => n + 5)}
+            className="mt-3 w-full py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+          >
+            Lihat {Math.min(5, reviews.length - visibleCount)} ulasan lainnya ({reviews.length - visibleCount} tersisa)
+          </button>
         )}
       </div>
 
@@ -1781,7 +1852,7 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,productReviews,soldCount,autoDiscount,hargaBest,pwp} = useLoaderData();
+    const {balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,reviewStats,reviewsList,soldCount,autoDiscount,hargaBest,pwp} = useLoaderData();
 
     // Compute selected variant from URL params — all 50 variants are already in product.variants.nodes
     // so this is instant, no server call needed on variant switch
@@ -1856,8 +1927,8 @@ DP : 0
           image: product.featuredImage?.url || selectedVariant?.image?.url || '',
           price: parseFloat(selectedVariant.price.amount),
           compareAtPrice: parseFloat(selectedVariant?.compareAtPrice?.amount || 0),
-          rating: productReviews?.length ? Number((productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length).toFixed(1)) : 0,
-          reviewCount: productReviews?.length || 0,
+          rating: reviewStats?.avg || 0,
+          reviewCount: reviewStats?.count || 0,
           soldCount: soldCount || 0,
           savedAt: Date.now(),
         };
@@ -2134,8 +2205,8 @@ DP : 0
 
               {/* SOCIAL PROOF — position 5 mobile, 2 desktop */}
               <div className="flex items-center gap-2 flex-wrap order-5 md:order-2">
-                {productReviews?.length > 0 && (() => {
-                  const avg = (productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length).toFixed(1);
+                {reviewStats?.count > 0 && (() => {
+                  const avg = Number(reviewStats.avg).toFixed(1);
                   return (
                     <button onClick={() => { window.location.hash = '#review'; }}
                       className="flex items-center gap-1.5">
@@ -2146,13 +2217,13 @@ DP : 0
                           </svg>
                         ))}
                       </div>
-                      <span className="text-xs md:text-sm text-gray-500 underline underline-offset-2">{avg} ({productReviews.length} ulasan)</span>
+                      <span className="text-xs md:text-sm text-gray-500 underline underline-offset-2">{avg} ({reviewStats.count} ulasan)</span>
                     </button>
                   );
                 })()}
                 {soldCount > 0 && (
                   <>
-                    {productReviews?.length > 0 && <span className="text-gray-300 text-xs">·</span>}
+                    {reviewStats?.count > 0 && <span className="text-gray-300 text-xs">·</span>}
                     <span className="text-xs md:text-sm text-gray-500">
                       Terjual <span className="font-semibold text-gray-700">{soldCount.toLocaleString('id-ID')}</span>
                     </span>
@@ -2626,8 +2697,8 @@ DP : 0
         isibox={product.metafields[2]?.value}
         specs={(<div className="overflow-x-auto w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-semibold prose-table:text-sm pt-2"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/></div>)}
-        ulasan={<ReviewSection product={product} initialReviews={productReviews} />}
-        reviewCount={productReviews?.length || 0}
+        ulasan={<ReviewSection product={product} reviewsPromise={reviewsList} />}
+        reviewCount={reviewStats?.count || 0}
         />
 
           </div>
