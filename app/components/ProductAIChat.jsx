@@ -647,20 +647,39 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
 
   return (
     <div className="mt-3">
-      {/* Tanya AI — soft card so Grisela reads as a real feature, matching the "Mengapa belanja" cards */}
-      <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-3">
+      {/* Tanya Grisela — same "premium concierge" identity as GriselaHomeBar (slate gradient, dot
+          texture, rose→amber hairline, glowing avatar, frosted chips). Deliberately NOT neon/futuristic:
+          customer feedback flagged that as "AI-designed". Styling only — all behavior unchanged. */}
+      <div className="rounded-2xl p-[1px] bg-gradient-to-r from-rose-500/60 via-slate-600/30 to-amber-400/50">
+      <div
+        className="relative overflow-hidden rounded-[15px] p-3"
+        style={{ background: 'linear-gradient(120deg, #0f172a 0%, #1e293b 60%, #26344a 100%)' }}
+      >
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
+          style={{ opacity: 0.05, backgroundImage: 'radial-gradient(circle at center, #fff 0.6px, transparent 0.6px)', backgroundSize: '22px 22px' }} />
+        <div aria-hidden="true" className="absolute -left-8 -top-10 w-40 h-40 rounded-full bg-rose-500/25 blur-3xl pointer-events-none" />
+        <div aria-hidden="true" className="absolute -right-10 -bottom-12 w-44 h-44 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
+        <div className="relative">
         {/* Header — richer, sells the feature */}
         <div className="flex items-center gap-2.5 mb-2.5">
           <div className="relative flex-shrink-0">
-            <GriselaAvatar size="w-9 h-9" />
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
+            <span className="flex rounded-full ring-2 ring-rose-400/60 shadow-[0_0_18px_rgba(244,63,94,0.4)]">
+              <GriselaAvatar size="w-9 h-9" />
+            </span>
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900" />
           </div>
           <div className="min-w-0">
-            {/* "· AI Galaxy" turns red when this variant has a Cost per item — internal cue for staff */}
-            <p className="text-sm font-bold text-gray-900 leading-tight">
-              Tanya Grisela <span className={hasHargaModal ? 'text-red-600' : 'text-rose-500'}>· AI Galaxy</span>
+            {/* Badge turns solid red when this variant has a Cost per item — internal cue for staff */}
+            <p className="flex items-center gap-1.5 text-sm font-bold text-white leading-tight">
+              Tanya Grisela
+              <span className={`inline-flex items-center gap-1 text-[9px] font-black tracking-wide uppercase text-white rounded-full px-1.5 py-[2px] ${hasHargaModal ? 'bg-red-600' : 'bg-gradient-to-r from-rose-500 to-pink-500'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2 h-2" aria-hidden="true">
+                  <path d="M10 1.5l1.9 5.3 5.6.4-4.3 3.6 1.4 5.5L10 13.2l-4.6 3.1 1.4-5.5L2.5 7.2l5.6-.4z" />
+                </svg>
+                AI
+              </span>
             </p>
-            <p className="text-[11px] text-gray-500 leading-tight">{isDiscontinued ? 'Produk ini sudah discontinued — tanya aku alternatif penggantinya ya 😊' : 'Online 24 jam — tanya spesifikasi, cicilan, stok, apa aja 😊'}</p>
+            <p className="text-[11px] text-slate-400 leading-tight">{isDiscontinued ? 'Produk ini sudah discontinued — tanya aku alternatif penggantinya ya 😊' : 'Online 24 jam — tanya spesifikasi, cicilan, stok, apa aja 😊'}</p>
           </div>
         </div>
 
@@ -669,14 +688,14 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           {(loadingQuestions && !isDiscontinued) ? (
             // Skeleton
             [1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-7 bg-white rounded-full animate-pulse" style={{ width: `${[112, 96, 128, 104, 88][i - 1]}px` }} />
+              <div key={i} className="h-7 bg-white/10 rounded-full animate-pulse" style={{ width: `${[112, 96, 128, 104, 88][i - 1]}px` }} />
             ))
           ) : (
             <>
               {showNegoBubble && (
                 <button
                   onClick={() => askQuestion(NEGO_Q, false)}
-                  className="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 border border-rose-200 text-xs rounded-full transition-colors leading-tight text-left font-semibold"
+                  className="px-3 py-1.5 bg-gradient-to-r from-rose-500 to-red-600 hover:brightness-110 text-white text-xs rounded-full transition leading-tight text-left font-semibold shadow-md shadow-rose-900/30"
                 >
                   Bisa nego harganya? 🤝
                 </button>
@@ -685,7 +704,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                 <button
                   key={i}
                   onClick={() => askQuestion(q, false)}
-                  className="px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs rounded-full transition-colors leading-tight text-left"
+                  className="px-3 py-1.5 text-slate-200 bg-white/[0.07] ring-1 ring-white/15 hover:bg-white/15 hover:text-white text-xs rounded-full transition-colors leading-tight text-left"
                 >
                   {q}
                 </button>
@@ -698,16 +717,18 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
         {!loadingQuestions && (
           <button
             onClick={openCustomMode}
-            className="mt-2.5 w-full flex items-center justify-between gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 hover:border-rose-300 transition-colors group"
+            className="mt-2.5 w-full flex items-center justify-between gap-2 bg-white hover:bg-gray-50 rounded-xl pl-3 pr-1.5 py-1.5 shadow-sm transition-colors group"
           >
             <span className="text-xs text-gray-400 truncate">Ketik pertanyaanmu sendiri…</span>
-            <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-gray-900 group-hover:bg-rose-500 flex items-center justify-center transition-colors">
+            <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-red-600 group-hover:brightness-110 flex items-center justify-center shadow-md transition">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.126A59.768 59.768 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.876L5.999 12Zm0 0h7.5" />
               </svg>
             </span>
           </button>
         )}
+        </div>
+      </div>
       </div>
 
       {/* Chat panel — bottom sheet on mobile, side panel on desktop */}
