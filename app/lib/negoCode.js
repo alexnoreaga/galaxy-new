@@ -64,7 +64,9 @@ const CREATE_MUTATION = `mutation($d: DiscountCodeBasicInput!) {
  * Create a nego code for one product. Returns { code, amount, endsAt, mode } on success,
  * or { skip, reason } when it declines (flash sale active, no margin, bad data, error).
  */
-export async function createNegoCode(env, { productGid, variantGid }) {
+// dryRun: compute the amount only (no Shopify write) — lets the caller compare the nego
+// deal against website vouchers before deciding which one to actually hand out.
+export async function createNegoCode(env, { productGid, variantGid, dryRun = false }) {
   try {
     if (!productGid) return { skip: true, reason: 'no-product' };
 
@@ -111,6 +113,7 @@ export async function createNegoCode(env, { productGid, variantGid }) {
       if (amount > maxByCost) amount = maxByCost;
     }
     if (amount < 1000) return { skip: true, reason: 'too-small' };
+    if (dryRun) return { amount, mode, dryRun: true };
 
     const now = new Date();
     const endsAt = new Date(now.getTime() + CODE_TTL_HOURS * 3600 * 1000);
