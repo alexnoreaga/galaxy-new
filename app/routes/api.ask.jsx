@@ -803,7 +803,7 @@ function productListTextWithCicilan(products) {
 
 const CARD_INSTRUCTIONS = `- PENTING: produk di atas akan OTOMATIS ditampilkan sebagai kartu bergambar (foto, harga, link) tepat di bawah jawabanmu. JANGAN tulis link dan JANGAN sebutkan semua harga satu per satu — cukup jawab natural dan singkat, contoh: "Ada kak, ready stock! Ini pilihannya ya 👇"
 - Jika status "Stok habis": beri tahu stoknya sedang habis (masih ada kemungkinan restock).
-- Jika status "DISCONTINUED": produk ini SUDAH TIDAK DIPRODUKSI/DIJUAL LAGI — JANGAN bilang sekadar "stok habis" atau seolah bisa restock. Sampaikan dengan sopan bahwa produknya sudah discontinued, lalu langsung tawarkan alternatif/pengganti yang serupa.`;
+- Jika status "DISCONTINUED": produk ini SUDAH TIDAK DIPRODUKSI/DIJUAL LAGI — JANGAN bilang sekadar "stok habis" atau seolah bisa restock. Sampaikan dengan sopan bahwa produknya sudah discontinued, lalu langsung tawarkan alternatif/pengganti yang serupa. JANGAN PERNAH menyebut produk berstatus DISCONTINUED sebagai rekomendasi/pilihan/alternatif — statusnya hanya disebut kalau customer menanyakan produk itu secara spesifik.`;
 
 // Detect whether the customer is asking about other products or a recommendation, and query the catalog
 async function searchStoreProducts(context, question, messages, currentProduct = '') {
@@ -927,7 +927,7 @@ Output:`;
           variables: { searchTerm: `${brand} camera` },
         });
         items = (data?.predictiveSearch?.products ?? [])
-          .filter(p => p.availableForSale && !isAccessoryText(p.title))
+          .filter(p => p.availableForSale && p.discontinued?.value !== 'true' && !isAccessoryText(p.title))
           .filter(p => p.title.toLowerCase().includes(brand.toLowerCase()))
           .slice(0, 3);
       }
@@ -972,7 +972,7 @@ ${CARD_INSTRUCTIONS}
         const data = await context.storefront.query(PRODUCT_SEARCH_QUERY, {
           variables: { searchTerm: kw },
         });
-        const ready = (data?.predictiveSearch?.products ?? []).filter(p => p.availableForSale);
+        const ready = (data?.predictiveSearch?.products ?? []).filter(p => p.availableForSale && p.discontinued?.value !== 'true');
         found.push(...ready.slice(0, 2));
       }
       const unique = [...new Map(found.map(p => [p.handle, p])).values()];
@@ -1064,7 +1064,7 @@ Jawab HANYA kata kuncinya.`);
         const brand = searchKeywords[0].split(/\s+/)[0];
         if (brand && brand.length >= 3 && !isAccessoryText(searchKeywords[0])) {
           const altResults = await fetchSearch(brand);
-          alternatives = altResults.filter(p => p.availableForSale && !isAccessoryText(p.title)).slice(0, 3);
+          alternatives = altResults.filter(p => p.availableForSale && p.discontinued?.value !== 'true' && !isAccessoryText(p.title)).slice(0, 3);
         }
       } catch {
         // alternatives are best-effort only
@@ -1321,7 +1321,11 @@ export async function action({ request, context }) {
     hour: '2-digit', minute: '2-digit', hour12: false,
   });
   const storeSearchResults = storeSearch.contextText;
-  const foundProducts = storeSearch.products.length > 0 ? storeSearch.products : undefined;
+  // Never show a DISCONTINUED product as a purchasable card (they can still be availableForSale
+  // in Shopify from leftover stock, so the "Ready" badge would lie). They remain in the text
+  // context above so Grisela can explain the status when a customer asks for one by name.
+  const visibleProducts = storeSearch.products.filter((p) => !p.discontinued);
+  const foundProducts = visibleProducts.length > 0 ? visibleProducts : undefined;
 
   const systemContext = `${storeKnowledge}
 
