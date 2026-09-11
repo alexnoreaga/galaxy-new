@@ -400,6 +400,7 @@ const SEARCH_QUERY = `#graphql
     handle
     id
     publishedAt
+    availableForSale
     title
     description
     trackingParameters
@@ -462,7 +463,7 @@ const SEARCH_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     products: search(
       query: $query,
-      unavailableProducts: HIDE,
+      unavailableProducts: LAST,
       types: [PRODUCT],
       first: $first,
       sortKey: $sortKey,

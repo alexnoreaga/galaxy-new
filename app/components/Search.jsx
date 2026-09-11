@@ -154,7 +154,8 @@ function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries =
             <div className="search-results-item" key={product.id}>
               <Link prefetch="intent" to={`/products/${product.handle}`}>
                 <div className='flex flex-col gap-3 border border-gray-200 rounded-lg p-3 hover:shadow-lg hover:border-blue-300 transition-all duration-200 bg-white h-full'>
-                  <div className='w-full h-40 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden'>
+                  <div className={`relative w-full h-40 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden ${product.availableForSale === false ? 'opacity-75' : ''}`}>
+                    {product.availableForSale === false && <SoldOutBadge />}
                     {product?.variants?.nodes[0]?.image?.url &&(
                         <Image
                           alt={product.title ?? ''}
@@ -422,7 +423,7 @@ export function PredictiveSearchForm({
       : searchAction;
     const newSearchTerm = event.target.value || '';
     fetcher.submit(
-      {q: newSearchTerm, limit: '6'},
+      {q: newSearchTerm, limit: '8'},
       {method, action: localizedAction},
     );
     // GA4 `search`: most shoppers never reach /search?q= (they click a predictive result),
@@ -585,7 +586,8 @@ function SearchResultItem({item, term}) {
       >
       {/* <Link onClick={goToSearchResult} to={item.url}> */}
         {item.image?.url && (
-          <div className='w-full h-32 sm:h-40 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden mb-2'>
+          <div className={`relative w-full h-32 sm:h-40 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden mb-2 ${item.availableForSale === false ? 'opacity-75' : ''}`}>
+            {item.availableForSale === false && <SoldOutBadge />}
             <Image
               alt={item.image.altText ?? ''}
               src={item.image.url}
@@ -693,4 +695,13 @@ function pluralToSingularSearchType(type) {
   }
 
   return type.map((t) => plural[t]).join(',');
+}
+
+// Small corner label for sold-out products in search results (they used to be hidden entirely).
+function SoldOutBadge() {
+  return (
+    <span className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded bg-gray-900/85 text-white text-[10px] font-semibold leading-none pointer-events-none">
+      Stok habis
+    </span>
+  );
 }

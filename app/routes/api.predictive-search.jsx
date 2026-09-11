@@ -202,6 +202,7 @@ export function normalizePredictiveSearchResults(predictiveSearch, locale) {
           url: `${localePrefix}/products/${product.handle}${trackingParams}`,
           price: product.variants.nodes[0].price,
           variantId: product.variants.nodes[0].id,
+          availableForSale: product.availableForSale !== false,
         };
       }),
     });
@@ -311,6 +312,7 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
     handle
     productType
     trackingParameters
+    availableForSale
     variants(first: 1) {
       nodes {
         id
@@ -346,6 +348,7 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
       limitScope: $limitScope,
       query: $searchTerm,
       types: $types,
+      unavailableProducts: SHOW,
     ) {
       articles {
         ...PredictiveArticle
