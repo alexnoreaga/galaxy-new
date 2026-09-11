@@ -1,10 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from '@remix-run/react';
 import { GriselaGeneralChat } from '~/components/GriselaGeneralChat';
 
 export const BottomNavbar = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const location = useLocation();
+
+  // Other pages (e.g. /search "tidak ditemukan") open the general chat through this event.
+  useEffect(() => {
+    const onOpen = () => setChatOpen(true);
+    window.addEventListener('grisela:open-general', onOpen);
+    return () => window.removeEventListener('grisela:open-general', onOpen);
+  }, []);
 
   // Active-tab highlighting — the current page's tab lights up in brand red (Tokopedia-style)
   const { pathname } = location;

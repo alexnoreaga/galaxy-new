@@ -1,7 +1,14 @@
 import {Link, Form, useParams, useFetcher, useFetchers, useNavigate} from '@remix-run/react';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
-import React, {useRef, useEffect} from 'react';
+import React, {useRef, useEffect, useState} from 'react';
 import {gaEvent} from '~/lib/analytics';
+import {
+  getRecentSearches,
+  addRecentSearch,
+  removeRecentSearch,
+  clearRecentSearches,
+  DEFAULT_POPULAR_SEARCHES,
+} from '~/lib/recentSearches';
 
 // Infinite scroll for search — observes a sentinel and auto-loads the next page (mirrors collections)
 function SearchInfiniteLoader({hasNextPage, nextPageUrl, isLoading, state}) {
@@ -256,31 +263,128 @@ function SearchResultArticleGrid({articles}) {
   );
 }
 
-export function NoSearchResults({searchTerm}) {
+export function NoSearchResults({searchTerm, popularSearches = []}) {
   const brands = ['Canon', 'Sony', 'Nikon', 'Fujifilm', 'DJI', 'GoPro', 'Insta360'];
-  return (
-    <div className="py-12 sm:py-16 text-center">
-      <div className="w-14 h-14 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-        </svg>
-      </div>
-      {searchTerm ? (
-        <>
+  // Recent searches live in localStorage → read after mount so SSR and first client paint match.
+  const [recent, setRecent] = useState([]);
+  useEffect(() => { setRecent(getRecentSearches()); }, [searchTerm]);
+  const popular = (popularSearches?.length ? popularSearches : DEFAULT_POPULAR_SEARCHES).slice(0, 10);
+
+  // ── "Tidak ditemukan" ──────────────────────────────────────────────────────
+  if (searchTerm) {
+    return (
+      <div className="py-10 sm:py-14">
+        <div className="text-center">
+          <div className="w-14 h-14 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          </div>
           <h2 className="text-lg font-bold text-gray-900 mt-4">Produk tidak ditemukan</h2>
           <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
             Tidak ada hasil untuk &quot;<span className="font-medium text-gray-700">{searchTerm}</span>&quot;. Coba kata kunci lain atau periksa ejaannya.
           </p>
-        </>
-      ) : (
-        <>
-          <h2 className="text-lg font-bold text-gray-900 mt-4">Mau cari apa hari ini?</h2>
-          <p className="text-sm text-gray-500 mt-1">Ketik nama produk, brand, atau kategori di atas.</p>
-        </>
-      )}
+          {/* Opens the general Grisela chat (listener lives in BottomNavbar, rendered on every non-product page) */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('grisela:open-general', {detail: {source: 'search-empty', query: searchTerm}}))}
+            className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+            </svg>
+            Tanya Grisela
+          </button>
+          <p className="text-xs text-gray-400 mt-2">Grisela bisa bantu cari produk yang kamu maksud.</p>
+        </div>
+        <div className="max-w-md mx-auto mt-10">
+          <SearchTermList title="Pencarian populer" items={popular} />
+        </div>
+        <BrandChips brands={brands} center />
+      </div>
+    );
+  }
 
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-8 mb-3">Brand Populer</p>
-      <div className="flex flex-wrap items-center justify-center gap-2 px-4">
+  // ── Kotak masih kosong ─────────────────────────────────────────────────────
+  return (
+    <div className="py-4 sm:py-8">
+      <div className="grid gap-8 md:grid-cols-2 md:gap-12 max-w-3xl">
+        {recent.length > 0 && (
+          <SearchTermList
+            title="Pencarian terakhir"
+            items={recent}
+            icon="clock"
+            onRemove={(t) => setRecent(removeRecentSearch(t))}
+            action={
+              <button type="button" onClick={() => setRecent(clearRecentSearches())} className="text-xs text-gray-400 hover:text-gray-700">
+                Hapus semua
+              </button>
+            }
+          />
+        )}
+        <SearchTermList title="Pencarian populer" items={popular} />
+      </div>
+      <BrandChips brands={brands} />
+      <div className="mt-6">
+        <Link to="/collections" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 no-underline">
+          Lihat semua kategori →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// Plain list rows — magnifier (or clock) + term, like Zalora/Tokopedia's search sheet.
+function SearchTermList({title, items, icon = 'search', onRemove, action}) {
+  if (!items?.length) return null;
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        {action}
+      </div>
+      <ul className="-mx-2">
+        {items.map((t) => (
+          <li key={t} className="flex items-center">
+            <Link
+              to={`/search?q=${encodeURIComponent(t)}`}
+              className="flex-1 min-w-0 flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-50 no-underline"
+            >
+              {icon === 'clock' ? (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4 text-gray-400 flex-shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4 text-gray-400 flex-shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+              )}
+              <span className="truncate">{t}</span>
+            </Link>
+            {onRemove && (
+              <button
+                type="button"
+                aria-label={`Hapus ${t}`}
+                onClick={() => onRemove(t)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-300 hover:text-gray-700 hover:bg-gray-100 flex-shrink-0"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function BrandChips({brands, center = false}) {
+  return (
+    <div className={`mt-8 ${center ? 'text-center' : ''}`}>
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Brand populer</p>
+      <div className={`flex flex-wrap items-center gap-2 ${center ? 'justify-center px-4' : ''}`}>
         {brands.map((b) => (
           <Link
             key={b}
@@ -290,12 +394,6 @@ export function NoSearchResults({searchTerm}) {
             {b}
           </Link>
         ))}
-      </div>
-
-      <div className="mt-7">
-        <Link to="/collections" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 no-underline">
-          Lihat Semua Kategori →
-        </Link>
       </div>
     </div>
   );
@@ -439,7 +537,6 @@ function PredictiveSearchResult({items, searchTerm, type}) {
   }&type=${pluralToSingularSearchType(type)}`;
 
 
-  console.log('searchTerm',searchTerm,type)
 
   return (
     <div className="predictive-search-result" key={type}>
@@ -452,6 +549,7 @@ function PredictiveSearchResult({items, searchTerm, type}) {
         {items.map((item) => (
           <SearchResultItem
             item={item}
+            term={searchTerm.current}
             key={item.id}
           />
         ))}
@@ -461,7 +559,7 @@ function PredictiveSearchResult({items, searchTerm, type}) {
   );
 }
 
-function SearchResultItem({item}) {
+function SearchResultItem({item, term}) {
 
 
   let url = item.url;
@@ -482,6 +580,7 @@ function SearchResultItem({item}) {
     <li className="predictive-search-result-item" key={path}>
       <Link 
         to={path} 
+        onClick={() => addRecentSearch(term)}
         className='flex flex-col hover:no-underline border border-gray-200 rounded-lg p-2 sm:p-3 cursor-pointer active:opacity-75 hover:shadow-md hover:border-blue-300 transition-all duration-200 bg-white h-full'
       >
       {/* <Link onClick={goToSearchResult} to={item.url}> */}

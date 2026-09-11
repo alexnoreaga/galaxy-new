@@ -8,6 +8,8 @@ import {
   PredictiveSearchResults,
 } from '~/components/Search';
 import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
+import {useEffect} from 'react';
+import {addRecentSearch, parsePopularSearches, DEFAULT_POPULAR_SEARCHES} from '~/lib/recentSearches';
 
 export const meta = ({location, data}) => {
   // Get search query from URL
@@ -193,11 +195,20 @@ export async function loader({request, context}) {
   };
   const {sortKey, reverse} = SORT_MAP[sort] || SORT_MAP['relevance'];
 
+  // "Pencarian populer" — admin-curated metaobject (Settings → Custom data → Metaobjects →
+  // "Pencarian Populer", type `pencarian_populer`, one list-of-text field, Storefront access ON).
+  // Falls back to the best-seller seed list when it's missing / empty / not exposed.
+  const popularPromise = context.storefront
+    .query(POPULAR_SEARCHES_QUERY, {cache: context.storefront.CacheLong()})
+    .then((d) => parsePopularSearches(d?.metaobjects?.nodes?.[0]) ?? DEFAULT_POPULAR_SEARCHES)
+    .catch(() => DEFAULT_POPULAR_SEARCHES);
+
   if (!searchTerm) {
     return {
       searchResults: {results: null, totalResults: 0},
       searchTerm,
       sort,
+      popularSearches: await popularPromise,
     };
   }
 
@@ -273,12 +284,19 @@ export async function loader({request, context}) {
     }
   }
 
-  return defer({searchTerm, searchResults, soldCounts, reviewSummaries, flashMap, sort});
+  // Popular list is only rendered on the "tidak ditemukan" state → don't wait for it otherwise.
+  const popularSearches = totalResults ? [] : await popularPromise;
+  return defer({searchTerm, searchResults, soldCounts, reviewSummaries, flashMap, sort, popularSearches});
 }
 
 export default function SearchPage() {
-  const {searchTerm, searchResults, soldCounts = {}, reviewSummaries = {}, flashMap = {}, sort = 'relevance'} = useLoaderData();
+  const {searchTerm, searchResults, soldCounts = {}, reviewSummaries = {}, flashMap = {}, sort = 'relevance', popularSearches = []} = useLoaderData();
   const [, setSearchParams] = useSearchParams();
+
+  // Remember what this shopper searched (per device, localStorage) → "Pencarian terakhir".
+  useEffect(() => {
+    if (searchTerm) addRecentSearch(searchTerm);
+  }, [searchTerm]);
 
   function onSortChange(e) {
     // Reset pagination (drop cursor params) but keep the query when changing sort
@@ -359,11 +377,22 @@ export default function SearchPage() {
       {searchTerm && searchResults.totalResults ? (
         <SearchResults results={searchResults.results} soldCounts={soldCounts} reviewSummaries={reviewSummaries} flashMap={flashMap} />
       ) : (
-        <NoSearchResults searchTerm={searchTerm} />
+        <NoSearchResults searchTerm={searchTerm} popularSearches={popularSearches} />
       )}
     </div>
   );
 }
+
+const POPULAR_SEARCHES_QUERY = `#graphql
+  query PopularSearches($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
+    metaobjects(type: "pencarian_populer", first: 1) {
+      nodes {
+        fields { key type value }
+      }
+    }
+  }
+`;
 
 const SEARCH_QUERY = `#graphql
   fragment SearchProduct on Product {
