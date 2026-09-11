@@ -669,9 +669,11 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900" />
           </div>
           <div className="min-w-0">
-            {/* Badge turns solid red when this variant has a Cost per item — internal cue for staff */}
+            {/* Staff cue: when this variant has a Cost per item (nego available), the word "Grisela"
+                turns RED and the badge goes solid red. Customers read it as a color accent; staff
+                know at a glance that harga modal is filled. */}
             <p className="flex items-center gap-1.5 text-sm font-bold text-white leading-tight">
-              Tanya Grisela
+              Tanya <span className={hasHargaModal ? 'text-red-400' : 'text-white'}>Grisela</span>
               <span className={`inline-flex items-center gap-1 text-[9px] font-black tracking-wide uppercase text-white rounded-full px-1.5 py-[2px] ${hasHargaModal ? 'bg-red-600' : 'bg-gradient-to-r from-rose-500 to-pink-500'}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2 h-2" aria-hidden="true">
                   <path d="M10 1.5l1.9 5.3 5.6.4-4.3 3.6 1.4 5.5L10 13.2l-4.6 3.1 1.4-5.5L2.5 7.2l5.6-.4z" />
