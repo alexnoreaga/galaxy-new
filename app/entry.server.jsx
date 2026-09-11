@@ -27,9 +27,18 @@ export default async function handleRequest(
       'https://shopify.com',
       'https://www.gstatic.com',
       'https://accounts.google.com',
+      'https://www.googletagmanager.com', // gtag.js (GA4)
     ],
     connectSrc: [
       "'self'",
+      // GA4 beacons + Shopify analytics (monorail)
+      'https://www.google-analytics.com',
+      'https://*.google-analytics.com',
+      'https://analytics.google.com',
+      'https://*.analytics.google.com',
+      'https://www.googletagmanager.com',
+      'https://stats.g.doubleclick.net',
+      'https://monorail-edge.shopifysvc.com',
       'https://www.gstatic.com',
       'https://fcm.googleapis.com',
       'https://fcmregistrations.googleapis.com',
@@ -56,6 +65,9 @@ export default async function handleRequest(
     ],
     imgSrc: [
       "'self'",
+      'https://www.google-analytics.com',
+      'https://*.google-analytics.com',
+      'https://stats.g.doubleclick.net',
       'https://cdn.shopify.com',
       'https://firebasestorage.googleapis.com',
       'https://img.youtube.com',

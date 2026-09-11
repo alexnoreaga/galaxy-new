@@ -1,5 +1,13 @@
-import {useNonce} from '@shopify/hydrogen';
-import {Seo} from '@shopify/hydrogen';
+import {
+  useNonce,
+  Seo,
+  useShopifyCookies,
+  sendShopifyAnalytics,
+  getClientBrowserParameters,
+  AnalyticsEventName,
+} from '@shopify/hydrogen';
+import {usePageAnalytics} from '~/utils';
+import {scheduleGtagLoad} from '~/lib/analytics';
 import {defer} from '@shopify/remix-oxygen';
 import {
   Links,
@@ -144,9 +152,12 @@ export async function loader({context}) {
     }).catch(() => null),
   ]);
 
+  // Consumed by usePageAnalytics() → sendShopifyAnalytics (Shopify Admin analytics).
   const analyticsData = {
     analytics: {
       shopId: "gid://shopify/Shop/67238068470",
+      currency: 'IDR',
+      acceptedLanguage: 'ID',
     },
   };
 
@@ -160,9 +171,9 @@ export async function loader({context}) {
       footerSatu,
       storeLocations,
       kategoriMenu,
+      analytics: analyticsData.analytics,
     },
     {headers},
-    {analyticsData},
   );
 }
 
@@ -197,6 +208,32 @@ export default function App() {
   const data = useLoaderData();
   const matches = useMatches();
   const [installPrompt, setInstallPrompt] = useState(null);
+  const location = useLocation();
+  const pageAnalytics = usePageAnalytics({hasUserConsent: true});
+
+  // ── Analytics ──────────────────────────────────────────────────────────────
+  // GA4: gtag.js is fetched only after window.load + idle, so LCP/hydration are untouched.
+  useEffect(() => { scheduleGtagLoad(); }, []);
+  // Shopify Admin analytics (sessions / conversion): _shopify_y/_shopify_s cookies + a
+  // PAGE_VIEW per navigation. Product pages add pageType/products from their loader.
+  useShopifyCookies({hasUserConsent: true});
+  useEffect(() => {
+    try {
+      sendShopifyAnalytics({
+        eventName: AnalyticsEventName.PAGE_VIEW,
+        payload: {
+          ...getClientBrowserParameters(),
+          ...pageAnalytics,
+          currency: 'IDR',
+          acceptedLanguage: 'ID',
+          hasUserConsent: true,
+        },
+      }).catch(() => {});
+    } catch {
+      /* analytics must never break the page */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.search]);
 
   // LCP: preload the homepage hero (first banner slide) from <head>, so the browser
   // starts fetching it at byte ~2KB instead of after discovering the <img> mid-HTML.
@@ -325,6 +362,7 @@ export default function App() {
         )}
 
 
+{/* GA4 stub only: queues gtag() calls. The real gtag.js is injected later by scheduleGtagLoad(). */}
 <script nonce={nonce}
 dangerouslySetInnerHTML={{__html:`
   window.dataLayer = window.dataLayer || [];

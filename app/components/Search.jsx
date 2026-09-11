@@ -1,6 +1,7 @@
 import {Link, Form, useParams, useFetcher, useFetchers, useNavigate} from '@remix-run/react';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
 import React, {useRef, useEffect} from 'react';
+import {gaEvent} from '~/lib/analytics';
 
 // Infinite scroll for search — observes a sentinel and auto-loads the next page (mirrors collections)
 function SearchInfiniteLoader({hasNextPage, nextPageUrl, isLoading, state}) {
@@ -313,6 +314,8 @@ export function PredictiveSearchForm({
   const params = useParams();
   const fetcher = useFetcher();
   const inputRef = useRef(null);
+  const gaTimer = useRef(null);
+  const gaLastTerm = useRef('');
 
   function fetchResults(event) {
     const searchAction = action ?? '/api/predictive-search';
@@ -324,6 +327,16 @@ export function PredictiveSearchForm({
       {q: newSearchTerm, limit: '6'},
       {method, action: localizedAction},
     );
+    // GA4 `search`: most shoppers never reach /search?q= (they click a predictive result),
+    // so GA4's automatic site-search never sees them. Fire once the shopper pauses typing.
+    clearTimeout(gaTimer.current);
+    const term = newSearchTerm.trim().toLowerCase();
+    if (term.length >= 2 && term !== gaLastTerm.current) {
+      gaTimer.current = setTimeout(() => {
+        gaLastTerm.current = term;
+        gaEvent('search', {search_term: term});
+      }, 800);
+    }
   }
 
   // ensure the passed input has a type of search, because SearchResults

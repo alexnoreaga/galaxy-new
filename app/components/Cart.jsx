@@ -2,6 +2,7 @@ import {CartForm, Image, Money} from '@shopify/hydrogen';
 import {Link} from '@remix-run/react';
 import {useState, useEffect} from 'react';
 import {useVariantUrl} from '~/utils';
+import {gaEvent, gaCartLineItem} from '~/lib/analytics';
 
 export function CartMain({layout, cart}) {
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
@@ -138,6 +139,11 @@ function CartCheckoutActions({checkoutUrl, lines}) {
   const handleCheckout = () => {
     const nodes = lines?.nodes ?? [];
     if (!nodes.length) return;
+    gaEvent('begin_checkout', {
+      currency: 'IDR',
+      value: nodes.reduce((sum, l) => sum + Number(l?.cost?.totalAmount?.amount ?? 0), 0),
+      items: nodes.map(gaCartLineItem),
+    });
     const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
     nodes.forEach((line) => {
       const handle = line.merchandise?.product?.handle;

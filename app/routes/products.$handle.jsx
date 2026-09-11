@@ -24,6 +24,7 @@ import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
 import { IsiBoxList } from '~/components/IsiBoxList';
+import { gaEvent, gaProductItem } from '~/lib/analytics';
 import { getAutomaticDiscounts, findProductAutoDiscount, findProductPwp } from '~/lib/autoDiscounts';
 import { getSocialProof } from '~/lib/socialProof';
 import { getVariantCosts, buildHargaBest } from '~/lib/hargaBest';
@@ -318,7 +319,14 @@ function PwpSection({ pwp }) {
                 {(fetcher) => (
                   <button
                     type="submit"
-                    onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                    onClick={() => {
+                      gaEvent('add_to_cart', {
+                        currency: 'IDR',
+                        value: Number(row.pwpPrice ?? 0),
+                        items: [gaProductItem(row.prod, row.variant, { price: Number(row.pwpPrice ?? 0) })],
+                      });
+                      window.location.href = window.location.href + '#cart-aside';
+                    }}
                     disabled={fetcher.state !== 'idle'}
                     className="mt-auto w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-60 text-white text-[11px] font-semibold py-1.5 rounded-lg transition-colors"
                   >
@@ -679,9 +687,22 @@ export async function loader({params, context, request}) {
     reviewStats,
     reviewsList: reviewsPromise,
     soldCount,
+    // Shopify analytics payload — the minimal shape sendShopifyAnalytics needs. Previously
+    // this was `[product]` (the entire product incl. metafields), which duplicated the whole
+    // product JSON into the hydration blob on every product page.
     analytics: {
       pageType: AnalyticsPageType.product,
-      products: [product],
+      resourceId: product.id,
+      products: [{
+        productGid: product.id,
+        variantGid: selectedVariant?.id,
+        name: product.title,
+        variantName: selectedVariant?.title,
+        brand: product.vendor,
+        price: selectedVariant?.price?.amount,
+        sku: selectedVariant?.sku,
+        quantity: 1,
+      }],
     },
     hargaBest: hargaBestPromise,
     pwp: pwpPromise,
@@ -2045,6 +2066,24 @@ DP : 0
       document.body.removeChild(textArea);
     };
 
+    // ── GA4 ecommerce ──────────────────────────────────────────────────────
+    // view_item once per selected variant; add_to_cart from the buy buttons below.
+    useEffect(() => {
+      if (!selectedVariant?.id) return;
+      gaEvent('view_item', {
+        currency: 'IDR',
+        value: Number(selectedVariant?.price?.amount ?? 0),
+        items: [gaProductItem(product, selectedVariant)],
+      });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedVariant?.id]);
+    const trackAddToCart = () =>
+      gaEvent('add_to_cart', {
+        currency: 'IDR',
+        value: Number(selectedVariant?.price?.amount ?? 0),
+        items: [gaProductItem(product, selectedVariant)],
+      });
+
     // Same copy text but with the "Info Produk : <link>" line removed — used on DOUBLE-click,
     // for Instagram DM (IG blocks product links). Single-click keeps the link (for WhatsApp).
     const stripInfoLink = (text) =>
@@ -2458,7 +2497,7 @@ DP : 0
                         {affiliateRef && <input type="hidden" name="affiliate_ref" value={affiliateRef} />}
                         <button
                           type="submit"
-                          onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                          onClick={() => { trackAddToCart(); window.location.href = window.location.href + '#cart-aside'; }}
                           disabled={fetcher.state !== 'idle'}
                           className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors shadow-sm"
                         >
@@ -2832,7 +2871,7 @@ DP : 0
                   {affiliateRef && <input type="hidden" name="affiliate_ref" value={affiliateRef} />}
                   <button
                     type="submit"
-                    onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                    onClick={() => { trackAddToCart(); window.location.href = window.location.href + '#cart-aside'; }}
                     disabled={!selectedVariant.availableForSale ?? fetcher.state !== 'idle'}
                     className='inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors whitespace-nowrap shadow-sm'
                   >
@@ -2936,7 +2975,7 @@ DP : 0
                   {affiliateRef && <input type="hidden" name="affiliate_ref" value={affiliateRef} />}
                   <button
                     type="submit"
-                    onClick={() => { window.location.href = window.location.href + '#cart-aside'; }}
+                    onClick={() => { trackAddToCart(); window.location.href = window.location.href + '#cart-aside'; }}
                     disabled={!selectedVariant.availableForSale ?? fetcher.state !== 'idle'}
                     className='w-full h-11 flex items-center justify-center gap-1.5 rounded-xl bg-gray-900 text-white text-sm font-semibold'
                   >
