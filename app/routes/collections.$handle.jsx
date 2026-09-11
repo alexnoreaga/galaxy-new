@@ -37,10 +37,20 @@ export const meta = ({data}) => {
   const indonesianMonth = monthNames[today.getMonth()];
   const year = today.getFullYear();
 
-  const title = `${collectionTitle} - Harga Terbaik ${indonesianMonth} ${year} | Galaxy Camera`;
-  const description = `Jelajahi koleksi ${collectionTitle} terlengkap dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`;
+  // "harga <kategori>" is the biggest commercial query family in Search Console → lead with it.
+  // Promo collections keep the plain form ("Harga Cuci Gudang Terbaru" reads wrong).
+  const isPromoCollection = /cuci ?gudang|promo|flash|sale|diskon/i.test(collectionTitle || '');
+  const title = isPromoCollection
+    ? `${collectionTitle} - ${indonesianMonth} ${year} | Galaxy Camera`
+    : `Harga ${collectionTitle} Terbaru ${indonesianMonth} ${year} | Galaxy Camera`;
+  // Meta description: the collection's OWN text (unique per collection) instead of one template
+  // shared by all 32 collections. Trimmed to ~155 chars on a word boundary.
+  const ownText = String(collectionDescription || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const description = ownText.length >= 60
+    ? (ownText.length > 155 ? ownText.slice(0, 155).replace(/\s+\S*$/, '') + '…' : ownText)
+    : `Jelajahi koleksi ${collectionTitle} terlengkap dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`;
   const keywords = `${collectionTitle}, ${collectionTitle} murah, ${collectionTitle} original, jual ${collectionTitle}, harga ${collectionTitle}, ${collectionTitle} terbaik, ${collectionTitle} garansi resmi`;
-  const canonicalUrl = data?.canonicalUrl || `https://galaxy.co.id/collections/${data?.collection?.handle}`;
+  const canonicalUrl = data?.canonicalUrl || `https://www.galaxy.co.id/collections/${data?.collection?.handle}`;
   const productCount = data?.collection?.products?.nodes?.length || 0;
 
   return [
@@ -168,7 +178,39 @@ export async function loader({request, params, context}) {
     collection,
     soldCounts,
     reviewSummaries,
+    // Clean canonical (no ?sort/?cursor) on the www host the site actually serves.
+    canonicalUrl: `https://www.galaxy.co.id/collections/${collection.handle}`,
   });
+}
+
+// Collection description as a short intro ABOVE the product grid (it used to sit below every
+// product, where neither shoppers nor Google's snippet logic gave it much weight). Collapsed to
+// ~260 chars; "Baca selengkapnya" reveals the full HTML in place.
+function CollectionIntro({description, html}) {
+  const [open, setOpen] = useState(false);
+  const text = String(description ?? '').replace(/\s+/g, ' ').trim();
+  if (text.length < 40) return null;
+  const LIMIT = 260;
+  const short = text.length > LIMIT ? text.slice(0, LIMIT).replace(/\s+\S*$/, '') + '…' : text;
+  const canExpand = text.length > LIMIT || (html && html.length > text.length + 40);
+  return (
+    <div className="mb-5 text-sm text-gray-600 leading-relaxed">
+      {open && html ? (
+        <div className="prose prose-sm max-w-none text-gray-600" dangerouslySetInnerHTML={{__html: html}} />
+      ) : (
+        <p>{open ? text : short}</p>
+      )}
+      {canExpand && (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="mt-1 text-sm font-semibold text-gray-900 hover:underline"
+        >
+          {open ? 'Tutup' : 'Baca selengkapnya'}
+        </button>
+      )}
+    </div>
+  );
 }
 
 // Festive "heboh & meriah" hero — ONLY rendered on the cuci-gudang collection
@@ -336,6 +378,7 @@ export default function Collection() {
 
       {/* Products */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        <CollectionIntro description={collection.description} html={collection.descriptionHtml} />
         <Pagination connection={collection.products}>
           {({nodes, isLoading, PreviousLink, hasNextPage, nextPageUrl, state}) => (
             <>
@@ -373,12 +416,6 @@ export default function Collection() {
           products={collection.products.nodes}
         />
 
-        {collection.descriptionHtml && (
-          <div
-            dangerouslySetInnerHTML={{__html: collection.descriptionHtml}}
-            className="mt-8 prose prose-sm max-w-none text-gray-600"
-          />
-        )}
       </div>
     </div>
   );

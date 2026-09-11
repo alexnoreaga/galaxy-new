@@ -17,7 +17,7 @@ export const meta = () => {
   const keywords = 'pengadaan kamera, pengadaan drone, pengadaan pemerintah, e-katalog inaproc, siplah, kamera instansi, drone profesional, pengadaan kamera mirrorless, pengadaan kamera dslr, penyedia kamera pemerintah, galaxy camera';
 
   // Canonical URL
-  const canonicalUrl = 'https://galaxy.co.id/pengadaan';
+  const canonicalUrl = 'https://www.galaxy.co.id/pengadaan';
 
   return [
     // Basic Meta Tags

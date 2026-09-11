@@ -374,8 +374,9 @@ dangerouslySetInnerHTML={{__html:`
         {/* Primary Meta Tags */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-        <meta name="description" content="Galaxy Camera - Toko Kamera Online Terlengkap dan Bergaransi Resmi. Jual Kamera Mirrorless, DSLR, Drone, Lensa dengan Harga Terbaik. Cicilan 0% tanpa kartu kredit. Gratis ongkir ke seluruh Indonesia." />
-        <meta name="keywords" content="toko kamera online, jual kamera, kamera mirrorless, kamera dslr, drone, lensa kamera, kamera murah, galaxy camera" />
+        {/* description / og:description / twitter:description are set PER ROUTE (every indexable
+            page has its own meta export). Global copies here produced two <meta name="description">
+            on every page — Google then picks whichever it likes. Removed 2026-09-11. */}
         <meta name="author" content="PT Galaxy Digital Niaga" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         
@@ -385,7 +386,6 @@ dangerouslySetInnerHTML={{__html:`
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Galaxy Camera - Toko Kamera Online Terpercaya | Harga Terbaik" />
-        <meta property="og:description" content="Belanja kamera, drone, lensa dengan garansi resmi. Cicilan 0%, gratis ongkir, terpercaya sejak 2012." />
         <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -396,7 +396,6 @@ dangerouslySetInnerHTML={{__html:`
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@galaxycamera99" />
         <meta name="twitter:title" content="Galaxy Camera - Toko Kamera Online Terpercaya" />
-        <meta name="twitter:description" content="Belanja kamera, drone, lensa dengan harga terbaik dan garansi resmi." />
         <meta name="twitter:image" content="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png" />
 
         {/* Theme & Browser */}

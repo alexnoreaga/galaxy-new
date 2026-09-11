@@ -10,7 +10,7 @@ export const meta = () => {
     {title},
     {name: 'description', content: description},
     {name: 'robots', content: 'index, follow'},
-    {tagName: 'link', rel: 'canonical', href: 'https://galaxy.co.id/blogs'},
+    {tagName: 'link', rel: 'canonical', href: 'https://www.galaxy.co.id/blogs'},
     {property: 'og:type', content: 'website'},
     {property: 'og:site_name', content: 'Galaxy Camera'},
     {property: 'og:title', content: title},

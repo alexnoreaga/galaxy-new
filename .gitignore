@@ -9,3 +9,6 @@ node_modules
 
 # Prevent accidental creation of non-splat brands route
 app/routes/brands.$handle.jsx
+
+# Search Console exports (local analysis only)
+seo/

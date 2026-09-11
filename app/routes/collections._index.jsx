@@ -235,7 +235,7 @@ export const meta = ({data}) => {
     'Jelajahi semua kategori produk Galaxy Camera: kamera, lensa, drone, action cam, dan aksesoris. Harga terbaik, garansi resmi, cicilan 0%, gratis ongkir seluruh Indonesia.';
   const keywords =
     'kategori produk kamera, koleksi kamera, toko kamera online, kamera mirrorless, kamera dslr, drone, lensa kamera, galaxy camera';
-  const canonicalUrl = 'https://galaxy.co.id/collections';
+  const canonicalUrl = 'https://www.galaxy.co.id/collections';
 
   const collectionCount = data?.collections?.nodes?.length || 0;
 

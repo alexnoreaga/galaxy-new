@@ -36,7 +36,7 @@ export const meta = () => {
   const keywords = `cicilan kamera, kredit kamera tanpa kartu kredit, cicilan 0%, kredivo kamera, home credit kamera, cicilan kamera mirrorless, cicilan kamera dslr, angsuran kamera`;
 
   // Canonical URL
-  const canonicalUrl = `https://galaxy.co.id/kredit-kamera`;
+  const canonicalUrl = `https://www.galaxy.co.id/kredit-kamera`;
 
   return [
     // Basic Meta Tags
