@@ -341,12 +341,11 @@ dangerouslySetInnerHTML={{__html:`
         <meta name="author" content="PT Galaxy Digital Niaga" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         
-        {/* Canonical URL */}
-        <link rel="canonical" href="https://galaxy.co.id" />
+        {/* Canonical + og:url are set PER ROUTE (product/collection/homepage meta). A global one
+            here produced a second, conflicting canonical → homepage on every page. Removed. */}
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://galaxy.co.id" />
         <meta property="og:title" content="Galaxy Camera - Toko Kamera Online Terpercaya | Harga Terbaik" />
         <meta property="og:description" content="Belanja kamera, drone, lensa dengan garansi resmi. Cicilan 0%, gratis ongkir, terpercaya sejak 2012." />
         <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png" />

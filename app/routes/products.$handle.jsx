@@ -467,7 +467,9 @@ export async function loader({params, context, request}) {
     selectedOptions.push({name, value});
   });
 
-  const canonicalUrl = request.url;
+  // Canonical must be the clean product URL — request.url carries ?variant=… on variant
+  // links, which would make every variant self-canonical (duplicate content in Google).
+  const canonicalUrl = (() => { const u = new URL(request.url); u.search = ''; u.hash = ''; return u.toString(); })();
   const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
   const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
@@ -3592,54 +3594,56 @@ export const meta = ({data}) => {
       "ratingValue": 5,
       "reviewCount": 1
     },
-    "offers": {
-      "@type": "Offer",
-      "price":data?.selectedVariant?.price?.amount && parseInt(data?.selectedVariant?.price?.amount,10).toString(),
-      "url":data.canonicalUrl,
-      "availability":data?.selectedVariant?.availableForSale? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "priceCurrency": "IDR",
-      "priceValidUntil": endDateFormatted,
-      // ENHANCED - Added seller info
-      "seller": {
-        "@type": "Organization",
-        "name": "PT Galaxy Digital Niaga"
-      },
-      "itemCondition": "https://schema.org/NewCondition",
-      "hasMerchantReturnPolicy": {
-        "@type": "MerchantReturnPolicy",
-        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-        "merchantReturnDays": 14,
-        "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
-        "applicableCountry": "ID"
-      },
-      "shippingDetails": {
-        "@type": "OfferShippingDetails",
-        "shippingRate": {
-          "@type": "MonetaryAmount",
-          "value": "0",
-          "currency": "IDR"
+    // One Offer PER VARIANT (e.g. "Standard Bundle" Rp13.999.000 / "Creator Bundle" Rp17.799.000)
+    // so Google/AI Overviews see every bundle price — previously only the selected variant's
+    // price was exposed, so multi-bundle products looked single-priced. Single-variant
+    // products keep the plain Offer shape.
+    "offers": (() => {
+      const offerCommon = {
+        "priceCurrency": "IDR",
+        "priceValidUntil": endDateFormatted,
+        "seller": { "@type": "Organization", "name": "PT Galaxy Digital Niaga" },
+        "itemCondition": "https://schema.org/NewCondition",
+        "hasMerchantReturnPolicy": {
+          "@type": "MerchantReturnPolicy",
+          "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+          "merchantReturnDays": 14,
+          "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
+          "applicableCountry": "ID"
         },
-        "deliveryTime": {
-          "@type": "ShippingDeliveryTime",
-          "handlingTime": {
-            "@type": "QuantitativeValue",
-            "minValue": 0,
-            "maxValue": 1,
-            "unitCode": "DAY"
+        "shippingDetails": {
+          "@type": "OfferShippingDetails",
+          "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "IDR" },
+          "deliveryTime": {
+            "@type": "ShippingDeliveryTime",
+            "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY" },
+            "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 3, "unitCode": "DAY" }
           },
-          "transitTime": {
-            "@type": "QuantitativeValue",
-            "minValue": 1,
-            "maxValue": 3,
-            "unitCode": "DAY"
-          }
-        },
-        "shippingDestination": {
-          "@type": "DefinedRegion",
-          "addressCountry": "ID"
+          "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ID" }
         }
+      };
+      const avail = (v) => (v?.availableForSale ? "https://schema.org/InStock" : "https://schema.org/OutOfStock");
+      const priceOf = (v) => (v?.price?.amount ? parseInt(v.price.amount, 10).toString() : undefined);
+      const variants = (data?.product?.variants?.nodes ?? []).filter((v) => v?.price?.amount);
+      if (variants.length > 1) {
+        return variants.map((v) => ({
+          "@type": "Offer",
+          "name": v.title && v.title !== 'Default Title' ? `${data.product.title} - ${v.title}` : data.product.title,
+          ...(v.sku ? { "sku": v.sku } : {}),
+          "price": priceOf(v),
+          "url": `${data.canonicalUrl}?variant=${String(v.id).split('/').pop()}`,
+          "availability": avail(v),
+          ...offerCommon,
+        }));
       }
-    }
+      return {
+        "@type": "Offer",
+        "price": priceOf(data?.selectedVariant),
+        "url": data.canonicalUrl,
+        "availability": avail(data?.selectedVariant),
+        ...offerCommon,
+      };
+    })()
   },
 },
 

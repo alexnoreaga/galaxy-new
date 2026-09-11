@@ -21,6 +21,27 @@ export async function loader({request, context: {storefront}}) {
     throw new Response('No data found', {status: 404});
   }
 
+  // The first query only returns the first 250 products. Page through the rest so the
+  // sitemap lists EVERY product (Luna Ultra & ~4,000 others were missing). Hard cap of
+  // 25 pages (6,250 products) as a safety net; cached long so crawlers don't re-trigger it.
+  try {
+    let pageInfo = data?.products?.pageInfo;
+    let pages = 0;
+    while (pageInfo?.hasNextPage && pageInfo?.endCursor && pages < 25) {
+      const more = await storefront.query(SITEMAP_PRODUCTS_PAGE_QUERY, {
+        variables: { after: pageInfo.endCursor, language: storefront.i18n.language },
+        cache: storefront.CacheLong(),
+      });
+      const nodes = more?.products?.nodes ?? [];
+      if (!nodes.length) break;
+      data.products.nodes.push(...nodes);
+      pageInfo = more?.products?.pageInfo;
+      pages++;
+    }
+  } catch {
+    // best-effort: a paging hiccup still leaves a valid (partial) sitemap
+  }
+
   // Fetch brand category data + Firestore comparisons in parallel
   const [brandCategoryData, comparisonRes, rekomendasiRes] = await Promise.all([
     storefront.query(BRAND_CATEGORIES_QUERY, { variables: { first: 250 } }),
@@ -268,6 +289,7 @@ const SITEMAP_QUERY = `#graphql
       first: $urlLimits
       query: "published_status:'online_store:visible'"
     ) {
+      pageInfo { hasNextPage endCursor }
       nodes {
         updatedAt
         handle
@@ -294,6 +316,30 @@ const SITEMAP_QUERY = `#graphql
         updatedAt
         handle
         onlineStoreUrl
+      }
+    }
+  }
+`;
+
+// Follow-up pages for products (Storefront caps a page at 250; the store has ~4,400).
+const SITEMAP_PRODUCTS_PAGE_QUERY = `#graphql
+  query SitemapProductsPage($after: String, $language: LanguageCode)
+  @inContext(language: $language) {
+    products(
+      first: 250
+      after: $after
+      query: "published_status:'online_store:visible'"
+    ) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        updatedAt
+        handle
+        onlineStoreUrl
+        title
+        featuredImage {
+          url
+          altText
+        }
       }
     }
   }
