@@ -30,6 +30,12 @@ export function getVariantUrl({
     : `/products/${handle}`;
 
   selectedOptions.forEach((option) => {
+    // Shopify's placeholder option for single-variant products ("Title: Default Title")
+    // carries no information but used to produce thousands of `?Title=Default+Title` URLs
+    // across every collection grid — Search Console listed ~13.9k of them as duplicates.
+    // Skip it so those products link to their clean canonical URL. Real options
+    // (Color / Size / Bundle) are still appended for deep-linking.
+    if (option.name === 'Title' && option.value === 'Default Title') return;
     searchParams.set(option.name, option.value);
   });
 
