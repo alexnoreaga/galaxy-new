@@ -1,7 +1,8 @@
 import React from 'react'
 import { useState, useEffect } from 'react';
+import { IsiBoxList } from '~/components/IsiBoxList';
 
-export const InfoProduk = ({deskripsi, specs, isibox, ulasan, reviewCount = 0}) => {
+export const InfoProduk = ({deskripsi, specs, isibox, variantTitle, ulasan, reviewCount = 0}) => {
 
     const [selectedContent, setSelectedContent] = useState("description");
     const [descExpanded, setDescExpanded] = useState(false);
@@ -81,14 +82,7 @@ export const InfoProduk = ({deskripsi, specs, isibox, ulasan, reviewCount = 0}) 
             </div>
           )}
           {selectedContent === 'box content' && isibox && (
-            <ul className="flex flex-col gap-1.5">
-              {isibox.split('\n').filter(Boolean).map((str) => (
-                <li key={str} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                  {str}
-                </li>
-              ))}
-            </ul>
+            <IsiBoxList value={isibox} variantTitle={variantTitle} />
           )}
           {selectedContent === 'specs' && specs}
           {selectedContent === 'reviews' && ulasan}

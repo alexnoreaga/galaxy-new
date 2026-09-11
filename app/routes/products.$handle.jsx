@@ -23,6 +23,7 @@ import { ModalBalasCepat } from '~/components/ModalBalasCepat';
 import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
+import { IsiBoxList } from '~/components/IsiBoxList';
 import { getAutomaticDiscounts, findProductAutoDiscount, findProductPwp } from '~/lib/autoDiscounts';
 import { getSocialProof } from '~/lib/socialProof';
 import { getVariantCosts, buildHargaBest } from '~/lib/hargaBest';
@@ -2385,24 +2386,14 @@ DP : 0
             </button>
 
             {isiDalamBoxOpen && (
-              <ul
-                onClick={() => copyToClipboard(product.metafields[2]?.value)}
-                title="Klik untuk menyalin semua"
-                className='px-4 py-3 flex flex-col gap-2 cursor-pointer group bg-white'
-              >
-                {product.metafields[2]?.value.split('\n').filter(Boolean).map((str) => (
-                  <li key={str} className='flex items-start gap-2.5 text-sm text-gray-700 leading-snug'>
-                    <span className='mt-2 w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0' />
-                    <span>{str}</span>
-                  </li>
-                ))}
-                <div className='mt-2 pt-2 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-gray-600 transition-colors'>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='w-3 h-3'>
-                    <path fill="currentColor" d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/>
-                  </svg>
-                  Klik untuk salin semua
-                </div>
-              </ul>
+              <div className='px-4 py-2 bg-white'>
+                {/* Grouped per variant when staff wrote "Isi Box <Varian> :" headers; flat list otherwise. */}
+                <IsiBoxList
+                  value={product.metafields[2]?.value}
+                  variantTitle={selectedVariant?.title}
+                  onCopy={copyToClipboard}
+                />
+              </div>
             )}
           </div>}
           
@@ -2697,6 +2688,7 @@ DP : 0
         deskripsi={(<div className="w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-img:max-w-full prose-ul:my-2 prose-ol:my-2 pt-2 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl [&_iframe]:my-4 [&_iframe]:max-w-full"
               dangerouslySetInnerHTML={{ __html: stripYouTubeIframes(product.descriptionHtml) }}/></div>)}
         isibox={product.metafields[2]?.value}
+        variantTitle={selectedVariant?.title}
         specs={(<div className="overflow-x-auto w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-strong:text-gray-900 prose-strong:font-semibold prose-table:text-sm pt-2"
               dangerouslySetInnerHTML={{ __html:product.metafields[5]?.value }}/></div>)}
         ulasan={<ReviewSection product={product} reviewsPromise={reviewsList} />}
