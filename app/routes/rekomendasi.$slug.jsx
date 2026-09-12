@@ -77,7 +77,7 @@ export async function loader({ params, context }) {
 
 export const meta = ({ data }) => {
   if (!data?.title) return [{ title: 'Rekomendasi | Galaxy Camera' }];
-  const url = `https://galaxy.co.id/rekomendasi/${data.slug}`;
+  const url = `https://www.galaxy.co.id/rekomendasi/${data.slug}`;
   const productNames = data.products?.map(p => p.title).join(', ') || '';
   const description = `${data.title}. Rekomendasi lengkap dari editor Galaxy Camera: ${productNames}. Analisis mendalam, pros & cons, harga terkini, dan verdict untuk setiap produk.`;
   const image = data.products?.[0]?.image || 'https://galaxy.co.id/icon-512x512.png';
@@ -155,7 +155,7 @@ export default function RekomendasiSlug() {
             {
               '@context': 'https://schema.org',
               '@type': 'Article',
-              mainEntityOfPage: { '@type': 'WebPage', '@id': `https://galaxy.co.id/rekomendasi/${slug}` },
+              mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.galaxy.co.id/rekomendasi/${slug}` },
               headline: title,
               description: content?.intro?.slice(0, 160),
               image: {
@@ -180,7 +180,7 @@ export default function RekomendasiSlug() {
               '@type': 'ItemList',
               name: title,
               description: content?.intro?.slice(0, 160),
-              url: `https://galaxy.co.id/rekomendasi/${slug}`,
+              url: `https://www.galaxy.co.id/rekomendasi/${slug}`,
               numberOfItems: products.length,
               itemListElement: products.map((p, i) => ({
                 '@type': 'ListItem',
@@ -195,8 +195,8 @@ export default function RekomendasiSlug() {
               '@type': 'BreadcrumbList',
               itemListElement: [
                 { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://galaxy.co.id' },
-                { '@type': 'ListItem', position: 2, name: 'Rekomendasi', item: 'https://galaxy.co.id/rekomendasi' },
-                { '@type': 'ListItem', position: 3, name: title, item: `https://galaxy.co.id/rekomendasi/${slug}` },
+                { '@type': 'ListItem', position: 2, name: 'Rekomendasi', item: 'https://www.galaxy.co.id/rekomendasi' },
+                { '@type': 'ListItem', position: 3, name: title, item: `https://www.galaxy.co.id/rekomendasi/${slug}` },
               ],
             },
           ]),

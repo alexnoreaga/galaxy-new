@@ -8,7 +8,7 @@ const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/d
 export const meta = ({ data }) => {
   const title = 'Rekomendasi Kamera Terbaik 2025 | Galaxy Camera';
   const description = 'Rekomendasi kamera, mirrorless, action camera, dan drone terbaik pilihan editor Galaxy Camera. Panduan beli berdasarkan review nyata, spesifikasi lengkap, dan harga terkini di Indonesia.';
-  const url = 'https://galaxy.co.id/rekomendasi';
+  const url = 'https://www.galaxy.co.id/rekomendasi';
   const image = 'https://galaxy.co.id/icon-512x512.png';
   return [
     { title },
@@ -101,7 +101,7 @@ export default function RekomendasiIndex() {
     '@type': 'CollectionPage',
     name: 'Rekomendasi Kamera Terbaik 2025',
     description: 'Rekomendasi kamera, mirrorless, action camera, dan drone terbaik pilihan editor Galaxy Camera.',
-    url: 'https://galaxy.co.id/rekomendasi',
+    url: 'https://www.galaxy.co.id/rekomendasi',
     publisher: {
       '@type': 'Organization',
       name: 'Galaxy Camera',
@@ -111,7 +111,7 @@ export default function RekomendasiIndex() {
     hasPart: items.map(item => ({
       '@type': 'Article',
       name: item.title,
-      url: `https://galaxy.co.id/rekomendasi/${item.slug}`,
+      url: `https://www.galaxy.co.id/rekomendasi/${item.slug}`,
       datePublished: item.createdAt,
       image: item.coverImage || 'https://galaxy.co.id/icon-512x512.png',
     })),
