@@ -665,10 +665,11 @@ query askCollections {
 const COLLECTION_RECOMMEND_QUERY = `#graphql
 query askCollectionRecommend($handle: String!, $filters: [ProductFilter!]) {
   collection(handle: $handle) {
-    products(first: 5, filters: $filters, sortKey: BEST_SELLING) {
+    products(first: 30, filters: $filters, sortKey: BEST_SELLING) {
       nodes {
         title
         handle
+        productType
         availableForSale
         featuredImage { url }
         priceRange { minVariantPrice { amount } }
@@ -732,10 +733,11 @@ function isAccessoryText(text) {
 // they want to buy — so the router must NOT search for that camera.
 const SUPPORT_GEAR_RE = /\b(gimbal|stabilizer|steadicam|glidecam|tripod|monopod|mount|rig|cage|slider|shoulder ?rig|clamp|l-?bracket|quick ?release|base ?plate|selfie ?stick|tongsis|dolly|jib|crane)\b/i;
 
-function mapProducts(items) {
-  return items.slice(0, 3).map(p => ({
+function mapProducts(items, limit = 3) {
+  return items.slice(0, limit).map(p => ({
     title: p.title,
     handle: p.handle,
+    type: p.productType || '',
     image: p.featuredImage?.url ?? null,
     price: Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0)),
     available: p.availableForSale,
@@ -776,6 +778,41 @@ async function findCategoryAlternatives(context, handle, excludeHandles = []) {
     return [];
   }
 }
+
+// ── Wide recommendation pool ────────────────────────────────────────────────
+// Grisela used to see only the 5 best sellers per collection; now up to 30 per collection
+// (≤ RECOMMEND_POOL_MAX after merging) so she can match real needs (vlog, low light, travel…)
+// and pick the cards herself via the [PILIH: handle,…] marker.
+const RECOMMEND_POOL_MAX = 60;
+const MODEL_NOISE = new Set(['alpha', 'kamera', 'camera', 'digital', 'mirrorless', 'kit', 'body', 'only', 'bo', 'with', 'lens', 'lensa', 'resmi', 'garansi', 'original']);
+// Collapse kit/body variants of one model so a single model doesn't eat several slots.
+const MODEL_GEN_RE = /^(ii|iii|iv|v|vi|vii|viii|mark|mk|gen|2|3|4|5|6|7|8)$/;
+function modelKey(title) {
+  const t = String(title || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w && !MODEL_NOISE.has(w));
+  const key = t.slice(0, 3);
+  // Generation markers right after the base model stay in the key ("zv e10 ii", "eos r6 mark iii",
+  // "osmo action 5"); a lens spec like "16 50mm" does not match, so kit/body still collapse.
+  for (let i = 3; i < t.length && key.length < 5 && MODEL_GEN_RE.test(t[i]); i++) key.push(t[i]);
+  return key.join(' ');
+}
+function dedupeModels(items) {
+  const seen = new Set();
+  return items.filter(p => {
+    const key = modelKey(p.title);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function candidateListText(products) {
+  return products
+    .map(p => `- ${p.title} | Rp${p.price.toLocaleString('id-ID')}${p.type ? ` | ${p.type}` : ''} | handle: ${p.handle}`)
+    .join('\n');
+}
+const RECOMMEND_PICK_INSTRUCTIONS = `- Semua kandidat di atas READY STOCK. PILIH 2-4 produk yang PALING SESUAI kebutuhan customer (vlog, low light, travel, pemula, foto produk, dsb) — gunakan pengetahuanmu tentang karakter tiap model. Kalau customer tidak menyebut kebutuhan khusus, pilih dari urutan teratas (terlaris) dengan variasi harga.
+- Akhiri jawaban dengan marker PERSIS format ini: [PILIH: handle1, handle2, handle3] — isi 2-4 handle dari kolom "handle" di daftar kandidat, urutkan dari yang paling kamu rekomendasikan. Sistem mengubah marker itu menjadi kartu produk bergambar (foto, harga, link) tepat di bawah jawabanmu.
+- Karena kartunya otomatis: JANGAN tulis link, JANGAN sebutkan harga satu per satu — cukup nama produk + 1 alasan singkat kenapa cocok, lalu "ini pilihannya ya 👇". JANGAN menyebut produk yang tidak ada di daftar kandidat.
+- Marker [PILIH: …] WAJIB di posisi PALING AKHIR jawaban — tanpa kalimat/pertanyaan/"|||" setelahnya.`;
 
 function productListText(products) {
   return products
@@ -969,23 +1006,29 @@ Output:`;
         };
       }
 
-      const products = mapProducts(items);
+      // Wide pool (kit/body variants collapsed, best-selling order kept). `pick: true` tells the
+      // post-answer step to turn Grisela's [PILIH: …] marker into the cards.
+      const pool = dedupeModels(items).slice(0, RECOMMEND_POOL_MAX);
+      const products = mapProducts(pool, RECOMMEND_POOL_MAX);
+      const budgetText = `Rp${min.toLocaleString('id-ID')}–Rp${max.toLocaleString('id-ID')}`;
       if (stretched) {
         return {
-          contextText: `Customer minta rekomendasi budget Rp${min.toLocaleString('id-ID')}–Rp${max.toLocaleString('id-ID')}. TIDAK ADA yang pas persis di budget itu, tapi ini pilihan TERDEKAT (sedikit di luar budget):
-${productListText(products)}
-${CARD_INSTRUCTIONS}
-- Jujur bilang di budget persisnya belum ada, lalu tawarkan opsi terdekat ini dengan framing positif, contoh: "kalau naik sedikit, ada ini ka — worth it banget"
+          contextText: `Customer minta rekomendasi budget ${budgetText}. TIDAK ADA yang pas persis di budget itu, tapi ini KANDIDAT TERDEKAT (sedikit di luar budget), ${products.length} produk ready stock, urut terlaris:
+${candidateListText(products)}
+${RECOMMEND_PICK_INSTRUCTIONS}
+- Jujur bilang di budget persisnya belum ada, lalu tawarkan pilihanmu dengan framing positif, contoh: "kalau naik sedikit, ada ini ka — worth it banget"
 - Sebut selisih harganya secara natural`,
           products,
+          pick: true,
         };
       }
       return {
-        contextText: `REKOMENDASI PRODUK TERLARIS sesuai kategori & budget customer (Rp${min.toLocaleString('id-ID')}–Rp${max.toLocaleString('id-ID')}):
-${productListText(products)}
-${CARD_INSTRUCTIONS}
-- Sebut singkat kenapa produk ini cocok untuk kebutuhan customer (1 kalimat), lalu tanya kebutuhan pemakaiannya untuk mempersempit pilihan`,
+        contextText: `KANDIDAT REKOMENDASI (${products.length} produk ready stock, urut terlaris) sesuai kategori & budget customer ${budgetText}:
+${candidateListText(products)}
+${RECOMMEND_PICK_INSTRUCTIONS}
+- Sebut singkat kenapa tiap pilihanmu cocok untuk kebutuhan customer, lalu tanya kebutuhan pemakaiannya kalau belum jelas untuk mempersempit pilihan`,
         products,
+        pick: true,
       };
     }
 
@@ -1500,6 +1543,21 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     answer = 'Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊';
   }
 
+  // [PILIH: h1, h2, …] marker (recommendation branch) → the cards become Grisela's own picks,
+  // in her order. Marker missing/invalid → fall back to the top-3 best sellers of the pool.
+  let responseProducts = foundProducts;
+  if (storeSearch?.pick && Array.isArray(foundProducts)) {
+    const pickMatch = answer.match(/\[PILIH:\s*([^\]]*)\]/i);
+    if (pickMatch) {
+      const byHandle = new Map(foundProducts.map(p => [String(p.handle).toLowerCase(), p]));
+      const picked = pickMatch[1].split(/[,;\s]+/).map(h => h.trim().toLowerCase()).filter(Boolean)
+        .map(h => byHandle.get(h)).filter(Boolean);
+      responseProducts = [...new Map(picked.map(p => [p.handle, p])).values()].slice(0, 4);
+    }
+    if (!responseProducts || responseProducts.length === 0) responseProducts = foundProducts.slice(0, 3);
+  }
+  answer = answer.replace(/\s*\[PILIH:[^\]]*\]\s*/gi, ' ').replace(/ +/g, ' ').trim();
+
   // [VOUCHER] marker → strip it and attach voucher cards to the response
   let responseVouchers;
   if (answer.includes('[VOUCHER]')) {
@@ -1662,7 +1720,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     // Persist the visual attachments the customer saw (product cards, vouchers, marketplace
     // links) so the admin viewer renders the same thing — JSON string on the last AI part.
     const attach = {};
-    if (foundProducts) attach.products = foundProducts;
+    if (responseProducts) attach.products = responseProducts;
     if (responseVouchers) attach.vouchers = responseVouchers;
     if (marketplaceLinks) attach.marketplaces = marketplaceLinks;
     if (negoCode) attach.negoCode = negoCode;
@@ -1735,7 +1793,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         },
       });
       await memPromise;
-      return json({ answer, conversationId: newConvId, products: foundProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
+      return json({ answer, conversationId: newConvId, products: responseProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
     }
   }
 
@@ -1748,5 +1806,5 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     }).catch(() => {});
   }
 
-  return json({ answer, products: foundProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
+  return json({ answer, products: responseProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
 }
