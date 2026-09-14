@@ -1,6 +1,7 @@
 import {json} from '@shopify/remix-oxygen';
 import {NO_PREDICTIVE_SEARCH_RESULTS} from '~/components/Search';
 import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
+import { getSocialProof } from '~/lib/socialProof';
 
 // Applies an active flash-sale discount to a search item's price (returns {flashPrice, originalPrice} or null)
 function computeFlash(item, discounts) {
@@ -92,39 +93,61 @@ async function fetchPredictiveSearchResults({params, request, context}) {
     params.locale,
   );
 
-  const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
-  const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
-  const productsGroup = searchResults.results.find(r => r.type === 'products');
+  let productsGroup = searchResults.results.find(r => r.type === 'products');
+
+  // Shopify's predictive engine sometimes returns far fewer products than `limit` for broad
+  // brand words ("sony" → 4 accessories, no ZV-E10 / A7 IV). Top the list up with best-selling
+  // matches from the regular product search so brand queries always show a full, sensible row.
+  const haveCount = productsGroup?.items?.length || 0;
+  if (haveCount < limit && searchTerm.trim().length >= 2) {
+    try {
+      const fill = await context.storefront.query(PREDICTIVE_FILL_QUERY, {
+        variables: { first: limit, query: searchTerm.trim() },
+      });
+      const seen = new Set((productsGroup?.items || []).map(p => p.handle));
+      const localePrefix = params.locale ? `/${params.locale}` : '';
+      // Free-text search also matches descriptions ("sony" → an Akaso cam that mentions Sony),
+      // so rank: term in title first, then in-stock, then keep Shopify's best-selling order.
+      const termLc = searchTerm.trim().toLowerCase();
+      const extra = (fill?.products?.nodes || [])
+        .filter(p => p?.handle && !seen.has(p.handle) && p.variants?.nodes?.[0]?.price)
+        .map((p, i) => ({ p, i, score: (String(p.title).toLowerCase().includes(termLc) ? 2 : 0) + (p.availableForSale !== false ? 1 : 0) }))
+        .sort((a, b) => b.score - a.score || a.i - b.i)
+        .map(({ p }) => p)
+        .slice(0, limit - haveCount)
+        .map(p => ({
+          __typename: 'Product',
+          handle: p.handle,
+          id: p.id,
+          image: p.variants?.nodes?.[0]?.image,
+          title: p.title,
+          productType: p.productType || '',
+          url: `${localePrefix}/products/${p.handle}`,
+          price: p.variants.nodes[0].price,
+          variantId: p.variants.nodes[0].id,
+          availableForSale: p.availableForSale !== false,
+        }));
+      if (extra.length) {
+        if (!productsGroup) {
+          productsGroup = { type: 'products', items: [] };
+          searchResults.results.push(productsGroup);
+        }
+        productsGroup.items = [...productsGroup.items, ...extra];
+        searchResults.totalResults = (searchResults.totalResults || 0) + extra.length;
+      }
+    } catch {
+      // best-effort: predictive results still render without the top-up
+    }
+  }
   const productItems = productsGroup?.items || [];
 
   if (productItems.length) {
     const handles = productItems.map(p => p.handle);
-    const [soldEntries, reviewEntries, discounts] = await Promise.all([
-      Promise.all(handles.map(handle =>
-        fetch(`${FIRESTORE_BASE}/sold_counts/${handle}?key=${FIRESTORE_KEY}`)
-          .then(res => res.ok ? res.json() : null)
-          .then(doc => [handle, parseInt(doc?.fields?.count?.integerValue || 0)])
-          .catch(() => [handle, 0])
-      )),
-      Promise.all(handles.map(handle =>
-        fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({structuredQuery: {from: [{collectionId: 'reviews'}], where: {fieldFilter: {field: {fieldPath: 'productHandle'}, op: 'EQUAL', value: {stringValue: handle}}}, select: {fields: [{fieldPath: 'rating'}]}, limit: 100}}),
-        })
-        .then(res => res.ok ? res.json() : null)
-        .then(rows => {
-          const ratings = (rows || []).filter(r => r.document).map(r => parseInt(r.document.fields?.rating?.integerValue || 5));
-          const count = ratings.length;
-          const avg = count > 0 ? parseFloat((ratings.reduce((s, r) => s + r, 0) / count).toFixed(1)) : 0;
-          return [handle, count > 0 ? {count, avg} : null];
-        })
-        .catch(() => [handle, null])
-      )),
+    // One batched (and cached) call instead of 2 Firestore requests per product per keystroke.
+    const [{ soldCounts: soldMap, reviewSummaries: reviewMap }, discounts] = await Promise.all([
+      getSocialProof(handles),
       getAutomaticDiscounts(context.env).catch(() => []),
     ]);
-    const soldMap = Object.fromEntries(soldEntries);
-    const reviewMap = Object.fromEntries(reviewEntries);
     productsGroup.items = productItems.map(item => ({
       ...item,
       sold: soldMap[item.handle] || 0,
@@ -266,6 +289,30 @@ export function normalizePredictiveSearchResults(predictiveSearch, locale) {
 
   return {results, totalResults};
 }
+
+// Regular product search, best-selling first — used only to top up short predictive lists.
+const PREDICTIVE_FILL_QUERY = `#graphql
+  query PredictiveFill($first: Int!, $query: String!, $country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
+    products(first: $first, query: $query, sortKey: BEST_SELLING) {
+      nodes {
+        __typename
+        id
+        title
+        handle
+        productType
+        availableForSale
+        variants(first: 1) {
+          nodes {
+            id
+            image { url altText width height }
+            price { amount currencyCode }
+          }
+        }
+      }
+    }
+  }
+`;
 
 const PREDICTIVE_SEARCH_QUERY = `#graphql
   fragment PredictiveArticle on Article {

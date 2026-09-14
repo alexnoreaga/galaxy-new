@@ -415,6 +415,7 @@ export function PredictiveSearchForm({
   const inputRef = useRef(null);
   const gaTimer = useRef(null);
   const gaLastTerm = useRef('');
+  const submitTimer = useRef(null);
 
   function fetchResults(event) {
     const searchAction = action ?? '/api/predictive-search';
@@ -422,10 +423,12 @@ export function PredictiveSearchForm({
       ? `/${params.locale}${searchAction}`
       : searchAction;
     const newSearchTerm = event.target.value || '';
-    fetcher.submit(
-      {q: newSearchTerm, limit: '8'},
-      {method, action: localizedAction},
-    );
+    // One request 200 ms after the shopper pauses typing, not one per keystroke. Focus (no
+    // typing) submits immediately so the dropdown opens without a delay.
+    clearTimeout(submitTimer.current);
+    const submit = () => fetcher.submit({q: newSearchTerm, limit: '8'}, {method, action: localizedAction});
+    if (event.type === 'focus') submit();
+    else submitTimer.current = setTimeout(submit, 200);
     // GA4 `search`: most shoppers never reach /search?q= (they click a predictive result),
     // so GA4's automatic site-search never sees them. Fire once the shopper pauses typing.
     clearTimeout(gaTimer.current);

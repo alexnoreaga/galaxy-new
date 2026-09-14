@@ -6,8 +6,46 @@
 const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
 
+// In-memory cache per server instance: sold/review numbers change slowly, but the predictive
+// search box asks for them on every keystroke. 10 min TTL; misses are fetched in one batch.
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const CACHE_MAX = 5000;
+const cache = new Map(); // handle → { sold, review, at }
+
 export async function getSocialProof(handles) {
   const list = [...new Set((handles || []).filter(Boolean))];
+  const soldCounts = {};
+  const reviewSummaries = {};
+  if (list.length === 0) return { soldCounts, reviewSummaries };
+  const now = Date.now();
+  const misses = [];
+  for (const h of list) {
+    const c = cache.get(h);
+    if (c && now - c.at < CACHE_TTL_MS) {
+      if (c.sold) soldCounts[h] = c.sold;
+      if (c.review) reviewSummaries[h] = c.review;
+    } else {
+      misses.push(h);
+    }
+  }
+  if (misses.length) {
+    const fresh = await fetchSocialProofUncached(misses);
+    for (const h of misses) {
+      const sold = fresh.soldCounts[h] || 0;
+      const review = fresh.reviewSummaries[h] || null;
+      cache.set(h, { sold, review, at: now });
+      if (sold) soldCounts[h] = sold;
+      if (review) reviewSummaries[h] = review;
+    }
+    if (cache.size > CACHE_MAX) {
+      const cutoff = now - CACHE_TTL_MS;
+      for (const [k, v] of cache) if (v.at < cutoff) cache.delete(k);
+    }
+  }
+  return { soldCounts, reviewSummaries };
+}
+
+async function fetchSocialProofUncached(list) {
   const soldCounts = {};
   const reviewSummaries = {};
   if (list.length === 0) return { soldCounts, reviewSummaries };
