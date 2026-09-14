@@ -284,7 +284,9 @@ Contoh format: ["Apakah ada garansi resmi?","Bisa cicilan berapa bulan?","Apa ya
 
 const PRODUCT_SEARCH_QUERY = `#graphql
 query askPredictiveSearch($searchTerm: String!) {
-  predictiveSearch(limit: 10, limitScope: EACH, query: $searchTerm, types: [PRODUCT]) {
+  # unavailableProducts: SHOW — Shopify's default (LAST) pushed sold-out items past the limit, so
+  # a customer asking for e.g. "Sigma 18-50 Fuji" (in catalog, stock 0) got "tidak ada di katalog".
+  predictiveSearch(limit: 10, limitScope: EACH, query: $searchTerm, types: [PRODUCT], unavailableProducts: SHOW) {
     products {
       title
       handle
@@ -802,7 +804,7 @@ function productListTextWithCicilan(products) {
 }
 
 const CARD_INSTRUCTIONS = `- PENTING: produk di atas akan OTOMATIS ditampilkan sebagai kartu bergambar (foto, harga, link) tepat di bawah jawabanmu. JANGAN tulis link dan JANGAN sebutkan semua harga satu per satu — cukup jawab natural dan singkat, contoh: "Ada kak, ready stock! Ini pilihannya ya 👇"
-- Jika status "Stok habis": beri tahu stoknya sedang habis (masih ada kemungkinan restock).
+- Jika status "Stok habis": produknya ADA di katalog, hanya stok WEBSITE yang kosong — stok fisik toko bisa berbeda. Sebutkan harganya (customer sering tanya harga/total walau stok kosong), lalu tawarkan konfirmasi cepat ke admin di 0821-1131-1131 dan/atau catat nama & nomor WA supaya dikabari saat restock (jika customer setuju dan kasih nomor → marker LEAD alasan=restock). JANGAN PERNAH bilang produknya "tidak ada / tidak tersedia di katalog".
 - Jika status "DISCONTINUED": produk ini SUDAH TIDAK DIPRODUKSI/DIJUAL LAGI — JANGAN bilang sekadar "stok habis" atau seolah bisa restock. Sampaikan dengan sopan bahwa produknya sudah discontinued, lalu langsung tawarkan alternatif/pengganti yang serupa. JANGAN PERNAH menyebut produk berstatus DISCONTINUED sebagai rekomendasi/pilihan/alternatif — statusnya hanya disebut kalau customer menanyakan produk itu secara spesifik.`;
 
 // Detect whether the customer is asking about other products or a recommendation, and query the catalog
@@ -1101,12 +1103,14 @@ ${notFoundRules}`,
         return {
           contextText: `Customer menanyakan "${keyword}". Status produk yang dicari:
 ${productListText(products)}
-- Produk yang dicari SEDANG TIDAK TERSEDIA. Sampaikan statusnya dengan jujur & sopan (kalau DISCONTINUED jangan bilang sekadar "stok habis" / seolah bisa restock).
-- Kartu produk di bawah jawabanmu adalah ALTERNATIF SEJENIS dari kategori yang sama yang READY STOCK — tawarkan sebagai pengganti, bukan sebagai produk yang dicari. Contoh: "Untuk ${searchKeywords[0]} lagi kosong ka, tapi ini beberapa alternatif sejenis yang ready 👇"
+- Produk yang dicari ADA di katalog tapi stok WEBSITE-nya kosong (kalau DISCONTINUED: sudah tidak dijual — jangan bilang sekadar "stok habis" / seolah bisa restock). JANGAN bilang "tidak ada di katalog".
+- Untuk yang "Stok habis": sebutkan harganya kalau customer tanya harga/total, jelaskan stok fisik toko bisa berbeda, tawarkan konfirmasi cepat ke admin di 0821-1131-1131 dan/atau catat nama & nomor WA supaya dikabari saat restock (jika customer setuju dan kasih nomor → marker LEAD alasan=restock).
+- Kartu pertama di bawah jawabanmu adalah produk yang dicari (berlabel stok habis); kartu berikutnya ALTERNATIF SEJENIS dari kategori yang sama yang READY STOCK — tawarkan sebagai pengganti. Contoh: "${searchKeywords[0]} ada di katalog ka, tapi stok website lagi kosong — coba konfirmasi admin dulu untuk stok fisik ya. Sementara itu ini alternatif yang ready 👇"
 Alternatif ready stock (dari kategori yang sama):
 ${productListTextWithCicilan(alts)}
 ${CARD_INSTRUCTIONS}`,
-          products: alts,
+          // Searched product (sold out, not discontinued) stays visible with its price; then alternatives.
+          products: [...products.filter(p => !p.discontinued).slice(0, 1), ...alts].slice(0, 3),
         };
       }
     }
