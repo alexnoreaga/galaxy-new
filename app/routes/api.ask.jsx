@@ -712,8 +712,18 @@ const ACCESSORY_FOR_RE = /\b(for|buat|untuk)\s+(all|the|your|semua|gopro|hero|dj
 // Named accessory kits only (never a bare "kit", which is usually a camera+lens kit)
 const ACCESSORY_KIT_RE = /\b(adventure|sports?|travel|action|vlog(ging)?|starter|holiday|grip|hand ?grip|head ?strap|accessory|aksesoris) kit\b/i;
 
+// Interchangeable lenses are MAIN products even when the title says "for <brand>" (Sigma 18-50mm
+// For Fujifilm X). Only lens accessories (hood, cap, guard, filter…) stay accessories.
+const LENS_MAIN_RE = /\b(lensa|lens)\b/i;
+const LENS_FOCAL_RE = /\b\d{1,4}(\s?-\s?\d{1,4})?\s?mm\b/i;
+const LENS_ACC_RE = /lens ?(guard|cap|hood|protector|cover|pouch|case|cloth|pen|adapter|adaptor|filter|mount)|macro ?lens|\bfilter\b|\bhood\b/i;
+
+// "<brand> … <model number>" — e.g. "sigma 18-50", "Sony A6400", "Insta360 X5", "Fujinon XF 18-55mm".
+const BRAND_MODEL_RE = /\b(sigma|tamron|fujinon|fujifilm|fuji|sony|canon|nikon|nikkor|viltrox|samyang|yongnuo|dji|insta ?360|gopro|godox|hollyland|rode|saramonic|zhiyun|smallrig|lexar|sandisk|panasonic|lumix|ricoh|pentax|leica|olympus|om system|kodak|yashica|akaso|brica|ulanzi|feiyu(?:tech)?|moza|obsbot|elgato|benro|manfrotto|peak design|k&f|hoverair|zoom|tascam|aputure|nanlite)\b[\w\s\-\/.]{0,30}?\d[\w\-\/.]*/i;
+
 function isAccessoryText(text) {
   const t = text ?? '';
+  if (LENS_MAIN_RE.test(t) && LENS_FOCAL_RE.test(t) && !LENS_ACC_RE.test(t)) return false;
   return ACCESSORY_RE.test(t) || ACCESSORY_FOR_RE.test(t) || ACCESSORY_KIT_RE.test(t);
 }
 
@@ -820,7 +830,7 @@ async function searchStoreProducts(context, question, messages, currentProduct =
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Analisa pertanyaan customer, output TEPAT SATU baris dengan salah satu format:
 1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna"). Jika customer menyebut DUA produk sekaligus, pisahkan dengan ";" (maksimal 2): SEARCH: produk pertama; produk kedua
 2. REKOMENDASI: <handle1,handle2,handle3> | <harga_min>-<harga_max> | <brand atau -> — customer minta rekomendasi/saran produk. Pilih 1-3 collection_handle paling relevan dari DAFTAR KOLEKSI di bawah, urutkan dari yang paling cocok (dipisah koma). Budget: "6 jutaan" = 5000000-7000000, "dibawah 10jt" = 0-10000000, "sekitar 15 juta" = 13000000-17000000, tanpa budget = 0-999999999. Segmen ketiga: nama BRAND jika customer menyebut/menginginkan brand tertentu (contoh: Sony), atau "-" jika bebas brand
-3. UPSELL: <aksesoris1>; <aksesoris2> — customer BARU SAJA menyatakan jadi/mau beli produk yang sedang dilihat ("oke aku ambil", "jadi deh", "gas order", "oke order via website", "mau yang ini"). Pilih 2 aksesoris pelengkap paling relevan untuk produk itu, gunakan pengetahuanmu tentang model yang kompatibel (contoh: memory card SD, baterai cadangan model yang cocok). TAPI jika di riwayat percakapan kamu SUDAH pernah menawarkan aksesoris, output NO
+3. UPSELL: <aksesoris1>; <aksesoris2> — customer BARU SAJA menyatakan jadi/mau beli produk yang sedang dilihat ("oke aku ambil", "jadi deh", "gas order", "oke order via website", "mau yang ini"). Pilih 2 aksesoris pelengkap paling relevan untuk produk itu, gunakan pengetahuanmu tentang model yang kompatibel (contoh: memory card SD, baterai cadangan model yang cocok). TAPI jika di riwayat percakapan kamu SUDAH pernah menawarkan aksesoris, output NO. JANGAN UPSELL jika customer menyebut produk LAIN yang spesifik (merek + model, contoh "berapa jika beli bersama lensa sigma 18-50") — itu SEARCH: produk tersebut
 4. NO — bukan pencarian, rekomendasi, atau komitmen beli
 
 Jika customer menyebut "baterainya", "chargernya", "lensanya" dll yang merujuk ke produk yang sedang dilihat, gunakan pengetahuanmu tentang aksesoris yang kompatibel — sebutkan model spesifiknya (contoh: baterai Sony A6400 = NP-FW50, baterai Canon EOS RP = LP-E17).
@@ -872,7 +882,23 @@ Pertanyaan customer: "${question}"
 Output:`;
 
     const routerRes = await router.generateContent(routerPrompt);
-    const out = routerRes.response.text().trim().split('\n')[0].trim().replace(/^["']|["']$/g, '');
+    let out = routerRes.response.text().trim().split('\n')[0].trim().replace(/^["']|["']$/g, '');
+
+    // Deterministic guard: if the customer names a specific OTHER product (brand + model number),
+    // it must be a SEARCH even when the router said UPSELL (the word "beli" in "jika beli bersama
+    // lensa sigma 18-50" tripped the commit rule → ready-only upsell → "tidak ada di katalog") or NO.
+    if (/^(UPSELL:|NO\b)/i.test(out)) {
+      const m = String(question || '').match(BRAND_MODEL_RE);
+      if (m) {
+        const phrase = m[0].replace(/\s+/g, ' ').trim();
+        const modelToken = (phrase.match(/\d[\w\-\/.]*/) || [''])[0].toLowerCase();
+        const isCurrent = modelToken && String(currentProduct || '').toLowerCase().includes(modelToken);
+        if (!isCurrent) {
+          console.log('[api.ask] router said', out.split(':')[0], '→ forced SEARCH for', phrase);
+          out = `SEARCH: ${phrase}`;
+        }
+      }
+    }
     if (!out || out.toUpperCase() === 'NO' || out.length > 120) return empty;
 
     // ── Recommendation branch: candidate collections + budget filter, best sellers first ──
