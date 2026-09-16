@@ -25,6 +25,16 @@ import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
 import { IsiBoxList } from '~/components/IsiBoxList';
 import { gaEvent, gaProductItem } from '~/lib/analytics';
+
+// custom.unit_demo → ["Tangerang","Depok"] (list metafield = JSON string). Tolerates a plain
+// single-line value ("Tangerang, Depok") in case staff created the definition as plain text.
+function parseDemoStores(raw) {
+  if (!raw) return [];
+  let list;
+  try { list = JSON.parse(raw); } catch { list = String(raw).split(/[,;\n]/); }
+  if (!Array.isArray(list)) list = [String(list)];
+  return list.map((x) => String(x).trim()).filter(Boolean).slice(0, 3);
+}
 import { getAutomaticDiscounts, findProductAutoDiscount, findProductPwp } from '~/lib/autoDiscounts';
 import { getSocialProof } from '~/lib/socialProof';
 import { getVariantCosts, buildHargaBest } from '~/lib/hargaBest';
@@ -2285,14 +2295,22 @@ DP : 0
                   label, separated by subtle dots. Position 6 mobile, 3 desktop. */}
               {(() => {
                 const showStock = !product?.metafields[12]?.value && selectedVariant?.availableForSale;
+                const demoStores = parseDemoStores(product?.metafields[16]?.value);
+                const hasDemo = demoStores.length > 0;
                 const showGaransi = !!product.metafields[0]?.value;
                 const showRetur = showStock; // 14-hari tukar baru applies to in-stock, non-discontinued items
+                // Unit demo (custom.unit_demo) renders as its own "store strip" UNDER the chip row, so
+                // the three chips stay regardless (owner's earlier hide-rule was for the inline pill).
+                const demoLabel = hasDemo
+                  ? (/^semua/i.test(demoStores[0]) ? 'Semua cabang' : `Cab. ${demoStores.join(' & ')}`)
+                  : '';
                 const Dot = () => <span className="text-gray-300 select-none">·</span>;
                 return (
+                  <>
                   <div className="flex items-center gap-x-2 order-6 md:order-5 text-xs border-t border-gray-100 pt-2 overflow-x-auto whitespace-nowrap hide-scroll-bar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     {showStock && (
                       <span className="inline-flex items-center gap-1 text-gray-700 flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-900 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-500 flex-shrink-0">
                           <path fillRule="evenodd" d="M16.403 12.652a3 3 0 000-5.304 3 3 0 00-3.751-3.75 3 3 0 00-5.305 0 3 3 0 00-3.75 3.751 3 3 0 000 5.305 3 3 0 003.75 3.75 3 3 0 005.305 0 3 3 0 003.751-3.75zm-2.546-4.46a.75.75 0 00-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                         </svg>
                         Stock Ready
@@ -2301,7 +2319,7 @@ DP : 0
                     {showStock && showGaransi && <Dot />}
                     {showGaransi && (
                       <span className="inline-flex items-center gap-1 text-gray-700 flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-900 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-500 flex-shrink-0">
                           <path fillRule="evenodd" d="M9.661 2.237a.531.531 0 01.678 0 11.947 11.947 0 007.078 2.749.5.5 0 01.479.425c.069.52.104 1.05.104 1.59 0 5.162-3.26 9.563-7.834 11.256a.48.48 0 01-.332 0C5.26 16.564 2 12.163 2 7c0-.538.035-1.069.104-1.589a.5.5 0 01.48-.425 11.947 11.947 0 007.077-2.749zm4.196 5.954a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.061 1.06l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                         </svg>
                         Garansi Resmi
@@ -2310,13 +2328,41 @@ DP : 0
                     {(showStock || showGaransi) && showRetur && <Dot />}
                     {showRetur && (
                       <span className="inline-flex items-center gap-1 text-gray-700 flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-900 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-500 flex-shrink-0">
                           <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clipRule="evenodd" />
                         </svg>
                         14 Hari Tukar Baru
                       </span>
                     )}
                   </div>
+                  {hasDemo && (
+                    /* Store strip: same flex order as the chip row so it sits right under it. Calm card
+                       styling (gray-50 + hairline), icon in a white tile, two-line copy, location link. */
+                    <Link
+                      to="/stores"
+                      prefetch="intent"
+                      className="order-6 md:order-5 mt-2 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 no-underline hover:border-gray-300 hover:bg-white transition-colors"
+                    >
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                          <path d="M3.5 9.5 5 4h14l1.5 5.5" />
+                          <path d="M3.5 9.5a2.83 2.83 0 0 0 5.67 0 2.83 2.83 0 0 0 5.66 0 2.83 2.83 0 0 0 5.67 0" />
+                          <path d="M5.5 12v8h13v-8M10 20v-4.5h4V20" />
+                        </svg>
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold text-gray-900 leading-tight">Unit demo tersedia di toko</span>
+                        <span className="block text-xs text-gray-500 mt-0.5 truncate">{demoLabel} · coba langsung sebelum beli</span>
+                      </span>
+                      <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold text-gray-700">
+                        Lihat lokasi
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                          <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    </Link>
+                  )}
+                  </>
                 );
               })()}
 
@@ -3205,6 +3251,8 @@ function TombolWaDiscontinue({product}){
         # (metafields[15] = youtube) — removing this row would shift every index after it
         {namespace:"custom" key:"tebus_murah"}
         {namespace:"custom" key:"youtube"}
+        # index 16 — cabang yang punya unit demo (list of text, e.g. ["Tangerang","Depok"]); chip on the trust row
+        {namespace:"custom" key:"unit_demo"}
       ]){
         key
         value
