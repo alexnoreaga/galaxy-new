@@ -360,7 +360,7 @@ export function ChatMessage({ msg, waMessage }) {
   );
 }
 
-export function ProductAIChat({ product, selectedVariant, autoDiscount = null, hasHargaModal = false, inCuciGudang = false }) {
+export function ProductAIChat({ product, selectedVariant, autoDiscount = null, hasHargaModal = false, inCuciGudang = false, unitDemo = [] }) {
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [open, setOpen] = useState(false);
@@ -565,6 +565,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           productDiscontinued: isDiscontinued,
           productInStock: inStock,
           productCuciGudang: inCuciGudang,
+          productUnitDemo: Array.isArray(unitDemo) ? unitDemo : [],
           productHandle: handle,
           productId: product?.id ?? '',
           variantId: selectedVariant?.id ?? '',

@@ -2386,10 +2386,6 @@ DP : 0
 
  
 
-          {/* Bonus Gratis — mobile/tablet only here; on lg+ it lives in the sticky checkout card */}
-          {product.metafields[1] && (
-            <BonusGratis value={product.metafields[1].value} className="mt-2 lg:hidden" />
-          )}
 
 
            
@@ -2408,7 +2404,13 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} />
+              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} unitDemo={parseDemoStores(product?.metafields[16]?.value)} />
+
+              {/* Bonus Gratis — mobile/tablet only (lg+ shows it in the sticky checkout card).
+                  Placed right under Tanya Grisela (owner request 2026-09-16). */}
+              {product.metafields[1] && (
+                <BonusGratis value={product.metafields[1].value} className="mt-3 lg:hidden" />
+              )}
 
               {/* KODE VOUCHER — inline strip below Tanya AI Galaxy */}
               <Suspense fallback={null}>

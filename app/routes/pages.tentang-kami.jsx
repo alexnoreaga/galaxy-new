@@ -53,6 +53,17 @@ const PRODUK = [
   'Lensa & Aksesoris',
 ];
 
+// Penghargaan dari brand & distributor resmi — read off the award wall photo (penghargaan.png).
+const AWARDS_IMG = 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/penghargaan.png?v=1789551991';
+const AWARDS = [
+  { brand: 'Canon · Datascrip', title: 'Top Achiever & Target Achiever', year: '2024', detail: 'Appreciation "Break The Limit" — juga Good Performer & Excellent Payment' },
+  { brand: 'Canon · Datascrip', title: 'Highest Contributor', year: '50 Sustainable Legacy', detail: 'Empat trofi kontributor tertinggi di perayaan 50 tahun Datascrip' },
+  { brand: 'Canon · Datascrip', title: 'Good Performer & Excellent Payment', year: '2022', detail: 'Appreciation "Break The Limit"' },
+  { brand: 'Hollyland', title: 'Outstanding Sales Dealer', year: '2026', detail: 'Dealer dengan penjualan terbaik' },
+  { brand: 'Hollyland', title: 'Sales Excellence Dealer', year: '2025', detail: 'Certified Dealer resmi Hollyland' },
+  { brand: 'Saramonic', title: 'Premium Partner', year: '2023', detail: 'Mitra premium resmi Saramonic Indonesia' },
+];
+
 export default function TentangKami() {
   const location = useLocation();
   const mastheadTheme = resolveMastheadTheme(location.search);
@@ -220,6 +231,57 @@ export default function TentangKami() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* ── Penghargaan — brand/distributor awards: proof, not claims ─────────── */}
+      <div className="mx-auto sm:max-w-screen-xl mt-10 sm:mt-16">
+        <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-red-600 mb-2 text-center">Penghargaan</p>
+        <h2 className="text-gray-900 text-xl sm:text-3xl font-bold tracking-tight text-center m-0 mb-3">
+          Diakui langsung oleh brand yang kami jual
+        </h2>
+        <p className="text-sm sm:text-base text-gray-500 text-center max-w-2xl mx-auto m-0 mb-6 sm:mb-8 leading-relaxed">
+          Penghargaan ini bukan kami yang menilai sendiri. Canon melalui Datascrip, Hollyland, dan Saramonic
+          memberikannya atas kinerja penjualan, ketepatan pembayaran, dan layanan purna jual kami sebagai
+          dealer resmi. Artinya, produk yang kamu beli di Galaxy datang dari jalur distribusi resmi, dengan
+          garansi yang benar-benar dijamin.
+        </p>
+
+        {/* Award wall photo */}
+        <div className="relative">
+          <div aria-hidden="true" className="absolute -inset-2 rounded-2xl border border-amber-400/30 rotate-1 hidden sm:block" />
+          <img
+            src={AWARDS_IMG}
+            alt="Dinding penghargaan Galaxy Camera: plakat Canon Datascrip 2022 & 2024, trofi Highest Contributor, Hollyland Certified Dealer, Sales Excellence Dealer 2025, Outstanding Sales Dealer 2026, dan Saramonic Premium Partner 2023"
+            width={1680}
+            height={945}
+            loading="lazy"
+            decoding="async"
+            className="relative w-full h-auto rounded-2xl ring-1 ring-gray-200 shadow-lg"
+          />
+        </div>
+
+        {/* Award cards */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-5 sm:mt-6">
+          {AWARDS.map((a) => (
+            <div key={a.brand + a.title + a.year} className="flex gap-3 bg-white border border-gray-200 rounded-xl p-4">
+              <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-1 ring-amber-200">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M10 1a.75.75 0 01.75.75V3h4.5a.75.75 0 01.75.75v1.5a4.75 4.75 0 01-3.53 4.59 5.51 5.51 0 01-1.72 2.02V13h1.5a2.25 2.25 0 012.25 2.25v.75h.75a.75.75 0 010 1.5H4.75a.75.75 0 010-1.5h.75v-.75A2.25 2.25 0 017.75 13h1.5v-1.14a5.51 5.51 0 01-1.72-2.02A4.75 4.75 0 014 5.25v-1.5A.75.75 0 014.75 3h4.5V1.75A.75.75 0 0110 1zM5.5 4.5v.75c0 1.3.77 2.42 1.87 2.93A5.5 5.5 0 017 6.5v-2H5.5zm9 0H13v2c0 .6-.1 1.17-.28 1.7a3.25 3.25 0 001.78-2.95V4.5z" clipRule="evenodd" />
+                </svg>
+              </span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 m-0">{a.brand}</p>
+                <p className="text-sm font-bold text-gray-900 m-0 mt-0.5 leading-snug">
+                  {a.title} <span className="font-semibold text-amber-600">· {a.year}</span>
+                </p>
+                <p className="text-[12.5px] text-gray-500 m-0 mt-1 leading-relaxed">{a.detail}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-gray-400 text-center mt-4 m-0">
+          Sebagian penghargaan yang diterima Galaxy Camera dari brand dan distributor resmi, 2022–2026.
+        </p>
       </div>
 
       {/* ── Produk & Layanan — centered chip row ─────────────────────────────── */}

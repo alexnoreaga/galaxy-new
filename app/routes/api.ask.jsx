@@ -1264,7 +1264,7 @@ function bestVoucherFor(vouchers, price) {
 
 export async function action({ request, context }) {
   const body = await request.json();
-  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productCuciGudang = false, productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
+  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productCuciGudang = false, productUnitDemo = [], productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
@@ -1420,6 +1420,12 @@ ${productDiscontinued ? `- ⚠️ STATUS: DISCONTINUED — produk ini sudah tida
 ${productFlashSale ? `- ⚡ FLASH SALE SEDANG AKTIF untuk produk ini: ${productFlashSale} — diskon OTOMATIS terpotong saat checkout di website, TANPA kode. Sebutkan ini PROAKTIF saat membahas harga/order — ini senjata closing utamamu! Ciptakan urgensi halus dengan menyebut batas waktunya. Harga flash ini khusus checkout website (nego 3% tetap opsi untuk toko/WA — bandingkan jujur mana yang lebih hemat jika ditanya)` : ''}
 ${productCuciGudang ? `- 🔥 PRODUK INI MASUK KOLEKSI CUCI GUDANG (clearance) — perlakukan SAMA seperti flash sale: harganya SUDAH harga cuci gudang paling murah / harga terbaik. Sebutkan proaktif sebagai deal terbaik + ciptakan urgensi (stok terbatas, selagi masih ada). JANGAN beri kode nego [NEGOCODE] dan JANGAN janjikan potongan tambahan — harga ini sudah paling bersih. Kalau customer minta kurang lagi, jelaskan dengan ramah bahwa ini sudah harga cuci gudang paling murah (boleh arahkan konfirmasi ke admin kalau perlu)` : ''}
 ${productGaransi ? `- Garansi RESMI produk ini: ${productGaransi} — gunakan info ini (lebih akurat dari aturan umum per brand) saat customer tanya garansi produk ini` : ''}
+${(() => {
+  const d = Array.isArray(productUnitDemo) ? productUnitDemo.map(x => String(x).trim()).filter(Boolean) : [];
+  if (!d.length) return '- Unit demo: TIDAK ada info unit demo/display untuk produk ini. Kalau customer mau lihat/coba/pegang dulu di toko, JANGAN janjikan unitnya ada — sarankan konfirmasi cepat ke admin 0821-1131-1131 sebelum datang';
+  const where = /^semua/i.test(d[0]) ? 'SEMUA cabang' : `cabang ${d.join(' & ')}`;
+  return `- 🏬 UNIT DEMO TERSEDIA di ${where}: produk ini ada unit display yang bisa dilihat & dicoba langsung di toko. Kalau customer ragu, tanya "ada di toko?", "bisa coba dulu?", "mau lihat/pegang langsung": AJAK datang ke cabang itu (alamat & jam buka ada di halaman /stores), sarankan WA admin 0821-1131-1131 dulu supaya unitnya dipastikan ada hari itu, dan tawarkan catat nama & nomor WA untuk kunjungan (marker LEAD alasan=kunjungan). JANGAN klaim ada unit demo di cabang lain. Ini juga alasan closing yang bagus untuk customer yang masih ragu`;
+})()}
 ${productFreeBonus ? `- Bonus Gratis KHUSUS produk ini (sedang berlaku, sebutkan ini saat customer tanya bonus/free): ${productFreeBonus.slice(0, 300)}` : ''}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}`}
 ${productNego ? `
