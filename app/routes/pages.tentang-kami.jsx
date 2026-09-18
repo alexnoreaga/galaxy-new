@@ -10,6 +10,10 @@ import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnam
 export const meta = () => {
   return [
     {title: 'Tentang Kami — Galaxy Camera | Toko Kamera Terpercaya Sejak 2014'},
+    {tagName: 'link', rel: 'canonical', href: 'https://www.galaxy.co.id/pages/tentang-kami'},
+    {property: 'og:url', content: 'https://www.galaxy.co.id/pages/tentang-kami'},
+    {property: 'og:type', content: 'website'},
+    {property: 'og:title', content: 'Tentang Galaxy Camera — Toko Kamera Terpercaya Sejak 2014'},
     {
       name: 'description',
       content:
@@ -40,7 +44,7 @@ const TIMELINE = [
   {
     year: 'Hari Ini',
     title: '60.000+ Produk Terjual · Rating 4.9',
-    text: 'Dipercaya puluhan ribu pelanggan, didukung Grisela — asisten belanja AI kami — serta layanan pengadaan untuk perusahaan dan instansi.',
+    text: '60.000+ transaksi gabungan Tokopedia & Shopee, rating 4.9 dari ulasan Google. Didukung Grisela — asisten belanja AI kami — serta layanan pengadaan untuk perusahaan dan instansi.',
   },
 ];
 
@@ -70,6 +74,52 @@ export default function TentangKami() {
 
   return (
     <div className="pb-6">
+      {/* Entity data for this page: AboutPage + Organization with founding year, legal name, awards
+          (read off the award wall), socials — so search engines / AI assistants can attach these
+          facts to the "Galaxy Camera" entity instead of only reading them as prose. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([
+        {
+          '@context': 'https://schema.org',
+          '@type': 'AboutPage',
+          '@id': 'https://www.galaxy.co.id/pages/tentang-kami',
+          url: 'https://www.galaxy.co.id/pages/tentang-kami',
+          name: 'Tentang Galaxy Camera',
+          inLanguage: 'id-ID',
+          isPartOf: { '@type': 'WebSite', name: 'Galaxy Camera', url: 'https://www.galaxy.co.id' },
+          about: { '@id': 'https://www.galaxy.co.id/#organization' },
+          mainEntity: { '@id': 'https://www.galaxy.co.id/#organization' },
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          '@id': 'https://www.galaxy.co.id/#organization',
+          name: 'Galaxy Camera',
+          legalName: 'PT Galaxy Digital Niaga',
+          url: 'https://www.galaxy.co.id',
+          logo: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+          foundingDate: '2014-03-25',
+          foundingLocation: { '@type': 'Place', name: 'Tangerang, Banten, Indonesia' },
+          areaServed: 'ID',
+          telephone: '+62-821-1131-1131',
+          sameAs: [
+            'https://www.instagram.com/galaxycamera99',
+            'https://www.facebook.com/galaxycamera99',
+            'https://www.tiktok.com/@galaxycameraid',
+            'https://www.youtube.com/galaxycamera',
+            'https://www.x.com/galaxycamera99',
+          ],
+          award: AWARDS.map((a) => `${a.title} (${a.brand}, ${a.year})`),
+          knowsAbout: ['Kamera mirrorless', 'Kamera DSLR', 'Lensa kamera', 'Drone', 'Action camera', 'Peralatan videografi', 'Microphone wireless'],
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.galaxy.co.id' },
+            { '@type': 'ListItem', position: 2, name: 'Tentang Kami', item: 'https://www.galaxy.co.id/pages/tentang-kami' },
+          ],
+        },
+      ]) }} />
       {/* ── HERO — cinematic charcoal, glow + texture, framed photo ──────────── */}
       <div className="relative -mx-4 sm:mx-auto sm:max-w-screen-xl overflow-hidden sm:rounded-2xl sm:mt-4"
         style={{background: 'linear-gradient(135deg, #0b1120 0%, #0f172a 55%, #1e293b 100%)'}}>
@@ -126,6 +176,9 @@ export default function TentangKami() {
       {/* ── Stats — animated counters ────────────────────────────────────────── */}
       <div className="relative mx-auto sm:max-w-screen-xl mt-2 sm:mt-5">
         <SocialProofStrip />
+        <p className="text-[11px] text-gray-400 text-center mt-2 m-0">
+          Angka transaksi gabungan Tokopedia &amp; Shopee; rating dari ulasan Google. Diperbarui September 2026.
+        </p>
       </div>
 
       {/* ── Cerita Kami — editorial, pull-quote instead of a card ────────────── */}
