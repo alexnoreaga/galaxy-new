@@ -40,6 +40,7 @@ export function Header({header, isLoggedIn, cart}) {
   // Field is matched by having collection references, so its exact name doesn't matter.
   const [rootMatch] = useMatches();
   const katFields = rootMatch?.data?.kategoriMenu?.metaobjects?.nodes?.[0]?.fields ?? [];
+  const flashCount = Number(rootMatch?.data?.flashCount ?? 0);
   const kategoriItems = (katFields.find((f) => f?.references?.nodes?.length)?.references?.nodes ?? []).filter(Boolean);
 
   // "Semua Kategori" — the FULL collection list, lazy-loaded only when the menu is first opened
@@ -347,6 +348,28 @@ export function Header({header, isLoggedIn, cart}) {
                 </div>
               )}
             </div>
+
+            {/* Flash Sale — only while an automatic flash discount is live (root loader counts them).
+                Red so it reads as a promo at a glance; pulsing dot = "happening now". */}
+            {flashCount > 0 && (
+              <NavLink
+                to="/flash-sale"
+                prefetch="intent"
+                className={({isActive}) => `ml-1 inline-flex items-center gap-1.5 py-2 text-[13px] font-semibold no-underline transition-colors ${isActive ? 'text-red-700' : 'text-red-600 hover:text-red-700'}`}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                  <path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                </svg>
+                Flash Sale
+                <span className="rounded-full bg-red-600 px-1.5 py-px text-[10px] font-bold leading-4 text-white">{flashCount}</span>
+              </NavLink>
+            )}
+
+            <div className="flex-1" />
             <NearestStoreBar variant="subbar" />
           </div>
         </div>

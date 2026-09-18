@@ -8,6 +8,7 @@ import {
 } from '@shopify/hydrogen';
 import {usePageAnalytics} from '~/utils';
 import {scheduleGtagLoad} from '~/lib/analytics';
+import {getAutomaticDiscounts, getActiveFlashProducts} from '~/lib/autoDiscounts';
 import {defer} from '@shopify/remix-oxygen';
 import {
   Links,
@@ -125,6 +126,14 @@ export async function loader({context}) {
 
   // Run non-critical queries in parallel with individual fallbacks
   // so one failure never crashes the whole page
+  // Header "Flash Sale · N" link: number of products under an active automatic flash discount.
+  // getAutomaticDiscounts is module-cached 5 min; a cold instance is capped at 2.5 s so the
+  // root loader (every page) never waits on the Admin API. Failure → 0 → link hidden.
+  const flashCountPromise = Promise.race([
+    getAutomaticDiscounts(context.env).then((d) => getActiveFlashProducts(d, 250).size),
+    new Promise((resolve) => setTimeout(() => resolve(0), 2500)),
+  ]).catch(() => 0);
+
   const [header, footer, footerSatu, storeLocations, kategoriMenu] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
@@ -171,6 +180,7 @@ export async function loader({context}) {
       footerSatu,
       storeLocations,
       kategoriMenu,
+      flashCount: await flashCountPromise,
       analytics: analyticsData.analytics,
     },
     {headers},
