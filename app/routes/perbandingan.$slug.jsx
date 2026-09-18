@@ -118,7 +118,7 @@ export const meta = ({ data }) => {
   const shortB = data.shortNameB || data.titleB;
   const title = `Perbandingan ${shortA} vs ${shortB} | Galaxy Camera`;
   const description = data.comparison?.summary || `Perbandingan lengkap ${shortA} vs ${shortB}. Analisis mendalam — kualitas foto, video, fitur, harga, dan kesimpulan akhir. Temukan produk terbaik untuk kebutuhanmu.`;
-  const url = `https://galaxy.co.id/perbandingan/${data.slug}`;
+  const url = `https://www.galaxy.co.id/perbandingan/${data.slug}`;
   const image = data.imageA || data.imageB || 'https://galaxy.co.id/icon-512x512.png';
 
   return [
@@ -267,7 +267,7 @@ export default function PerbandinganSlug() {
             {
               '@context': 'https://schema.org',
               '@type': 'Article',
-              mainEntityOfPage: { '@type': 'WebPage', '@id': `https://galaxy.co.id/perbandingan/${loaderData.slug}` },
+              mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.galaxy.co.id/perbandingan/${loaderData.slug}` },
               headline: `Perbandingan ${shortA} vs ${shortB}`,
               description: comparison.summary || comparison.intro,
               image: (imageA || imageB) ? { '@type': 'ImageObject', url: imageA || imageB } : 'https://galaxy.co.id/icon-512x512.png',
@@ -286,8 +286,8 @@ export default function PerbandinganSlug() {
               '@type': 'BreadcrumbList',
               itemListElement: [
                 { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://galaxy.co.id' },
-                { '@type': 'ListItem', position: 2, name: 'Bandingkan Produk', item: 'https://galaxy.co.id/perbandingan' },
-                { '@type': 'ListItem', position: 3, name: `Perbandingan ${shortA} vs ${shortB}`, item: `https://galaxy.co.id/perbandingan/${loaderData.slug}` },
+                { '@type': 'ListItem', position: 2, name: 'Bandingkan Produk', item: 'https://www.galaxy.co.id/perbandingan' },
+                { '@type': 'ListItem', position: 3, name: `Perbandingan ${shortA} vs ${shortB}`, item: `https://www.galaxy.co.id/perbandingan/${loaderData.slug}` },
               ],
             },
           ]),
