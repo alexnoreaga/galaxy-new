@@ -1,125 +1,108 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-export const BrandSEOContent = ({ brandName = 'Brand', category = 'Produk', products = [] }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Get current month and year
+export const BrandSEOContent = ({ brandName = 'Brand', category = 'Produk', products = [], seo = null }) => {
   const today = new Date();
-  const monthNames = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-  ];
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   const currentMonth = monthNames[today.getMonth()];
   const currentYear = today.getFullYear();
-
-  // Generate product list (first 5 products, comma-separated)
-  const productList = products
-    .slice(0, 5)
-    .map(p => p.title)
-    .join(', ');
+  const productList = products.slice(0, 5).map((p) => p.title).join(', ');
+  const intro = seo?.intro ? String(seo.intro).split('\n').map((s) => s.trim()).filter(Boolean) : [];
+  const faq = Array.isArray(seo?.faq) ? seo.faq : [];
+  const updated = seo?.updatedAt ? new Date(seo.updatedAt) : null;
+  const fmtDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const headline = `${category} ${brandName}: pilihan, harga & rekomendasi ${currentMonth} ${currentYear}`;
 
   return (
-    <div className='mt-8 mb-6'>
-      {/* Intro Section */}
-      <div className='mb-4'>
-        <h3 className='font-bold text-lg text-gray-900 mb-2'>Galaxy Camera Jual {category} {brandName} Harga Terbaik dan Garansi Resmi {currentMonth} {currentYear}</h3>
-        <p className='text-gray-700 leading-relaxed text-sm sm:text-base mb-3'>
-          Galaxy Camera jual {category} {brandName} dengan banyak pilihan jenisnya. {category} {productList} kami jual dengan harga terbaik di sini. Anda bisa cek harga {category} {brandName} disini karena harga kamera yang ada di website kami selalu update.
-        </p>
-      </div>
+    <div className="mt-8 mb-6">
+      {/* Editorial intro — per-page copy when the enrichment batch has run, template otherwise */}
+      <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{headline}</h2>
+      {updated && <p className="text-xs text-gray-400 mb-3">Diperbarui {fmtDate(updated)} · harga &amp; stok mengikuti data toko saat ini</p>}
+      {intro.length > 0 ? (
+        intro.map((para, i) => <p key={i} className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3">{para}</p>)
+      ) : (
+        <>
+          <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3">
+            Galaxy Camera menjual {category} {brandName} original dari distributor resmi Indonesia, di antaranya {productList}. Harga di halaman ini mengikuti data toko saat ini.
+          </p>
+          <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3">
+            Semua unit bergaransi resmi, bisa dicicil 0% dengan atau tanpa kartu kredit, dan dikirim ke seluruh Indonesia. Untuk konsultasi model yang cocok, tim kami siap membantu lewat WhatsApp atau langsung di toko Tangerang dan Depok.
+          </p>
+        </>
+      )}
 
-      {/* Preview Section */}
-      <div className='mb-3'>
-        <h3 className='font-bold text-lg text-gray-900 mb-2'>Jual {category} {brandName} Terbaik {currentMonth} {currentYear} – 100% Original</h3>
-        <p className='text-gray-700 leading-relaxed text-sm sm:text-base mb-3'>
-          Di Galaxy Camera, semua {category} {brandName} yang Anda beli dijamin 100% original dan didapat langsung dari distributor resmi di Indonesia. Setiap produk telah melalui proses pengecekan kualitas untuk memastikan performa dan keamanan, sehingga Anda bisa berbelanja dengan tenang. Galaxy Camera menghadirkan pilihan {category} {brandName} yang lengkap dengan kualitas terjamin dan harga kompetitif untuk berbagai kebutuhan, mulai dari pemula hingga profesional.
-        </p>
-      </div>
-
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        aria-expanded={isExpanded}
-        className='text-blue-600 hover:text-blue-800 font-semibold text-sm mb-3 flex items-center gap-1'
-      >
-        {isExpanded ? '▼' : '▶'} {isExpanded ? 'Sembunyikan' : 'Tampilkan'} Informasi Lengkap
-      </button>
-
-      {/* Expanded Content */}
-      {isExpanded && (
-        <div className='space-y-3 mb-3'>
-          <div>
-            <h3 className='font-bold text-lg text-gray-900 mb-2'>Harga {category} {brandName} Terbaru {currentMonth} {currentYear}</h3>
-            
-            {/* Product Price Table */}
-            {products.length > 0 && (
-              <div className='mb-4 overflow-x-auto'>
-                <table className='w-full border-collapse border border-gray-300 text-sm'>
-                  <thead>
-                    <tr className='bg-gray-100'>
-                      <th className='border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900'>No</th>
-                      <th className='border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900'>Nama Produk</th>
-                      <th className='border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900'>Harga</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.slice(0, 10).map((product, index) => (
-                      <tr key={product.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className='border border-gray-300 px-3 py-2 text-gray-700 font-semibold'>{index + 1}</td>
-                        <td className='border border-gray-300 px-3 py-2 text-gray-700'>{product.title}</td>
-                        <td className='border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900'>
-                          Rp{parseFloat(product.priceRange.minVariantPrice.amount).toLocaleString('id-ID')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            
-            <p className='text-gray-700 leading-relaxed text-sm sm:text-base'>
-              Galaxy Camera menyediakan beragam jenis dan model {category} {brandName} terbaru {currentMonth} {currentYear} yang dapat disesuaikan dengan kebutuhan dan anggaran Anda. Produk dapat diurutkan berdasarkan harga maupun nama untuk memudahkan pencarian. Tersedia juga fitur penyaringan harga agar Anda bisa menemukan {category} {brandName} dengan harga terbaik dan bersaing di pasaran Indonesia.
-            </p>
-          </div>
-
-          <div>
-            <h3 className='font-bold text-lg text-gray-900 mb-2'>Beli {category} {brandName} Online di Galaxy Camera</h3>
-            <p className='text-gray-700 leading-relaxed text-sm sm:text-base'>
-              Tanpa perlu keluar rumah, Anda dapat memesan dan membeli {category} {brandName} terbaru {currentMonth} {currentYear} secara online di Galaxy Camera. Pesanan akan diproses dengan cepat dan dikirim secara aman ke seluruh Indonesia. Nikmati berbagai promo menarik, potongan harga khusus, serta kemudahan metode pembayaran, termasuk cicilan 0% untuk tenor tertentu. Dapatkan {category} {brandName} original dan berkualitas hanya di Galaxy Camera.
-            </p>
-          </div>
-
-          <div>
-            <h3 className='font-bold text-lg text-gray-900 mb-2'>Jaminan Garansi Resmi, Purna Jual, dan Service Center</h3>
-            <p className='text-gray-700 leading-relaxed text-sm sm:text-base'>
-              Semua {category} {brandName} yang dijual di Galaxy Camera adalah bergaransi resmi dan dari distributor resmi Indonesia. Selain menjamin harga terbaik produk sesuai dengan harga di pasaran, kualitasnya juga terjamin. Untuk klaim garansi produk bisa mengikuti petunjuk yang tersedia pada box produk atau bisa juga dititip ke store kami Galaxy Camera.
-            </p>
+      {/* Price table — always server-rendered (used to be hidden behind a click, invisible to crawlers) */}
+      {products.length > 0 && (
+        <div className="mt-5">
+          <h3 className="font-bold text-base text-gray-900 mb-2">Harga {category} {brandName} {currentMonth} {currentYear}</h3>
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left text-gray-600">
+                  <th className="px-3 py-2 font-semibold">Produk</th>
+                  <th className="px-3 py-2 font-semibold text-right">Harga</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.slice(0, 10).map((product) => (
+                  <tr key={product.id} className="border-t border-gray-100">
+                    <td className="px-3 py-2 text-gray-800">
+                      <a href={`/products/${product.handle}`} className="no-underline text-gray-800 hover:text-black">{product.title}</a>
+                      {product.availableForSale === false && <span className="ml-2 text-[11px] text-gray-400">stok habis</span>}
+                    </td>
+                    <td className="px-3 py-2 text-right font-semibold text-gray-900 whitespace-nowrap">
+                      Rp{parseFloat(product.priceRange?.minVariantPrice?.amount || 0).toLocaleString('id-ID')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {/* Schema.org Markup */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": `Jual ${category} ${brandName} Terbaik ${currentMonth} ${currentYear} – 100% Original`,
-        "description": `Di Galaxy Camera, semua ${category} ${brandName} yang Anda beli dijamin 100% original dan didapat langsung dari distributor resmi di Indonesia.`,
-        "image": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png",
-        "datePublished": today.toISOString().split('T')[0],
-        "dateModified": today.toISOString().split('T')[0],
-        "author": {
-          "@type": "Organization",
-          "name": "Galaxy Camera"
+      {/* FAQ — page-specific, mirrored in FAQPage JSON-LD below */}
+      {faq.length > 0 && (
+        <div className="mt-6">
+          <h3 className="font-bold text-base text-gray-900 mb-2">Pertanyaan yang sering diajukan</h3>
+          <div className="divide-y divide-gray-100 border-y border-gray-100">
+            {faq.map((x, i) => (
+              <details key={i} className="group py-2.5">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-sm font-semibold text-gray-900">
+                  {x.q}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400 transition-transform group-open:rotate-180">
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </summary>
+                <p className="mt-1.5 text-sm text-gray-600 leading-relaxed m-0">{x.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="mt-5 text-sm text-gray-600 leading-relaxed">
+        Garansi resmi, layanan purna jual, dan service center tersedia untuk semua {category} {brandName} yang dibeli di Galaxy Camera. Hubungi admin di 0821-1131-1131 untuk stok fisik dan penawaran terbaik.
+      </p>
+
+      {/* Schema.org */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline,
+          description: (seo?.summary || `${category} ${brandName} original dari distributor resmi Indonesia dengan garansi resmi dan harga terbaru.`).slice(0, 160),
+          image: products[0]?.featuredImage?.url || 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png',
+          datePublished: seo?.updatedAt || today.toISOString().split('T')[0],
+          dateModified: seo?.updatedAt || today.toISOString().split('T')[0],
+          author: { '@type': 'Organization', name: 'Galaxy Camera' },
+          publisher: { '@type': 'Organization', name: 'Galaxy Camera', logo: { '@type': 'ImageObject', url: 'https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png' } },
         },
-        "publisher": {
-          "@type": "Organization",
-          "name": "Galaxy Camera",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://cdn.shopify.com/s/files/1/0672/3806/8470/files/logo-galaxy-web-new.png"
-          }
-        }
-      })}} />
+        ...(faq.length ? [{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faq.map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })),
+        }] : []),
+      ]) }} />
     </div>
   );
 };

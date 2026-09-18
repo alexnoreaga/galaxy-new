@@ -623,53 +623,57 @@ dangerouslySetInnerHTML={{__html:`
           ]
         })}} />
 
-        {/* FAQ Schema for Featured Snippets */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "Apa itu Galaxy Camera?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Galaxy Camera adalah toko kamera online terlengkap dan terpercaya yang berdiri sejak 2014. Kami menjual berbagai produk fotografi dan videografi termasuk kamera mirrorless, DSLR, drone, lensa, dan aksesoris dengan garansi resmi dan harga terbaik."
+        {/* FAQ Schema for Featured Snippets — HOMEPAGE ONLY. The same 5 store Q&As used to be
+            emitted on every page (product, brand, collection…); identical FAQPage markup on
+            thousands of URLs is ignored by Google and collides with the per-page FAQs. */}
+        {location.pathname === '/' && (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Apa itu Galaxy Camera?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Galaxy Camera adalah toko kamera online terlengkap dan terpercaya yang berdiri sejak 2014. Kami menjual berbagai produk fotografi dan videografi termasuk kamera mirrorless, DSLR, drone, lensa, dan aksesoris dengan garansi resmi dan harga terbaik."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Bagaimana cara cicilan di Galaxy Camera?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Galaxy Camera menawarkan cicilan 0% tanpa kartu kredit melalui berbagai metode pembayaran seperti Kredivo, ShopeePay, dan bank transfer. Proses cicilan sangat cepat, hanya sekitar 15 menit."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Apakah semua produk di Galaxy Camera original dan bergaransi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Ya, semua produk yang kami jual adalah original dengan garansi resmi dari distributor resmi. Galaxy Camera hanya menjual produk original dari brand terpercaya seperti Canon, Nikon, Sony, Fujifilm, DJI, dan GoPro."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Apakah Galaxy Camera gratis ongkir?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Ya, Galaxy Camera menawarkan gratis ongkir ke seluruh Indonesia untuk pembelian tertentu. Lebih banyak informasi dapat dilihat di halaman promo atau hubungi tim customer service kami."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Di mana lokasi toko fisik Galaxy Camera?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Galaxy Camera memiliki dua lokasi toko fisik: Tangerang di Ruko Mall Metropolis Townsquare Blok GM3 No 6 Kelapa Indah Tangerang, dan Depok di Mall Depok Town Square Lantai 2 Blok SS2 No 8 Beji Depok."
+                }
               }
-            },
-            {
-              "@type": "Question",
-              "name": "Bagaimana cara cicilan di Galaxy Camera?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Galaxy Camera menawarkan cicilan 0% tanpa kartu kredit melalui berbagai metode pembayaran seperti Kredivo, ShopeePay, dan bank transfer. Proses cicilan sangat cepat, hanya sekitar 15 menit."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Apakah semua produk di Galaxy Camera original dan bergaransi?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Ya, semua produk yang kami jual adalah original dengan garansi resmi dari distributor resmi. Galaxy Camera hanya menjual produk original dari brand terpercaya seperti Canon, Nikon, Sony, Fujifilm, DJI, dan GoPro."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Apakah Galaxy Camera gratis ongkir?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Ya, Galaxy Camera menawarkan gratis ongkir ke seluruh Indonesia untuk pembelian tertentu. Lebih banyak informasi dapat dilihat di halaman promo atau hubungi tim customer service kami."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Di mana lokasi toko fisik Galaxy Camera?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Galaxy Camera memiliki dua lokasi toko fisik: Tangerang di Ruko Mall Metropolis Townsquare Blok GM3 No 6 Kelapa Indah Tangerang, dan Depok di Mall Depok Town Square Lantai 2 Blok SS2 No 8 Beji Depok."
-              }
-            }
-          ]
-        })}} />
+            ]
+          })}} />
+        )}
 
         {/* AggregateOffer Schema */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({

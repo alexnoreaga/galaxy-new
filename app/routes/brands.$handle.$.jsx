@@ -36,9 +36,9 @@ export const meta = ({data, location}) => {
     : `${brandName} - Produk Resmi Harga Terbaik ${indonesianMonth} ${year} | Galaxy Camera`;
 
   // ENHANCED - Category-specific description for better SEO
-  const description = selectedCategory
+  const description = data?.seo?.summary || (selectedCategory
     ? `Koleksi lengkap ${brandName} ${selectedCategory} original garansi resmi. Harga terbaik, cicilan 0%, gratis ongkir. Belanja ${selectedCategory} ${brandName} aman di Galaxy Camera.`
-    : `Jelajahi koleksi lengkap produk ${brandName} original dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`;
+    : `Jelajahi koleksi lengkap produk ${brandName} original dengan harga terbaik. Garansi resmi, cicilan 0%, gratis ongkir. Belanja aman di Galaxy Camera toko kamera terpercaya.`);
 
   // ENHANCED - Category-specific keywords
   const keywords = selectedCategory
@@ -47,8 +47,8 @@ export const meta = ({data, location}) => {
 
   // ENHANCED - Include category in canonical URL for SEO crawling
   let canonicalUrl = location?.pathname
-    ? `https://galaxy.co.id${location.pathname}`
-    : `https://galaxy.co.id/brands/${rawHandle}`;
+    ? `https://www.galaxy.co.id${location.pathname}`
+    : `https://www.galaxy.co.id/brands/${rawHandle}`;
   
   // Add category to canonical URL so Google can index filtered pages
   if (selectedCategory && location?.search) {
@@ -81,7 +81,8 @@ export const meta = ({data, location}) => {
     // Robots & Indexing
     {
       name: 'robots',
-      content: 'index, follow, max-image-preview:large, max-snippet:-1',
+      // Thin filter pages (< 3 products) stay crawlable but out of the index.
+      content: (selectedCategory && (data?.totalCount ?? 99) < 3) ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1',
     },
 
     // Canonical URL
@@ -298,6 +299,27 @@ export const meta = ({data, location}) => {
 //   ];
 // };
 
+// "Tripod/Monopod" → "tripod-monopod" (same rule the sitemap/links use) so path segments match
+// product types that contain "/" or "&", which the old title-case round-trip could not.
+const slugType = (s) => String(s || '').toLowerCase().replace(/&/g, 'dan').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const FIRESTORE_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU';
+const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents';
+// Per-page editorial content (summary / intro / faq) written by the enrichment batch. Best effort:
+// missing doc, rules, or a slow network → null → the component falls back to the template.
+async function getBrandSeo(brand, seg) {
+  const id = seg ? `${brand}__${seg}` : brand;
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 1500);
+  try {
+    const r = await fetch(`${FIRESTORE_BASE}/brand_seo/${id}?key=${FIRESTORE_KEY}`, { signal: ctl.signal });
+    if (!r.ok) return null;
+    const f = (await r.json()).fields || {};
+    let faq = []; try { faq = JSON.parse(f.faq?.stringValue || '[]'); } catch { faq = []; }
+    const seo = { summary: f.summary?.stringValue || '', intro: f.intro?.stringValue || '', faq: Array.isArray(faq) ? faq.filter((x) => x?.q && x?.a) : [], updatedAt: f.updatedAt?.stringValue || '' };
+    return seo.summary || seo.intro ? seo : null;
+  } catch { return null; } finally { clearTimeout(t); }
+}
+
 export async function loader({params, context, request}) {
   
   const {handle} = params;
@@ -373,11 +395,15 @@ export async function loader({params, context, request}) {
   // Client-side filtering by category
   let filteredProducts = data.products.nodes;
   let pageInfo = data.products.pageInfo;
+  let totalCount = data.products.nodes.length;
   
   if (category) {
     filteredProducts = data.products.nodes.filter(
-      product => product.productType.toLowerCase() === category.toLowerCase()
+      product => categoryFromPath
+        ? slugType(product.productType) === categoryFromPath
+        : product.productType.toLowerCase() === category.toLowerCase()
     );
+    totalCount = filteredProducts.length;
     
     // Calculate pagination for filtered results
     const totalFilteredProducts = filteredProducts.length;
@@ -406,17 +432,24 @@ export async function loader({params, context, request}) {
 
   const categories = [...new Set(allProductsData.products.nodes.map(p => p.productType).filter(Boolean))].sort();
 
+  // Display name = the real productType whose slug matches the path (keeps "Tripod/Monopod" intact)
+  const categoryLabel = categoryFromPath
+    ? (categories.find(t => slugType(t) === categoryFromPath) || category)
+    : category;
+  const seo = await getBrandSeo(handle, categoryFromPath);
   return json({
-    data: {...data, products: {...data.products, nodes: filteredProducts, pageInfo: pageInfo}}, 
-    handle, 
-    categories, 
-    selectedCategory: category,
-    categoryPage: categoryPage
+    data: {...data, products: {...data.products, nodes: filteredProducts, pageInfo: pageInfo}},
+    handle,
+    categories,
+    selectedCategory: categoryLabel,
+    categoryPage: categoryPage,
+    totalCount,
+    seo,
   });
 }
 
 export default function BrandHandle() {
-  const {data, handle, categories, selectedCategory, categoryPage} = useLoaderData();
+  const {data, handle, categories, selectedCategory, categoryPage, seo} = useLoaderData();
   const location = useLocation();
   const [formData, setFormData] = useState('');
   const [selectedCat, setSelectedCat] = useState(selectedCategory || '');
@@ -464,7 +497,15 @@ export default function BrandHandle() {
           : handle.charAt(0).toUpperCase() + handle.slice(1)
         }
       </h1>
-      
+
+      {/* Jawaban singkat — the quotable answer for this brand × category (from brand_seo) */}
+      {seo?.summary && (
+        <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-600 m-0 mb-1.5">Jawaban singkat</p>
+          <p className="text-sm sm:text-base text-gray-800 leading-relaxed m-0">{seo.summary}</p>
+        </div>
+      )}
+
       {/* SEO-Friendly Category Navigation Links (for Google crawling) */}
       {categories && categories.length > 0 && (
         <nav className="mb-6 bg-white border border-gray-200 rounded-lg overflow-hidden" aria-label="Category navigation">
@@ -488,7 +529,7 @@ export default function BrandHandle() {
                 ✨ Semua Produk
               </a>
               {categories.map((cat) => {
-                const catHandle = encodeURIComponent(cat.toLowerCase().replace(/\s+/g, '-'));
+                const catHandle = slugType(cat);
                 const isActive = selectedCategory === cat;
                 return (
                   <a
@@ -575,6 +616,7 @@ export default function BrandHandle() {
         brandName={handle.charAt(0).toUpperCase() + handle.slice(1)} 
         category={selectedCategory || 'Produk'}
         products={data.products.nodes}
+        seo={seo}
       />
     </div>
   );
