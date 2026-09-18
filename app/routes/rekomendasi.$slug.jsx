@@ -36,6 +36,7 @@ export async function loader({ params, context }) {
   const productsRaw = f.products?.stringValue ? JSON.parse(f.products.stringValue) : [];
   const tags = f.tags?.stringValue ? JSON.parse(f.tags.stringValue) : [];
   const createdAt = f.createdAt?.stringValue || '';
+  const updatedAt = f.updatedAt?.stringValue || createdAt;
 
   if (!title || !content) throw new Response('Not found', { status: 404 });
 
@@ -72,14 +73,14 @@ export async function loader({ params, context }) {
     })
   );
 
-  return json({ slug, title, content, products: liveProducts, tags, createdAt });
+  return json({ slug, title, content, products: liveProducts, tags, createdAt, updatedAt });
 }
 
 export const meta = ({ data }) => {
   if (!data?.title) return [{ title: 'Rekomendasi | Galaxy Camera' }];
   const url = `https://www.galaxy.co.id/rekomendasi/${data.slug}`;
   const productNames = data.products?.map(p => p.title).join(', ') || '';
-  const description = `${data.title}. Rekomendasi lengkap dari editor Galaxy Camera: ${productNames}. Analisis mendalam, pros & cons, harga terkini, dan verdict untuk setiap produk.`;
+  const description = data.content?.summary || `${data.title}. Rekomendasi lengkap dari editor Galaxy Camera: ${productNames}. Analisis mendalam, pros & cons, harga terkini, dan verdict untuk setiap produk.`;
   const image = data.products?.[0]?.image || 'https://galaxy.co.id/icon-512x512.png';
   const tags = data.tags?.join(', ') || 'kamera, rekomendasi, galaxy camera';
   const fullTitle = `${data.title} | Galaxy Camera`;
@@ -132,7 +133,8 @@ function formatDate(iso) {
 }
 
 export default function RekomendasiSlug() {
-  const { slug, title, content, products, tags, createdAt } = useLoaderData();
+  const { slug, title, content, products, tags, createdAt, updatedAt } = useLoaderData();
+  const faq = Array.isArray(content?.faq) ? content.faq.filter((x) => x?.q && x?.a) : [];
 
   useEffect(() => {
     const prev = document.body.style.backgroundColor;
@@ -157,13 +159,13 @@ export default function RekomendasiSlug() {
               '@type': 'Article',
               mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.galaxy.co.id/rekomendasi/${slug}` },
               headline: title,
-              description: content?.intro?.slice(0, 160),
+              description: (content?.summary || content?.intro || '').slice(0, 160),
               image: {
                 '@type': 'ImageObject',
                 url: products[0]?.image || 'https://galaxy.co.id/icon-512x512.png',
               },
               datePublished: createdAt || new Date().toISOString(),
-              dateModified: createdAt || new Date().toISOString(),
+              dateModified: updatedAt || createdAt || new Date().toISOString(),
               author: { '@type': 'Organization', name: 'Galaxy Camera', url: 'https://galaxy.co.id' },
               publisher: {
                 '@type': 'Organization',
@@ -190,6 +192,15 @@ export default function RekomendasiSlug() {
                 image: p.image || '',
               })),
             },
+            ...(faq.length ? [{
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faq.map((x) => ({
+                '@type': 'Question',
+                name: x.q,
+                acceptedAnswer: { '@type': 'Answer', text: x.a },
+              })),
+            }] : []),
             {
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',
@@ -226,9 +237,17 @@ export default function RekomendasiSlug() {
                 {tag}
               </span>
             ))}
-            <span className="text-xs text-slate-600">{formatDate(createdAt)}</span>
+            <span className="text-xs text-slate-500">Diperbarui {formatDate(updatedAt || createdAt)}</span>
             <span className="text-xs text-slate-600">· {products.length} produk</span>
           </div>
+
+          {/* Jawaban singkat — the quotable answer up top (what search engines / AI assistants lift) */}
+          {content?.summary && (
+            <div className="mb-6 rounded-2xl border border-blue-500/25 bg-blue-500/10 px-4 py-3.5 md:px-5 md:py-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-300 m-0 mb-1.5">Jawaban singkat</p>
+              <p className="text-sm md:text-base text-white leading-relaxed m-0">{content.summary}</p>
+            </div>
+          )}
 
           {/* Intro */}
           {content?.intro && (
@@ -432,6 +451,26 @@ export default function RekomendasiSlug() {
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Kesimpulan</p>
             {content.conclusion.split('\n').filter(Boolean).map((para, i) => (
               <p key={i} className="text-sm md:text-base text-slate-300 leading-relaxed mb-3 last:mb-0">{para}</p>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* FAQ — mirrored in FAQPage JSON-LD above */}
+      {faq.length > 0 && (
+        <div className="max-w-3xl mx-auto px-4 md:px-8 mt-10">
+          <h2 className="text-lg md:text-xl font-bold text-white mb-4">Pertanyaan yang sering diajukan</h2>
+          <div className="divide-y" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.08)' }}>
+            {faq.map((x, i) => (
+              <details key={i} className="group py-3">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-sm md:text-base font-semibold text-slate-100">
+                  {x.q}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500 transition-transform group-open:rotate-180">
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </summary>
+                <p className="mt-2 text-sm text-slate-400 leading-relaxed m-0">{x.a}</p>
+              </details>
             ))}
           </div>
         </div>

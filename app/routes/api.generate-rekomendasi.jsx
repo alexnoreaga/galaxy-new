@@ -34,8 +34,14 @@ Format JSON:
       "whoFor": "1 kalimat: paling cocok untuk siapa"
     }
   ],
-  "conclusion": "1-2 paragraf penutup dengan panduan memilih"
+  "conclusion": "1-2 paragraf penutup dengan panduan memilih",
+  "summary": "JAWABAN SINGKAT 2-3 kalimat (maks 320 karakter) yang bisa dikutip apa adanya: sebut 2-3 produk terbaik dari daftar BESERTA untuk siapa (mis. pemula / kreator / profesional) dan harganya, lalu tutup dengan 'ready stock & garansi resmi di Galaxy Camera'. Tanpa basa-basi, langsung jawaban",
+  "faq": [
+    { "q": "pertanyaan yang benar-benar sering dicari pembeli tentang kategori ini (mis. izin, baterai, garansi, cicilan, cocok untuk apa)", "a": "jawaban 1-3 kalimat, faktual, spesifik, sebut produk dari daftar bila relevan" }
+  ]
 }
+
+Aturan tambahan: "faq" berisi 4-5 item. "summary" WAJIB menyebut nama produk persis dari daftar dan harga dari daftar (format Rp12,5 juta / Rp950 ribu).
 
 Aturan: handle di output harus sama persis dengan input. Bahasa Indonesia natural. Output HANYA JSON.`;
 

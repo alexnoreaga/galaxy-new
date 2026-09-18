@@ -58,8 +58,14 @@ Buat perbandingan lengkap dalam format JSON berikut (hanya output JSON, tidak ad
     "chooseA": ["alasan spesifik 1 berdasarkan fakta", "alasan 2", "alasan 3"],
     "chooseB": ["alasan spesifik 1 berdasarkan fakta", "alasan 2", "alasan 3"]
   },
-  "conclusion": "1-2 kalimat kesimpulan yang langsung dan membantu pembaca Indonesia memutuskan"
+  "conclusion": "1-2 kalimat kesimpulan yang langsung dan membantu pembaca Indonesia memutuskan",
+  "summary": "JAWABAN SINGKAT 2-3 kalimat (maks 320 karakter) yang bisa dikutip apa adanya: siapa sebaiknya pilih A dan siapa pilih B, dengan satu alasan konkret masing-masing; sebut kedua nama produk. Langsung jawaban, tanpa basa-basi",
+  "faq": [
+    { "q": "pertanyaan yang benar-benar sering dicari pembeli saat membandingkan kedua produk ini (mis. mana yang lebih bagus untuk video, beda harga, lensa kompatibel, baterai, garansi)", "a": "jawaban 1-3 kalimat, faktual, spesifik" }
+  ]
 }
+
+Aturan tambahan: "faq" berisi 4-5 item ditulis seperti orang mengetik di Google.
 
 Aturan ketat:
 - shortNameA dan shortNameB WAJIB berbeda dan mudah dibedakan

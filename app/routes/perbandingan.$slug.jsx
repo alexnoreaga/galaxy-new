@@ -8,7 +8,7 @@ export async function loader({ params, context }) {
   // Fetch comparison from Firestore REST API
   let comparison = null;
   let titleA = '', titleB = '', handleA = '', handleB = '', imageA = '', imageB = '';
-  let votesA = 0, votesB = 0, generatedAt = '';
+  let votesA = 0, votesB = 0, generatedAt = '', updatedAt = '';
 
   try {
     const res = await fetch(
@@ -30,6 +30,7 @@ export async function loader({ params, context }) {
     votesA = parseInt(f.votesA?.integerValue || 0);
     votesB = parseInt(f.votesB?.integerValue || 0);
     generatedAt = f.generatedAt?.stringValue || '';
+    updatedAt = f.updatedAt?.stringValue || generatedAt;
 
     // Increment view count (fire and forget) — updateMask ensures only viewCount is touched
     fetch(
@@ -107,7 +108,7 @@ export async function loader({ params, context }) {
     imageA: realImageA, imageB: realImageB,
     priceA, priceB, compareAtA, compareAtB,
     comparison, votesA, votesB, related,
-    generatedAt,
+    generatedAt, updatedAt,
   });
 }
 
@@ -116,7 +117,7 @@ export const meta = ({ data }) => {
   const shortA = data.shortNameA || data.titleA;
   const shortB = data.shortNameB || data.titleB;
   const title = `Perbandingan ${shortA} vs ${shortB} | Galaxy Camera`;
-  const description = `Perbandingan lengkap ${shortA} vs ${shortB}. Analisis mendalam — kualitas foto, video, fitur, harga, dan kesimpulan akhir. Temukan produk terbaik untuk kebutuhanmu.`;
+  const description = data.comparison?.summary || `Perbandingan lengkap ${shortA} vs ${shortB}. Analisis mendalam — kualitas foto, video, fitur, harga, dan kesimpulan akhir. Temukan produk terbaik untuk kebutuhanmu.`;
   const url = `https://galaxy.co.id/perbandingan/${data.slug}`;
   const image = data.imageA || data.imageB || 'https://galaxy.co.id/icon-512x512.png';
 
@@ -255,6 +256,7 @@ export default function PerbandinganSlug() {
   const vPctA = totalVotes > 0 ? Math.round((votesA / totalVotes) * 100) : 50;
   const vPctB = 100 - vPctA;
 
+  const faq = Array.isArray(comparison?.faq) ? comparison.faq.filter((x) => x?.q && x?.a) : [];
   return (
     <div style={{ backgroundColor: '#080d1a', minHeight: '100vh', color: 'white' }}>
       {/* JSON-LD Schema */}
@@ -267,13 +269,18 @@ export default function PerbandinganSlug() {
               '@type': 'Article',
               mainEntityOfPage: { '@type': 'WebPage', '@id': `https://galaxy.co.id/perbandingan/${loaderData.slug}` },
               headline: `Perbandingan ${shortA} vs ${shortB}`,
-              description: comparison.intro,
+              description: comparison.summary || comparison.intro,
               image: (imageA || imageB) ? { '@type': 'ImageObject', url: imageA || imageB } : 'https://galaxy.co.id/icon-512x512.png',
               datePublished: loaderData.generatedAt || new Date().toISOString(),
-              dateModified: loaderData.generatedAt || new Date().toISOString(),
+              dateModified: loaderData.updatedAt || loaderData.generatedAt || new Date().toISOString(),
               author: { '@type': 'Organization', name: 'Galaxy Camera', url: 'https://galaxy.co.id' },
               publisher: { '@type': 'Organization', name: 'Galaxy Camera', url: 'https://galaxy.co.id', logo: { '@type': 'ImageObject', url: 'https://galaxy.co.id/icon-512x512.png' } },
             },
+            ...(faq.length ? [{
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faq.map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })),
+            }] : []),
             {
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',
@@ -425,6 +432,21 @@ export default function PerbandinganSlug() {
         </div>
       </div>
 
+      {/* ── JAWABAN SINGKAT — quotable answer + visible freshness ── */}
+      {(comparison.summary || loaderData.updatedAt) && (
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-5">
+          {comparison.summary && (
+            <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 px-4 py-3.5 md:px-5 md:py-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-300 m-0 mb-1.5">Jawaban singkat</p>
+              <p className="text-sm md:text-base text-white leading-relaxed m-0">{comparison.summary}</p>
+            </div>
+          )}
+          {loaderData.updatedAt && (
+            <p className="text-xs text-slate-500 mt-3 m-0">Diperbarui {new Date(loaderData.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · harga &amp; stok mengikuti data toko saat ini</p>
+          )}
+        </div>
+      )}
+
       {/* ── INTRO ── */}
       {comparison.intro && (
         <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
@@ -514,6 +536,26 @@ export default function PerbandinganSlug() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Kesimpulan</p>
             <h2 className="sr-only">Kesimpulan: {titleA} vs {titleB}</h2>
             <p className="text-sm md:text-base text-slate-300 leading-relaxed">"{comparison.conclusion}"</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── FAQ — mirrored in FAQPage JSON-LD ── */}
+      {faq.length > 0 && (
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pb-6">
+          <h2 className="text-lg md:text-xl font-bold text-white mb-4">Pertanyaan yang sering diajukan</h2>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            {faq.map((x, i) => (
+              <details key={i} className="group py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-sm md:text-base font-semibold text-slate-100">
+                  {x.q}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500 transition-transform group-open:rotate-180">
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </summary>
+                <p className="mt-2 text-sm text-slate-400 leading-relaxed m-0">{x.a}</p>
+              </details>
+            ))}
           </div>
         </div>
       )}
