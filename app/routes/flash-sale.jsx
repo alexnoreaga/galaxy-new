@@ -115,7 +115,7 @@ export async function loader({ context }) {
   let products = collectionProducts;
   try {
     const discounts = await autoDiscountsPromise;
-    const flashMap = getActiveFlashProducts(discounts, 50);
+    const flashMap = getActiveFlashProducts(discounts, 250);
 
     const collectionIds = new Set(collectionProducts.map(p => p.id));
     const extraIds = [...flashMap.keys()].filter(id => !collectionIds.has(id));
