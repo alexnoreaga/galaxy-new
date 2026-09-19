@@ -569,6 +569,12 @@ export async function loader({params, context, request}) {
       }).catch(() => {}),
   ]);
 
+  // Unknown / deleted handle: a clean 404 (Google drops the URL) instead of a 500 from the
+  // product.* lookups below. Same pattern as collections.$handle.jsx.
+  if (!product?.id) {
+    throw new Response(`Produk "${handle}" tidak ditemukan`, {status: 404});
+  }
+
   // Full review list — DEFERRED (streams into the Ulasan tab via <Await>).
   // Used to be a Round-1 blocker: every product page waited on Firestore before first byte.
   const reviewsPromise = fetch(

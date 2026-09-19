@@ -793,14 +793,15 @@ export function ErrorBoundary() {
 
   // Detect user-side network/connectivity errors
   const errLower = errorMessage?.toLowerCase() || '';
-  const isNetworkError = errLower.includes('fetch failed')
+  const isNotFound = errorStatus === 404;
+  const isNetworkError = !isNotFound && (errLower.includes('fetch failed')
     || errLower.includes('failed to fetch')
     || errLower.includes('network')
     || errLower.includes('timeout')
     || errLower.includes('networkerror')
     || errLower.includes('load failed')
     // navigator only exists in the browser — guard for SSR (worker has no navigator global)
-    || (typeof navigator !== 'undefined' && !navigator.onLine);
+    || (typeof navigator !== 'undefined' && !navigator.onLine));
 
   useEffect(() => {
     if (!isNetworkError) return;
@@ -855,12 +856,14 @@ export function ErrorBoundary() {
 
                 {/* Title */}
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center">
-                  {isNetworkError ? 'Koneksi Internet Bermasalah 📡' : 'Ada gangguan di rumah Galaxy 😢'}
+                  {isNotFound ? 'Halaman tidak ditemukan' : isNetworkError ? 'Koneksi Internet Bermasalah 📡' : 'Ada gangguan di rumah Galaxy 😢'}
                 </h1>
 
                 {/* Description */}
                 <p className="text-gray-600 text-lg mb-4 leading-relaxed text-center">
-                  {isNetworkError
+                  {isNotFound
+                    ? 'Produk atau halaman yang kamu cari sudah tidak ada, atau tautannya berubah. Coba cari lewat kolom pencarian, atau tanya Grisela.'
+                    : isNetworkError
                     ? 'Sepertinya koneksi internet kamu sedang tidak stabil. Coba periksa WiFi atau data selulermu.'
                     : 'Mohon tunggu, Galaxy Camera sedang melakukan penyesuaian exposure. Kami akan segera kembali online.'}
                 </p>
@@ -872,7 +875,7 @@ export function ErrorBoundary() {
                 )}
 
                 {/* Toggle Button for Error Details */}
-                {errorMessage && (
+                {errorMessage && !isNotFound && (
                   <div className="mb-6">
                     <button
                       onClick={() => setShowDetails(!showDetails)}
