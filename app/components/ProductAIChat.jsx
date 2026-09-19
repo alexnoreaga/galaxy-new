@@ -642,6 +642,12 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   // Hidden during flash sale, cuci-gudang (already best-price), and discontinued (can't buy → no nego)
   const showNegoBubble = hasHargaModal && !autoDiscount && !inCuciGudang && !isDiscontinued && !messages.some(m => m.role === 'user' && m.text === NEGO_Q);
 
+  // Products with a demo unit in a branch (custom.unit_demo) get a one-tap "coba dulu" prompt —
+  // Grisela already knows which branch has the unit (productUnitDemo in the prompt) and steers
+  // toward a store visit / LEAD alasan=kunjungan.
+  const DEMO_Q = 'Bisa coba dulu di toko?';
+  const showDemoBubble = Array.isArray(unitDemo) && unitDemo.length > 0 && !isDiscontinued && !messages.some(m => m.role === 'user' && m.text === DEMO_Q);
+
   // On discontinued products Grisela's job flips to redirecting toward an in-stock replacement —
   // swap the generated questions for alternative-focused ones (cicilan/stok are pointless here).
   const DISCONTINUED_QUESTIONS = ['Ada alternatif penggantinya?', 'Apa bedanya sama versi terbaru?', 'Kenapa produk ini discontinued?'];
@@ -702,6 +708,14 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                   className="px-3 py-1.5 bg-gradient-to-r from-rose-500 to-red-600 hover:brightness-110 text-white text-xs rounded-full transition leading-tight text-left font-semibold shadow-md shadow-rose-900/30"
                 >
                   Bisa nego harganya? 🤝
+                </button>
+              )}
+              {showDemoBubble && (
+                <button
+                  onClick={() => askQuestion(DEMO_Q, false)}
+                  className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-900 ring-1 ring-sky-200 text-xs rounded-full transition-colors leading-tight text-left font-semibold"
+                >
+                  Bisa coba dulu di toko? 🏬
                 </button>
               )}
               {displayQuestions.map((q, i) => (
