@@ -294,6 +294,8 @@ query askPredictiveSearch($searchTerm: String!) {
       featuredImage { url }
       priceRange { minVariantPrice { amount } }
       discontinued: metafield(namespace: "custom", key: "produk_discontinue") { value }
+      variants(first: 8) { nodes { title availableForSale price { amount } } }
+      isiBox: metafield(namespace: "custom", key: "isi_dalam_box") { value }
     }
   }
 }`;
@@ -734,15 +736,37 @@ function isAccessoryText(text) {
 const SUPPORT_GEAR_RE = /\b(gimbal|stabilizer|steadicam|glidecam|tripod|monopod|mount|rig|cage|slider|shoulder ?rig|clamp|l-?bracket|quick ?release|base ?plate|selfie ?stick|tongsis|dolly|jib|crane)\b/i;
 
 function mapProducts(items, limit = 3) {
-  return items.slice(0, limit).map(p => ({
-    title: p.title,
-    handle: p.handle,
-    type: p.productType || '',
-    image: p.featuredImage?.url ?? null,
-    price: Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0)),
-    available: p.availableForSale,
-    discontinued: p.discontinued?.value === 'true',
-  }));
+  return items.slice(0, limit).map(p => {
+    const vs = (p.variants?.nodes ?? [])
+      .filter(v => v?.title && v.title !== 'Default Title')
+      .map(v => ({ title: v.title, price: Number(parseFloat(v.price?.amount ?? 0)), available: !!v.availableForSale }));
+    // Headline price = cheapest variant that is actually in stock (the product-level min price can
+    // belong to a sold-out bundle — the X6 "Rp13.690.000 ready" mistake). Falls back to min price.
+    const readyPrices = vs.filter(v => v.available && v.price > 0).map(v => v.price);
+    const minPrice = Number(parseFloat(p.priceRange?.minVariantPrice?.amount ?? 0));
+    return {
+      title: p.title,
+      handle: p.handle,
+      type: p.productType || '',
+      image: p.featuredImage?.url ?? null,
+      price: readyPrices.length ? Math.min(...readyPrices) : minPrice,
+      available: p.availableForSale,
+      discontinued: p.discontinued?.value === 'true',
+      ...(vs.length ? { variants: vs } : {}),
+      ...(p.isiBox?.value ? { isiBox: String(p.isiBox.value).replace(/\r/g, '').trim().slice(0, 900) } : {}),
+    };
+  });
+}
+
+// Extra lines under a product entry: per-variant price/stock + isi box (so Grisela answers
+// "dapat apa?", "termasuk stick?", "yang bundle harganya?" from data instead of guessing).
+function productDetailLines(p) {
+  const out = [];
+  if (p.variants?.length) {
+    out.push(`  Varian: ${p.variants.map(v => `${v.title} Rp${v.price.toLocaleString('id-ID')} (${v.available ? 'Ready' : 'Stok habis'})`).join(' | ')}`);
+  }
+  if (p.isiBox) out.push(`  Isi box: ${p.isiBox.split('\n').map(l => l.trim()).filter(Boolean).join(' / ')}`);
+  return out.join('\n');
 }
 
 // Stock label: discontinued (gone for good) is DIFFERENT from merely out of stock (may restock)
@@ -816,7 +840,7 @@ const RECOMMEND_PICK_INSTRUCTIONS = `- Semua kandidat di atas READY STOCK. PILIH
 
 function productListText(products) {
   return products
-    .map(p => `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${stockLabel(p)}`)
+    .map(p => { const base = `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${stockLabel(p)}`; const d = productDetailLines(p); return d ? `${base}\n${d}` : base; })
     .join('\n');
 }
 
@@ -844,13 +868,16 @@ function productListTextWithCicilan(products) {
   return products
     .map(p => {
       const base = `- ${p.title} | Rp${p.price.toLocaleString('id-ID')} | ${stockLabel(p)}`;
+      const d = productDetailLines(p);
       const cic = hitungCicilan(p.price);
-      return cic ? `${base}\n  Estimasi Cicilan: ${cic}` : base;
+      return [base, d, cic ? `  Estimasi Cicilan: ${cic}` : ''].filter(Boolean).join('\n');
     })
     .join('\n');
 }
 
 const CARD_INSTRUCTIONS = `- PENTING: produk di atas akan OTOMATIS ditampilkan sebagai kartu bergambar (foto, harga, link) tepat di bawah jawabanmu. JANGAN tulis link dan JANGAN sebutkan semua harga satu per satu — cukup jawab natural dan singkat, contoh: "Ada kak, ready stock! Ini pilihannya ya 👇"
+- Jika produk punya baris "Varian": harga & stok BERBEDA per varian — sebutkan per varian (mis. "Standard Bundle Rp13,69 juta stok habis, Essential Bundle Rp15,29 juta ready"), JANGAN menyebut harga varian yang stok habis seolah ready.
+- Jika customer tanya "dapat apa", "isi paketnya", "termasuk X?", "sudah ada stick/baterai/charger?": jawab HANYA dari baris "Isi box" (per varian bila ada). Kalau baris "Isi box" tidak ada, bilang jujur rinciannya belum ada di data dan tawarkan cek ke admin — JANGAN menebak.
 - Jika status "Stok habis": produknya ADA di katalog, hanya stok WEBSITE yang kosong — stok fisik toko bisa berbeda. Sebutkan harganya (customer sering tanya harga/total walau stok kosong), lalu tawarkan konfirmasi cepat ke admin di 0821-1131-1131 dan/atau catat nama & nomor WA supaya dikabari saat restock (jika customer setuju dan kasih nomor → marker LEAD alasan=restock). JANGAN PERNAH bilang produknya "tidak ada / tidak tersedia di katalog".
 - Jika status "DISCONTINUED": produk ini SUDAH TIDAK DIPRODUKSI/DIJUAL LAGI — JANGAN bilang sekadar "stok habis" atau seolah bisa restock. Sampaikan dengan sopan bahwa produknya sudah discontinued, lalu langsung tawarkan alternatif/pengganti yang serupa. JANGAN PERNAH menyebut produk berstatus DISCONTINUED sebagai rekomendasi/pilihan/alternatif — statusnya hanya disebut kalau customer menanyakan produk itu secara spesifik.`;
 
@@ -1397,7 +1424,8 @@ export async function action({ request, context }) {
   // Never show a DISCONTINUED product as a purchasable card (they can still be availableForSale
   // in Shopify from leftover stock, so the "Ready" badge would lie). They remain in the text
   // context above so Grisela can explain the status when a customer asks for one by name.
-  const visibleProducts = storeSearch.products.filter((p) => !p.discontinued);
+  // isiBox is prompt-only context; the client cards don't need it (keeps the response small)
+  const visibleProducts = storeSearch.products.filter((p) => !p.discontinued).map(({ isiBox, ...rest }) => rest);
   const foundProducts = visibleProducts.length > 0 ? visibleProducts : undefined;
 
   const systemContext = `${storeKnowledge}
