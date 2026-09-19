@@ -661,6 +661,27 @@ export async function loader({params, context, request}) {
   // ROUND 2 — deferred promises, depend on product.id but do NOT block the response.
   // Related products get batched social proof (2 Firestore calls) so their cards can show
   // rating + terjual like every other product grid.
+  // Compatibility guides ("Lensa Terbaik untuk …", "Aksesoris Wajib …") generated for THIS product:
+  // rekomendasi docs tagged targetHandle == handle. Deferred, best effort, ≤ 2 s.
+  const guidesPromise = (async () => {
+    try {
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 2000);
+      const r = await fetch(`https://firestore.googleapis.com/v1/projects/galaxypwa/databases/(default)/documents:runQuery?key=AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU`, {
+        method: 'POST', signal: ctl.signal, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ structuredQuery: {
+          from: [{ collectionId: 'rekomendasi' }],
+          where: { fieldFilter: { field: { fieldPath: 'targetHandle' }, op: 'EQUAL', value: { stringValue: product.handle } } },
+          select: { fields: [{ fieldPath: 'title' }, { fieldPath: 'slug' }, { fieldPath: 'guideType' }, { fieldPath: 'productCount' }] },
+          limit: 4,
+        } }),
+      });
+      clearTimeout(t);
+      if (!r.ok) return [];
+      const rows = await r.json();
+      return rows.filter((x) => x.document).map((x) => { const f = x.document.fields || {}; return { title: f.title?.stringValue || '', slug: f.slug?.stringValue || '', type: f.guideType?.stringValue || '', count: parseInt(f.productCount?.integerValue || 0) }; }).filter((g) => g.slug);
+    } catch { return []; }
+  })();
+
   const relatedPromise = (async () => {
     const data = await context.storefront.query(PRODUK_RELATED, { variables: { productId: product?.id } });
     const nodes = data?.productRecommendations ?? [];
@@ -719,6 +740,7 @@ export async function loader({params, context, request}) {
     pwp: pwpPromise,
     // Deferred — stream in after page renders
     related: relatedPromise,
+    guides: guidesPromise,
     metaobject: metaobjectPromise,
     liveshopee: liveshopeePromise,
     discountVouchers: discountVouchersPromise,
@@ -1887,7 +1909,7 @@ DP : 0
   }
 
   export default function ProductHandle() {
-    const {balasCepat,custEmail,related,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,reviewStats,reviewsList,soldCount,autoDiscount,hargaBest,pwp} = useLoaderData();
+    const {balasCepat,custEmail,related,guides,admgalaxy,canonicalUrl,customerAccessToken,shop, product, selectedVariant: loaderVariant,metaobject,liveshopee,marketplace,discountVouchers,cachedFaqs,reviewStats,reviewsList,soldCount,autoDiscount,hargaBest,pwp} = useLoaderData();
 
     // Compute selected variant from URL params — all 50 variants are already in product.variants.nodes
     // so this is instant, no server call needed on variant switch
@@ -2056,6 +2078,13 @@ DP : 0
       Promise.resolve(hargaBest).then((v) => { if (active) setHargaBestData(v); }).catch(() => {});
       return () => { active = false; };
     }, [hargaBest]);
+    // Guides stream in the same way; empty until (and unless) the deferred query lands.
+    const [guideList, setGuideList] = useState([]);
+    useEffect(() => {
+      let active = true;
+      Promise.resolve(guides).then((v) => { if (active && Array.isArray(v)) setGuideList(v); }).catch(() => {});
+      return () => { active = false; };
+    }, [guides]);
     const hargaBestCopy = hargaBestData?.byVariant?.[selectedVariant?.id] ?? '';
     const variantPunyaModal = !!hargaBestData?.withRealCost?.includes(selectedVariant?.id);
 
@@ -2404,7 +2433,7 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} unitDemo={parseDemoStores(product?.metafields[16]?.value)} />
+              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} unitDemo={parseDemoStores(product?.metafields[16]?.value)} guides={guideList} />
 
               {/* Bonus Gratis — mobile/tablet only (lg+ shows it in the sticky checkout card).
                   Placed right under Tanya Grisela (owner request 2026-09-16). */}
@@ -2952,6 +2981,36 @@ DP : 0
      
 
         <div className="mt-2 mb-5 relative mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+
+        {/* Compatibility guides for this product (lens / accessory picks) — links only, the
+            article itself lives at /rekomendasi/<slug> */}
+        {guideList.length > 0 && (
+          <div className="mb-6">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-red-600 mb-2">Panduan untuk produk ini</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {guideList.map((g) => (
+                <Link
+                  key={g.slug}
+                  to={`/rekomendasi/${g.slug}`}
+                  prefetch="intent"
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 no-underline hover:border-gray-900 transition-colors"
+                >
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-900 text-white">
+                    {g.type === 'lensa' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="w-5 h-5"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2" /></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="w-5 h-5"><path d="M4 7h16v12H4zM8 7V5h8v2M9 12h6" /></svg>
+                    )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-gray-900 leading-snug">{g.title}</span>
+                    <span className="block text-xs text-gray-500 mt-0.5">{g.count} pilihan ready stock · lihat panduan ›</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         <Suspense fallback={null}>
           <Await resolve={related}>

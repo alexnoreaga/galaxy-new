@@ -1264,7 +1264,7 @@ function bestVoucherFor(vouchers, price) {
 
 export async function action({ request, context }) {
   const body = await request.json();
-  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productCuciGudang = false, productUnitDemo = [], productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
+  const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productCuciGudang = false, productUnitDemo = [], productGuides = [], productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
 
@@ -1426,6 +1426,7 @@ ${(() => {
   const where = /^semua/i.test(d[0]) ? 'SEMUA cabang' : `cabang ${d.join(' & ')}`;
   return `- 🏬 UNIT DEMO TERSEDIA di ${where}: produk ini ada unit display yang bisa dilihat & dicoba langsung di toko. Kalau customer ragu, tanya "ada di toko?", "bisa coba dulu?", "mau lihat/pegang langsung": AJAK datang ke cabang itu (alamat & jam buka ada di halaman /stores), sarankan WA admin 0821-1131-1131 dulu supaya unitnya dipastikan ada hari itu, dan tawarkan catat nama & nomor WA untuk kunjungan (marker LEAD alasan=kunjungan). JANGAN klaim ada unit demo di cabang lain. Ini juga alasan closing yang bagus untuk customer yang masih ragu`;
 })()}
+${(Array.isArray(productGuides) && productGuides.length) ? `- 📘 PANDUAN TERSEDIA untuk produk ini (halaman di website kami, isinya pilihan yang SUDAH DIPASTIKAN kompatibel + harga live): ${productGuides.map(g => `"${g.title}" → https://www.galaxy.co.id/rekomendasi/${g.slug}`).join(' | ')}. Saat customer tanya lensa/aksesoris yang cocok, jawab singkat lalu arahkan ke panduan itu (sebut judul + link). JANGAN merekomendasikan lensa/aksesoris di luar panduan tanpa pencarian katalog` : ''}
 ${productFreeBonus ? `- Bonus Gratis KHUSUS produk ini (sedang berlaku, sebutkan ini saat customer tanya bonus/free): ${productFreeBonus.slice(0, 300)}` : ''}
 ${productCicilan ? `- Estimasi Cicilan:\n${productCicilan}` : ''}`}
 ${productNego ? `
