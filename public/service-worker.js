@@ -1,45 +1,12 @@
-// service-worker.js — caching only
-// Firebase messaging is handled exclusively by firebase-messaging-sw.js
-
-const CACHE_NAME = 'galaxy-cache-v2';
-const PRECACHE_URLS = [
-  '/',
-  '/manifest.json',
-];
-
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS);
-    })
-  );
-});
-
+// service-worker.js — retired.
+// This caching worker used to share scope "/" with firebase-messaging-sw.js, so the two kept
+// replacing each other, and it served a stale cached homepage. It is no longer registered by the
+// site; this stub only cleans up on devices that still have the old version and then unregisters.
+self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    Promise.all([
-      // Delete any old caches from previous versions
-      caches.keys().then((cacheNames) =>
-        Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
-              return caches.delete(cacheName);
-            }
-            return null;
-          })
-        )
-      ),
-      self.clients.claim(),
-    ])
-  );
-});
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .then(() => self.registration.unregister())
   );
 });

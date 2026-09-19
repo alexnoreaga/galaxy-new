@@ -10,55 +10,42 @@ const firebaseConfig = {
   appId: "1:1035942613391:web:468294eff27a18ac00bbfa",
 };
 
+// Take over immediately. This worker replaces the old caching worker (/service-worker.js) that
+// lived at the same scope, so activate fast and drop its stale caches (it served a cached "/").
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    Promise.all([
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))),
+      self.clients.claim(),
+    ])
+  );
+});
+
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Handle background messages (app closed or in background)
-messaging.onBackgroundMessage((payload) => {
-  const notificationTitle = payload?.notification?.title || 'Galaxy Camera';
+// Background messages: the Firebase SDK already shows a notification for every push that carries
+// a `notification` block (title/body/icon from the server) and handles the click via
+// `fcm_options.link`. A custom onBackgroundMessage() handler on top of that produced TWO
+// notifications per push, so it is intentionally not used here.
+// (`messaging` is kept: instantiating it is what registers the SDK's push/click listeners.)
+void messaging;
 
-  // Firebase Console puts the link in fcmOptions.link or notification.click_action
-  // NOT in payload.data.url — so we extract it from the right place
-  const clickUrl =
-    payload?.fcmOptions?.link ||
-    payload?.notification?.click_action ||
-    payload?.data?.url ||
-    'https://galaxy.co.id/';
-
-  const notificationOptions = {
-    body: payload?.notification?.body || 'New notification',
-    icon: payload?.notification?.icon || '/icon-512x512.png',
-    badge: '/apple-icon-72x72.png',
-    tag: 'galaxy-notification',
-    requireInteraction: false,
-    data: {
-      ...payload?.data,
-      url: clickUrl, // ensure notificationclick handler always has the correct URL
-    },
-  };
-
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// Handle notification click — open/focus the site at the right URL
+// Fallback click handler for notifications that were not shown by the SDK
+// (e.g. foreground notifications shown by the page via registration.showNotification()).
+// The SDK stops propagation for its own notifications, so this only sees the others.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-
-  const urlToOpen = event.notification.data?.url || 'https://galaxy.co.id/';
-
+  const urlToOpen = event.notification.data?.url || 'https://www.galaxy.co.id/';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // If the site is already open, focus it and navigate to the URL
       for (const client of clientList) {
         if (client.url.startsWith(self.location.origin) && 'focus' in client) {
-          client.navigate(urlToOpen);
-          return client.focus();
+          return client.focus().then((c) => (c && 'navigate' in c ? c.navigate(urlToOpen) : c));
         }
       }
-      // Site is not open — open a new tab
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
+      if (clients.openWindow) return clients.openWindow(urlToOpen);
     })
   );
 });
