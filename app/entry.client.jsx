@@ -35,16 +35,78 @@ async function initializeNotifications() {
     await navigator.serviceWorker.ready;
     
     // Request notification permission
+    // Never call requestPermission() on load: Firefox/Safari block gesture-less prompts and Chrome
+    // demotes them to a quiet bell icon. Show our own small ask first; the browser prompt fires
+    // only when the shopper taps "Aktifkan" (a real user gesture).
     if ('Notification' in window && Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        await registerForNotifications();
-      }
+      showSoftPrompt();
     } else if (Notification.permission === 'granted') {
       await registerForNotifications();
     }
   } catch (error) {
     console.error('Error initializing notifications:', error);
+  }
+}
+
+const FCM_TOKEN_SAVED_KEY = 'fcm_token_saved_v2'; // set once /api/save-token confirmed the Firestore write
+const PUSH_SNOOZE_KEY = 'gx_push_snooze_until';
+const PAGEVIEW_KEY = 'gx_pv';
+
+async function saveTokenToServer(token) {
+  try {
+    const r = await fetch('/api/save-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    if (r.ok) localStorage.setItem(FCM_TOKEN_SAVED_KEY, String(Date.now()));
+  } catch (fetchError) {
+    console.warn('Could not save token to server:', fetchError);
+  }
+}
+
+// Small charcoal card, bottom of the viewport, on the 2nd+ page of a visit after 15 s.
+// "Aktifkan" → browser permission prompt → register token. "Nanti" snoozes 14 days.
+function showSoftPrompt() {
+  try {
+    const now = Date.now();
+    if (Number(localStorage.getItem(PUSH_SNOOZE_KEY) || 0) > now) return;
+    const pv = Number(sessionStorage.getItem(PAGEVIEW_KEY) || 0) + 1;
+    sessionStorage.setItem(PAGEVIEW_KEY, String(pv));
+    if (pv < 2) return;
+    if (document.getElementById('gx-push-ask')) return;
+    setTimeout(() => {
+      if (Notification.permission !== 'default' || document.getElementById('gx-push-ask')) return;
+      const el = document.createElement('div');
+      el.id = 'gx-push-ask';
+      el.setAttribute('role', 'dialog');
+      el.setAttribute('aria-label', 'Aktifkan notifikasi');
+      el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:60;max-width:420px;margin:0 auto;background:#111827;color:#fff;border-radius:14px;padding:12px 12px 12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.35);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;gap:10px;align-items:center';
+      el.innerHTML =
+        '<span style="flex-shrink:0;width:34px;height:34px;border-radius:10px;background:#1f2937;display:flex;align-items:center;justify-content:center;font-size:18px">🔔</span>' +
+        '<span style="flex:1;min-width:0"><b style="display:block;font-size:13.5px">Mau dikabari kalau ada flash sale?</b><span style="color:#9ca3af">Notifikasi singkat, maksimal 2x seminggu.</span></span>' +
+        '<button type="button" data-act="later" style="background:none;border:0;color:#9ca3af;font-size:12px;padding:6px 4px;cursor:pointer">Nanti</button>' +
+        '<button type="button" data-act="on" style="background:#dc2626;border:0;color:#fff;font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:999px;cursor:pointer">Aktifkan</button>';
+      const close = (snoozeDays) => {
+        el.remove();
+        if (snoozeDays) localStorage.setItem(PUSH_SNOOZE_KEY, String(Date.now() + snoozeDays * 864e5));
+      };
+      el.querySelector('[data-act="later"]').onclick = () => close(14);
+      el.querySelector('[data-act="on"]').onclick = async () => {
+        close(0);
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') await registerForNotifications();
+          else localStorage.setItem(PUSH_SNOOZE_KEY, String(Date.now() + 90 * 864e5));
+        } catch (e) {
+          console.warn('permission request failed', e);
+        }
+      };
+      document.body.appendChild(el);
+      setTimeout(() => { if (document.getElementById('gx-push-ask')) close(3); }, 30000); // ignored → ask again in 3 days
+    }, 15000);
+  } catch (e) {
+    console.warn('soft prompt skipped', e);
   }
 }
 
@@ -76,7 +138,9 @@ async function registerForNotifications() {
     const isTokenFresh = storedToken && (Date.now() - storedTs) < FCM_TOKEN_MAX_AGE_MS;
 
     if (isTokenFresh) {
-      // Token is still valid — no need to re-register
+      // Token is still valid — but if this device's token never reached the server (the old
+      // endpoint dropped tokens for a long time), send it now instead of waiting for the 7-day refresh.
+      if (!localStorage.getItem(FCM_TOKEN_SAVED_KEY)) await saveTokenToServer(storedToken);
       return;
     }
 
@@ -100,15 +164,7 @@ async function registerForNotifications() {
       localStorage.setItem(FCM_TOKEN_TS_KEY, Date.now().toString());
 
       // Save token to backend
-      try {
-        await fetch('/api/save-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-      } catch (fetchError) {
-        console.warn('Could not save token to server:', fetchError);
-      }
+      await saveTokenToServer(token);
     }
   } catch (error) {
     console.error('Error getting FCM token:', error);
