@@ -9,6 +9,7 @@ export const BottomNavbar = () => {
   // Other pages (e.g. /search "tidak ditemukan") open the general chat through this event.
   useEffect(() => {
     const onOpen = () => setChatOpen(true);
+    try { if (new URLSearchParams(window.location.search).get('chat') === 'open') setChatOpen(true); } catch {}
     window.addEventListener('grisela:open-general', onOpen);
     return () => window.removeEventListener('grisela:open-general', onOpen);
   }, []);

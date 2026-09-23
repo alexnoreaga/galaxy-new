@@ -303,3 +303,19 @@ function scheduleInit() {
   else window.addEventListener('load', run, { once: true });
 }
 scheduleInit();
+
+// Chat widgets use these when a staff member joins a conversation ("Mau dikabari di HP?").
+// __gxPushToken: the token if this browser already granted notifications (flash-sale opt-in).
+// __gxRegisterPush: after the widget's own requestPermission() tap was granted → register + return token.
+window.__gxPushToken = () => {
+  try { return ('Notification' in window && Notification.permission === 'granted') ? (localStorage.getItem(FCM_TOKEN_KEY) || '') : ''; } catch (_) { return ''; }
+};
+window.__gxRegisterPush = async () => {
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return '';
+    if (!swRegistration) { swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js'); await navigator.serviceWorker.ready; }
+    await registerForNotifications();
+    await listenForeground();
+    return localStorage.getItem(FCM_TOKEN_KEY) || '';
+  } catch (_) { return ''; }
+};

@@ -37,6 +37,7 @@ export async function loader({ request }) {
   if (!ID_RE.test(id)) return json({ error: 'conversationId invalid' }, { status: 400 });
   const sinceRaw = url.searchParams.get('since');
   const since = sinceRaw == null ? null : Math.max(0, parseInt(sinceRaw, 10) || 0);
+  const full = url.searchParams.get('full') === '1'; // every role + parsed attachments (restore after a push tap)
   const r = await fetch(`${BASE}/conversations/${id}?key=${FIRESTORE_KEY}`);
   if (!r.ok) return json({ error: 'not found' }, { status: 404, ...NO_STORE });
   const f = (await r.json()).fields || {};
@@ -44,9 +45,12 @@ export async function loader({ request }) {
   const mode = f.mode?.stringValue === 'staff' ? 'staff' : 'ai';
   const sf = f.staff?.mapValue?.fields;
   const staff = mode === 'staff' ? { name: sf?.name?.stringValue || 'Staf Galaxy' } : null;
-  const messages = since == null ? [] : msgs.slice(since)
-    .map((m, k) => { const mf = m.mapValue?.fields || {}; return { i: since + k, role: mf.role?.stringValue || 'ai', text: mf.text?.stringValue || '', name: mf.name?.stringValue || '' }; })
-    .filter((m) => m.role === 'staff' || m.role === 'system');
+  const parseAttach = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
+  const messages = full
+    ? msgs.map((m, k) => { const mf = m.mapValue?.fields || {}; return { i: k, role: mf.role?.stringValue || 'ai', text: mf.text?.stringValue || '', name: mf.name?.stringValue || '', attachments: parseAttach(mf.attachments?.stringValue) }; })
+    : since == null ? [] : msgs.slice(since)
+      .map((m, k) => { const mf = m.mapValue?.fields || {}; return { i: since + k, role: mf.role?.stringValue || 'ai', text: mf.text?.stringValue || '', name: mf.name?.stringValue || '' }; })
+      .filter((m) => m.role === 'staff' || m.role === 'system');
   return json({ mode, staff, wantsStaff: !!f.wants_staff?.booleanValue, total: msgs.length, messages }, NO_STORE);
 }
 
@@ -54,8 +58,19 @@ export async function action({ request }) {
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
   const body = await request.json().catch(() => ({}));
   const id = String(body?.conversationId || '');
-  if (!ID_RE.test(id) || !body?.wantsStaff) return json({ error: 'invalid' }, { status: 400 });
-  const fields = { wants_staff: { booleanValue: true }, wants_staff_at: ts(), updated_at: ts() };
+  if (!ID_RE.test(id)) return json({ error: 'invalid' }, { status: 400 });
+  let fields;
+  if (typeof body?.pushToken === 'string' && body.pushToken.length >= 50 && body.pushToken.length <= 4096) {
+    // customer opted in to phone alerts for staff replies in this conversation
+    fields = { customer_push_token: { stringValue: body.pushToken }, customer_push_at: ts() };
+  } else if (body?.active) {
+    // customer has the chat open and visible → staff replies need no push right now
+    fields = { customer_active_at: ts() };
+  } else if (body?.wantsStaff) {
+    fields = { wants_staff: { booleanValue: true }, wants_staff_at: ts(), updated_at: ts() };
+  } else {
+    return json({ error: 'invalid' }, { status: 400 });
+  }
   const mask = Object.keys(fields).map((k) => `updateMask.fieldPaths=${k}`).join('&');
   const r = await fetch(`${BASE}/conversations/${id}?key=${FIRESTORE_KEY}&${mask}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields }) });
   return json({ ok: r.ok }, NO_STORE);

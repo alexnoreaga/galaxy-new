@@ -108,6 +108,70 @@ export function StaffAvatar({ name = '', size = 'w-6 h-6' }) {
   );
 }
 
+// Server message (api.chat-sync) → local bubble shape (cards come from the stored attachments)
+export function serverMsgToLocal(m) {
+  const a = m.attachments || {};
+  return { role: m.role, text: m.text, name: m.name || '', products: a.products ?? null, vouchers: a.vouchers ?? null, marketplaces: a.marketplaces ?? null, negoCode: a.negoCode ?? null };
+}
+
+// ── Customer phone alerts for STAFF replies (never for Grisela) ──
+const CHAT_PUSH_SNOOZE_KEY = 'gx_chat_push_snooze_until';
+function chatSyncPost(body) {
+  return fetch('/api/chat-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
+}
+/**
+ * When a staff member joins: link an existing push token to the conversation, or offer a one-tap
+ * opt-in card; while the chat is open and visible, tell the server the customer is active (so the
+ * staff reply is NOT pushed to the phone — it shows in the chat within seconds).
+ */
+export function useCustomerPush(open, conversationId, staffMode) {
+  const [showCard, setShowCard] = useState(false);
+  const linkedRef = useRef('');
+  useEffect(() => {
+    if (!staffMode || !conversationId || linkedRef.current === conversationId) return;
+    linkedRef.current = conversationId;
+    try {
+      const token = window.__gxPushToken?.() || '';
+      if (token) { chatSyncPost({ conversationId, pushToken: token }); return; }
+      const snoozed = Number(localStorage.getItem(CHAT_PUSH_SNOOZE_KEY) || 0) > Date.now();
+      if ('Notification' in window && 'PushManager' in window && Notification.permission === 'default' && !snoozed) setShowCard(true);
+    } catch {}
+  }, [staffMode, conversationId]);
+  // active heartbeat every 15 s while a human is in the chat and the tab is visible
+  useEffect(() => {
+    if (!open || !conversationId || !staffMode) return;
+    const beat = () => { if (document.visibilityState === 'visible') chatSyncPost({ conversationId, active: true }); };
+    beat();
+    const id = setInterval(beat, 15000);
+    document.addEventListener('visibilitychange', beat);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', beat); };
+  }, [open, conversationId, !!staffMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  const enable = () => {
+    setShowCard(false);
+    let req;
+    try { req = Notification.requestPermission(); } catch { return; } // must stay inside the tap
+    Promise.resolve(req).then(async (perm) => {
+      if (perm !== 'granted') { try { localStorage.setItem(CHAT_PUSH_SNOOZE_KEY, String(Date.now() + 90 * 864e5)); } catch {} return; }
+      const token = (await window.__gxRegisterPush?.()) || '';
+      if (token && conversationId) chatSyncPost({ conversationId, pushToken: token });
+    }).catch(() => {});
+  };
+  const later = () => { setShowCard(false); try { localStorage.setItem(CHAT_PUSH_SNOOZE_KEY, String(Date.now() + 30 * 864e5)); } catch {} };
+  return { showCard, enable, later };
+}
+export function StaffPushCard({ staffName, onEnable, onLater }) {
+  return (
+    <div className="mx-1 my-1 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-gray-800">
+      <p className="font-semibold">{staffName} dari Galaxy bergabung. Mau dikabari di HP kalau dia membalas?</p>
+      <p className="text-[11px] text-gray-500 mt-0.5">Hanya balasan staf. Kamu bisa tutup halaman ini dan tetap dapat kabarnya.</p>
+      <div className="flex gap-2 mt-2">
+        <button onClick={onEnable} className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px]">Aktifkan</button>
+        <button onClick={onLater} className="px-3 py-1.5 rounded-full text-gray-500 hover:text-gray-700 text-[11px]">Nanti</button>
+      </div>
+    </div>
+  );
+}
+
 export function TypingIndicator() {
   return (
     <div className="flex items-end gap-1.5">
@@ -408,7 +472,8 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   const [waitingStaff, setWaitingStaff] = useState(false);
   const serverTotalRef = useRef(null);
   const inFlightRef = useRef(false);
-  const appliedIdxRef = useRef(-1); // highest server message index already shown // how many server-side messages we have already seen
+  const appliedIdxRef = useRef(-1); // highest server message index already shown
+  const custPush = useCustomerPush(open, conversationId, staffMode); // how many server-side messages we have already seen
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const restoredRef = useRef(false);
@@ -426,6 +491,10 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
       setMessages(saved.messages);
       if (saved.conversationId) setConversationId(saved.conversationId);
     }
+    // Opened from a staff-reply push notification → show the chat right away
+    try {
+      if (new URLSearchParams(window.location.search).get('chat') === 'open') { openTriggerRef.current = 'push'; setOpen(true); }
+    } catch {}
   }, [handle]);
 
   // Persist after every change — but only once there's a real exchange (skip a lone
@@ -450,17 +519,26 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
       if (inFlightRef.current) return; // never overlap two polls (a slow network would double-append)
       inFlightRef.current = true;
       try {
-        const since = serverTotalRef.current == null ? '' : `&since=${serverTotalRef.current}`;
-        const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${since}`);
+        // First sync of a known conversation: pull the FULL history so staff replies that arrived
+        // while the customer was away (push tap, reopened tab) are shown; later syncs only fetch new.
+        const first = serverTotalRef.current == null;
+        const qs = first ? '&full=1' : `&since=${serverTotalRef.current}`;
+        const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${qs}`);
         if (!r.ok || stopped) return;
         const d = await r.json();
         serverTotalRef.current = d.total ?? 0;
         setStaffMode(d.mode === 'staff' ? (d.staff || { name: 'Staf Galaxy' }) : null);
         setWaitingStaff(!!d.wantsStaff && d.mode !== 'staff');
-        const fresh = (Array.isArray(d.messages) ? d.messages : []).filter((m) => typeof m.i === 'number' && m.i > appliedIdxRef.current);
+        const list = Array.isArray(d.messages) ? d.messages : [];
+        if (first) {
+          appliedIdxRef.current = (d.total ?? 0) - 1;
+          if (list.length) setMessages((prev) => (list.length >= prev.length ? list.map(serverMsgToLocal) : prev));
+          return;
+        }
+        const fresh = list.filter((m) => typeof m.i === 'number' && m.i > appliedIdxRef.current);
         if (fresh.length) {
           appliedIdxRef.current = Math.max(...fresh.map((m) => m.i));
-          setMessages((prev) => [...prev, ...fresh.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
+          setMessages((prev) => [...prev, ...fresh.map(serverMsgToLocal)]);
         }
       } catch {} finally {
         inFlightRef.current = false;
@@ -899,6 +977,9 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                 <div className="flex justify-start">
                   <TypingIndicator />
                 </div>
+              )}
+              {custPush.showCard && staffMode && (
+                <StaffPushCard staffName={staffMode.name} onEnable={custPush.enable} onLater={custPush.later} />
               )}
 
               {/* Follow-up question suggestions (after first answer) */}

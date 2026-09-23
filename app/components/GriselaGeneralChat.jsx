@@ -8,6 +8,9 @@ import {
   TypingIndicator,
   ChatMessage,
   listSavedChats,
+  serverMsgToLocal,
+  useCustomerPush,
+  StaffPushCard,
 } from '~/components/ProductAIChat';
 
 const QUICK_QUESTIONS = [
@@ -34,6 +37,15 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
   const serverTotalRef = useRef(null);
   const inFlightRef = useRef(false);
   const appliedIdxRef = useRef(-1); // highest server message index already shown
+  const custPush = useCustomerPush(open, conversationId, staffMode);
+  // Opened from a staff-reply push (/?chat=open&conv=…): adopt that conversation, history is restored by the first sync
+  useEffect(() => {
+    if (!open || conversationId) return;
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('chat') === 'open' && /^[A-Za-z0-9_-]{1,64}$/.test(p.get('conv') || '')) setConversationId(p.get('conv'));
+    } catch {}
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!open || !conversationId) return;
     let stopped = false;
@@ -41,17 +53,26 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
       if (inFlightRef.current) return; // never overlap two polls (a slow network would double-append)
       inFlightRef.current = true;
       try {
-        const since = serverTotalRef.current == null ? '' : `&since=${serverTotalRef.current}`;
-        const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${since}`);
+        // First sync of a known conversation: pull the FULL history so staff replies that arrived
+        // while the customer was away (push tap, reopened tab) are shown; later syncs only fetch new.
+        const first = serverTotalRef.current == null;
+        const qs = first ? '&full=1' : `&since=${serverTotalRef.current}`;
+        const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${qs}`);
         if (!r.ok || stopped) return;
         const d = await r.json();
         serverTotalRef.current = d.total ?? 0;
         setStaffMode(d.mode === 'staff' ? (d.staff || { name: 'Staf Galaxy' }) : null);
         setWaitingStaff(!!d.wantsStaff && d.mode !== 'staff');
-        const fresh = (Array.isArray(d.messages) ? d.messages : []).filter((m) => typeof m.i === 'number' && m.i > appliedIdxRef.current);
+        const list = Array.isArray(d.messages) ? d.messages : [];
+        if (first) {
+          appliedIdxRef.current = (d.total ?? 0) - 1;
+          if (list.length) setMessages((prev) => (list.length >= prev.length ? list.map(serverMsgToLocal) : prev));
+          return;
+        }
+        const fresh = list.filter((m) => typeof m.i === 'number' && m.i > appliedIdxRef.current);
         if (fresh.length) {
           appliedIdxRef.current = Math.max(...fresh.map((m) => m.i));
-          setMessages((prev) => [...prev, ...fresh.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
+          setMessages((prev) => [...prev, ...fresh.map(serverMsgToLocal)]);
         }
       } catch {} finally {
         inFlightRef.current = false;
@@ -190,6 +211,9 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
             <div className="flex justify-start">
               <TypingIndicator />
             </div>
+          )}
+          {custPush.showCard && staffMode && (
+            <StaffPushCard staffName={staffMode.name} onEnable={custPush.enable} onLater={custPush.later} />
           )}
 
           {/* Cross-page history — obrolan produk sebelumnya (from any page). Only at
