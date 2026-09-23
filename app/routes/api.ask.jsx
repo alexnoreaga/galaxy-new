@@ -1329,8 +1329,29 @@ function historyLine(m) {
 const hasStaffLines = (messages) => (messages ?? []).some((m) => m.role === 'staff');
 const STAFF_HISTORY_NOTE = `CATATAN RIWAYAT: sebagian balasan di riwayat ditulis oleh STAF GALAXY (manusia, ditandai "Staf …"). Mereka satu tim denganmu, BUKAN customer. Anggap ucapan mereka sebagai ucapan toko: lanjutkan dari apa yang sudah mereka jelaskan/janjikan, jangan diulang, jangan dibantah, dan jangan menyapa mereka. Baris [ … ] hanya catatan sistem.`;
 
+// Staff phone alert via harga-produk /api/chat-notify (shared secret CHAT_NOTIFY_SECRET on both
+// sides). Fire-and-forget with a short timeout — never delays or fails the customer's answer.
+// kind: 'new' = first message of a conversation, 'reply' = customer wrote while a staff member
+// holds the chat. Ongoing Grisela-only turns are NOT pushed (the desktop alarm covers those).
+async function notifyStaff(env, { conversationId, kind, title, preview }) {
+  try {
+    const secret = env?.CHAT_NOTIFY_SECRET ?? (typeof process !== 'undefined' ? process.env?.CHAT_NOTIFY_SECRET : undefined);
+    if (!secret || !conversationId) return;
+    const base = env?.LACAK_API_BASE ?? (typeof process !== 'undefined' ? process.env?.LACAK_API_BASE : undefined) ?? 'https://galaxy-internal-tools.vercel.app';
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = setTimeout(() => ctrl?.abort(), 2500);
+    await fetch(`${base}/api/chat-notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-chat-secret': secret },
+      body: JSON.stringify({ conversationId, kind, title: String(title || '').slice(0, 80), preview: String(preview || '').slice(0, 140) }),
+      ...(ctrl ? { signal: ctrl.signal } : {}),
+    }).catch(() => {});
+    clearTimeout(timer);
+  } catch {}
+}
+
 const HANDOFF_ACK = 'Oke ka, aku panggil staf Galaxy ya 🙋 Tunggu sebentar. Kalau staf sedang sibuk, aku tetap bantu di sini.';
-async function staffHandoff(conversationId, question, wantsStaff) {
+async function staffHandoff(conversationId, question, wantsStaff, env) {
   const existing = await firestoreGet('conversations', conversationId);
   if (!existing) return null;
   const inStaffMode = existing.mode?.stringValue === 'staff';
@@ -1346,6 +1367,7 @@ async function staffHandoff(conversationId, question, wantsStaff) {
   });
   if (inStaffMode) {
     const staffName = existing.staff?.mapValue?.fields?.name?.stringValue || 'Staf Galaxy';
+    await notifyStaff(env, { conversationId, kind: 'reply', title: existing.product_title?.stringValue || '', preview: question });
     return { handoff: true, staff: { name: staffName }, conversationId };
   }
   return { answer: HANDOFF_ACK, waitingStaff: true, conversationId };
@@ -1361,7 +1383,7 @@ export async function action({ request, context }) {
   //    the customer's message, no Gemini; the customer's page polls /api/chat-sync for the reply.
   //    wantsStaff = the customer tapped "Ngobrol sama staf" → flag the conversation + canned ack.
   if (conversationId) {
-    const handoff = await staffHandoff(conversationId, question, !!body.wantsStaff);
+    const handoff = await staffHandoff(conversationId, question, !!body.wantsStaff, context?.env);
     if (handoff) return json(handoff);
   }
 
@@ -1903,6 +1925,12 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
             ],
           },
         },
+      });
+      await notifyStaff(context?.env, {
+        conversationId: newConvId,
+        kind: 'new',
+        title: productTitle || ({ 'bottom-nav': 'Chat umum', general: 'Chat umum', 'instagram-bio': 'Bio Instagram', 'floating-button': 'Tombol Grisela' })[productHandle] || productHandle || 'Chat',
+        preview: question,
       });
       await memPromise;
       return json({ answer, conversationId: newConvId, products: responseProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
