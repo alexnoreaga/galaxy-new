@@ -87,6 +87,7 @@ export function listSavedChats() {
 }
 
 const AVATAR = '/Grisela.png';
+const STAFF_Q = 'Mau ngobrol sama staf Galaxy';
 
 export function GriselaAvatar({ size = 'w-6 h-6' }) {
   return (
@@ -96,6 +97,15 @@ export function GriselaAvatar({ size = 'w-6 h-6' }) {
       className={`${size} rounded-full object-cover flex-shrink-0 select-none`}
       draggable={false}
     />
+  );
+}
+
+export function StaffAvatar({ name = '', size = 'w-6 h-6' }) {
+  const initial = (String(name).trim()[0] || 'G').toUpperCase();
+  return (
+    <span className={`${size} rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 select-none`} aria-hidden="true">
+      {initial}
+    </span>
   );
 }
 
@@ -319,6 +329,22 @@ function MarketplaceLinkRow({ link }) {
 
 export function ChatMessage({ msg, waMessage }) {
   const isUser = msg.role === 'user';
+  if (msg.role === 'system') {
+    return <p className="text-[10px] text-gray-400 text-center py-0.5">{msg.text}</p>;
+  }
+  if (msg.role === 'staff') {
+    return (
+      <div className="flex flex-col items-start">
+        <p className="text-[10px] font-semibold text-emerald-700 pl-[30px] mb-0.5">{msg.name || 'Staf Galaxy'}</p>
+        <div className="flex items-end gap-1.5 max-w-[85%]">
+          <StaffAvatar name={msg.name} />
+          <div className="px-3 py-2.5 text-sm leading-relaxed rounded-2xl whitespace-pre-line bg-emerald-50 border border-emerald-100 text-gray-800 rounded-tl-sm">
+            {msg.text}
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (isUser) {
     return (
       <div className="flex flex-col items-end">
@@ -377,6 +403,13 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
     } catch {}
   }, []);
   const [conversationId, setConversationId] = useState(null);
+  // Staff live takeover: {name} once a human took the conversation; waitingStaff after the customer
+  // tapped "Ngobrol sama staf"; staffOnline from /api/chat-sync?presence=1 (dashboard heartbeat).
+  const [staffMode, setStaffMode] = useState(null);
+  const [waitingStaff, setWaitingStaff] = useState(false);
+  const [staffOnline, setStaffOnline] = useState(false);
+  const serverTotalRef = useRef(null); // how many server-side messages we have already seen
+  const presenceAtRef = useRef(0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const restoredRef = useRef(false);
@@ -408,6 +441,37 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
       });
     }
   }, [messages, conversationId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Is a staff member online? Checked when the panel opens (60 s cache) — shows the "Ngobrol sama staf" chip.
+  useEffect(() => {
+    if (!open || Date.now() - presenceAtRef.current < 60 * 1000) return;
+    presenceAtRef.current = Date.now();
+    fetch('/api/chat-sync?presence=1').then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setStaffOnline(!!d.staffOnline); }).catch(() => {});
+  }, [open]);
+
+  // Poll the conversation for staff replies / takeover: every 3 s while a human is involved,
+  // every 10 s otherwise (so a takeover that happens mid-chat is noticed too). Light: one small GET.
+  useEffect(() => {
+    if (!open || !conversationId) return;
+    let stopped = false;
+    const tick = async () => {
+      try {
+        const since = serverTotalRef.current == null ? '' : `&since=${serverTotalRef.current}`;
+        const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${since}`);
+        if (!r.ok || stopped) return;
+        const d = await r.json();
+        serverTotalRef.current = d.total ?? 0;
+        setStaffMode(d.mode === 'staff' ? (d.staff || { name: 'Staf Galaxy' }) : null);
+        setWaitingStaff(!!d.wantsStaff && d.mode !== 'staff');
+        if (Array.isArray(d.messages) && d.messages.length) {
+          setMessages((prev) => [...prev, ...d.messages.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
+        }
+      } catch {}
+    };
+    tick();
+    const id = setInterval(tick, staffMode || waitingStaff ? 3000 : 10000);
+    return () => { stopped = true; clearInterval(id); };
+  }, [open, conversationId, !!staffMode, waitingStaff]); // eslint-disable-line react-hooks/exhaustive-deps
   const price = selectedVariant?.price?.amount
     ? `Rp${Number(parseFloat(selectedVariant.price.amount)).toLocaleString('id-ID')}`
     : '';
@@ -535,7 +599,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
     }
   }, [isCustomMode, open]);
 
-  async function askQuestion(question, custom = false) {
+  async function askQuestion(question, custom = false, opts = {}) {
     if (!open) openTriggerRef.current = custom ? 'tanya-hal-lain' : `bubble: ${question}`;
     // Every AI-generated question click is tracked with its text
     if (!custom) trackEvent('question_clicked', handle, question);
@@ -574,10 +638,17 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           conversationId,
           messages: messages.map(m => ({ role: m.role, text: m.text })),
           isCustom: custom,
+          wantsStaff: !!opts.wantsStaff,
         }),
       });
       const data = await res.json();
       if (data.conversationId) setConversationId(data.conversationId);
+      if (data.handoff) {
+        // A staff member is handling this chat: no Grisela bubble, the reply arrives via polling.
+        setStaffMode(data.staff || { name: 'Staf Galaxy' });
+        return;
+      }
+      if (data.waitingStaff) setWaitingStaff(true);
       if (data.blocked) {
         setBlocked(true);
         try { localStorage.setItem('grisela_blocked_until', String(Date.now() + 45 * 60 * 1000)); } catch {}
@@ -620,6 +691,9 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   function handleClearChat() {
     setMessages([]);
     setConversationId(null);
+    setStaffMode(null);
+    setWaitingStaff(false);
+    serverTotalRef.current = null;
     clearChat(handle);
   }
 
@@ -770,10 +844,12 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <GriselaAvatar size="w-8 h-8" />
+                {staffMode ? <StaffAvatar name={staffMode.name} size="w-8 h-8" /> : <GriselaAvatar size="w-8 h-8" />}
                 <div>
-                  <p className="text-xs font-semibold text-gray-800 leading-none">Grisela</p>
-                  <p className="text-[10px] text-emerald-500 font-medium mt-0.5">● AI Asisten Galaxy</p>
+                  <p className="text-xs font-semibold text-gray-800 leading-none">{staffMode ? staffMode.name : 'Grisela'}</p>
+                  <p className="text-[10px] text-emerald-500 font-medium mt-0.5">
+                    {staffMode ? '● Staf Galaxy · menjawab langsung' : waitingStaff ? '● Memanggil staf Galaxy…' : '● AI Asisten Galaxy'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
@@ -820,10 +896,20 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                   waMessage={`Halo admin Galaxy Camera 😊 Saya dari website, sudah chat dengan Grisela tentang produk "${title}". Mau tanya lebih lanjut ya.`}
                 />
               ))}
-              {loading && (
+              {loading && !staffMode && (
                 <div className="flex justify-start">
                   <TypingIndicator />
                 </div>
+              )}
+
+              {/* Human handoff — only when the dashboard shows a staff member online */}
+              {!loading && staffOnline && conversationId && !staffMode && !waitingStaff && !blocked && (
+                <button
+                  onClick={() => askQuestion(STAFF_Q, true, { wantsStaff: true })}
+                  className="self-start px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200 text-[11px] rounded-full transition-colors mt-1"
+                >
+                  🙋 Ngobrol sama staf Galaxy
+                </button>
               )}
 
               {/* Follow-up question suggestions (after first answer) */}
@@ -868,7 +954,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                 </button>
               </div>
               <p className="text-[9px] text-gray-300 text-center mt-1.5 leading-tight">
-                Grisela AI bisa keliru — cek info penting ke admin ya
+                {staffMode ? `Kamu sedang chat langsung dengan ${staffMode.name}, staf Galaxy` : 'Grisela AI bisa keliru — cek info penting ke admin ya'}
               </p>
             </div>
           </div>

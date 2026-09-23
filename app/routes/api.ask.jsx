@@ -898,7 +898,7 @@ async function searchStoreProducts(context, question, messages, currentProduct =
 
     const router = getGemini(context, { search: false, temperature: 0 });
     const supportGear = SUPPORT_GEAR_RE.test(currentProduct || '');
-    const recentHistory = messages.slice(-4).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
+    const recentHistory = messages.filter(m => m.role !== 'system').slice(-4).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Analisa pertanyaan customer, output TEPAT SATU baris dengan salah satu format:
 1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna"). Jika customer menyebut DUA produk sekaligus, pisahkan dengan ";" (maksimal 2): SEARCH: produk pertama; produk kedua
 2. REKOMENDASI: <handle1,handle2,handle3> | <harga_min>-<harga_max> | <brand atau -> — customer minta rekomendasi/saran produk. Pilih 1-3 collection_handle paling relevan dari DAFTAR KOLEKSI di bawah, urutkan dari yang paling cocok (dipisah koma). Budget: "6 jutaan" = 5000000-7000000, "dibawah 10jt" = 0-10000000, "sekitar 15 juta" = 13000000-17000000, tanpa budget = 0-999999999. Segmen ketiga: nama BRAND jika customer menyebut/menginginkan brand tertentu (contoh: Sony), atau "-" jika bebas brand
@@ -1299,11 +1299,41 @@ function bestVoucherFor(vouchers, price) {
   return best;
 }
 
+const HANDOFF_ACK = 'Oke ka, aku panggil staf Galaxy ya 🙋 Tunggu sebentar. Kalau staf sedang sibuk, aku tetap bantu di sini.';
+async function staffHandoff(conversationId, question, wantsStaff) {
+  const existing = await firestoreGet('conversations', conversationId);
+  if (!existing) return null;
+  const inStaffMode = existing.mode?.stringValue === 'staff';
+  if (!inStaffMode && !wantsStaff) return null;
+  const current = existing.messages?.arrayValue?.values ?? [];
+  const add = [{ mapValue: { fields: { role: fsString('user'), text: fsString(question), time: fsTimestamp() } } }];
+  if (!inStaffMode) add.push({ mapValue: { fields: { role: fsString('ai'), text: fsString(HANDOFF_ACK), time: fsTimestamp() } } });
+  await firestorePatch('conversations', conversationId, {
+    messages: { arrayValue: { values: [...current, ...add] } },
+    updated_at: fsTimestamp(),
+    last_customer_at: fsTimestamp(),
+    ...(!inStaffMode ? { wants_staff: { booleanValue: true }, wants_staff_at: fsTimestamp() } : {}),
+  });
+  if (inStaffMode) {
+    const staffName = existing.staff?.mapValue?.fields?.name?.stringValue || 'Staf Galaxy';
+    return { handoff: true, staff: { name: staffName }, conversationId };
+  }
+  return { answer: HANDOFF_ACK, waitingStaff: true, conversationId };
+}
+
 export async function action({ request, context }) {
   const body = await request.json();
   const { question, productTitle, productPrice, productDescription, productSpecs, productIsiBox, productFreeBonus, productGaransi = '', productCicilan, productNego, productFlashSale = '', productDiscontinued = false, productInStock = true, productCuciGudang = false, productUnitDemo = [], productGuides = [], productHandle, productId = '', variantId = '', pagePath = '', sessionId, conversationId, messages = [], isCustom = false } = body;
 
   if (!question) return json({ error: 'Missing question' }, { status: 400 });
+
+  // ── Staff live takeover: a human is handling this conversation (mode = 'staff') → just store
+  //    the customer's message, no Gemini; the customer's page polls /api/chat-sync for the reply.
+  //    wantsStaff = the customer tapped "Ngobrol sama staf" → flag the conversation + canned ack.
+  if (conversationId) {
+    const handoff = await staffHandoff(conversationId, question, !!body.wantsStaff);
+    if (handoff) return json(handoff);
+  }
 
   // Rate limit — protect Gemini quota from spam
   if (isRateLimited(sessionId)) {
@@ -1574,7 +1604,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
 - Jika customer minta link marketplace untuk PRODUK TERTENTU (contoh: "minta link tokopedia buat insta360 x5 dong"): JANGAN tulis link manual. Jawab singkat TANPA menulis link apapun di teks (contoh: "Bisa ka! Langsung klik aja di bawah ini ya 👇") lalu akhiri dengan marker [MARKETPLACE]<kata kunci produk>[/MARKETPLACE] — marker otomatis diganti tombol pencarian produk itu di toko resmi kami di Tokopedia, Shopee, dan Blibli. Kata kunci = nama model singkat saja (contoh: [MARKETPLACE]insta360 x5[/MARKETPLACE]), bukan judul panjang`;
 
   const historyText = messages.length > 0
-    ? messages.map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n')
+    ? messages.filter(m => m.role !== 'system').map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n')
     : '';
 
   const fullPrompt = `${systemContext}\n\n${historyText ? `Riwayat percakapan:\n${historyText}\n\n` : ''}Customer: ${question}`;
