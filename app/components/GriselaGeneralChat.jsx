@@ -10,8 +10,6 @@ import {
   listSavedChats,
 } from '~/components/ProductAIChat';
 
-const STAFF_Q = 'Mau ngobrol sama staf Galaxy';
-
 const QUICK_QUESTIONS = [
   'Rekomendasi kamera buat pemula',
   'Lagi ada promo apa?',
@@ -30,19 +28,12 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
   const [conversationId, setConversationId] = useState(null);
   const [history, setHistory] = useState([]);
   // Staff live takeover (same flow as ProductAIChat): {name} once a human took over,
-  // waitingStaff after "Ngobrol sama staf", staffOnline from the dashboard heartbeat.
+  // waitingStaff only if the server ever flags wants_staff (no customer-facing button).
   const [staffMode, setStaffMode] = useState(null);
   const [waitingStaff, setWaitingStaff] = useState(false);
-  const [staffOnline, setStaffOnline] = useState(false);
   const serverTotalRef = useRef(null);
   const inFlightRef = useRef(false);
   const appliedIdxRef = useRef(-1); // highest server message index already shown
-  const presenceAtRef = useRef(0);
-  useEffect(() => {
-    if (!open || Date.now() - presenceAtRef.current < 60 * 1000) return;
-    presenceAtRef.current = Date.now();
-    fetch('/api/chat-sync?presence=1').then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setStaffOnline(!!d.staffOnline); }).catch(() => {});
-  }, [open]);
   useEffect(() => {
     if (!open || !conversationId) return;
     let stopped = false;
@@ -199,15 +190,6 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
             <div className="flex justify-start">
               <TypingIndicator />
             </div>
-          )}
-
-          {!loading && staffOnline && conversationId && !staffMode && !waitingStaff && !blocked && (
-            <button
-              onClick={() => ask(STAFF_Q, { wantsStaff: true })}
-              className="self-start px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200 text-[11px] rounded-full transition-colors mt-1"
-            >
-              🙋 Ngobrol sama staf Galaxy
-            </button>
           )}
 
           {/* Cross-page history — obrolan produk sebelumnya (from any page). Only at

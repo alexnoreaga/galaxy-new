@@ -87,7 +87,6 @@ export function listSavedChats() {
 }
 
 const AVATAR = '/Grisela.png';
-const STAFF_Q = 'Mau ngobrol sama staf Galaxy';
 
 export function GriselaAvatar({ size = 'w-6 h-6' }) {
   return (
@@ -404,14 +403,12 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   }, []);
   const [conversationId, setConversationId] = useState(null);
   // Staff live takeover: {name} once a human took the conversation; waitingStaff after the customer
-  // tapped "Ngobrol sama staf"; staffOnline from /api/chat-sync?presence=1 (dashboard heartbeat).
+  // waitingStaff only if the server ever flags wants_staff (no customer-facing button by owner decision).
   const [staffMode, setStaffMode] = useState(null);
   const [waitingStaff, setWaitingStaff] = useState(false);
-  const [staffOnline, setStaffOnline] = useState(false);
   const serverTotalRef = useRef(null);
   const inFlightRef = useRef(false);
   const appliedIdxRef = useRef(-1); // highest server message index already shown // how many server-side messages we have already seen
-  const presenceAtRef = useRef(0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const restoredRef = useRef(false);
@@ -443,13 +440,6 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
       });
     }
   }, [messages, conversationId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Is a staff member online? Checked when the panel opens (60 s cache) — shows the "Ngobrol sama staf" chip.
-  useEffect(() => {
-    if (!open || Date.now() - presenceAtRef.current < 60 * 1000) return;
-    presenceAtRef.current = Date.now();
-    fetch('/api/chat-sync?presence=1').then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setStaffOnline(!!d.staffOnline); }).catch(() => {});
-  }, [open]);
 
   // Poll the conversation for staff replies / takeover: every 3 s while a human is involved,
   // every 10 s otherwise (so a takeover that happens mid-chat is noticed too). Light: one small GET.
@@ -909,16 +899,6 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
                 <div className="flex justify-start">
                   <TypingIndicator />
                 </div>
-              )}
-
-              {/* Human handoff — only when the dashboard shows a staff member online */}
-              {!loading && staffOnline && conversationId && !staffMode && !waitingStaff && !blocked && (
-                <button
-                  onClick={() => askQuestion(STAFF_Q, true, { wantsStaff: true })}
-                  className="self-start px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200 text-[11px] rounded-full transition-colors mt-1"
-                >
-                  🙋 Ngobrol sama staf Galaxy
-                </button>
               )}
 
               {/* Follow-up question suggestions (after first answer) */}
