@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// "Kabari kalau ready" (out of stock) / "Kabari kalau turun harga" (in stock) — one tap subscribes
+// "Kabari kalau ready" (out of stock) / "Kabari kalau ada promo" (in stock = price-drop alert) — one tap subscribes
 // this browser's push token to the product (stock_alerts). Fully automatic afterwards: Shopify
 // webhook → harga-produk /api/stock-notify → push → subscription removed.
 const keyFor = (handle, kind) => `gx_alert_${kind}_${handle}`;
@@ -47,14 +47,14 @@ export function StockAlertButton({ handle, title, inStock, price }) {
   if (state === 'unsupported') {
     return (
       <span className={`${base} bg-gray-50 border-gray-100 text-gray-500`} title="iPhone: pasang situs ke Layar Utama dulu (Bagikan → Tambahkan ke Layar Utama)">
-        🔔 {inStock ? 'Kabari kalau turun harga' : 'Kabari kalau ready'} · perlu pasang ke Layar Utama
+        🔔 {inStock ? 'Kabari kalau ada promo' : 'Kabari kalau ready'} · perlu pasang ke Layar Utama
       </span>
     );
   }
   if (state === 'done') {
     return (
       <span className={`${base} bg-emerald-50 border-emerald-100 text-emerald-800`}>
-        ✓ Kamu akan dikabari {inStock ? 'kalau harganya turun' : 'kalau ready lagi'}
+        ✓ Kamu akan dikabari {inStock ? 'kalau ada promo' : 'kalau ready lagi'}
       </span>
     );
   }
@@ -72,7 +72,7 @@ export function StockAlertButton({ handle, title, inStock, price }) {
       disabled={state === 'busy'}
       className={`${base} ${inStock ? 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700' : 'bg-red-50 hover:bg-red-100 border-red-100 text-red-700'} disabled:opacity-60`}
     >
-      🔔 {state === 'busy' ? 'Sebentar…' : state === 'error' ? 'Gagal, coba lagi' : inStock ? 'Kabari kalau turun harga' : 'Kabari kalau ready'}
+      🔔 {state === 'busy' ? 'Sebentar…' : state === 'error' ? 'Gagal, coba lagi' : inStock ? 'Kabari kalau ada promo' : 'Kabari kalau ready'}
     </button>
   );
 }

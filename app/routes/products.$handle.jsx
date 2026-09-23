@@ -2342,6 +2342,8 @@ DP : 0
                   ? (/^semua/i.test(demoStores[0]) ? 'Semua cabang' : `Cab. ${demoStores.join(' & ')}`)
                   : '';
                 const Dot = () => <span className="text-gray-300 select-none">·</span>;
+                const hasCompareAt = (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) || 0) > (Number(parseFloat(selectedVariant?.price?.amount)) || 0);
+                const showAlertButton = !selectedVariant?.availableForSale || (!hasCompareAt && !flashForVariant);
                 return (
                   <div className="flex items-center gap-x-2 order-6 md:order-5 text-xs border-t border-gray-100 pt-2 overflow-x-auto whitespace-nowrap hide-scroll-bar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     {showStock && (
@@ -2390,10 +2392,12 @@ DP : 0
                         </svg>
                       </Link>
                     )}
-                    {/* Push alert: "Kabari kalau ready" when the variant is sold out (and not discontinued),
-                        "Kabari kalau turun harga" when in stock. Automatic via Shopify webhook afterwards. */}
-                    {product?.metafields[12]?.value != "true" && (showStock || showGaransi || hasDemo) && <Dot />}
-                    {product?.metafields[12]?.value != "true" && (
+                    {/* Push alert: "Kabari kalau ready" when the variant is sold out (and not discontinued);
+                        "Kabari kalau ada promo" (price-drop alert) only for in-stock products at NORMAL price — hidden when
+                        there is a compare-at (harga coret) or an active flash-sale discount, so it never reads
+                        as "tunggu, mungkin turun lagi" on a product we already discounted. */}
+                    {product?.metafields[12]?.value != "true" && showAlertButton && (showStock || showGaransi || hasDemo) && <Dot />}
+                    {product?.metafields[12]?.value != "true" && showAlertButton && (
                       <StockAlertButton
                         handle={product.handle}
                         title={product.title}
