@@ -219,6 +219,24 @@ function readFsArray(field) {
 
 // ── Gemini helper ─────────────────────────────────────────────────────────────
 
+// Gemini occasionally returns its grounding scaffolding as extra parts ("tool_code print(google_search…)",
+// "thought …"); response.text() concatenates them all. Take only plain, non-thought text parts.
+function cleanAnswer(response) {
+  let text = '';
+  try {
+    const parts = response?.candidates?.[0]?.content?.parts ?? [];
+    text = parts
+      .filter((p) => typeof p.text === 'string' && !p.thought && !p.executableCode && !p.codeExecutionResult)
+      .map((p) => p.text)
+      .join('');
+  } catch {}
+  if (!text.trim()) { try { text = response.text(); } catch { text = ''; } }
+  // Belt and braces for the plain-text variant of the leak: drop a leading "tool_code…thought…" preamble.
+  text = text.replace(/```(?:tool_code|python)[\s\S]*?```\s*/gi, '');
+  text = text.replace(/^\s*tool_code\s*\n[\s\S]*?\n\s*thought\s*\n[\s\S]*?(?=(?:Hai|Halo|Hi|Oke|Siap|Wah|Untuk|Kalau|Iya|Ya|Maaf|Betul|Bisa|Ada|Kamera|Produk)\b)/i, '');
+  return text.trim();
+}
+
 function getGemini(context, { search = false, temperature } = {}) {
   const apiKey =
     context?.env?.GEMINI_API_KEY ??
@@ -1612,7 +1630,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
   let answer = '';
   try {
     const result = await model.generateContent(fullPrompt);
-    answer = result.response.text().trim();
+    answer = cleanAnswer(result.response);
   } catch (e) {
     console.error('[api.ask] answer generation failed:', e?.message ?? e);
     answer = 'Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊';

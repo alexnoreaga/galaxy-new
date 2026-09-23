@@ -35,6 +35,8 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
   const [waitingStaff, setWaitingStaff] = useState(false);
   const [staffOnline, setStaffOnline] = useState(false);
   const serverTotalRef = useRef(null);
+  const inFlightRef = useRef(false);
+  const appliedIdxRef = useRef(-1); // highest server message index already shown
   const presenceAtRef = useRef(0);
   useEffect(() => {
     if (!open || Date.now() - presenceAtRef.current < 60 * 1000) return;
@@ -45,6 +47,8 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
     if (!open || !conversationId) return;
     let stopped = false;
     const tick = async () => {
+      if (inFlightRef.current) return; // never overlap two polls (a slow network would double-append)
+      inFlightRef.current = true;
       try {
         const since = serverTotalRef.current == null ? '' : `&since=${serverTotalRef.current}`;
         const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${since}`);
@@ -53,10 +57,14 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
         serverTotalRef.current = d.total ?? 0;
         setStaffMode(d.mode === 'staff' ? (d.staff || { name: 'Staf Galaxy' }) : null);
         setWaitingStaff(!!d.wantsStaff && d.mode !== 'staff');
-        if (Array.isArray(d.messages) && d.messages.length) {
-          setMessages((prev) => [...prev, ...d.messages.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
+        const fresh = (Array.isArray(d.messages) ? d.messages : []).filter((m) => typeof m.i === 'number' && m.i > appliedIdxRef.current);
+        if (fresh.length) {
+          appliedIdxRef.current = Math.max(...fresh.map((m) => m.i));
+          setMessages((prev) => [...prev, ...fresh.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
         }
-      } catch {}
+      } catch {} finally {
+        inFlightRef.current = false;
+      }
     };
     tick();
     const id = setInterval(tick, staffMode || waitingStaff ? 3000 : 10000);

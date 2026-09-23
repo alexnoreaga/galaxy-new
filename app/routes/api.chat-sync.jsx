@@ -45,7 +45,7 @@ export async function loader({ request }) {
   const sf = f.staff?.mapValue?.fields;
   const staff = mode === 'staff' ? { name: sf?.name?.stringValue || 'Staf Galaxy' } : null;
   const messages = since == null ? [] : msgs.slice(since)
-    .map((m) => { const mf = m.mapValue?.fields || {}; return { role: mf.role?.stringValue || 'ai', text: mf.text?.stringValue || '', name: mf.name?.stringValue || '' }; })
+    .map((m, k) => { const mf = m.mapValue?.fields || {}; return { i: since + k, role: mf.role?.stringValue || 'ai', text: mf.text?.stringValue || '', name: mf.name?.stringValue || '' }; })
     .filter((m) => m.role === 'staff' || m.role === 'system');
   return json({ mode, staff, wantsStaff: !!f.wants_staff?.booleanValue, total: msgs.length, messages }, NO_STORE);
 }

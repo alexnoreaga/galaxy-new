@@ -408,7 +408,9 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   const [staffMode, setStaffMode] = useState(null);
   const [waitingStaff, setWaitingStaff] = useState(false);
   const [staffOnline, setStaffOnline] = useState(false);
-  const serverTotalRef = useRef(null); // how many server-side messages we have already seen
+  const serverTotalRef = useRef(null);
+  const inFlightRef = useRef(false);
+  const appliedIdxRef = useRef(-1); // highest server message index already shown // how many server-side messages we have already seen
   const presenceAtRef = useRef(0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -455,6 +457,8 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
     if (!open || !conversationId) return;
     let stopped = false;
     const tick = async () => {
+      if (inFlightRef.current) return; // never overlap two polls (a slow network would double-append)
+      inFlightRef.current = true;
       try {
         const since = serverTotalRef.current == null ? '' : `&since=${serverTotalRef.current}`;
         const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${since}`);
@@ -463,10 +467,14 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
         serverTotalRef.current = d.total ?? 0;
         setStaffMode(d.mode === 'staff' ? (d.staff || { name: 'Staf Galaxy' }) : null);
         setWaitingStaff(!!d.wantsStaff && d.mode !== 'staff');
-        if (Array.isArray(d.messages) && d.messages.length) {
-          setMessages((prev) => [...prev, ...d.messages.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
+        const fresh = (Array.isArray(d.messages) ? d.messages : []).filter((m) => typeof m.i === 'number' && m.i > appliedIdxRef.current);
+        if (fresh.length) {
+          appliedIdxRef.current = Math.max(...fresh.map((m) => m.i));
+          setMessages((prev) => [...prev, ...fresh.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
         }
-      } catch {}
+      } catch {} finally {
+        inFlightRef.current = false;
+      }
     };
     tick();
     const id = setInterval(tick, staffMode || waitingStaff ? 3000 : 10000);
@@ -694,6 +702,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
     setStaffMode(null);
     setWaitingStaff(false);
     serverTotalRef.current = null;
+    appliedIdxRef.current = -1;
     clearChat(handle);
   }
 
