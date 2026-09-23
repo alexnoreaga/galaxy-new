@@ -1331,15 +1331,16 @@ const STAFF_HISTORY_NOTE = `CATATAN RIWAYAT: sebagian balasan di riwayat ditulis
 
 // Staff phone alert via harga-produk /api/chat-notify (shared secret CHAT_NOTIFY_SECRET on both
 // sides). Fire-and-forget with a short timeout — never delays or fails the customer's answer.
-// kind: 'new' = first message of a conversation, 'reply' = customer wrote while a staff member
-// holds the chat. Ongoing Grisela-only turns are NOT pushed (the desktop alarm covers those).
+// kind: 'new' = first message of a conversation, 'msg' = further customer messages while Grisela
+// answers, 'reply' = customer wrote while a staff member holds the chat. The dashboard side
+// throttles per conversation and logs every attempt (push_log kind 'chat').
 async function notifyStaff(env, { conversationId, kind, title, preview }) {
   try {
     const secret = env?.CHAT_NOTIFY_SECRET ?? (typeof process !== 'undefined' ? process.env?.CHAT_NOTIFY_SECRET : undefined);
     if (!secret || !conversationId) return;
     const base = env?.LACAK_API_BASE ?? (typeof process !== 'undefined' ? process.env?.LACAK_API_BASE : undefined) ?? 'https://galaxy-internal-tools.vercel.app';
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timer = setTimeout(() => ctrl?.abort(), 2500);
+    const timer = setTimeout(() => ctrl?.abort(), 6000); // cold harga-produk function can take 2-3 s
     await fetch(`${base}/api/chat-notify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-chat-secret': secret },
@@ -1423,6 +1424,12 @@ export async function action({ request, context }) {
   if (junkReply) {
     return json({ answer: junkReply });
   }
+
+  // Staff phone alert for a follow-up message in an existing (Grisela-mode) conversation. Kicked
+  // off now so it runs while Gemini thinks; awaited right before the conversation is saved.
+  const staffMsgAlert = (isCustom && conversationId)
+    ? notifyStaff(context?.env, { conversationId, kind: 'msg', title: productTitle || ({ 'bottom-nav': 'Chat umum', general: 'Chat umum', 'instagram-bio': 'Bio Instagram', 'floating-button': 'Tombol Grisela', 'home-bar': 'Chat umum' })[productHandle] || productHandle || 'Chat', preview: question })
+    : Promise.resolve();
 
   // Off-topic gate: blatant non-camera asks (calculator, code, AI-probe, trivia) get an
   // instant canned deflection — zero Gemini calls. Narrow scope; camera topics pass through.
@@ -1896,7 +1903,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         // updateMask only writes listed fields — omitting when false preserves an earlier true
         ...(needsReview ? { needs_review: { booleanValue: true } } : {}),
       });
-      await memPromise;
+      await Promise.all([memPromise, staffMsgAlert]);
     } else {
       // Create new conversation — include prior chat history (e.g. bubble Q&A before the customer typed)
       const historyMaps = messages.map(m => ({
