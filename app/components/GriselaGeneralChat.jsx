@@ -4,10 +4,13 @@ import {
   getSessionId,
   trackEvent,
   GriselaAvatar,
+  StaffAvatar,
   TypingIndicator,
   ChatMessage,
   listSavedChats,
 } from '~/components/ProductAIChat';
+
+const STAFF_Q = 'Mau ngobrol sama staf Galaxy';
 
 const QUICK_QUESTIONS = [
   'Rekomendasi kamera buat pemula',
@@ -26,6 +29,39 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
   const [history, setHistory] = useState([]);
+  // Staff live takeover (same flow as ProductAIChat): {name} once a human took over,
+  // waitingStaff after "Ngobrol sama staf", staffOnline from the dashboard heartbeat.
+  const [staffMode, setStaffMode] = useState(null);
+  const [waitingStaff, setWaitingStaff] = useState(false);
+  const [staffOnline, setStaffOnline] = useState(false);
+  const serverTotalRef = useRef(null);
+  const presenceAtRef = useRef(0);
+  useEffect(() => {
+    if (!open || Date.now() - presenceAtRef.current < 60 * 1000) return;
+    presenceAtRef.current = Date.now();
+    fetch('/api/chat-sync?presence=1').then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setStaffOnline(!!d.staffOnline); }).catch(() => {});
+  }, [open]);
+  useEffect(() => {
+    if (!open || !conversationId) return;
+    let stopped = false;
+    const tick = async () => {
+      try {
+        const since = serverTotalRef.current == null ? '' : `&since=${serverTotalRef.current}`;
+        const r = await fetch(`/api/chat-sync?conversationId=${encodeURIComponent(conversationId)}${since}`);
+        if (!r.ok || stopped) return;
+        const d = await r.json();
+        serverTotalRef.current = d.total ?? 0;
+        setStaffMode(d.mode === 'staff' ? (d.staff || { name: 'Staf Galaxy' }) : null);
+        setWaitingStaff(!!d.wantsStaff && d.mode !== 'staff');
+        if (Array.isArray(d.messages) && d.messages.length) {
+          setMessages((prev) => [...prev, ...d.messages.map((m) => ({ role: m.role, text: m.text, name: m.name }))]);
+        }
+      } catch {}
+    };
+    tick();
+    const id = setInterval(tick, staffMode || waitingStaff ? 3000 : 10000);
+    return () => { stopped = true; clearInterval(id); };
+  }, [open, conversationId, !!staffMode, waitingStaff]); // eslint-disable-line react-hooks/exhaustive-deps
   // Load the cross-page product-chat history when the panel opens (localStorage only)
   useEffect(() => {
     if (open) setHistory(listSavedChats());
@@ -56,7 +92,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  async function ask(text) {
+  async function ask(text, opts = {}) {
     const q = text.trim();
     if (!q || loading) return;
     setMessages(prev => [...prev, { role: 'user', text: q }]);
@@ -73,10 +109,16 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
           conversationId,
           messages: messages.map(m => ({ role: m.role, text: m.text })),
           isCustom: true,
+          wantsStaff: !!opts.wantsStaff,
         }),
       });
       const data = await res.json();
       if (data.conversationId) setConversationId(data.conversationId);
+      if (data.handoff) {
+        setStaffMode(data.staff || { name: 'Staf Galaxy' });
+        return;
+      }
+      if (data.waitingStaff) setWaitingStaff(true);
       if (data.blocked) {
         setBlocked(true);
         try { localStorage.setItem('grisela_blocked_until', String(Date.now() + 45 * 60 * 1000)); } catch {}
@@ -121,10 +163,12 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <GriselaAvatar size="w-8 h-8" />
+            {staffMode ? <StaffAvatar name={staffMode.name} size="w-8 h-8" /> : <GriselaAvatar size="w-8 h-8" />}
             <div>
-              <p className="text-xs font-semibold text-gray-800 leading-none">Grisela</p>
-              <p className="text-[10px] text-emerald-500 font-medium mt-0.5">● AI Asisten Galaxy — 24 Jam</p>
+              <p className="text-xs font-semibold text-gray-800 leading-none">{staffMode ? staffMode.name : 'Grisela'}</p>
+              <p className="text-[10px] text-emerald-500 font-medium mt-0.5">
+                {staffMode ? '● Staf Galaxy · menjawab langsung' : waitingStaff ? '● Memanggil staf Galaxy…' : '● AI Asisten Galaxy — 24 Jam'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
@@ -143,10 +187,19 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
               waMessage={waMessage ?? 'Halo admin Galaxy Camera 😊 Saya sudah chat dengan Grisela di website. Mau tanya lebih lanjut ya.'}
             />
           ))}
-          {loading && (
+          {loading && !staffMode && (
             <div className="flex justify-start">
               <TypingIndicator />
             </div>
+          )}
+
+          {!loading && staffOnline && conversationId && !staffMode && !waitingStaff && !blocked && (
+            <button
+              onClick={() => ask(STAFF_Q, { wantsStaff: true })}
+              className="self-start px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200 text-[11px] rounded-full transition-colors mt-1"
+            >
+              🙋 Ngobrol sama staf Galaxy
+            </button>
           )}
 
           {/* Cross-page history — obrolan produk sebelumnya (from any page). Only at
@@ -226,7 +279,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
             </button>
           </div>
           <p className="text-[9px] text-gray-300 text-center mt-1.5 leading-tight">
-            Grisela AI bisa keliru — cek info penting ke admin ya
+            {staffMode ? `Kamu sedang chat langsung dengan ${staffMode.name}, staf Galaxy` : 'Grisela AI bisa keliru — cek info penting ke admin ya'}
           </p>
         </div>
       </div>
