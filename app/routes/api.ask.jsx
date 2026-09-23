@@ -819,6 +819,14 @@ function modelKey(title) {
   for (let i = 3; i < t.length && key.length < 5 && MODEL_GEN_RE.test(t[i]); i++) key.push(t[i]);
   return key.join(' ');
 }
+// Which candidates does an answer mention by name? Same normalisation as modelKey on both sides
+// ("Sony Alpha A6400 Body Only" -> "sony a6400"; the answer text is filtered the same way so the
+// key must appear as a contiguous run of words).
+function productsNamedIn(text, products) {
+  const words = String(text || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w && !MODEL_NOISE.has(w));
+  const hay = ' ' + words.join(' ') + ' ';
+  return products.filter(p => { const k = modelKey(p.title); return k && hay.includes(' ' + k + ' '); });
+}
 function dedupeModels(items) {
   const seen = new Set();
   return items.filter(p => {
@@ -907,6 +915,7 @@ PENTING: pertanyaan PERBANDINGAN ("bedanya apa", "bagusan mana", "vs", "mending 
 PENTING: pertanyaan harga/nego/diskon/cicilan produk YANG SEDANG DILIHAT ("harganya berapa", "bisa kurang ga") → NO. Data harga produk itu sudah tersedia.
 PENTING: TAPI jika pertanyaan harga/cicilan itu tentang produk LAIN yang BUKAN sedang dilihat — mis. varian berbeda ("body only" padahal halaman ini versi kit, atau sebaliknya), atau produk lain yang disebut/dibahas di riwayat — output SEARCH untuk produk itu supaya harga & estimasi cicilannya bisa diambil, JANGAN NO. Ambil nama produknya dari riwayat kalau pertanyaan terakhir singkat (mis. "kalau body only cicilannya?" saat riwayat membahas Sony A7 IV → SEARCH: Sony A7 IV Body Only). Contoh: (halaman Sony A7 IV Kit) "body only cicilannya berapa?" → SEARCH: Sony A7 IV Body Only
 PENTING: jika customer sedang MENJAWAB pertanyaan Admin dalam alur mencari produk (lihat riwayat: Admin baru bertanya jenis/kebutuhan/level/budget), jawaban pendek seperti "sony kak", "pemula si kak", "foto dan video" adalah KELANJUTAN alur rekomendasi → output REKOMENDASI dengan koleksi sesuai konteks riwayat, BUKAN NO.
+PENTING — KEBALIKANNYA: jika riwayat TIDAK berisi permintaan rekomendasi/dicarikan produk lain, dan customer hanya menjawab pertanyaan Admin tentang PRODUK YANG SEDANG DILIHAT (mis. customer tanya "cocok buat foto?", Admin balik tanya "objek seperti apa?", customer jawab "buat objek bergerak" / "buat traveling" / "buat anak-anak") → NO. Obrolan tentang produk di halaman JANGAN diubah jadi rekomendasi produk lain.
 PENTING: jika customer sudah menyebut BRAND tertentu (Sony/Canon/Fujifilm/dll) di riwayat, WAJIB isi segmen ketiga REKOMENDASI dengan brand itu supaya hasilnya sesuai keinginan customer.
 PENTING — KOMPATIBILITAS AKSESORIS: jika customer sedang di halaman ALAT BANTU / AKSESORIS yang dipasangi kamera (gimbal, stabilizer, tripod, mount, rig, cage, slider, dll — BUKAN kamera) dan menyebut sebuah MODEL KAMERA (mis. "untuk kamera canon eos 800d", "pakai sony a6400", "cocok buat nikon d750?", "kalau kamera saya X gimana", "berat kamera saya Y"), itu artinya customer menanyakan apakah KAMERANYA KOMPATIBEL / MUAT / cukup ringan untuk dipasang di aksesoris ini — BUKAN mau membeli kamera itu. Output NO (dijawab pakai spesifikasi produk + pengetahuan berat & dimensi kamera). JANGAN SEARCH kamera itu, JANGAN tawarkan alternatif kamera.
 PENTING — KATEGORI:
@@ -927,6 +936,7 @@ Contoh:
 - (riwayat: Admin tanya "mau kamera apa?") "sony kak" → REKOMENDASI: <handle koleksi mirrorless> | 0-999999999 | Sony
 - (riwayat: customer sudah sebut Sony, Admin tanya "buat kebutuhan apa?") "pemula si kak" → REKOMENDASI: <handle koleksi mirrorless> | 0-999999999 | Sony
 - (riwayat: Admin tanya "foto atau video?") "foto dan video kak" → REKOMENDASI: <handle koleksi sesuai konteks> | 0-999999999 | <brand dari riwayat atau ->
+- (halaman SBOX Onyx PRO, riwayat: customer tanya "cocok buat fotografi?", Admin tanya "objek seperti apa?") "buat potret objek yang bergerak" → NO (masih membahas produk yang sedang dilihat, bukan minta rekomendasi)
 - "mau tanya rekomen kamera 6 jutaan" → REKOMENDASI: <handle mirrorless>,<handle kamera lain>,<handle instax/pocket> | 5000000-7000000 | -
 - "rekomendasi drone buat pemula dong" → REKOMENDASI: <handle koleksi drone> | 0-999999999 | -
 - "kamera buat vlog dibawah 10 juta apa ya?" → REKOMENDASI: <handle koleksi kamera vlog/mirrorless>,<handle alternatif> | 0-10000000 | -
@@ -1583,13 +1593,19 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
   let responseProducts = foundProducts;
   if (storeSearch?.pick && Array.isArray(foundProducts)) {
     const pickMatch = answer.match(/\[PILIH:\s*([^\]]*)\]/i);
+    let picked = [];
     if (pickMatch) {
       const byHandle = new Map(foundProducts.map(p => [String(p.handle).toLowerCase(), p]));
-      const picked = pickMatch[1].split(/[,;\s]+/).map(h => h.trim().toLowerCase()).filter(Boolean)
+      picked = pickMatch[1].split(/[,;\s]+/).map(h => h.trim().toLowerCase()).filter(Boolean)
         .map(h => byHandle.get(h)).filter(Boolean);
-      responseProducts = [...new Map(picked.map(p => [p.handle, p])).values()].slice(0, 4);
     }
-    if (!responseProducts || responseProducts.length === 0) responseProducts = foundProducts.slice(0, 3);
+    if (picked.length === 0) {
+      // Marker missing or unusable (Grisela answered without recommending, or forgot the marker):
+      // show only the candidates she actually NAMED in the text. Never the whole pool — that used
+      // to dump all 30-60 candidates as cards under an answer about the product on the page.
+      picked = productsNamedIn(answer, foundProducts);
+    }
+    responseProducts = picked.length ? [...new Map(picked.map(p => [p.handle, p])).values()].slice(0, 4) : undefined;
   }
   answer = answer.replace(/\s*\[PILIH:[^\]]*\]\s*/gi, ' ').replace(/ +/g, ' ').trim();
 

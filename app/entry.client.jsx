@@ -286,7 +286,7 @@ async function listenForeground() {
         badge: '/apple-icon-72x72.png',
         tag: 'galaxy-promo',
         renotify: true,
-        data: { url },
+        data: { url, logId: payload?.data?.logId || '' },
       });
     } catch (error) {
       console.error('Failed to show notification:', error);

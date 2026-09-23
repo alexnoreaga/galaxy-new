@@ -22,6 +22,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Click beacon — registered BEFORE firebase.messaging() so it runs first: the SDK's own
+// notificationclick handler calls stopImmediatePropagation() for the notifications it showed.
+// logId = push_log id the sender put in message data (SDK notifications keep the payload under
+// data.FCM_MSG; page-shown ones carry data.logId directly).
+self.addEventListener('notificationclick', (event) => {
+  try {
+    const d = event.notification?.data || {};
+    const logId = d.logId || d.FCM_MSG?.data?.logId || '';
+    if (!logId) return;
+    event.waitUntil(fetch('/api/push-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ logId }), keepalive: true }).catch(() => {}));
+  } catch (_) {}
+});
+
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
