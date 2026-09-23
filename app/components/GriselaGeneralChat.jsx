@@ -106,7 +106,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
           pagePath: typeof window !== 'undefined' ? window.location.pathname : '',
           sessionId: getSessionId(),
           conversationId,
-          messages: messages.map(m => ({ role: m.role, text: m.text })),
+          messages: messages.map(m => ({ role: m.role, text: m.text, ...(m.name ? { name: m.name } : {}) })),
           isCustom: true,
           wantsStaff: !!opts.wantsStaff,
         }),

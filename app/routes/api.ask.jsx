@@ -916,7 +916,7 @@ async function searchStoreProducts(context, question, messages, currentProduct =
 
     const router = getGemini(context, { search: false, temperature: 0 });
     const supportGear = SUPPORT_GEAR_RE.test(currentProduct || '');
-    const recentHistory = messages.filter(m => m.role !== 'system').slice(-4).map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n');
+    const recentHistory = messages.filter(m => m.role !== 'system').slice(-4).map(historyLine).join('\n');
     const routerPrompt = `Kamu adalah router pencarian untuk toko kamera online. Analisa pertanyaan customer, output TEPAT SATU baris dengan salah satu format:
 1. SEARCH: <kata kunci 2-5 kata> — customer menanyakan ketersediaan/harga/varian produk SPESIFIK. Kata kunci = NAMA PRODUKNYA SAJA — JANGAN sertakan kata tambahan seperti "warna", "harga", "stok", "spesifikasi" (contoh: "ada warna apa untuk insta360 x5?" → SEARCH: Insta360 X5, BUKAN "Insta360 X5 warna"). Jika customer menyebut DUA produk sekaligus, pisahkan dengan ";" (maksimal 2): SEARCH: produk pertama; produk kedua
 2. REKOMENDASI: <handle1,handle2,handle3> | <harga_min>-<harga_max> | <brand atau -> — customer minta rekomendasi/saran produk. Pilih 1-3 collection_handle paling relevan dari DAFTAR KOLEKSI di bawah, urutkan dari yang paling cocok (dipisah koma). Budget: "6 jutaan" = 5000000-7000000, "dibawah 10jt" = 0-10000000, "sekitar 15 juta" = 13000000-17000000, tanpa budget = 0-999999999. Segmen ketiga: nama BRAND jika customer menyebut/menginginkan brand tertentu (contoh: Sony), atau "-" jika bebas brand
@@ -1317,6 +1317,18 @@ function bestVoucherFor(vouchers, price) {
   return best;
 }
 
+// One history line per message. Staff replies (role 'staff', written by a human from the dashboard)
+// are labelled as teammates so Grisela treats them as her own side, not as the customer, and can
+// continue from what they promised once the chat is handed back to her.
+function historyLine(m) {
+  if (m.role === 'user') return `Customer: ${m.text}`;
+  if (m.role === 'staff') return `Staf ${String(m.name || 'Galaxy').trim()} (rekan timmu, manusia): ${m.text}`;
+  if (m.role === 'system') return `[${m.text}]`;
+  return `Admin: ${m.text}`;
+}
+const hasStaffLines = (messages) => (messages ?? []).some((m) => m.role === 'staff');
+const STAFF_HISTORY_NOTE = `CATATAN RIWAYAT: sebagian balasan di riwayat ditulis oleh STAF GALAXY (manusia, ditandai "Staf …"). Mereka satu tim denganmu, BUKAN customer. Anggap ucapan mereka sebagai ucapan toko: lanjutkan dari apa yang sudah mereka jelaskan/janjikan, jangan diulang, jangan dibantah, dan jangan menyapa mereka. Baris [ … ] hanya catatan sistem.`;
+
 const HANDOFF_ACK = 'Oke ka, aku panggil staf Galaxy ya 🙋 Tunggu sebentar. Kalau staf sedang sibuk, aku tetap bantu di sini.';
 async function staffHandoff(conversationId, question, wantsStaff) {
   const existing = await firestoreGet('conversations', conversationId);
@@ -1622,10 +1634,10 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
 - Jika customer minta link marketplace untuk PRODUK TERTENTU (contoh: "minta link tokopedia buat insta360 x5 dong"): JANGAN tulis link manual. Jawab singkat TANPA menulis link apapun di teks (contoh: "Bisa ka! Langsung klik aja di bawah ini ya 👇") lalu akhiri dengan marker [MARKETPLACE]<kata kunci produk>[/MARKETPLACE] — marker otomatis diganti tombol pencarian produk itu di toko resmi kami di Tokopedia, Shopee, dan Blibli. Kata kunci = nama model singkat saja (contoh: [MARKETPLACE]insta360 x5[/MARKETPLACE]), bukan judul panjang`;
 
   const historyText = messages.length > 0
-    ? messages.filter(m => m.role !== 'system').map(m => `${m.role === 'user' ? 'Customer' : 'Admin'}: ${m.text}`).join('\n')
+    ? messages.map(historyLine).join('\n')
     : '';
 
-  const fullPrompt = `${systemContext}\n\n${historyText ? `Riwayat percakapan:\n${historyText}\n\n` : ''}Customer: ${question}`;
+  const fullPrompt = `${systemContext}\n\n${historyText ? `${hasStaffLines(messages) ? `${STAFF_HISTORY_NOTE}\n\n` : ''}Riwayat percakapan:\n${historyText}\n\n` : ''}Customer: ${question}`;
 
   let answer = '';
   try {
@@ -1868,7 +1880,8 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
       const historyMaps = messages.map(m => ({
         mapValue: {
           fields: {
-            role: fsString(m.role === 'user' ? 'user' : 'ai'),
+            role: fsString(m.role === 'user' ? 'user' : m.role === 'staff' ? 'staff' : m.role === 'system' ? 'system' : 'ai'),
+            ...(m.role === 'staff' && m.name ? { name: fsString(m.name) } : {}),
             text: fsString(m.text ?? ''),
             time: fsTimestamp(),
           },

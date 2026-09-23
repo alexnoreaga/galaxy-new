@@ -634,7 +634,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           variantId: selectedVariant?.id ?? '',
           sessionId: getSessionId(),
           conversationId,
-          messages: messages.map(m => ({ role: m.role, text: m.text })),
+          messages: messages.map(m => ({ role: m.role, text: m.text, ...(m.name ? { name: m.name } : {}) })),
           isCustom: custom,
           wantsStaff: !!opts.wantsStaff,
         }),
