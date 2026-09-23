@@ -24,6 +24,7 @@ import { TombolBalasCepat } from '~/components/TombolBalasCepat';
 import { ProductAIChat } from '~/components/ProductAIChat';
 import { VoucherInline } from '~/components/VoucherInline';
 import { IsiBoxList } from '~/components/IsiBoxList';
+import { StockAlertButton } from '~/components/StockAlertButton';
 import { gaEvent, gaProductItem } from '~/lib/analytics';
 
 // custom.unit_demo → ["Tangerang","Depok"] (list metafield = JSON string). Tolerates a plain
@@ -2388,6 +2389,17 @@ DP : 0
                           <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
                         </svg>
                       </Link>
+                    )}
+                    {/* Push alert: "Kabari kalau ready" when the variant is sold out (and not discontinued),
+                        "Kabari kalau turun harga" when in stock. Automatic via Shopify webhook afterwards. */}
+                    {product?.metafields[12]?.value != "true" && (showStock || showGaransi || hasDemo) && <Dot />}
+                    {product?.metafields[12]?.value != "true" && (
+                      <StockAlertButton
+                        handle={product.handle}
+                        title={product.title}
+                        inStock={!!selectedVariant?.availableForSale}
+                        price={selectedVariant?.price?.amount}
+                      />
                     )}
                   </div>
                 );
