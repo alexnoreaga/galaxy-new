@@ -214,7 +214,7 @@ export function Header({header, isLoggedIn, cart}) {
                 width={160}
                 height={40}
                 loading="eager"
-                fetchPriority="high"
+                fetchpriority="high"
               />
             </NavLink>
           </div>

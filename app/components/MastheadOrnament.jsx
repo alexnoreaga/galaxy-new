@@ -516,10 +516,10 @@ export function resolveFlashEdition(search) {
 }
 
 /** Edition mark — quiet inline "8.8" + small flag/emoji. Metadata, not a second logo. */
-export function FlashEditionBadge({ed}) {
+export function FlashEditionBadge({ed, tone = 'light'}) {
   return (
     <span className="flex-shrink-0 inline-flex items-center gap-1.5 leading-none">
-      <span className="text-white font-semibold tabular-nums text-[12px] sm:text-sm">{ed.edition}</span>
+      <span className={`${tone === 'dark' ? 'text-gray-700' : 'text-white'} font-semibold tabular-nums text-[12px] sm:text-sm`}>{ed.edition}</span>
       {ed.flag ? (
         <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true" className="rounded-[1px]">
           <rect x="0" y="0" width="14" height="5" fill="#e5252a" />
@@ -533,10 +533,10 @@ export function FlashEditionBadge({ed}) {
 }
 
 /** Edition name — restrained caps in muted white; the ground colour carries the season. */
-export function FlashEditionName({ed}) {
+export function FlashEditionName({ed, tone = 'light'}) {
   if (!ed.name) return null;
   return (
-    <span className="text-white/65 font-medium uppercase tracking-[0.16em] whitespace-nowrap text-[9px] sm:text-[10px] leading-none">
+    <span className={`${tone === 'dark' ? 'text-gray-400' : 'text-white/65'} font-medium uppercase tracking-[0.16em] whitespace-nowrap text-[9px] sm:text-[10px] leading-none`}>
       {ed.name}
     </span>
   );

@@ -639,3 +639,15 @@ aside li {
   .gx-flash-gleam,
   .gx-flash-dot { animation: none; }
 }
+
+/* ── Flash-sale wordmark: self-hosted Bebas Neue subset (letters of "FLASH SALE" + digits, 5 KB).
+   Only the banner title uses it; everything else stays on the system stack. ── */
+@font-face {
+  font-family: 'Bebas Flash';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/bebas-neue-flash.woff2') format('woff2');
+  unicode-range: U+20, U+2e, U+30-39, U+41, U+45-46, U+48, U+4c, U+53;
+}
+.font-flash { font-family: 'Bebas Flash', 'Impact', 'Arial Narrow', system-ui, sans-serif; }

@@ -114,7 +114,7 @@ function CheckSeal({ className = 'w-3 h-3' }) {
 function CountdownBox({ value, accent = false }) {
   return (
     <span
-      className={`bg-white ${accent ? 'text-red-600' : 'text-slate-900'} font-mono font-bold text-xs sm:text-sm rounded-md px-1.5 sm:px-2 py-1 min-w-[26px] sm:min-w-[30px] text-center inline-block tabular-nums leading-none shadow-sm`}
+      className={`${accent ? 'bg-red-600 text-white' : 'bg-white text-gray-900'} font-mono font-bold text-xs sm:text-sm rounded-md px-1.5 sm:px-2 py-1 min-w-[26px] sm:min-w-[30px] text-center inline-block tabular-nums leading-none`}
     >
       {value}
     </span>
@@ -143,20 +143,21 @@ function FlashSaleCountdown({ endsAt }) {
       {(left === null ? false : d > 0) && (
         <>
           <CountdownBox value={d} />
-          <span className="text-white/70 text-[9px] sm:text-[10px] font-semibold mr-0.5">hari</span>
+          <span className="text-gray-400 text-[9px] sm:text-[10px] font-semibold mr-0.5">hari</span>
         </>
       )}
       <CountdownBox value={h} />
-      <span className="text-white/50 font-bold text-xs">:</span>
+      <span className="text-white/40 font-bold text-xs">:</span>
       <CountdownBox value={m} />
-      <span className="text-white/50 font-bold text-xs">:</span>
+      <span className="text-white/40 font-bold text-xs">:</span>
       <CountdownBox value={s} accent />
     </div>
   );
 }
 
 function FlashSaleBanner({ autoDiscount }) {
-  // Monthly twin-date edition (8.8, 11.11, …) + seasonal skin — auto-follows the WIB month
+  // Monthly twin-date edition (8.8, 11.11, …); the seasonal skin now lives in the thin left stripe
+  // so the card itself stays in the product page's own palette (white, gray-100, red-600, charcoal).
   const location = useLocation();
   if (!autoDiscount) return null;
   const ed = resolveFlashEdition(location.search);
@@ -164,54 +165,43 @@ function FlashSaleBanner({ autoDiscount }) {
     ? `Rp${autoDiscount.amount.toLocaleString('id-ID')}`
     : `${autoDiscount.percentage}%`;
   return (
-    <div
-      // Full-bleed edge-to-edge on mobile (square corners — rounded corners look cut at the
-      // screen edge); contained rounded card from sm+.
-      className="relative overflow-hidden -mx-4 sm:mx-0 rounded-none sm:rounded-lg order-2 md:order-4 mt-1 md:mt-1.5"
-      style={{ background: ed.bg }}
-    >
-      {/* Fine diagonal weave — drifts very slowly, so the surface feels alive without shimmering */}
-      <div
-        aria-hidden="true"
-        className="gx-flash-weave absolute inset-0 pointer-events-none"
-        style={{
-          opacity: 0.07,
-          backgroundImage: 'repeating-linear-gradient(115deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)',
-        }}
-      />
-      {/* Occasional light catch — one narrow pass, then a long idle (not a shimmer loop) */}
-      <div aria-hidden="true" className="gx-flash-gleam absolute inset-0 pointer-events-none" />
+    <div className="relative overflow-hidden -mx-4 sm:mx-0 rounded-none sm:rounded-lg bg-gray-900 order-2 md:order-4 mt-1 md:mt-1.5">
+      {/* Seasonal stripe — the only place the edition colour shows */}
+      <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-1.5" style={{ background: ed.bg }} />
+      {/* Perforation, like a ticket stub, between the offer and the timer (sm+) */}
+      <span aria-hidden="true" className="hidden sm:block absolute top-2 bottom-2 right-[142px] border-l border-dashed border-white/15" />
 
-      <div className="relative flex items-center justify-between gap-3 px-3 py-2.5 sm:px-4">
-        <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
-          {/* Drawn bolt in a quiet tile — an icon, not an emoji */}
-          <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-white/12 ring-1 ring-white/20 flex items-center justify-center mt-[1px]">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="w-[15px] h-[15px] sm:w-4 sm:h-4 text-white">
+      <div className="relative flex items-center justify-between gap-3 pl-4 pr-3 py-3 sm:pl-5 sm:pr-4">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <span className="flex-shrink-0 w-9 h-9 rounded-md bg-red-600 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="w-[18px] h-[18px] text-white">
               <path d="M13.5 2 4 13.2h5.6L8.9 22 19 10.6h-5.9L13.5 2z" />
             </svg>
           </span>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 min-w-0">
-              <p className="m-0 text-white font-bold uppercase text-[13px] sm:text-[15px] tracking-[0.15em] leading-none whitespace-nowrap">
+              <p className="m-0 font-flash text-white uppercase text-[20px] sm:text-[22px] tracking-[0.06em] leading-none whitespace-nowrap translate-y-[1px]">
                 Flash Sale
               </p>
-              <span aria-hidden="true" className="flex-shrink-0 w-px h-3 bg-white/25" />
+              <span aria-hidden="true" className="flex-shrink-0 w-px h-3 bg-white/20" />
               <FlashEditionBadge ed={ed} />
               <span className="hidden md:inline-flex items-center"><FlashEditionName ed={ed} /></span>
             </div>
-            <p className="m-0 mt-1.5 text-white/70 text-[11px] sm:text-xs leading-tight whitespace-nowrap">
-              Hemat <span className="font-semibold text-white">{hemat}</span>
+            <p className="m-0 mt-1.5 text-gray-400 text-[12px] sm:text-[13px] leading-tight whitespace-nowrap">
+              Hemat <span className="font-bold text-white text-[14px] sm:text-[15px]">{hemat}</span>
               <span className="hidden sm:inline"> · otomatis di checkout</span>
             </p>
           </div>
         </div>
 
         {autoDiscount.endsAt && (
-          <div className="text-right flex-shrink-0">
-            <p className="m-0 flex items-center justify-end gap-1.5 text-white/50 text-[8px] sm:text-[9px] font-semibold uppercase tracking-[0.18em] mb-1.5">
-              {/* Live dot — signals the timer is actually running */}
-              <span aria-hidden="true" className="gx-flash-dot inline-block w-[5px] h-[5px] rounded-full bg-white/80" />
+          <div className="text-right flex-shrink-0 sm:pl-3">
+            <p className="m-0 flex items-center justify-end gap-1.5 text-gray-400 text-[8px] sm:text-[9px] font-semibold uppercase tracking-[0.18em] mb-1.5">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-600" />
+              </span>
               Berakhir dalam
             </p>
             <FlashSaleCountdown endsAt={autoDiscount.endsAt} />
