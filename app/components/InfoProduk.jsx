@@ -35,7 +35,7 @@ export const InfoProduk = ({deskripsi, specs, isibox, variantTitle, ulasan, revi
             <button
               key={key}
               onClick={() => setSelectedContent(key)}
-              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${extraClass} ${
+              className={`px-3 first:pl-0 py-2.5 text-[13px] md:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${extraClass} ${
                 selectedContent === key
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-500 hover:text-gray-700'

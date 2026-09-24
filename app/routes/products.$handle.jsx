@@ -2754,13 +2754,13 @@ DP : 0
 
 
       
-    <div className='px-4 py-1 md:px-0 text-sm flex flex-col md:flex-row sm:gap-8'>
+    <div className='py-1 text-[13px] md:text-sm flex flex-col md:flex-row sm:gap-8'>
 
         {/* Brand authorized dealer — mobile/tablet only (lg has it in 3rd column) */}
         <Suspense fallback={null}>
           <Await resolve={metaobject}>
             {(mo) => mo?.metaobject?.logo?.reference?.image?.url ? (
-              <div className="lg:hidden flex items-center gap-2 mb-1 pl-1">
+              <div className="lg:hidden flex items-center gap-2 mb-1">
                 <img
                   src={mo.metaobject.logo.reference.image.url}
                   alt={mo?.metaobject?.field?.value || 'Brand'}
@@ -2781,10 +2781,10 @@ DP : 0
         <Suspense fallback={null}>
           <Await resolve={metaobject}>
             {(mo) => mo?.metaobject?.field?.value ? (
-              <div className='flex flex-row gap-1 mb-1 pl-1'>
-                <div className=' mr-3 '>Brand</div>
+              <div className='flex flex-row gap-1 mb-1'>
+                <div className='w-14 shrink-0 text-gray-500'>Brand</div>
                 <Link to={`/brands/${mo.metaobject.field?.value}`}>
-                  <div className='font-bold text-slate-600'>{mo.metaobject.field?.value}</div>
+                  <div className='font-semibold text-gray-800'>{mo.metaobject.field?.value}</div>
                 </Link>
               </div>
             ) : null}
@@ -2793,16 +2793,16 @@ DP : 0
 
 
         {product.metafields[0]?.value &&
-        <div className='flex flex-row gap-1 mb-1 pl-1'>
-          <div className=' mr-3 '>Garansi</div>
-          <div className='font-bold text-slate-600'>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
+        <div className='flex flex-row gap-1 mb-1'>
+          <div className='w-14 shrink-0 text-gray-500'>Garansi</div>
+          <div className='font-semibold text-gray-800'>Resmi {product.metafields[0]?.value} {product.vendor !== 'galaxy' && product.vendor}</div>
         </div>
       }
 
         {product.metafields[3]?.value &&
-        <div className='flex flex-row gap-1 mb-1 pl-1'>
-          <div className=' mr-3 '>Periode</div>
-          <div className='font-bold text-slate-600'>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
+        <div className='flex flex-row gap-1 mb-1'>
+          <div className='w-14 shrink-0 text-gray-500'>Periode</div>
+          <div className='font-semibold text-gray-800'>{perubahTanggal(product.metafields[3]?.value)} - {perubahTanggal(product.metafields[4]?.value)}</div>
         </div>
         }
 
@@ -2828,7 +2828,7 @@ DP : 0
 
         
         <InfoProduk
-        deskripsi={(<div className="w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-img:max-w-full prose-ul:my-2 prose-ol:my-2 pt-2 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl [&_iframe]:my-4 [&_iframe]:max-w-full"
+        deskripsi={(<div className="w-full"><div className="w-full max-w-none prose prose-sm prose-headings:font-bold prose-headings:text-gray-900 prose-headings:text-[15px] md:prose-headings:text-base prose-headings:mt-4 prose-headings:mb-2 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:my-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:my-4 prose-img:max-w-full prose-ul:my-2 prose-ol:my-2 pt-2 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl [&_iframe]:my-4 [&_iframe]:max-w-full"
               dangerouslySetInnerHTML={{ __html: stripYouTubeIframes(product.descriptionHtml) }}/></div>)}
         isibox={product.metafields[2]?.value}
         variantTitle={selectedVariant?.title}
