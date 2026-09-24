@@ -4,6 +4,7 @@ import {FaInstagram, FaTiktok, FaYoutube, FaXTwitter, FaWhatsapp, FaFacebookF} f
 import {PredictiveSearchForm, PredictiveSearchResults} from '~/components/Search';
 import {useLocation, useNavigate, useNavigation} from '@remix-run/react';
 import {FaRegCircleUser} from 'react-icons/fa6';
+import {WISHLIST_EVENT, readWishlistCount} from '~/components/WishlistButton';
 import {NearestStoreBar} from '~/components/NearestStoreBar';
 import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
 
@@ -623,6 +624,9 @@ function HeaderCtas({isLoggedIn, cart, onDark}) {
         </span>
       </NavLink>
 
+      {/* Wishlist (browser-saved; count updates live via the WishlistButton event) */}
+      <WishlistBadge onDark={onDark} />
+
       {/* Cart */}
       <CartToggle cart={cart} onDark={onDark} />
     </nav>
@@ -733,6 +737,38 @@ function SearchToggle() {
         </svg>
         <span className="text-sm text-gray-400 select-none">Cari Produk...</span>
       </div>
+    </Link>
+  );
+}
+
+function WishlistBadge({onDark}) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const sync = () => setCount(readWishlistCount());
+    sync();
+    window.addEventListener(WISHLIST_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => { window.removeEventListener(WISHLIST_EVENT, sync); window.removeEventListener('storage', sync); };
+  }, []);
+  const cls = onDark
+    ? 'text-white hover:bg-white/10'
+    : 'text-gray-700 hover:bg-gray-100 sm:text-white sm:hover:bg-white/10';
+  return (
+    <Link
+      to="/account/wishlist"
+      prefetch="intent"
+      aria-label="Wishlist"
+      title="Wishlist"
+      className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${cls}`}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+      </svg>
+      {count > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[10px] font-bold leading-none rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+          {count > 9 ? '9+' : count}
+        </span>
+      )}
     </Link>
   );
 }

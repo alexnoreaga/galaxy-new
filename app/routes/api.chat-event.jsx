@@ -5,6 +5,7 @@ const FIREBASE_API_KEY = 'AIzaSyAfREwK-3UbL1x7jeeR6L3McIsAROvZ5hU'; // Firebase 
 const FIREBASE_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents`;
 
 const ALLOWED_TYPES = new Set([
+  'wishlist_added', 'wishlist_removed', // ❤ taps on product pages (anonymous; meta = product title)
   'chat_opened',
   'product_card_clicked',
   'voucher_copied',

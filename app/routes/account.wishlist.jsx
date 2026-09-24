@@ -62,7 +62,15 @@ export default function AccountWishlist() {
     }
   }
 
+  const isGuest = !customer?.email;
   return (
+    <div className={isGuest ? 'max-w-3xl mx-auto px-4 py-6' : ''}>
+    {isGuest && (
+      <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+        <p className="text-xs text-gray-600">Wishlist ini tersimpan di browser ini saja. <span className="font-semibold text-gray-800">Masuk</span> supaya ikut tersimpan di semua perangkatmu.</p>
+        <Link to="/account/login" className="flex-shrink-0 text-xs font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-full px-3 py-1.5">Masuk</Link>
+      </div>
+    )}
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <div className="flex items-center gap-2 mb-5">
         <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
@@ -158,6 +166,7 @@ export default function AccountWishlist() {
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 }

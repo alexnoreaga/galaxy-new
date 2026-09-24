@@ -2293,7 +2293,7 @@ DP : 0
                   {product.title}
                 </h1>
                 {/* Mobile wishlist — bare heart beside the title (Tokopedia-style); desktop uses the gallery pill */}
-                <div className="md:hidden mt-1.5 flex-shrink-0">
+                <div className="md:hidden mt-1 flex-shrink-0">
                   <WishlistButton
                     variant="plain"
                     handle={product.handle}

@@ -17,8 +17,10 @@ export async function loader({request, context}) {
       pathname,
     );
 
+  // Wishlist works without an account (saved in the browser); members get it merged into Firestore.
+  const isWishlist = pathname === '/account/wishlist' || pathname === '/account/wishlist/';
   if (!isLoggedIn) {
-    if (isPrivateRoute || isAccountHome) {
+    if ((isPrivateRoute && !isWishlist) || isAccountHome) {
       session.unset('customerAccessToken');
       return redirect('/account/login', {
         headers: {
@@ -26,11 +28,11 @@ export async function loader({request, context}) {
         },
       });
     } else {
-      // public subroute such as /account/login...
+      // public subroute such as /account/login... (and the guest wishlist, rendered without account chrome)
       return json({
         isLoggedIn: false,
         isAccountHome,
-        isPrivateRoute,
+        isPrivateRoute: isPrivateRoute && !isWishlist,
         customer: null,
       });
     }
