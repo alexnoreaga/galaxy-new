@@ -1231,8 +1231,8 @@ DP : 0
             </div>
           )}
 
-          {/* Wishlist button — top right */}
-          <div className="absolute top-3 right-3 z-10 shadow-md rounded-full">
+          {/* Wishlist button — top right (desktop only; on mobile the heart sits next to the title) */}
+          <div className="hidden md:block absolute top-3 right-3 z-10 shadow-md rounded-full">
             <WishlistButton
               handle={wishlistHandle}
               title={wishlistTitle}
@@ -1252,7 +1252,7 @@ DP : 0
               aria-label="Lihat video produk"
               // Inline background: the pill must ALWAYS be visible over white product photos
               style={{ background: 'rgba(17, 24, 39, 0.75)', backdropFilter: 'blur(4px)' }}
-              className="absolute top-14 right-3 z-10 inline-flex items-center gap-1.5 rounded-full hover:opacity-90 pl-1.5 pr-3 py-1 active:scale-95 transition shadow-md"
+              className="absolute top-3 md:top-14 right-3 z-10 inline-flex items-center gap-1.5 rounded-full hover:opacity-90 pl-1.5 pr-3 py-1 active:scale-95 transition shadow-md"
             >
               <span className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
                 <svg viewBox="0 0 24 24" fill="white" className="w-3 h-3 ml-0.5" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
@@ -2288,9 +2288,22 @@ DP : 0
               </div>
 
               {/* TITLE — position 4 mobile, 1 desktop */}
-              <h1 className="text-base mt-2 md:mt-0 mb-0 md:text-lg font-medium leading-snug whitespace-normal order-4 md:order-1 select-none" onClick={()=>copyToClipboard(hargaCashCopy)} onDoubleClick={()=>copyToClipboard(stripInfoLink(hargaCashCopy))}>
-                {product.title}
-              </h1>
+              <div className="flex items-start gap-2 order-4 md:order-1">
+                <h1 className="flex-1 min-w-0 text-base mt-2 md:mt-0 mb-0 md:text-lg font-medium leading-snug whitespace-normal select-none" onClick={()=>copyToClipboard(hargaCashCopy)} onDoubleClick={()=>copyToClipboard(stripInfoLink(hargaCashCopy))}>
+                  {product.title}
+                </h1>
+                {/* Mobile wishlist — bare heart beside the title (Tokopedia-style); desktop uses the gallery pill */}
+                <div className="md:hidden mt-1.5 flex-shrink-0">
+                  <WishlistButton
+                    variant="plain"
+                    handle={product.handle}
+                    title={product.title}
+                    image={selectedVariant?.image?.url || product.featuredImage?.url || ''}
+                    price={String(selectedVariant?.price?.amount || '')}
+                    customerEmail={custEmail?.customer?.email || null}
+                  />
+                </div>
+              </div>
 
               {/* SOCIAL PROOF — position 5 mobile, 2 desktop */}
               <div className="flex items-center gap-2 flex-wrap order-5 md:order-2">
