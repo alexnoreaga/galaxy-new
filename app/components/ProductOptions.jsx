@@ -85,8 +85,8 @@ import {
                         group relative overflow-hidden rounded-lg border transition-all duration-200
                         ${isOutOfStock ? 'opacity-70' : ''}
                         ${isActive 
-                          ? 'border-rose-500 bg-gradient-to-br from-rose-50 to-pink-50 shadow-sm ring-2 ring-rose-200' 
-                          : 'border-gray-200 bg-white hover:border-rose-300 hover:shadow-sm'
+                          ? 'border-slate-800 bg-slate-50' 
+                          : 'border-gray-200 bg-white hover:border-slate-400'
                         }
                       `}
                     >
@@ -96,7 +96,7 @@ import {
                           <div className={`
                             w-8 h-8 rounded-md overflow-hidden border flex-shrink-0
                             ${isOutOfStock ? 'opacity-70' : ''}
-                            ${isActive ? 'border-rose-300 ring-1 ring-rose-200' : 'border-gray-200'}
+                            ${isActive ? 'border-slate-300' : 'border-gray-200'}
                           `}>
                             <img
                               src={optionImage}
@@ -110,7 +110,7 @@ import {
                           <span className={`
                             text-xs font-medium pr-1.5
                             ${isOutOfStock ? 'opacity-70' : ''}
-                            ${isActive ? 'text-rose-700' : 'text-gray-700'}
+                            ${isActive ? 'text-slate-900 font-semibold' : 'text-gray-700'}
                           `}>
                             {value}
                           </span>
@@ -121,7 +121,7 @@ import {
                           <span className={`
                             text-xs font-medium whitespace-nowrap
                             ${isOutOfStock ? 'opacity-70' : ''}
-                            ${isActive ? 'text-rose-700' : 'text-gray-700'}
+                            ${isActive ? 'text-slate-900 font-semibold' : 'text-gray-700'}
                           `}>
                             {value}
                           </span>
@@ -131,7 +131,7 @@ import {
                       {/* Active indicator (smaller) */}
                       {isActive && (
                         <div className="absolute top-0.5 right-0.5">
-                          <div className="bg-rose-600 rounded-full p-0.5">
+                          <div className="bg-slate-800 rounded-full p-0.5">
                             <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
