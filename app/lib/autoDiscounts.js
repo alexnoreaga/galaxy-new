@@ -30,7 +30,7 @@ export async function getAutomaticDiscounts(env) {
       headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': access_token },
       body: JSON.stringify({
         query: `{
-          automaticDiscountNodes(first: 25) {
+          automaticDiscountNodes(first: 50) {
             nodes {
               automaticDiscount {
                 __typename

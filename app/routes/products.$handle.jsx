@@ -224,13 +224,15 @@ function PwpSection({ pwp }) {
   for (const deal of pwp.deals) {
     for (const pid of deal.addOnProductIds) {
       const prod = byId.get(pid);
-      if (!prod || !prod.availableForSale) continue;
-      const available = (prod.variants?.nodes ?? []).filter((v) => v.availableForSale);
-      const scoped = deal.addOnVariantIds?.length
-        ? available.filter((v) => deal.addOnVariantIds.includes(v.id))
-        : available;
-      const v = scoped[0] ?? available[0];
+      if (!prod) continue;
+      // Out-of-stock add-ons stay visible (faded, "Stok kosong", button disabled) so shoppers know
+      // the bundle exists and can come back; in-stock ones are listed first.
+      const allVariants = prod.variants?.nodes ?? [];
+      const available = allVariants.filter((v) => v.availableForSale);
+      const inScope = (arr) => (deal.addOnVariantIds?.length ? arr.filter((v) => deal.addOnVariantIds.includes(v.id)) : arr);
+      const v = inScope(available)[0] ?? available[0] ?? inScope(allVariants)[0] ?? allVariants[0];
       if (!v) continue;
+      const soldOut = !v.availableForSale;
       const price = parseFloat(v.price?.amount ?? 0);
       if (!price) continue;
       const hemat = deal.discount.type === 'amount'
@@ -239,11 +241,11 @@ function PwpSection({ pwp }) {
       if (hemat <= 0) continue;
       const key = prod.id + '|' + v.id;
       if (!rows.has(key)) {
-        rows.set(key, { prod, variant: v, price, hemat, pwpPrice: Math.max(0, price - hemat), endsAt: deal.endsAt });
+        rows.set(key, { prod, variant: v, price, hemat, pwpPrice: Math.max(0, price - hemat), endsAt: deal.endsAt, soldOut });
       }
     }
   }
-  const list = [...rows.values()];
+  const list = [...rows.values()].sort((a, b) => Number(a.soldOut) - Number(b.soldOut));
   if (!list.length) return null;
 
   const img = (u) => (u ? (u.includes('?') ? `${u}&width=112` : `${u}?width=112`) : null);
@@ -273,13 +275,18 @@ function PwpSection({ pwp }) {
         {list.map((row) => (
           <div
             key={row.prod.id + row.variant.id}
-            className="flex-shrink-0 w-36 rounded-xl border border-gray-100 bg-white overflow-hidden flex flex-col"
+            className={`flex-shrink-0 w-36 rounded-xl border border-gray-100 bg-white overflow-hidden flex flex-col ${row.soldOut ? 'opacity-70' : ''}`}
           >
             <Link
               to={`/products/${row.prod.handle}`}
               prefetch="intent"
-              className="block bg-gray-50 aspect-square p-2 flex-shrink-0"
+              className="relative block bg-gray-50 aspect-square p-2 flex-shrink-0"
             >
+              {row.soldOut && (
+                <span className="absolute inset-x-2 top-1/2 -translate-y-1/2 z-10 text-center text-[10px] font-bold text-gray-700 bg-white/90 border border-gray-200 rounded-full px-2 py-1">
+                  Stok kosong
+                </span>
+              )}
               {row.prod.featuredImage?.url ? (
                 <img
                   src={img(row.prod.featuredImage.url)}
@@ -287,7 +294,7 @@ function PwpSection({ pwp }) {
                   loading="lazy"
                   width={128}
                   height={128}
-                  className="w-full h-full object-contain"
+                  className={`w-full h-full object-contain ${row.soldOut ? 'grayscale' : ''}`}
                 />
               ) : (
                 <span className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📷</span>
@@ -329,10 +336,10 @@ function PwpSection({ pwp }) {
                       });
                       window.location.href = window.location.href + '#cart-aside';
                     }}
-                    disabled={fetcher.state !== 'idle'}
-                    className="mt-auto w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-60 text-white text-[11px] font-semibold py-1.5 rounded-lg transition-colors"
+                    disabled={row.soldOut || fetcher.state !== 'idle'}
+                    className={`mt-auto w-full text-[11px] font-semibold py-1.5 rounded-lg transition-colors ${row.soldOut ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-gray-800 disabled:opacity-60 text-white'}`}
                   >
-                    + Tambah
+                    {row.soldOut ? 'Stok kosong' : '+ Tambah'}
                   </button>
                 )}
               </CartForm>
