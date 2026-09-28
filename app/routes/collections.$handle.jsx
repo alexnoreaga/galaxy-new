@@ -190,21 +190,21 @@ function CollectionIntro({description, html}) {
   const [open, setOpen] = useState(false);
   const text = String(description ?? '').replace(/\s+/g, ' ').trim();
   if (text.length < 40) return null;
-  const LIMIT = 260;
+  const LIMIT = 180; // one to two short lines — a caption for the grid, not an article
   const short = text.length > LIMIT ? text.slice(0, LIMIT).replace(/\s+\S*$/, '') + '…' : text;
   const canExpand = text.length > LIMIT || (html && html.length > text.length + 40);
   return (
-    <div className="mb-5 text-sm text-gray-600 leading-relaxed">
+    <div className="mb-4 max-w-3xl text-[13px] md:text-sm text-gray-500 leading-relaxed">
       {open && html ? (
-        <div className="prose prose-sm max-w-none text-gray-600" dangerouslySetInnerHTML={{__html: html}} />
+        <div className="prose prose-sm max-w-none text-gray-600 prose-p:text-[13px] md:prose-p:text-sm prose-headings:text-sm" dangerouslySetInnerHTML={{__html: html}} />
       ) : (
-        <p>{open ? text : short}</p>
+        <p className="m-0 text-[13px] md:text-sm text-gray-500 leading-relaxed">{open ? text : short}</p>
       )}
       {canExpand && (
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="mt-1 text-sm font-semibold text-gray-900 hover:underline"
+          className="mt-0.5 text-xs font-semibold text-gray-700 hover:underline"
         >
           {open ? 'Tutup' : 'Baca selengkapnya'}
         </button>

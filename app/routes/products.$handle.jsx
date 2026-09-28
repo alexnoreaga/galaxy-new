@@ -2893,13 +2893,14 @@ DP : 0
       <BackToTop />
 
       {/* DESKTOP STICKY CHECKOUT START HERE */}
-
+      {/* Floating dock (md+): mirrors the right-column purchase card — white, rounded-2xl, gray-200
+          border, soft shadow — instead of a full-width strip. Logic unchanged from the old bar. */}
       {selectedVariant?.availableForSale
         && product?.metafields[12]?.value != "true"
          && (
-      
-      <div className={`hidden md:flex ${showStickyBar ? '' : 'lg:hidden'} fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)]`}>
-        <div className='max-w-5xl mx-auto w-full px-4 md:px-8 py-3 flex items-center gap-6'>
+
+      <div className={`hidden md:block ${showStickyBar ? '' : 'lg:hidden'} fixed inset-x-0 bottom-4 z-50 px-4 pointer-events-none`}>
+        <div className='max-w-5xl mx-auto w-full pointer-events-auto rounded-2xl border border-gray-200 bg-white/95 backdrop-blur shadow-[0_12px_40px_rgba(15,23,42,0.14)] pl-3 pr-3 py-2.5 flex items-center gap-4'>
 
           {/* Product info */}
           <div className='flex items-center gap-3 min-w-0 flex-1'>
@@ -2907,22 +2908,22 @@ DP : 0
               <img
                 src={selectedVariant?.image?.url || product.featuredImage.url}
                 alt={product.title}
-                className='w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-gray-100'
+                className='w-12 h-12 rounded-xl object-contain bg-white flex-shrink-0 border border-gray-100'
               />
             )}
             <div className='min-w-0'>
-              <p className='text-xs text-gray-500 truncate max-w-xs lg:max-w-sm'>{product.title}</p>
-              <div className='flex items-baseline gap-2'>
-                <span className='text-xl font-bold text-gray-900'>
+              <p className='text-[13px] font-medium text-gray-900 truncate max-w-xs lg:max-w-md leading-tight'>{product.title}</p>
+              <div className='flex items-baseline gap-2 mt-0.5'>
+                <span className='text-lg font-bold text-gray-900 leading-none'>
                   Rp{parseFloat(selectedVariant.price.amount).toLocaleString("id-ID")}
                 </span>
                 {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                  <span className='text-sm text-gray-400 line-through'>
+                  <span className='text-xs text-gray-400 line-through'>
                     Rp{parseFloat(selectedVariant.compareAtPrice.amount).toLocaleString("id-ID")}
                   </span>
                 )}
                 {parseFloat(selectedVariant?.compareAtPrice?.amount) > parseFloat(selectedVariant.price.amount) && (
-                  <span className='text-xs font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded'>
+                  <span className='text-[11px] font-semibold text-red-700 bg-red-50 px-1.5 py-0.5 rounded-md leading-none'>
                     -{Math.round((1 - parseFloat(selectedVariant.price.amount) / parseFloat(selectedVariant.compareAtPrice.amount)) * 100)}%
                   </span>
                 )}
@@ -2930,14 +2931,17 @@ DP : 0
             </div>
           </div>
 
-          {/* Actions */}
-          <div className='flex items-center gap-2.5 flex-shrink-0 ml-auto'>
+          {/* Divider */}
+          <span aria-hidden="true" className='hidden lg:block w-px h-8 bg-gray-200 flex-shrink-0' />
+
+          {/* Actions — one height for all three, quiet → loud from left to right */}
+          <div className='flex items-center gap-2 flex-shrink-0 ml-auto'>
 
             <button
               onClick={() => setBukaModalBandingkan(true)}
-              className='inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors whitespace-nowrap'
+              className='inline-flex items-center gap-1.5 h-11 px-3.5 rounded-xl border border-gray-200 hover:border-gray-900 bg-white text-gray-700 hover:text-gray-900 text-sm font-semibold transition-colors whitespace-nowrap'
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-500">
                 <path fillRule="evenodd" d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.918Z" clipRule="evenodd" />
               </svg>
               <span className='hidden lg:inline'>Bandingkan</span>
@@ -2948,8 +2952,8 @@ DP : 0
               target="_blank"
               rel="noreferrer"
             >
-              <button className='inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors whitespace-nowrap'>
-                <FaWhatsapp className='text-base' />
+              <button className='inline-flex items-center gap-2 h-11 px-4 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-semibold transition-colors whitespace-nowrap'>
+                <FaWhatsapp className='text-base text-emerald-600' />
                 <span className='hidden lg:inline'>Order via WhatsApp</span>
                 <span className='lg:hidden'>WhatsApp</span>
               </button>
@@ -2967,7 +2971,7 @@ DP : 0
                     type="submit"
                     onClick={() => { trackAddToCart(); window.location.href = window.location.href + '#cart-aside'; }}
                     disabled={!selectedVariant.availableForSale ?? fetcher.state !== 'idle'}
-                    className='inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors whitespace-nowrap shadow-sm'
+                    className='inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors whitespace-nowrap'
                   >
                     <FaBagShopping className='text-base' />
                     {selectedVariant?.availableForSale ? 'Beli Sekarang' : 'Sold Out'}
