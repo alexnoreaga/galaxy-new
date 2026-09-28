@@ -144,16 +144,48 @@ async function saveTokenToServer(token) {
 }
 
 // Shared card shell (charcoal, bottom of the viewport, above the mobile nav bar).
+// Closing a card twice (X, swipe or "Nanti") means "no" — after that it stays away for 6 months.
+function dismissDays(key, base) {
+  try {
+    const k = key + '_dismissals';
+    const n = Number(localStorage.getItem(k) || 0) + 1;
+    localStorage.setItem(k, String(n));
+    return n >= 2 ? 180 : base;
+  } catch (_) { return base; }
+}
+
 function makeCard(id, icon, title, sub, buttons) {
   const el = document.createElement('div');
   el.id = id;
   el.setAttribute('role', 'dialog');
   el.setAttribute('aria-label', title);
-  el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:60;max-width:420px;margin:0 auto;background:#111827;color:#fff;border-radius:14px;padding:12px 12px 12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.35);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;gap:10px;align-items:center';
+  el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:60;max-width:420px;margin:0 auto;background:#111827;color:#fff;border-radius:14px;padding:12px 30px 12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.35);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;gap:10px;align-items:center;touch-action:pan-y;transform:translateY(16px);opacity:0;transition:transform .25s ease,opacity .25s ease';
   el.innerHTML =
     '<span style="flex-shrink:0;width:34px;height:34px;border-radius:10px;background:#1f2937;display:flex;align-items:center;justify-content:center;font-size:18px">' + icon + '</span>' +
     '<span style="flex:1;min-width:0"><b style="display:block;font-size:13.5px">' + title + '</b><span style="color:#9ca3af">' + sub + '</span></span>' +
-    buttons;
+    buttons +
+    '<button type="button" data-act="x" aria-label="Tutup" style="position:absolute;top:6px;right:6px;width:24px;height:24px;border:0;border-radius:999px;background:transparent;color:#6b7280;font-size:16px;line-height:24px;text-align:center;cursor:pointer;padding:0">&times;</button>';
+  // entrance
+  requestAnimationFrame(() => { el.style.transform = 'translateY(0)'; el.style.opacity = '1'; });
+  // dismiss: X, or a horizontal swipe (either direction, > 70 px) — same meaning as "Nanti"
+  const dismiss = (dir) => {
+    el.style.transition = 'transform .2s ease,opacity .2s ease';
+    el.style.transform = 'translateX(' + (dir < 0 ? '-120%' : '120%') + ')';
+    el.style.opacity = '0';
+    setTimeout(() => { try { el.__onDismiss ? el.__onDismiss() : el.remove(); } catch (_) { el.remove(); } }, 180);
+  };
+  el.querySelector('[data-act="x"]').onclick = (e) => { e.stopPropagation(); dismiss(1); };
+  let startX = null, dx = 0;
+  el.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; startX = e.clientX; dx = 0; el.style.transition = 'none'; try { el.setPointerCapture(e.pointerId); } catch (_) {} });
+  el.addEventListener('pointermove', (e) => { if (startX === null) return; dx = e.clientX - startX; el.style.transform = 'translateX(' + dx + 'px)'; el.style.opacity = String(Math.max(0.35, 1 - Math.abs(dx) / 220)); });
+  const end = () => {
+    if (startX === null) return;
+    startX = null;
+    if (Math.abs(dx) > 70) dismiss(dx);
+    else { el.style.transition = 'transform .2s ease,opacity .2s ease'; el.style.transform = 'translateX(0)'; el.style.opacity = '1'; }
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
   return el;
 }
 
@@ -170,7 +202,8 @@ function showSoftPrompt() {
         el.remove();
         if (snoozeDays) snooze(PUSH_SNOOZE_KEY, snoozeDays);
       };
-      el.querySelector('[data-act="later"]').onclick = () => close(14);
+      el.__onDismiss = () => close(dismissDays(PUSH_SNOOZE_KEY, 14));
+      el.querySelector('[data-act="later"]').onclick = () => close(dismissDays(PUSH_SNOOZE_KEY, 14));
       el.querySelector('[data-act="on"]').onclick = () => {
         close(0);
         // Must stay synchronous inside the tap handler: Safari (iOS PWA) only honours
@@ -209,6 +242,7 @@ function showIosHint() {
         'Tekan tombol <b style="color:#fff">Bagikan</b> di Safari, pilih <b style="color:#fff">Tambahkan ke Layar Utama</b>, lalu buka Galaxy dari sana dan aktifkan notifikasi.',
         '<button type="button" data-act="ok" style="background:#374151;border:0;color:#fff;font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:999px;cursor:pointer">Mengerti</button>');
       const close = (days) => { el.remove(); snooze(IOS_HINT_SNOOZE_KEY, days); };
+      el.__onDismiss = () => close(dismissDays(IOS_HINT_SNOOZE_KEY, 30));
       el.querySelector('[data-act="ok"]').onclick = () => close(30);
       document.body.appendChild(el);
       setTimeout(() => { if (document.getElementById('gx-ios-hint')) close(7); }, 30000);
@@ -359,7 +393,8 @@ function showInstallCard() {
         '<button type="button" data-act="later" style="background:none;border:0;color:#9ca3af;font-size:12px;padding:6px 4px;cursor:pointer">Nanti</button>' +
         '<button type="button" data-act="on" style="background:#dc2626;border:0;color:#fff;font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:999px;cursor:pointer">Pasang</button>');
       const close = (days) => { el.remove(); if (days) snooze(INSTALL_SNOOZE_KEY, days); };
-      el.querySelector('[data-act="later"]').onclick = () => { close(30); ga('pwa_install_prompt', { outcome: 'later' }); };
+      el.__onDismiss = () => { close(dismissDays(INSTALL_SNOOZE_KEY, 30)); ga('pwa_install_prompt', { outcome: 'later' }); };
+      el.querySelector('[data-act="later"]').onclick = () => { close(dismissDays(INSTALL_SNOOZE_KEY, 30)); ga('pwa_install_prompt', { outcome: 'later' }); };
       el.querySelector('[data-act="on"]').onclick = async () => {
         close(0);
         const ev = deferredInstall; deferredInstall = null;
