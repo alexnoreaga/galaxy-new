@@ -216,6 +216,57 @@ function FlashSaleBanner({ autoDiscount }) {
 // Renders only when this product is the trigger of an active BXGY deal. Prices always match what
 // checkout will charge (both derive from the same discount). Add-to-cart adds the ADD-ON only;
 // the discount applies automatically at checkout once the main product is in the cart too.
+// Horizontal rail with desktop affordances: the scrollbar is hidden (tile rail look), so on a
+// mouse there was no way to reach the 4th+ tile. Adds edge arrows (sm+, only when overflowing)
+// and turns the mouse wheel into horizontal scroll while hovering. Touch swipe is unchanged.
+function PwpRail({ children }) {
+  const ref = useRef(null);
+  const [edge, setEdge] = useState({ left: false, right: false });
+  const update = () => {
+    const el = ref.current; if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setEdge({ left: el.scrollLeft > 4, right: max - el.scrollLeft > 4 });
+  };
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    update();
+    const onWheel = (e) => {
+      if (el.scrollWidth <= el.clientWidth) return;
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // trackpad already horizontal
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null;
+    ro?.observe(el);
+    return () => { el.removeEventListener('wheel', onWheel); el.removeEventListener('scroll', update); ro?.disconnect(); };
+  }, []);
+  const nudge = (dir) => { const el = ref.current; if (el) el.scrollBy({ left: dir * Math.max(160, el.clientWidth * 0.7), behavior: 'smooth' }); };
+  const btn = 'hidden sm:flex absolute top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center rounded-full bg-white border border-gray-200 shadow-md text-gray-700 hover:border-gray-900 transition-colors';
+  return (
+    <div className="relative">
+      {edge.left && (
+        <button type="button" aria-label="Geser ke kiri" onClick={() => nudge(-1)} className={`${btn} left-1.5`}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+        </button>
+      )}
+      {edge.right && (
+        <button type="button" aria-label="Geser ke kanan" onClick={() => nudge(1)} className={`${btn} right-1.5`}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+        </button>
+      )}
+      <div
+        ref={ref}
+        className="flex gap-2.5 overflow-x-auto px-3 pb-3 pt-1.5 scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function PwpSection({ pwp }) {
   if (!pwp?.deals?.length || !pwp?.products?.length) return null;
   const byId = new Map(pwp.products.map((p) => [p.id, p]));
@@ -268,10 +319,7 @@ function PwpSection({ pwp }) {
 
       {/* Horizontal tile rail (Sony "Add More & Save More" style) — scales to many add-ons
           without eating vertical space; half-visible next card is the swipe cue */}
-      <div
-        className="flex gap-2.5 overflow-x-auto px-3 pb-3 pt-1.5"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
+      <PwpRail>
         {list.map((row) => (
           <div
             key={row.prod.id + row.variant.id}
@@ -346,7 +394,7 @@ function PwpSection({ pwp }) {
             </div>
           </div>
         ))}
-      </div>
+      </PwpRail>
     </div>
   );
 }
