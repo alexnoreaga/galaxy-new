@@ -993,6 +993,13 @@ DP : 0
 
 
   const ImageGallery = ({ productData, selectedVariant, wishlistHandle, wishlistTitle, wishlistImage, wishlistPrice, wishlistEmail, onSecretCopy, youtubeRaw }) => {
+    // Floating back/home (mobile): back only when this tab has in-site history, else go home.
+    const navigateGallery = useNavigate();
+    const goBackOrHome = () => {
+      let idx = 0;
+      try { idx = Number(window.history.state?.idx ?? 0); } catch (_) {}
+      if (idx > 0) navigateGallery(-1); else navigateGallery('/');
+    };
     const images = productData.images.edges.map((e) => e.node);
     const youtubeId = extractYouTubeId(youtubeRaw); // '' when no video metafield → gallery behaves exactly as before
 
@@ -1140,7 +1147,7 @@ DP : 0
               secret-copy is unaffected — it fires on the image body, not this corner circle. */}
           <button
             type="button"
-            onClick={() => window.history.back()}
+            onClick={goBackOrHome}
             aria-label="Kembali"
             className="sm:hidden absolute top-3 left-3 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
           >
@@ -1148,6 +1155,19 @@ DP : 0
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
           </button>
+          {/* Floating home — MOBILE only. The bottom nav (with its Beranda tab) is hidden on product
+              pages and the header only appears after scrolling, so direct visitors (Google, WhatsApp)
+              need a way to the storefront from the very first screen. */}
+          <Link
+            to="/"
+            prefetch="intent"
+            aria-label="Beranda"
+            className="sm:hidden absolute top-3 left-[3.5rem] z-20 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12 11.2 3.05a1.125 1.125 0 0 1 1.59 0L21.75 12M4.5 9.75V19.9c0 .62.5 1.1 1.125 1.1H9.75v-4.875c0-.62.5-1.125 1.125-1.125h2.25c.62 0 1.125.504 1.125 1.125V21h4.125c.62 0 1.125-.48 1.125-1.1V9.75" />
+            </svg>
+          </Link>
 
           {/* "Lihat Foto" — MOBILE only, shown on the video slide so users can jump to the photos
               (needed because a playing iframe swallows swipe gestures). Sits on the video, not the photo. */}

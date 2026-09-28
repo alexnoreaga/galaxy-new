@@ -6,6 +6,7 @@ const FIREBASE_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_P
 
 const ALLOWED_TYPES = new Set([
   'wishlist_added', 'wishlist_removed', // ❤ taps on product pages (anonymous; meta = product title)
+  'pwa_prompt', 'pwa_installed', 'pwa_launch', // add-to-home-screen funnel (meta = outcome / platform)
   'chat_opened',
   'product_card_clicked',
   'voucher_copied',

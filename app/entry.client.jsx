@@ -33,6 +33,7 @@ const FCM_TOKEN_SAVED_KEY = 'fcm_token_saved_v2'; // set once /api/save-token co
 const PUSH_SNOOZE_KEY = 'gx_push_snooze_until';
 const IOS_HINT_SNOOZE_KEY = 'gx_ios_hint_snooze_until';
 const PAGEVIEW_KEY = 'gx_pv';
+const INSTALL_SNOOZE_KEY = 'gx_install_snooze_until';
 const VAPID_KEY = 'BJVWFBO9hv4b9x6gxwSalMHFom3f17pAVxUTptFQBfUtDHKiNcDlHt9xPQ3F7FHdHC8rXhfJGCnv3a3unkedr0Y';
 
 let messaging = null; // created lazily, only on browsers that pass isSupported()
@@ -303,6 +304,81 @@ function scheduleInit() {
   else window.addEventListener('load', run, { once: true });
 }
 scheduleInit();
+
+// ── Add to Home Screen (Chrome/Edge Android + desktop): Chrome only offers install on its own
+//    engagement heuristics; catching `beforeinstallprompt` lets us ask at a moment we choose, with
+//    the same snooze discipline as the push card. iPhone has no such event (see showIosHint). ──
+let deferredInstall = null;
+const isInstalled = () => { try { return isStandalone() || localStorage.getItem('gx_installed') === '1'; } catch (_) { return false; } };
+// GA4 event + a mirror row in Firestore chat_events (the harga-produk "Statistik Klik" page reads
+// those; GA4 would need property access and still cannot see iPhone home-screen installs).
+const gxEvent = (type, meta) => {
+  try {
+    let sid = localStorage.getItem('galaxy_session_id');
+    if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('galaxy_session_id', sid); }
+    fetch('/api/chat-event', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, handle: '', sessionId: sid, meta: String(meta || '').slice(0, 120) }), keepalive: true }).catch(() => {});
+  } catch (_) {}
+};
+const ga = (name, params) => {
+  try { window.gtag?.('event', name, params || {}); } catch (_) {}
+  if (name === 'pwa_install_prompt') gxEvent('pwa_prompt', params?.outcome);
+  if (name === 'pwa_installed') gxEvent('pwa_installed', params?.method);
+};
+// Opened from the Home Screen icon (Android PWA, iPhone Web App, desktop app window): once per
+// session. This is the only signal iPhone installs ever give us.
+try {
+  if (isStandalone() && !sessionStorage.getItem('gx_pwa_launch')) {
+    sessionStorage.setItem('gx_pwa_launch', '1');
+    gxEvent('pwa_launch', isIphone() ? 'iphone' : /Android/i.test(ua()) ? 'android' : 'desktop');
+  }
+} catch (_) {}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); // keep Chrome's own mini-infobar quiet; we ask ourselves below
+  deferredInstall = e;
+  if (isInstalled() || snoozed(INSTALL_SNOOZE_KEY)) return;
+  // Ask on the 3rd page of a visit (later than the push card), never on top of another card.
+  const ask = () => showInstallCard();
+  let pv = 0;
+  try { pv = Number(sessionStorage.getItem(PAGEVIEW_KEY) || 0); } catch (_) {}
+  if (pv >= 3) ask();
+  else onNextNavigation(() => { let n = 0; try { n = Number(sessionStorage.getItem(PAGEVIEW_KEY) || 0); } catch (_) {} if (n >= 2) ask(); else onNextNavigation(ask); });
+});
+window.addEventListener('appinstalled', () => {
+  try { localStorage.setItem('gx_installed', '1'); } catch (_) {}
+  deferredInstall = null;
+  const el = document.getElementById('gx-install-ask'); if (el) el.remove();
+  ga('pwa_installed', { method: 'prompt' });
+});
+
+function showInstallCard() {
+  try {
+    if (!deferredInstall || isInstalled() || document.getElementById('gx-install-ask')) return;
+    setTimeout(() => {
+      if (!deferredInstall || document.getElementById('gx-install-ask') || document.getElementById('gx-push-ask') || document.getElementById('gx-ios-hint')) return;
+      const el = makeCard('gx-install-ask', '📲', 'Pasang Galaxy di HP?', 'Buka lebih cepat dari layar utama, tanpa unduh dari Play Store.',
+        '<button type="button" data-act="later" style="background:none;border:0;color:#9ca3af;font-size:12px;padding:6px 4px;cursor:pointer">Nanti</button>' +
+        '<button type="button" data-act="on" style="background:#dc2626;border:0;color:#fff;font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:999px;cursor:pointer">Pasang</button>');
+      const close = (days) => { el.remove(); if (days) snooze(INSTALL_SNOOZE_KEY, days); };
+      el.querySelector('[data-act="later"]').onclick = () => { close(30); ga('pwa_install_prompt', { outcome: 'later' }); };
+      el.querySelector('[data-act="on"]').onclick = async () => {
+        close(0);
+        const ev = deferredInstall; deferredInstall = null;
+        if (!ev) return;
+        try {
+          ev.prompt();
+          const { outcome } = await ev.userChoice;
+          ga('pwa_install_prompt', { outcome });
+          if (outcome !== 'accepted') snooze(INSTALL_SNOOZE_KEY, 30);
+        } catch (_) { snooze(INSTALL_SNOOZE_KEY, 7); }
+      };
+      document.body.appendChild(el);
+      ga('pwa_install_prompt', { outcome: 'shown' });
+      setTimeout(() => { if (document.getElementById('gx-install-ask')) close(7); }, 30000); // ignored → 7 days
+    }, 20000);
+  } catch (e) {
+    console.warn('install card skipped', e);
+  }
+}
 
 // Chat widgets use these when a staff member joins a conversation ("Mau dikabari di HP?").
 // __gxPushToken: the token if this browser already granted notifications (flash-sale opt-in).
