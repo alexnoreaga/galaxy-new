@@ -312,6 +312,8 @@ query askPredictiveSearch($searchTerm: String!) {
       featuredImage { url }
       priceRange { minVariantPrice { amount } }
       discontinued: metafield(namespace: "custom", key: "produk_discontinue") { value }
+      preorder: metafield(namespace: "custom", key: "pre_order") { value }
+      preorderEta: metafield(namespace: "custom", key: "pre_order_estimasi_kirim") { value }
       variants(first: 8) { nodes { title availableForSale price { amount } } }
       isiBox: metafield(namespace: "custom", key: "isi_dalam_box") { value }
     }
@@ -694,6 +696,8 @@ query askCollectionRecommend($handle: String!, $filters: [ProductFilter!]) {
         featuredImage { url }
         priceRange { minVariantPrice { amount } }
         discontinued: metafield(namespace: "custom", key: "produk_discontinue") { value }
+      preorder: metafield(namespace: "custom", key: "pre_order") { value }
+      preorderEta: metafield(namespace: "custom", key: "pre_order_estimasi_kirim") { value }
       }
     }
   }
@@ -770,6 +774,9 @@ function mapProducts(items, limit = 3) {
       price: readyPrices.length ? Math.min(...readyPrices) : minPrice,
       available: p.availableForSale,
       discontinued: p.discontinued?.value === 'true',
+      // pre-order: stock = kuota batch; flag only counts while the product is not discontinued
+      preorder: p.preorder?.value === 'true' && p.discontinued?.value !== 'true',
+      preorderEta: fmtEta(p.preorderEta?.value),
       ...(vs.length ? { variants: vs } : {}),
       ...(p.isiBox?.value ? { isiBox: String(p.isiBox.value).replace(/\r/g, '').trim().slice(0, 900) } : {}),
     };
@@ -781,7 +788,7 @@ function mapProducts(items, limit = 3) {
 function productDetailLines(p) {
   const out = [];
   if (p.variants?.length) {
-    out.push(`  Varian: ${p.variants.map(v => `${v.title} Rp${v.price.toLocaleString('id-ID')} (${v.available ? 'Ready' : 'Stok habis'})`).join(' | ')}`);
+    out.push(`  Varian: ${p.variants.map(v => `${v.title} Rp${v.price.toLocaleString('id-ID')} (${v.available ? (p.preorder ? 'Pre-order' : 'Ready') : (p.preorder ? 'Kuota pre-order habis' : 'Stok habis')})`).join(' | ')}`);
   }
   if (p.isiBox) out.push(`  Isi box: ${p.isiBox.split('\n').map(l => l.trim()).filter(Boolean).join(' / ')}`);
   return out.join('\n');
@@ -790,7 +797,18 @@ function productDetailLines(p) {
 // Stock label: discontinued (gone for good) is DIFFERENT from merely out of stock (may restock)
 function stockLabel(p) {
   if (p.discontinued) return 'DISCONTINUED (produk sudah tidak dijual/diproduksi lagi — bukan sekadar stok habis)';
+  if (p.preorder) return p.available
+    ? `PRE-ORDER (bisa dipesan & dibayar sekarang, barang dikirim ${p.preorderEta ? `estimasi ${p.preorderEta}` : 'sesuai estimasi yang dikabari admin'}; kuota batch terbatas)`
+    : 'PRE-ORDER, KUOTA BATCH HABIS (belum bisa dipesan lagi; sarankan "Kabari kalau ready" di halaman produk)';
   return p.available ? 'Ready stock' : 'Stok habis';
+}
+
+// custom.pre_order_estimasi_kirim ("YYYY-MM-DD") → "15 Okt 2026"; '' when empty/invalid
+function fmtEta(raw) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(raw || '').trim());
+  if (!m || +m[2] < 1 || +m[2] > 12 || +m[3] < 1 || +m[3] > 31) return '';
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return d.getUTCMonth() === +m[2] - 1 ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '';
 }
 
 // When the searched product is out of stock / discontinued, "swim" into its own category
@@ -904,6 +922,7 @@ function productListTextWithCicilan(products) {
 const CARD_INSTRUCTIONS = `- PENTING: produk di atas akan OTOMATIS ditampilkan sebagai kartu bergambar (foto, harga, link) tepat di bawah jawabanmu. JANGAN tulis link dan JANGAN sebutkan semua harga satu per satu — cukup jawab natural dan singkat, contoh: "Ada kak, ready stock! Ini pilihannya ya 👇"
 - Jika produk punya baris "Varian": harga & stok BERBEDA per varian — sebutkan per varian (mis. "Standard Bundle Rp13,69 juta stok habis, Essential Bundle Rp15,29 juta ready"), JANGAN menyebut harga varian yang stok habis seolah ready.
 - Jika customer tanya "dapat apa", "isi paketnya", "termasuk X?", "sudah ada stick/baterai/charger?": jawab HANYA dari baris "Isi box" (per varian bila ada). Kalau baris "Isi box" tidak ada, bilang jujur rinciannya belum ada di data dan tawarkan cek ke admin — JANGAN menebak.
+- Jika status "PRE-ORDER": produk BISA dipesan & dibayar SEKARANG lewat tombol "Pre-Order Sekarang" di halaman produknya (bayar penuh, checkout biasa); barang dikirim sesuai estimasi yang tertulis di status, urutan sesuai pembayaran, kuota batch terbatas dan order belum dibayar tidak mengunci slot. JANGAN bilang "ready stock", JANGAN bilang "stok habis", JANGAN janjikan lebih cepat dari estimasi. Kalau "KUOTA BATCH HABIS": jelaskan batch pre-order sudah penuh, sarankan tekan "Kabari kalau ready" di halaman produk dan/atau catat nama & nomor WA (marker LEAD alasan=restock).
 - Jika status "Stok habis": produknya ADA di katalog, hanya stok WEBSITE yang kosong — stok fisik toko bisa berbeda. Sebutkan harganya (customer sering tanya harga/total walau stok kosong), lalu tawarkan konfirmasi cepat ke admin di 0821-1131-1131 dan/atau catat nama & nomor WA supaya dikabari saat restock (jika customer setuju dan kasih nomor → marker LEAD alasan=restock). JANGAN PERNAH bilang produknya "tidak ada / tidak tersedia di katalog".
 - Jika status "DISCONTINUED": produk ini SUDAH TIDAK DIPRODUKSI/DIJUAL LAGI — JANGAN bilang sekadar "stok habis" atau seolah bisa restock. Sampaikan dengan sopan bahwa produknya sudah discontinued, lalu langsung tawarkan alternatif/pengganti yang serupa. JANGAN PERNAH menyebut produk berstatus DISCONTINUED sebagai rekomendasi/pilihan/alternatif — statusnya hanya disebut kalau customer menanyakan produk itu secara spesifik.`;
 
@@ -1228,6 +1247,7 @@ ${notFoundRules}`,
           contextText: `Customer menanyakan "${keyword}". Status produk yang dicari:
 ${productListText(products)}
 - Produk yang dicari ADA di katalog tapi stok WEBSITE-nya kosong (kalau DISCONTINUED: sudah tidak dijual — jangan bilang sekadar "stok habis" / seolah bisa restock). JANGAN bilang "tidak ada di katalog".
+- Untuk yang "PRE-ORDER": bukan stok habis — bisa dipesan & dibayar sekarang, kirim sesuai estimasi di status; arahkan ke tombol "Pre-Order Sekarang" di halaman produknya.
 - Untuk yang "Stok habis": sebutkan harganya kalau customer tanya harga/total, jelaskan stok fisik toko bisa berbeda, tawarkan konfirmasi cepat ke admin di 0821-1131-1131 dan/atau catat nama & nomor WA supaya dikabari saat restock (jika customer setuju dan kasih nomor → marker LEAD alasan=restock).
 - Kartu pertama di bawah jawabanmu adalah produk yang dicari (berlabel stok habis); kartu berikutnya ALTERNATIF SEJENIS dari kategori yang sama yang READY STOCK — tawarkan sebagai pengganti. Contoh: "${searchKeywords[0]} ada di katalog ka, tapi stok website lagi kosong — coba konfirmasi admin dulu untuk stok fisik ya. Sementara itu ini alternatif yang ready 👇"
 Alternatif ready stock (dari kategori yang sama):

@@ -277,10 +277,12 @@ function ProductCard({ product }) {
         <p className="text-xs font-semibold text-gray-800 leading-snug line-clamp-2">{product.title}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-sm font-bold text-rose-600">Rp{Number(product.price).toLocaleString('id-ID')}</span>
-          {product.available ? (
+          {product.preorder && product.available ? (
+            <span className="text-[9px] font-bold text-white bg-gray-900 px-1.5 py-0.5 rounded-full tracking-wide" title={product.preorderEta ? `Estimasi kirim ${product.preorderEta}` : 'Pre-order'}>PRE-ORDER</span>
+          ) : product.available ? (
             <span className="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Ready</span>
           ) : (
-            <span className="text-[9px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">Habis</span>
+            <span className="text-[9px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">{product.preorder ? 'Kuota habis' : 'Habis'}</span>
           )}
         </div>
       </div>
