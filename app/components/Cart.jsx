@@ -122,6 +122,13 @@ function CartLineItem({layout, line}) {
               {option.name}: {option.value}
             </li>
           ))}
+          {/* customer-visible line attributes (e.g. Pre-Order: Estimasi kirim …) */}
+          {(line.attributes ?? []).filter((a) => a?.key && !a.key.startsWith('_')).map((a) => (
+            <li key={a.key} className="text-xs text-gray-900 w-full">
+              <span className="inline-block align-middle rounded bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 tracking-wide leading-none mr-1.5">{a.key.toUpperCase()}</span>
+              <span className="text-gray-600">{a.value}</span>
+            </li>
+          ))}
         </ul>
 
         <div className={`flex items-center justify-between mt-auto ${isPage ? 'pt-2' : 'pt-1'}`}>

@@ -29,6 +29,15 @@ import { gaEvent, gaProductItem } from '~/lib/analytics';
 
 // custom.unit_demo → ["Tangerang","Depok"] (list metafield = JSON string). Tolerates a plain
 // single-line value ("Tangerang, Depok") in case staff created the definition as plain text.
+// custom.preorder_eta (Shopify date "YYYY-MM-DD") → "15 Okt 2026"; '' when empty/invalid
+function formatPreorderEta(raw) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(raw || '').trim());
+  if (!m || +m[2] < 1 || +m[2] > 12 || +m[3] < 1 || +m[3] > 31) return '';
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  if (Number.isNaN(d.getTime()) || d.getUTCMonth() !== +m[2] - 1) return '';
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
 function parseDemoStores(raw) {
   if (!raw) return [];
   let list;
@@ -1995,6 +2004,17 @@ DP : 0
       ) ?? loaderVariant;
     })();
 
+
+    // ── Pre-order (metafields custom.preorder + custom.preorder_eta) ──
+    // Stock is the batch quota: preorder flag + in stock = "Pre-Order Sekarang"; flag + sold out = quota full.
+    const preorderOn = product?.metafields?.[17]?.value === 'true' && product?.metafields?.[12]?.value !== 'true';
+    const preorderEtaLabel = formatPreorderEta(product?.metafields?.[18]?.value);
+    const isPreorder = preorderOn && !!selectedVariant?.availableForSale;
+    const preorderQuotaFull = preorderOn && !selectedVariant?.availableForSale;
+    const preorderEtaText = preorderEtaLabel ? `Estimasi kirim ${preorderEtaLabel}` : 'Estimasi kirim menyusul';
+    // shown on the cart line, checkout and the order in Admin (key without "_" = customer-visible)
+    const preorderLineAttrs = isPreorder ? [{ key: 'Pre-Order', value: preorderEtaText }] : [];
+
     // Variant-level discounts only apply to the covered variant(s)
     const flashForVariant = autoDiscount && (!autoDiscount.variantIds || autoDiscount.variantIds.includes(selectedVariant?.id))
       ? autoDiscount
@@ -2409,7 +2429,7 @@ DP : 0
               {/* STOCK + GARANSI + RETUR — Blibli-style trust chips: colored seal icon + muted
                   label, separated by subtle dots. Position 6 mobile, 3 desktop. */}
               {(() => {
-                const showStock = !product?.metafields[12]?.value && selectedVariant?.availableForSale;
+                const showStock = !product?.metafields[12]?.value && selectedVariant?.availableForSale && !isPreorder;
                 const demoStores = parseDemoStores(product?.metafields[16]?.value);
                 const hasDemo = demoStores.length > 0;
                 // Owner rule (2026-09-16): when the Unit Demo chip shows, Garansi + 14 Hari are hidden so
@@ -2421,9 +2441,17 @@ DP : 0
                   : '';
                 const Dot = () => <span className="text-gray-300 select-none">·</span>;
                 const hasCompareAt = (Number(parseFloat(selectedVariant?.compareAtPrice?.amount)) || 0) > (Number(parseFloat(selectedVariant?.price?.amount)) || 0);
-                const showAlertButton = !selectedVariant?.availableForSale || (!hasCompareAt && !flashForVariant);
+                const showAlertButton = (!selectedVariant?.availableForSale || (!hasCompareAt && !flashForVariant)) && !isPreorder;
                 return (
                   <div className="flex items-center gap-x-2 order-6 md:order-5 text-xs border-t border-gray-100 pt-2 overflow-x-auto whitespace-nowrap hide-scroll-bar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {(isPreorder || preorderQuotaFull) && (
+                      /* Pre-order chip replaces "Stock Ready": charcoal tag + estimasi (quota full → "Kabari kalau ready" follows) */
+                      <span className="inline-flex items-center gap-1.5 text-gray-700 flex-shrink-0">
+                        <span className="rounded bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 tracking-wide leading-none">PRE-ORDER</span>
+                        {preorderQuotaFull ? 'Kuota batch ini sudah habis' : preorderEtaText}
+                      </span>
+                    )}
+                    {(isPreorder || preorderQuotaFull) && showGaransi && <Dot />}
                     {showStock && (
                       <span className="inline-flex items-center gap-1 text-gray-700 flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-red-600 flex-shrink-0">
@@ -2474,7 +2502,7 @@ DP : 0
                         "Kabari kalau ada promo" (price-drop alert) only for in-stock products at NORMAL price — hidden when
                         there is a compare-at (harga coret) or an active flash-sale discount, so it never reads
                         as "tunggu, mungkin turun lagi" on a product we already discounted. */}
-                    {product?.metafields[12]?.value != "true" && showAlertButton && (showStock || showGaransi || hasDemo) && <Dot />}
+                    {product?.metafields[12]?.value != "true" && showAlertButton && (showStock || showGaransi || hasDemo || preorderQuotaFull) && <Dot />}
                     {product?.metafields[12]?.value != "true" && showAlertButton && (
                       <StockAlertButton
                         handle={product.handle}
@@ -2533,7 +2561,7 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} unitDemo={parseDemoStores(product?.metafields[16]?.value)} guides={guideList} />
+              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} unitDemo={parseDemoStores(product?.metafields[16]?.value)} guides={guideList} preorder={preorderOn ? { on: isPreorder, quotaFull: preorderQuotaFull, eta: preorderEtaLabel } : null} />
 
               {/* Bonus Gratis — mobile/tablet only (lg+ shows it in the sticky checkout card).
                   Placed right under Tanya Grisela (owner request 2026-09-16). */}
@@ -2643,7 +2671,9 @@ DP : 0
               {/* Buttons */}
               <div className="flex flex-col gap-2.5">
                 <a
-                  href={selectedVariant?.availableForSale
+                  href={isPreorder
+                    ? `https://wa.me/6282111311131?text=${encodeURIComponent(`Hi Admin Galaxy.co.id, saya mau pre-order produk "${product.title}" (${preorderEtaText}). Link Produk: ${canonicalUrl}`)}`
+                    : selectedVariant?.availableForSale
                     ? `https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy.co.id%20Saya%20mau%20minta%20harga%20best%20price%20untuk%20produk%20%22${encodeURIComponent(product.title)}%22%20.%20Link%20Produk%3A%20%22${encodeURIComponent(canonicalUrl)}`
                     : `https://wa.me/6282111311131?text=Hi%20Admin%20Galaxy%2C%20saya%20ingin%20menanyakan%20ketersediaan%20stok%20untuk%20produk%20%22${encodeURIComponent(product.title)}%22.%20Apakah%20masih%20tersedia%20atau%20kapan%20akan%20restock%3F%20Terima%20kasih%20%F0%9F%99%8F%20Link%20Produk%3A%20${encodeURIComponent(canonicalUrl)}`
                   }
@@ -2652,13 +2682,13 @@ DP : 0
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
                 >
                   <FaWhatsapp className="text-base" />
-                  {selectedVariant?.availableForSale ? 'Order via WhatsApp' : 'Tanya Ketersediaan'}
+                  {isPreorder ? 'Pre-Order via WhatsApp' : selectedVariant?.availableForSale ? 'Order via WhatsApp' : 'Tanya Ketersediaan'}
                 </a>
 
                 {selectedVariant?.availableForSale && (
                   <CartForm
                     route="/cart"
-                    inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
+                    inputs={{ lines: [{ merchandiseId: selectedVariant.id, attributes: preorderLineAttrs }] }}
                     action={CartForm.ACTIONS.LinesAdd}
                   >
                     {(fetcher) => (
@@ -2671,11 +2701,21 @@ DP : 0
                           className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors shadow-sm"
                         >
                           <FaBagShopping className="text-base" />
-                          Beli Sekarang
+                          {isPreorder ? 'Pre-Order Sekarang' : 'Beli Sekarang'}
                         </button>
                       </>
                     )}
                   </CartForm>
+                )}
+
+                {/* Pre-order terms — one quiet note under the buttons; charcoal tag is the only accent */}
+                {(isPreorder || preorderQuotaFull) && (
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-[13px] md:text-sm text-gray-700 leading-relaxed">
+                    <span className="inline-block align-middle rounded bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 tracking-wide leading-none mr-1.5">PRE-ORDER</span>
+                    {preorderQuotaFull
+                      ? <>Kuota batch ini sudah habis. Tekan <span className="font-semibold text-gray-900">Kabari kalau ready</span> supaya dapat kabar batch berikutnya.</>
+                      : <>Bayar sekarang, barang dikirim sesuai urutan pembayaran. <span className="font-semibold text-gray-900">{preorderEtaText}.</span> Kuota batch terbatas, order belum dibayar tidak mengunci slot.</>}
+                  </div>
                 )}
 
                 <button
@@ -3029,14 +3069,14 @@ DP : 0
             >
               <button className='inline-flex items-center gap-2 h-11 px-4 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-semibold transition-colors whitespace-nowrap'>
                 <FaWhatsapp className='text-base text-emerald-600' />
-                <span className='hidden lg:inline'>Order via WhatsApp</span>
+                <span className='hidden lg:inline'>{isPreorder ? 'Pre-Order via WhatsApp' : 'Order via WhatsApp'}</span>
                 <span className='lg:hidden'>WhatsApp</span>
               </button>
             </a>
 
             <CartForm
               route="/cart"
-              inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
+              inputs={{ lines: [{ merchandiseId: selectedVariant.id, attributes: preorderLineAttrs }] }}
               action={CartForm.ACTIONS.LinesAdd}
             >
               {(fetcher) => (
@@ -3049,7 +3089,7 @@ DP : 0
                     className='inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-colors whitespace-nowrap'
                   >
                     <FaBagShopping className='text-base' />
-                    {selectedVariant?.availableForSale ? 'Beli Sekarang' : 'Sold Out'}
+                    {isPreorder ? 'Pre-Order Sekarang' : selectedVariant?.availableForSale ? 'Beli Sekarang' : 'Sold Out'}
                   </button>
                 </>
               )}
@@ -3170,7 +3210,7 @@ DP : 0
           <div className='flex-1'>
             <CartForm
               route="/cart"
-              inputs={{ lines: [{ merchandiseId: selectedVariant.id }] }}
+              inputs={{ lines: [{ merchandiseId: selectedVariant.id, attributes: preorderLineAttrs }] }}
               action={CartForm.ACTIONS.LinesAdd}
             >
               {(fetcher) => (
@@ -3183,7 +3223,7 @@ DP : 0
                     className='w-full h-11 flex items-center justify-center gap-1.5 rounded-xl bg-gray-900 text-white text-sm font-semibold'
                   >
                     <FaBagShopping className='text-base' />
-                    {selectedVariant?.availableForSale ? 'Beli' : 'Sold Out'}
+                    {isPreorder ? 'Pre-Order' : selectedVariant?.availableForSale ? 'Beli' : 'Sold Out'}
                   </button>
                 </>
               )}
@@ -3410,6 +3450,9 @@ function TombolWaDiscontinue({product}){
         {namespace:"custom" key:"youtube"}
         # index 16 — cabang yang punya unit demo (list of text, e.g. ["Tangerang","Depok"]); chip on the trust row
         {namespace:"custom" key:"unit_demo"}
+        # index 17/18 — pre-order: boolean switch (custom.pre_order) + estimasi kirim (custom.pre_order_estimasi_kirim, date). Stock = kuota batch.
+        {namespace:"custom" key:"pre_order"}
+        {namespace:"custom" key:"pre_order_estimasi_kirim"}
       ]){
         key
         value
@@ -3858,7 +3901,8 @@ export const meta = ({data}) => {
           "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ID" }
         }
       };
-      const avail = (v) => (v?.availableForSale ? "https://schema.org/InStock" : "https://schema.org/OutOfStock");
+      const preorderLd = data?.product?.metafields?.[17]?.value === 'true' && data?.product?.metafields?.[12]?.value !== 'true';
+      const avail = (v) => (v?.availableForSale ? (preorderLd ? "https://schema.org/PreOrder" : "https://schema.org/InStock") : "https://schema.org/OutOfStock");
       const priceOf = (v) => (v?.price?.amount ? parseInt(v.price.amount, 10).toString() : undefined);
       const variants = (data?.product?.variants?.nodes ?? []).filter((v) => v?.price?.amount);
       if (variants.length > 1) {

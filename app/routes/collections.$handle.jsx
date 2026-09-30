@@ -512,6 +512,7 @@ function ProductItem({product, loading, sold, review, festive = false}) {
     parseFloat(product.priceRange.minVariantPrice.amount);
   const isDiscontinued = product?.metafields?.find((m) => m?.key === 'produk_discontinue')?.value === 'true';
   const isOutOfStock = !product.availableForSale && !isDiscontinued;
+  const isPreorder = product.availableForSale && !isDiscontinued && product?.metafields?.find((m) => m?.key === 'pre_order')?.value === 'true';
   const hasFreeItem = (product.metafields?.find((m) => m?.key === 'free')?.value?.length ?? 0) > 0;
 
   const harga = parseFloat(product.priceRange.minVariantPrice.amount);
@@ -577,6 +578,11 @@ function ProductItem({product, loading, sold, review, festive = false}) {
         {isDiscontinued && (
           <div className="absolute top-2 left-2 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             Discontinue
+          </div>
+        )}
+        {isPreorder && (
+          <div className="absolute bottom-2 right-2 z-10 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md tracking-wide">
+            PRE-ORDER
           </div>
         )}
         {isOutOfStock && (
@@ -717,6 +723,7 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       {namespace:"custom" key:"lazada"}
       {namespace:"custom" key:"produk_discontinue"}
       {namespace:"custom" key:"produk_serupa"}
+      {namespace:"custom" key:"pre_order"}
     ]){
       key
       value

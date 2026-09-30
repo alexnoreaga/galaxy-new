@@ -156,6 +156,7 @@ function SearchResultsProductsGrid({products, soldCounts = {}, reviewSummaries =
                 <div className='flex flex-col gap-3 border border-gray-200 rounded-lg p-3 hover:shadow-lg hover:border-blue-300 transition-all duration-200 bg-white h-full'>
                   <div className={`relative w-full h-40 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden ${product.availableForSale === false ? 'opacity-75' : ''}`}>
                     {product.availableForSale === false && <SoldOutBadge />}
+                    {product.availableForSale !== false && product?.preorder?.value === 'true' && <PreorderBadge />}
                     {product?.variants?.nodes[0]?.image?.url &&(
                         <Image
                           alt={product.title ?? ''}
@@ -698,6 +699,15 @@ function pluralToSingularSearchType(type) {
   }
 
   return type.map((t) => plural[t]).join(',');
+}
+
+// Pre-order products (metafield custom.preorder) — same corner, charcoal like the product page tag.
+function PreorderBadge() {
+  return (
+    <span className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded bg-gray-900 text-white text-[10px] font-bold leading-none tracking-wide pointer-events-none">
+      PRE-ORDER
+    </span>
+  );
 }
 
 // Small corner label for sold-out products in search results (they used to be hidden entirely).

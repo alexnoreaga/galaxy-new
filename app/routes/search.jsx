@@ -377,6 +377,7 @@ const SEARCH_QUERY = `#graphql
     id
     publishedAt
     availableForSale
+    preorder: metafield(namespace: "custom", key: "pre_order") { value }
     title
     description
     trackingParameters
