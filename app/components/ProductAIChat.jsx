@@ -137,12 +137,14 @@ export function useCustomerPush(open, conversationId, staffMode) {
       if ('Notification' in window && 'PushManager' in window && Notification.permission === 'default' && !snoozed) setShowCard(true);
     } catch {}
   }, [staffMode, conversationId]);
-  // active heartbeat every 15 s while a human is in the chat and the tab is visible
+  // active heartbeat while a human is in the chat and the tab is visible: 15 s once staff joined
+  // (push suppression needs it fresh), 30 s in Grisela mode so the dashboard can show "Online"
+  // before staff decide to take over.
   useEffect(() => {
-    if (!open || !conversationId || !staffMode) return;
+    if (!open || !conversationId) return;
     const beat = () => { if (document.visibilityState === 'visible') chatSyncPost({ conversationId, active: true }); };
     beat();
-    const id = setInterval(beat, 15000);
+    const id = setInterval(beat, staffMode ? 15000 : 30000);
     document.addEventListener('visibilitychange', beat);
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', beat); };
   }, [open, conversationId, !!staffMode]); // eslint-disable-line react-hooks/exhaustive-deps
