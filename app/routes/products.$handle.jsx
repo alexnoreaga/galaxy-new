@@ -2561,7 +2561,10 @@ DP : 0
               
      
               {/* AI CHAT — question bubbles */}
-              <ProductAIChat product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} unitDemo={parseDemoStores(product?.metafields[16]?.value)} guides={guideList} preorder={preorderOn ? { on: isPreorder, quotaFull: preorderQuotaFull, eta: preorderEtaLabel } : null} />
+              {/* key=handle: client-side navigation between product pages re-renders this same route
+                  component, so without a key the chat kept the OLD thread + conversationId while the
+                  product context switched (2026-10-01: Dwarf 3 chat continued about Insta360 GO 3S) */}
+              <ProductAIChat key={product.handle} product={product} selectedVariant={selectedVariant} autoDiscount={flashForVariant} hasHargaModal={variantPunyaModal} inCuciGudang={inCuciGudang} unitDemo={parseDemoStores(product?.metafields[16]?.value)} guides={guideList} preorder={preorderOn ? { on: isPreorder, quotaFull: preorderQuotaFull, eta: preorderEtaLabel } : null} />
 
               {/* Bonus Gratis — mobile/tablet only (lg+ shows it in the sticky checkout card).
                   Placed right under Tanya Grisela (owner request 2026-09-16). */}
