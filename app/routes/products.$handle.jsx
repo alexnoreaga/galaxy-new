@@ -308,7 +308,9 @@ function PwpSection({ pwp }) {
   const list = [...rows.values()].sort((a, b) => Number(a.soldOut) - Number(b.soldOut));
   if (!list.length) return null;
 
-  const img = (u) => (u ? (u.includes('?') ? `${u}&width=112` : `${u}?width=112`) : null);
+  // Card image box is ~128 CSS px; serve 2x (256) by default and 3x via srcSet so it stays crisp
+  // on high-DPR phones/laptops (width=112 made every add-on photo look blurry).
+  const img = (u, w = 256) => (u ? (u.includes('?') ? `${u}&width=${w}` : `${u}?width=${w}`) : null);
 
   return (
     <div className="border border-gray-200 rounded-xl mt-2 bg-white shadow-sm overflow-hidden">
@@ -347,6 +349,7 @@ function PwpSection({ pwp }) {
               {row.prod.featuredImage?.url ? (
                 <img
                   src={img(row.prod.featuredImage.url)}
+                  srcSet={`${img(row.prod.featuredImage.url, 256)} 2x, ${img(row.prod.featuredImage.url, 384)} 3x`}
                   alt={row.prod.featuredImage.altText || row.prod.title}
                   loading="lazy"
                   width={128}
