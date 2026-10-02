@@ -152,6 +152,7 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
           products: i === parts.length - 1 ? data.products ?? null : null,
           vouchers: i === parts.length - 1 ? data.vouchers ?? null : null,
           marketplaces: i === parts.length - 1 ? data.marketplaces ?? null : null,
+          browse: i === parts.length - 1 ? data.browse ?? null : null,
         })),
       ]);
     } catch {

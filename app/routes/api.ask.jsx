@@ -1028,7 +1028,11 @@ Output:`;
       const brandFilter = (items) =>
         brand ? items.filter(p => p.title.toLowerCase().includes(brand.toLowerCase())) : items;
 
-      const tryCollections = async (priceMin, priceMax) => {
+      // Brand: ask Shopify for the brand's best sellers directly (productVendor filter — Vendor is
+      // enabled in Search & Discovery) instead of trimming the generic top-30 by title, which left
+      // 3-4 candidates for the less dominant brands. If the vendor name doesn't match Shopify's
+      // (e.g. "Olympus" vs "OM SYSTEM"), the second pass falls back to the old title filter.
+      const tryCollections = async (priceMin, priceMax, useVendor = true) => {
         // Fetch every candidate collection, then round-robin interleave so a multi-category
         // request ("action cam ATAU pocket") shows variety — not just the first collection.
         const perCollection = await Promise.all(
@@ -1036,10 +1040,11 @@ Output:`;
             const data = await context.storefront.query(COLLECTION_RECOMMEND_QUERY, {
               variables: {
                 handle,
-                filters: [{ available: true }, { price: { min: priceMin, max: priceMax } }],
+                filters: [{ available: true }, { price: { min: priceMin, max: priceMax } }, ...(brand && useVendor ? [{ productVendor: brand }] : [])],
               },
             });
-            return brandFilter(data?.collection?.products?.nodes ?? []);
+            const nodes = data?.collection?.products?.nodes ?? [];
+            return brand && useVendor ? nodes : brandFilter(nodes);
           })
         );
         const merged = [];
@@ -1050,15 +1055,34 @@ Output:`;
         return [...new Map(merged.map(p => [p.handle, p])).values()];
       };
 
-      // 1st pass: exact budget across all candidate collections
+      // 1st pass: exact budget across all candidate collections (brand via vendor filter, then by title)
       let items = await tryCollections(min, max);
+      let vendorMatched = brand ? items.length > 0 : false;
+      if (items.length === 0 && brand) items = await tryCollections(min, max, false);
       let stretched = false;
 
       // 2nd pass: stretch the budget (-20% / +50%) — better to offer nearby options than nothing
       if (items.length === 0 && max < 999999999) {
         items = await tryCollections(Math.floor(min * 0.8), Math.ceil(max * 1.5));
+        if (items.length > 0 && brand) vendorMatched = true;
+        if (items.length === 0 && brand) items = await tryCollections(Math.floor(min * 0.8), Math.ceil(max * 1.5), false);
         stretched = items.length > 0;
       }
+
+      // "Lihat semua" deep link into the filtered collection page (same filters the customer just
+      // described) — rendered as a link card under the recommendation, so they can keep browsing.
+      const browse = (() => {
+        const sp = new URLSearchParams();
+        if (brand && vendorMatched) sp.set('vendor', brand);
+        sp.set('ready', '1');
+        const lo = stretched ? Math.floor(min * 0.8) : min, hi = stretched ? Math.ceil(max * 1.5) : max;
+        if (lo > 0) sp.set('hmin', String(lo));
+        if (hi < 999999999) sp.set('hmax', String(hi));
+        const jt = (n) => `${(n / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 })} jt`;
+        const budget = lo > 0 && hi < 999999999 ? `Rp${jt(lo)}–${jt(hi)}` : hi < 999999999 ? `di bawah Rp${jt(hi)}` : lo > 0 ? `di atas Rp${jt(lo)}` : '';
+        const label = `Lihat semua ${brand && vendorMatched ? `${brand} ` : ''}ready stock${budget ? ` ${budget}` : ''}`;
+        return { url: `/collections/${handles[0]}?${sp.toString()}`, label };
+      })();
 
       // 3rd pass: brand requested but collections had no match → brand-wide search
       if (items.length === 0 && brand) {
@@ -1100,9 +1124,11 @@ ${RECOMMEND_PICK_INSTRUCTIONS}
         contextText: `KANDIDAT REKOMENDASI (${products.length} produk ready stock, urut terlaris) sesuai kategori & budget customer ${budgetText}:
 ${candidateListText(products)}
 ${RECOMMEND_PICK_INSTRUCTIONS}
-- Sebut singkat kenapa tiap pilihanmu cocok untuk kebutuhan customer, lalu tanya kebutuhan pemakaiannya kalau belum jelas untuk mempersempit pilihan`,
+- Sebut singkat kenapa tiap pilihanmu cocok untuk kebutuhan customer, lalu tanya kebutuhan pemakaiannya kalau belum jelas untuk mempersempit pilihan
+- Di bawah jawabanmu otomatis muncul tautan "${browse.label}" ke halaman koleksi yang sudah terfilter — kamu boleh menyebut "bisa lihat semuanya lewat tautan di bawah ya ka", JANGAN menulis URL-nya`,
         products,
         pick: true,
+        browse,
       };
     }
 
@@ -1545,6 +1571,8 @@ export async function action({ request, context }) {
   // context above so Grisela can explain the status when a customer asks for one by name.
   // isiBox is prompt-only context; the client cards don't need it (keeps the response small)
   const visibleProducts = storeSearch.products.filter((p) => !p.discontinued).map(({ isiBox, ...rest }) => rest);
+  // "Lihat semua" link card (recommendation branch only) — shown whenever product cards are shown
+  const browseLink = storeSearch.browse && visibleProducts.length ? storeSearch.browse : null;
   const foundProducts = visibleProducts.length > 0 ? visibleProducts : undefined;
 
   const systemContext = `${storeKnowledge}
@@ -1885,6 +1913,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     if (responseVouchers) attach.vouchers = responseVouchers;
     if (marketplaceLinks) attach.marketplaces = marketplaceLinks;
     if (negoCode) attach.negoCode = negoCode;
+    if (browseLink) attach.browse = browseLink;
     const attachStr = Object.keys(attach).length ? JSON.stringify(attach) : '';
 
     const aiParts = answerParts.map((p, i) => {
@@ -1961,7 +1990,7 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         preview: question,
       });
       await memPromise;
-      return json({ answer, conversationId: newConvId, products: responseProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
+      return json({ answer, conversationId: newConvId, products: responseProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode, browse: browseLink });
     }
   }
 
@@ -1974,5 +2003,5 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
     }).catch(() => {});
   }
 
-  return json({ answer, products: responseProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode });
+  return json({ answer, products: responseProducts, vouchers: responseVouchers, marketplaces: marketplaceLinks, negoCode, browse: browseLink });
 }

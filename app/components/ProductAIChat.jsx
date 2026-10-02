@@ -111,7 +111,7 @@ export function StaffAvatar({ name = '', size = 'w-6 h-6' }) {
 // Server message (api.chat-sync) → local bubble shape (cards come from the stored attachments)
 export function serverMsgToLocal(m) {
   const a = m.attachments || {};
-  return { role: m.role, text: m.text, name: m.name || '', products: a.products ?? null, vouchers: a.vouchers ?? null, marketplaces: a.marketplaces ?? null, negoCode: a.negoCode ?? null };
+  return { role: m.role, text: m.text, name: m.name || '', products: a.products ?? null, vouchers: a.vouchers ?? null, marketplaces: a.marketplaces ?? null, negoCode: a.negoCode ?? null, browse: a.browse ?? null };
 }
 
 // ── Customer phone alerts for STAFF replies (never for Grisela) ──
@@ -449,7 +449,28 @@ export function ChatMessage({ msg, waMessage }) {
           {msg.marketplaces.map(l => <MarketplaceLinkRow key={l.name} link={l} />)}
         </div>
       )}
+      {msg.browse?.url && (
+        <div className="mt-1.5 w-full max-w-[95%] pl-[30px]">
+          <BrowseLinkRow link={msg.browse} />
+        </div>
+      )}
     </div>
+  );
+}
+
+// "Lihat semua …" → the collection page with the customer's filters already applied
+function BrowseLinkRow({ link }) {
+  return (
+    <a
+      href={link.url}
+      onClick={() => trackEvent('browse_clicked', '', link.label)}
+      className="flex items-center justify-between gap-3 bg-white border border-gray-200 hover:border-gray-900 rounded-xl px-3 py-2.5 transition-colors no-underline"
+    >
+      <span className="text-xs font-semibold text-gray-900 leading-snug">{link.label}</span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400 flex-shrink-0">
+        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+      </svg>
+    </a>
   );
 }
 
@@ -745,6 +766,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
           vouchers: idx === parts.length - 1 ? data.vouchers ?? null : null,
           marketplaces: idx === parts.length - 1 ? data.marketplaces ?? null : null,
           negoCode: idx === parts.length - 1 ? data.negoCode ?? null : null,
+          browse: idx === parts.length - 1 ? data.browse ?? null : null,
         })),
       ]);
     } catch {

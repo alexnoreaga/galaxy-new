@@ -60,7 +60,7 @@ export const meta = ({data}) => {
     {name: 'description', content: description.substring(0, 160)},
     {name: 'keywords', content: keywords},
     {name: 'author', content: 'Galaxy Camera'},
-    {name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1'},
+    {name: 'robots', content: data?.hasFilters ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1'},
     {tagName: 'link', rel: 'canonical', href: canonicalUrl},
     {property: 'og:type', content: 'website'},
     {property: 'og:title', content: title},
@@ -118,9 +118,65 @@ export const meta = ({data}) => {
   ];
 };
 
+// ── Collection filters (Storefront API productFilters) ───────────────────────────────────────
+// Shopify computes the facets (`products.filters`) and we keep the selection in readable URL params
+// so filtered views can be shared and the back button works:
+//   ready=1                → {available:true}
+//   hmin=5000000&hmax=…    → {price:{min,max}}
+//   vendor=Sony,Canon      → {productVendor} ×n   (OR within a group, AND across groups)
+//   tipe=Lensa             → {productType}
+//   tag=x                  → {tag}
+//   m.custom.mount=Sony+E  → {productMetafield:{namespace,key,value}}  (needs Search & Discovery)
+//   o.Warna=Hitam          → {variantOption:{name,value}}
+// Which groups exist is decided in Shopify Admin → Search & Discovery → Filters.
+const FILTER_PARAM_KEYS = ['ready', 'hmin', 'hmax', 'vendor', 'tipe', 'tag'];
+const isFilterParam = (k) => FILTER_PARAM_KEYS.includes(k) || k.startsWith('m.') || k.startsWith('o.');
+const splitVals = (v) => String(v ?? '').split(',').map((x) => x.trim()).filter(Boolean).slice(0, 20);
+
+export function filtersFromSearchParams(sp) {
+  const out = [];
+  if (sp.get('ready') === '1') out.push({available: true});
+  const min = parseFloat(sp.get('hmin')), max = parseFloat(sp.get('hmax'));
+  if (Number.isFinite(min) || Number.isFinite(max)) {
+    const price = {};
+    if (Number.isFinite(min) && min > 0) price.min = min;
+    if (Number.isFinite(max) && max > 0) price.max = max;
+    if (Object.keys(price).length) out.push({price});
+  }
+  for (const v of splitVals(sp.get('vendor'))) out.push({productVendor: v});
+  for (const v of splitVals(sp.get('tipe'))) out.push({productType: v});
+  for (const v of splitVals(sp.get('tag'))) out.push({tag: v});
+  for (const [k, raw] of sp.entries()) {
+    if (k.startsWith('m.')) {
+      const [, namespace, ...rest] = k.split('.');
+      const key = rest.join('.');
+      if (namespace && key) for (const v of splitVals(raw)) out.push({productMetafield: {namespace, key, value: v}});
+    } else if (k.startsWith('o.')) {
+      const name = k.slice(2);
+      if (name) for (const v of splitVals(raw)) out.push({variantOption: {name, value: v}});
+    }
+  }
+  return out.slice(0, 40);
+}
+
+// Shopify filter id → our URL param key (metafield/option ids carry their own key)
+function paramKeyForFilter(filterId) {
+  if (filterId === 'filter.v.availability') return 'ready';
+  if (filterId === 'filter.v.price') return 'harga';
+  if (filterId === 'filter.p.vendor') return 'vendor';
+  if (filterId === 'filter.p.product_type') return 'tipe';
+  if (filterId === 'filter.p.tag') return 'tag';
+  if (filterId.startsWith('filter.p.m.')) return 'm.' + filterId.slice('filter.p.m.'.length);
+  if (filterId.startsWith('filter.v.option.')) return 'o.' + filterId.slice('filter.v.option.'.length);
+  return null;
+}
+// Indonesian labels for Shopify's built-in groups; Search & Discovery labels are used as-is otherwise
+const GROUP_LABEL = {'filter.v.availability': 'Ketersediaan', 'filter.v.price': 'Harga', 'filter.p.vendor': 'Brand', 'filter.p.product_type': 'Tipe produk', 'filter.p.tag': 'Tag'};
+
 export async function loader({request, params, context}) {
   const {handle} = params;
   const url = new URL(request.url);
+  const productFilters = filtersFromSearchParams(url.searchParams);
   const reverse = url.searchParams.get('reverse') === 'true' ? true : false;
   const sortKey = url.searchParams.get('sortkey')?.toUpperCase();
   const {storefront} = context;
@@ -132,7 +188,7 @@ export async function loader({request, params, context}) {
   }
 
   const {collection} = await storefront.query(COLLECTION_QUERY, {
-    variables: {handle, reverse, sortkey: sortKey, ...paginationVariables},
+    variables: {handle, reverse, sortkey: sortKey, filters: productFilters, ...paginationVariables},
   });
 
   if (!collection) {
@@ -179,9 +235,184 @@ export async function loader({request, params, context}) {
     collection,
     soldCounts,
     reviewSummaries,
-    // Clean canonical (no ?sort/?cursor) on the www host the site actually serves.
+    hasFilters: productFilters.length > 0,
+    // Clean canonical (no ?sort/?cursor/?filter) on the www host the site actually serves.
     canonicalUrl: `https://www.galaxy.co.id/collections/${collection.handle}`,
   });
+}
+
+// ── Filter UI ────────────────────────────────────────────────────────────────────────────────
+const rupiahShort = (n) => {
+  const v = Number(n) || 0;
+  if (v >= 1e6) return `${(v / 1e6).toLocaleString('id-ID', {maximumFractionDigits: 1})} jt`;
+  if (v >= 1e3) return `${Math.round(v / 1e3)} rb`;
+  return String(v);
+};
+
+function useCollectionFilters() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const sp = new URLSearchParams(location.search);
+  const go = (next) => {
+    next.delete('cursor'); next.delete('direction'); // a new filter set starts at page 1
+    const qs = next.toString();
+    navigate(`${location.pathname}${qs ? `?${qs}` : ''}`, {preventScrollReset: true});
+  };
+  const has = (key, value) => (key === 'ready' ? sp.get('ready') === '1' : splitVals(sp.get(key)).includes(value));
+  const toggle = (key, value) => {
+    const next = new URLSearchParams(sp);
+    if (key === 'ready') { if (next.get('ready') === '1') next.delete('ready'); else next.set('ready', '1'); }
+    else {
+      const cur = splitVals(next.get(key));
+      const vals = cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value];
+      if (vals.length) next.set(key, vals.join(',')); else next.delete(key);
+    }
+    go(next);
+  };
+  const setPrice = (min, max) => {
+    const next = new URLSearchParams(sp);
+    if (min > 0) next.set('hmin', String(min)); else next.delete('hmin');
+    if (max > 0) next.set('hmax', String(max)); else next.delete('hmax');
+    go(next);
+  };
+  const clearAll = () => {
+    const next = new URLSearchParams(sp);
+    for (const k of [...next.keys()]) if (isFilterParam(k)) next.delete(k);
+    go(next);
+  };
+  const remove = (key, value) => (key === 'harga' ? setPrice(0, 0) : toggle(key, value));
+  const active = [];
+  for (const [k, raw] of sp.entries()) {
+    if (k === 'ready' && raw === '1') active.push({key: 'ready', value: '1', label: 'Ready stock'});
+    else if (k === 'vendor' || k === 'tipe' || k === 'tag' || k.startsWith('m.') || k.startsWith('o.')) for (const v of splitVals(raw)) active.push({key: k, value: v, label: v});
+  }
+  const hmin = parseFloat(sp.get('hmin')) || 0, hmax = parseFloat(sp.get('hmax')) || 0;
+  if (hmin || hmax) active.push({key: 'harga', value: '', label: hmin && hmax ? `Rp${rupiahShort(hmin)} – ${rupiahShort(hmax)}` : hmin ? `≥ Rp${rupiahShort(hmin)}` : `≤ Rp${rupiahShort(hmax)}`});
+  return {has, toggle, setPrice, clearAll, remove, active, hmin, hmax};
+}
+
+function PriceFilter({filter, hmin, hmax, onApply}) {
+  const bounds = (() => { try { return JSON.parse(filter.values?.[0]?.input || '{}').price || {}; } catch { return {}; } })();
+  const [min, setMin] = useState(hmin ? String(hmin) : '');
+  const [max, setMax] = useState(hmax ? String(hmax) : '');
+  useEffect(() => { setMin(hmin ? String(hmin) : ''); setMax(hmax ? String(hmax) : ''); }, [hmin, hmax]);
+  const apply = (e) => { e.preventDefault(); onApply(parseInt(min, 10) || 0, parseInt(max, 10) || 0); };
+  const presets = [[0, 5000000, '< 5 jt'], [5000000, 10000000, '5–10 jt'], [10000000, 20000000, '10–20 jt'], [20000000, 0, '> 20 jt']];
+  const inp = 'w-full min-w-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900';
+  return (
+    <form onSubmit={apply} className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-1.5">
+        {presets.map(([a, b, l]) => {
+          const on = hmin === a && hmax === b;
+          return (
+            <button key={l} type="button" onClick={() => onApply(on ? 0 : a, on ? 0 : b)}
+              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${on ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'}`}>
+              {l}
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-1.5">
+        <input className={inp} inputMode="numeric" placeholder={`Min ${bounds.min != null ? rupiahShort(bounds.min) : ''}`} value={min} onChange={(e) => setMin(e.target.value.replace(/\D/g, ''))} aria-label="Harga minimum" />
+        <span className="text-gray-300">–</span>
+        <input className={inp} inputMode="numeric" placeholder={`Max ${bounds.max != null ? rupiahShort(bounds.max) : ''}`} value={max} onChange={(e) => setMax(e.target.value.replace(/\D/g, ''))} aria-label="Harga maksimum" />
+        <button type="submit" className="shrink-0 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">OK</button>
+      </div>
+    </form>
+  );
+}
+
+function ListFilter({filter, paramKey, has, onToggle}) {
+  const [all, setAll] = useState(false);
+  const values = (filter.values || []).filter((v) => v.count > 0 || has(paramKey, v.label));
+  const shown = all ? values : values.slice(0, 8);
+  return (
+    <div className="flex flex-col gap-1">
+      {shown.map((v) => {
+        const on = has(paramKey, v.label);
+        return (
+          <label key={v.id} className="flex items-center gap-2 cursor-pointer text-[13px] text-gray-700 hover:text-gray-900">
+            <input type="checkbox" checked={on} onChange={() => onToggle(paramKey, v.label)} className="h-4 w-4 rounded border-gray-300 accent-gray-900" />
+            <span className={`flex-1 min-w-0 truncate ${on ? 'font-semibold text-gray-900' : ''}`}>{v.label}</span>
+            <span className="text-[11px] text-gray-400 tabular-nums">{v.count}</span>
+          </label>
+        );
+      })}
+      {values.length > 8 && (
+        <button type="button" onClick={() => setAll((x) => !x)} className="self-start text-xs font-semibold text-gray-700 hover:text-gray-900 mt-0.5">
+          {all ? 'Lebih sedikit' : `Lihat semua (${values.length})`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// One panel, used in the desktop sidebar and the mobile bottom sheet
+function FilterPanel({filters, f}) {
+  const groups = (filters || []).map((flt) => ({flt, key: paramKeyForFilter(flt.id)})).filter(({flt, key}) => key && (flt.type === 'PRICE_RANGE' || flt.id === 'filter.v.availability' || (flt.values || []).filter((v) => v.count > 0).length > 1));
+  if (!groups.length) return <p className="text-[13px] text-gray-500">Belum ada filter untuk koleksi ini.</p>;
+  return (
+    <div className="flex flex-col divide-y divide-gray-100">
+      {groups.map(({flt, key}) => (
+        <section key={flt.id} className="py-3 first:pt-0 last:pb-0">
+          <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">{GROUP_LABEL[flt.id] || flt.label}</h3>
+          {flt.id === 'filter.v.availability' ? (
+            <label className="flex items-center gap-2 cursor-pointer text-[13px] text-gray-700">
+              <input type="checkbox" checked={f.has('ready')} onChange={() => f.toggle('ready')} className="h-4 w-4 rounded border-gray-300 accent-gray-900" />
+              <span className={f.has('ready') ? 'font-semibold text-gray-900' : ''}>Ready stock saja</span>
+              <span className="ml-auto text-[11px] text-gray-400 tabular-nums">{(flt.values || []).find((v) => v.label === 'In stock')?.count ?? ''}</span>
+            </label>
+          ) : flt.type === 'PRICE_RANGE' ? (
+            <PriceFilter filter={flt} hmin={f.hmin} hmax={f.hmax} onApply={f.setPrice} />
+          ) : (
+            <ListFilter filter={flt} paramKey={key} has={f.has} onToggle={f.toggle} />
+          )}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function ActiveFilterChips({f}) {
+  if (!f.active.length) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {f.active.map((a) => (
+        <button key={`${a.key}:${a.value}`} type="button" onClick={() => f.remove(a.key, a.value)}
+          className="inline-flex items-center gap-1 rounded-full bg-gray-100 pl-2.5 pr-1.5 py-1 text-xs font-medium text-gray-800 hover:bg-gray-200" aria-label={`Hapus filter ${a.label}`}>
+          {a.label}
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-gray-500"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
+        </button>
+      ))}
+      <button type="button" onClick={f.clearAll} className="text-xs font-semibold text-gray-600 hover:text-gray-900 underline-offset-2 hover:underline">Hapus semua</button>
+    </div>
+  );
+}
+
+function MobileFilterSheet({open, onClose, filters, f, count}) {
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+  if (!open) return null;
+  return (
+    <div className="lg:hidden fixed inset-0 z-[60]">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-x-0 bottom-0 max-h-[82vh] rounded-t-2xl bg-white shadow-2xl flex flex-col">
+        <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-100">
+          <span className="text-sm font-bold text-gray-900">Filter</span>
+          <button type="button" onClick={f.clearAll} className="text-xs font-semibold text-gray-500 hover:text-gray-900">Reset</button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3"><FilterPanel filters={filters} f={f} /></div>
+        <div className="px-4 py-3 border-t border-gray-100">
+          <button type="button" onClick={onClose} className="w-full h-11 rounded-xl bg-gray-900 text-white text-sm font-semibold">
+            Lihat {count}{count >= 8 ? '+' : ''} produk
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Collection description as a short intro ABOVE the product grid (it used to sit below every
@@ -265,9 +496,12 @@ function CuciGudangHero({ count, children }) {
 }
 
 export default function Collection() {
-  const {collection, soldCounts, reviewSummaries} = useLoaderData();
+  const {collection, soldCounts, reviewSummaries, hasFilters} = useLoaderData();
   const params = useParams();
   const isCuciGudang = params.handle === 'cuci-gudang';
+  const filters = collection.products.filters || [];
+  const f = useCollectionFilters();
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Infinite scroll replaces loader data with each page, but <Pagination> keeps ALL products on
   // screen — so sold/rating maps must be accumulated across pages or earlier cards lose theirs.
@@ -377,9 +611,37 @@ export default function Collection() {
         </div>
       )}
 
-      {/* Products */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Products — lg+: filter sidebar (Shopify productFilters) beside the grid; mobile: toolbar + bottom sheet */}
+      <div className="max-w-7xl mx-auto px-4 py-6 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
+        {/* <div>, not <aside>: app.css styles every <aside> as the fixed off-canvas cart drawer */}
+        <div className="hidden lg:block" role="complementary" aria-label="Filter produk">
+          <div className="sticky top-24">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold text-gray-900">Filter</h2>
+              {f.active.length > 0 && <button type="button" onClick={f.clearAll} className="text-xs font-semibold text-gray-500 hover:text-gray-900">Reset</button>}
+            </div>
+            <FilterPanel filters={filters} f={f} />
+          </div>
+        </div>
+        <div className="min-w-0">
         <CollectionIntro description={collection.description} html={collection.descriptionHtml} />
+        {/* Mobile toolbar: Filter button (+ count) and the active chips; chips also show on desktop */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => setSheetOpen(true)}
+            className="lg:hidden inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-[13px] font-semibold text-gray-800 hover:border-gray-900">
+            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-gray-600"><path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z" clipRule="evenodd" /></svg>
+            Filter
+            {f.active.length > 0 && <span className="ml-0.5 rounded-full bg-gray-900 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">{f.active.length}</span>}
+          </button>
+          <ActiveFilterChips f={f} />
+        </div>
+        {hasFilters && collection.products.nodes.length === 0 && (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-8 text-center">
+            <p className="text-sm text-gray-700">Tidak ada produk yang cocok dengan filter ini.</p>
+            <button type="button" onClick={f.clearAll} className="mt-3 rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">Hapus semua filter</button>
+          </div>
+        )}
+        <MobileFilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)} filters={filters} f={f} count={collection.products.nodes.length} />
         <Pagination connection={collection.products}>
           {({nodes, isLoading, PreviousLink, hasNextPage, nextPageUrl, state}) => (
             <>
@@ -416,6 +678,7 @@ export default function Collection() {
           collectionTitle={collection.title}
           products={collection.products.nodes}
         />
+        </div>
 
       </div>
     </div>
@@ -775,6 +1038,7 @@ const COLLECTION_QUERY = `#graphql
     $endCursor: String
     $reverse:Boolean=false
     $sortkey:ProductCollectionSortKeys
+    $filters:[ProductFilter!]
   ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
       id
@@ -792,8 +1056,15 @@ const COLLECTION_QUERY = `#graphql
         before: $startCursor,
         after: $endCursor,
         reverse:$reverse,
-        sortKey:$sortkey
+        sortKey:$sortkey,
+        filters:$filters
       ) {
+        filters {
+          id
+          label
+          type
+          values { id label count input }
+        }
         nodes {
           ...ProductItem
         }
