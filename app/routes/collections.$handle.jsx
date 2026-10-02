@@ -105,14 +105,17 @@ export const meta = ({data}) => {
       },
     },
     {
+      // ItemList (was "ItemCollection", which is not a schema.org type and was ignored)
       'script:ld+json': {
         '@context': 'https://schema.org',
-        '@type': 'ItemCollection',
+        '@type': 'ItemList',
         name: `Koleksi ${collectionTitle}`,
         description,
         url: canonicalUrl,
         numberOfItems: productCount,
-        isPartOf: {'@type': 'Organization', name: 'Galaxy Camera', url: 'https://galaxy.co.id'},
+        itemListElement: (data?.collection?.products?.nodes ?? []).slice(0, 24).map((p, i) => ({
+          '@type': 'ListItem', position: i + 1, name: p.title, url: `https://www.galaxy.co.id/products/${p.handle}`,
+        })),
       },
     },
   ];

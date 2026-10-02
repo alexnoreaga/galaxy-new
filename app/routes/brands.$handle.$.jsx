@@ -154,7 +154,7 @@ export const meta = ({data, location}) => {
 
     // Collection/Brand Schema (JSON-LD)
     {
-      'script:ld+json:collection': {
+      'script:ld+json': {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
         'name': `${brandName} - Galaxy Camera`,
@@ -178,7 +178,7 @@ export const meta = ({data, location}) => {
 
     // BreadcrumbList Schema - Enhanced with category
     {
-      'script:ld+json:breadcrumb': {
+      'script:ld+json': {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         'itemListElement': selectedCategory ? [
@@ -231,13 +231,16 @@ export const meta = ({data, location}) => {
 
     // Product Collection Schema - Enhanced with category
     {
-      'script:ld+json:items': {
+      'script:ld+json': {
         '@context': 'https://schema.org',
-        '@type': 'ItemCollection',
+        '@type': 'ItemList',
         'name': selectedCategory ? `Koleksi ${brandName} ${selectedCategory}` : `Koleksi ${brandName}`,
         'description': description,
         'url': canonicalUrl,
         'numberOfItems': productCount,
+        'itemListElement': (data?.data?.products?.nodes ?? []).slice(0, 24).map((p, i) => ({
+          '@type': 'ListItem', 'position': i + 1, 'name': p.title, 'url': `https://www.galaxy.co.id/products/${p.handle}`,
+        })),
         'isPartOf': {
           '@type': 'Organization',
           'name': 'Galaxy Camera',
@@ -365,8 +368,11 @@ export async function loader({params, context, request}) {
     return redirect('/brands');
   }
 
-  // Build query string with filters
-  let query = `vendor:${handle}`;
+  // Build query string with filters. Handles are "om-system" style, so match the dashed form OR the
+  // spaced form exactly ("OM SYSTEM") — `vendor:om-system` alone finds nothing for multi-word brands.
+  const vendorSpaced = decodeURIComponent(handle).replace(/-/g, ' ').replace(/"/g, '');
+  const vendorQuery = `(vendor:"${decodeURIComponent(handle).replace(/"/g, '')}" OR vendor:"${vendorSpaced}")`;
+  let query = vendorQuery;
   if (minPrice || maxPrice) {
     const min = minPrice || '0';
     const max = maxPrice || '999999999';
@@ -423,14 +429,30 @@ export async function loader({params, context, request}) {
     filteredProducts = displayedProducts;
   }
 
-  // Get all product types for category filter
-  const allProductsData = await context.storefront.query(ALL_PRODUCTS_FOR_CATEGORIES, {
-    variables: {
-      query: `vendor:${handle}`,
-    },
-  });
+  // Get all product types for category filter — walk every page of the brand (Sony has > 250)
+  const typeNodes = [];
+  let after = null;
+  for (let page = 0; page < 6; page++) {
+    const allProductsData = await context.storefront.query(ALL_PRODUCTS_FOR_CATEGORIES, {
+      variables: { query: vendorQuery, after },
+    });
+    typeNodes.push(...(allProductsData?.products?.nodes ?? []));
+    if (!allProductsData?.products?.pageInfo?.hasNextPage) break;
+    after = allProductsData.products.pageInfo.endCursor;
+  }
+  if (!typeNodes.length) {
+    throw new Response(`Brand ${handle} tidak ditemukan`, { status: 404 });
+  }
+  const categories = [...new Set(typeNodes.map(p => p.productType).filter(Boolean))].sort();
 
-  const categories = [...new Set(allProductsData.products.nodes.map(p => p.productType).filter(Boolean))].sort();
+  // A category slug that matches nothing used to render an EMPTY but indexable page
+  // (/brands/takara/tripod while the real slug is tripod-monopod). Redirect to the closest real
+  // category, or 404 — never serve a thin page to Google.
+  if (categoryFromPath && !categories.some(t => slugType(t) === categoryFromPath)) {
+    const near = categories.find(t => slugType(t).includes(categoryFromPath) || categoryFromPath.includes(slugType(t)));
+    if (near) throw redirect(`/brands/${handle}/${slugType(near)}`, 301);
+    throw new Response(`Kategori ${categoryFromPath} tidak ditemukan untuk brand ${handle}`, { status: 404 });
+  }
 
   // Display name = the real productType whose slug matches the path (keeps "Tripod/Monopod" intact)
   const categoryLabel = categoryFromPath
@@ -769,11 +791,14 @@ query Brand(
 const ALL_PRODUCTS_FOR_CATEGORIES = `#graphql
 query AllProducts(
   $query: String!
+  $after: String
 ) {
   products(
     first: 250
     query: $query
+    after: $after
   ) {
+    pageInfo { hasNextPage endCursor }
     nodes {
       id
       productType

@@ -610,18 +610,7 @@ dangerouslySetInnerHTML={{__html:`
         })}} />
 
         {/* BreadcrumbList Schema */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "name": "Home",
-              "item": "https://galaxy.co.id"
-            }
-          ]
-        })}} />
+        {/* root BreadcrumbList (Home only) REMOVED 2026-10-02 — pages carry their own */}
 
         {/* FAQ Schema for Featured Snippets — HOMEPAGE ONLY. The same 5 store Q&As used to be
             emitted on every page (product, brand, collection…); identical FAQPage markup on
@@ -675,74 +664,7 @@ dangerouslySetInnerHTML={{__html:`
           })}} />
         )}
 
-        {/* AggregateOffer Schema */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "AggregateOffer",
-          "priceCurrency": "IDR",
-          "lowPrice": "500000",
-          "highPrice": "200000000",
-          "offerCount": 1000,
-          "offers": [
-            {
-              "@type": "Offer",
-              "url": "https://galaxy.co.id/collections/kamera-mirrorless",
-              "priceCurrency": "IDR",
-              "price": "5000000",
-              "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-              "availability": "https://schema.org/InStock",
-              "seller": {
-                "@type": "Organization",
-                "name": "Galaxy Camera"
-              },
-              "hasMerchantReturnPolicy": {
-                "@type": "MerchantReturnPolicy",
-                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-                "merchantReturnDays": 14,
-                "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
-                "applicableCountry": "ID"
-              }
-            },
-            {
-              "@type": "Offer",
-              "url": "https://galaxy.co.id/collections/kamera-dslr",
-              "priceCurrency": "IDR",
-              "price": "4000000",
-              "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-              "availability": "https://schema.org/InStock",
-              "seller": {
-                "@type": "Organization",
-                "name": "Galaxy Camera"
-              },
-              "hasMerchantReturnPolicy": {
-                "@type": "MerchantReturnPolicy",
-                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-                "merchantReturnDays": 14,
-                "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
-                "applicableCountry": "ID"
-              }
-            },
-            {
-              "@type": "Offer",
-              "url": "https://galaxy.co.id/collections/drone",
-              "priceCurrency": "IDR",
-              "price": "3000000",
-              "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-              "availability": "https://schema.org/InStock",
-              "seller": {
-                "@type": "Organization",
-                "name": "Galaxy Camera"
-              },
-              "hasMerchantReturnPolicy": {
-                "@type": "MerchantReturnPolicy",
-                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-                "merchantReturnDays": 14,
-                "returnPolicyUrl": "https://galaxy.co.id/policies/refund-policy",
-                "applicableCountry": "ID"
-              }
-            }
-          ]
-        })}} />
+        {/* AggregateOffer schema REMOVED 2026-10-02: fabricated site-wide numbers (lowPrice/highPrice/offerCount) on every page — invalid for Google and a structured-data spam risk. Real Offers live in each product page. */}
 
         <Seo />
         <Meta />

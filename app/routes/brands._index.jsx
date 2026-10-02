@@ -1,5 +1,6 @@
 import {json} from '@shopify/remix-oxygen';
 import {useLoaderData, Link} from '@remix-run/react';
+import {getCatalogIndex} from '~/lib/catalogIndex';
 
 export const meta = () => {
   return [
@@ -18,15 +19,17 @@ export const meta = () => {
 export async function loader({context}) {
   const {storefront} = context;
 
-  // Get all products to extract unique brands
-  const data = await storefront.query(ALL_BRANDS_QUERY, {
-    variables: {
-      first: 250,
-    },
-  });
-
-  // Extract unique vendors (brands)
-  const brands = [...new Set(data.products.nodes.map(p => p.vendor).filter(Boolean))].sort();
+  // Every brand in the catalog with product counts (full walk, cached) — the old version sampled
+  // the first 250 products and missed most brands.
+  let brands = [];
+  try {
+    const idx = await getCatalogIndex(storefront);
+    brands = idx.brands.filter((b) => b.count > 0).map((b) => ({name: b.name, handle: b.handle, count: b.count, categories: b.categories.slice(0, 3).map((c) => c.name)}))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    const data = await storefront.query(ALL_BRANDS_QUERY, {variables: {first: 250}});
+    brands = [...new Set(data.products.nodes.map(p => p.vendor).filter(Boolean))].sort().map((name) => ({name, handle: name.toLowerCase().replace(/\s+/g, '-'), count: 0, categories: []}));
+  }
 
   return json({brands});
 }
@@ -44,19 +47,19 @@ export default function BrandsIndex() {
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {brands.map((brand) => {
-          const brandHandle = brand.toLowerCase().replace(/\s+/g, '-');
-          return (
-            <Link
-              key={brand}
-              to={`/brands/${brandHandle}`}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow text-center"
-              prefetch="intent"
-            >
-              <h2 className="text-lg font-semibold text-gray-900">{brand}</h2>
-            </Link>
-          );
-        })}
+        {brands.map((brand) => (
+          <Link
+            key={brand.handle}
+            to={`/brands/${brand.handle}`}
+            className="bg-white border border-gray-200 rounded-lg p-5 hover:border-gray-900 transition-colors text-center no-underline"
+            prefetch="intent"
+          >
+            <h2 className="text-base font-semibold text-gray-900">{brand.name}</h2>
+            {brand.count > 0 && (
+              <p className="mt-1 text-xs text-gray-500">{brand.count} produk{brand.categories.length ? ` · ${brand.categories.join(', ')}` : ''}</p>
+            )}
+          </Link>
+        ))}
       </div>
     </div>
   );

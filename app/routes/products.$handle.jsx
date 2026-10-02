@@ -58,6 +58,7 @@ import { FaLink } from "react-icons/fa6";
 import {Await, useMatches, useLocation} from '@remix-run/react';
 import {Suspense} from 'react';
 import {resolveFlashEdition, FlashEditionBadge, FlashEditionName} from '~/components/MastheadOrnament';
+import {slugType as slugProductType, brandHandle as brandHandleOf} from '~/lib/catalogIndex';
 
 // ── Video (YouTube) helpers ──────────────────────────────────────────────────
 // Accept a raw metafield value (full URL or bare 11-char ID) → normalized video ID, else ''.
@@ -2893,11 +2894,21 @@ DP : 0
         <Suspense fallback={null}>
           <Await resolve={metaobject}>
             {(mo) => mo?.metaobject?.field?.value ? (
-              <div className='flex flex-row gap-1 mb-1'>
+              <div className='flex flex-row items-baseline gap-1 mb-1 flex-wrap'>
                 <div className='w-14 shrink-0 text-gray-500'>Brand</div>
                 <Link to={`/brands/${mo.metaobject.field?.value}`}>
                   <div className='font-semibold text-gray-800'>{mo.metaobject.field?.value}</div>
                 </Link>
+                {/* brand × category "find" page — the internal link that lets those pages rank */}
+                {product?.vendor && product?.productType && (
+                  <Link
+                    to={`/brands/${brandHandleOf(product.vendor)}/${slugProductType(product.productType)}`}
+                    prefetch="intent"
+                    className='ml-1 text-xs font-semibold text-gray-500 hover:text-gray-900 no-underline whitespace-nowrap'
+                  >
+                    Semua {product.productType} {product.vendor} →
+                  </Link>
+                )}
               </div>
             ) : null}
           </Await>
@@ -3435,6 +3446,7 @@ function TombolWaDiscontinue({product}){
       title
       handle
       vendor
+      productType
       description
       metafields(identifiers:[
         {namespace:"custom" key:"garansi"}
@@ -3845,6 +3857,23 @@ export const meta = ({data}) => {
   { tagName:'link',
   rel:'canonical',
   href: data.canonicalUrl
+},
+
+// BREADCRUMBS — Home › koleksi utama produk › produk (every other page type already had one;
+// without it Google shows the raw URL under the title instead of "Galaxy › Kamera Mirrorless")
+{
+  "script:ld+json": {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": (() => {
+      const skip = /^(all|frontpage|cuci-gudang|flash-sale|pre-order|best-seller|new-arrival|promo)$/;
+      const col = (data?.product?.collections?.nodes ?? []).find((c) => c?.handle && c?.title && !skip.test(c.handle));
+      const items = [{ "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.galaxy.co.id" }];
+      if (col) items.push({ "@type": "ListItem", "position": 2, "name": col.title, "item": `https://www.galaxy.co.id/collections/${col.handle}` });
+      items.push({ "@type": "ListItem", "position": items.length + 1, "name": data?.product?.title, "item": data?.canonicalUrl });
+      return items;
+    })(),
+  },
 },
 
 // PRODUCT SCHEMA - Keep existing Product schema

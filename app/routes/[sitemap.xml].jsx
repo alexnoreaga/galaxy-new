@@ -1,4 +1,5 @@
 import {flattenConnection} from '@shopify/hydrogen';
+import {buildCatalogIndex, MIN_PRODUCTS} from '~/lib/catalogIndex';
 
 /**
  * the google limit is 50K, however, the storefront API
@@ -44,7 +45,9 @@ export async function loader({request, context: {storefront}}) {
 
   // Fetch brand category data + Firestore comparisons in parallel
   const [brandCategoryData, comparisonRes, rekomendasiRes] = await Promise.all([
-    storefront.query(BRAND_CATEGORIES_QUERY, { variables: { first: 250 } }),
+    // Brand × category index from the product walk above (every product, not the old first-250
+    // sample whose slugs did not even match the route — "tripod/monopod").
+    Promise.resolve(buildCatalogIndex(data.products.nodes)).catch((e) => { console.error('[sitemap] brand index', e?.message || e); return null; }),
     fetch(`${FIRESTORE_BASE}:runQuery?key=${FIRESTORE_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -182,47 +185,27 @@ function generateSitemap({data, brandCategoryData, comparisons, rekomendasiList,
   const brandCategories = [];
   const brands = new Set(); // Track unique brands
   
-  if (brandCategoryData?.products?.nodes) {
-    // Group products by vendor (brand) and productType (category)
-    const brandCategoryMap = new Map();
-    
-    brandCategoryData.products.nodes.forEach((product) => {
-      if (product.vendor && product.productType) {
-        const vendorHandle = product.vendor.toLowerCase().replace(/\s+/g, '-');
-        brands.add(vendorHandle);
-        
-        if (!brandCategoryMap.has(vendorHandle)) {
-          brandCategoryMap.set(vendorHandle, new Set());
-        }
-        brandCategoryMap.get(vendorHandle).add(product.productType);
+  if (brandCategoryData?.brands?.length) {
+    const today = new Date().toISOString().slice(0, 10);
+    for (const b of brandCategoryData.brands) {
+      if (b.count < MIN_PRODUCTS) continue; // thin brand pages are noindex on the route anyway
+      brands.add(b.handle);
+      brandCategories.push({ url: xmlEncode(`${baseUrl}/brands/${b.handle}`), lastMod: today, changeFreq: 'weekly', priority: 0.8 });
+      // marketplace-style "find" pages: one per brand × category with enough products
+      for (const c of b.categories) {
+        if (c.count < MIN_PRODUCTS) continue;
+        brandCategories.push({ url: xmlEncode(`${baseUrl}/brands/${b.handle}/${c.slug}`), lastMod: today, changeFreq: 'weekly', priority: 0.7 });
       }
-    });
-
-    // Add base brand URLs (e.g., /brands/Sony)
-    brands.forEach((brandHandle) => {
-      const url = xmlEncode(`${baseUrl}/brands/${brandHandle}`);
-      brandCategories.push({
-        url,
-        lastMod: new Date().toISOString(),
-        changeFreq: 'weekly',
-        priority: 0.8,
-      });
-    });
-
-    // Create sitemap entries for each brand-category combination with CLEAN URLs
-    brandCategoryMap.forEach((categories, vendorHandle) => {
-      categories.forEach((category) => {
-        const categoryHandle = encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'));
-        const url = xmlEncode(`${baseUrl}/brands/${vendorHandle}/${categoryHandle}`);
-        brandCategories.push({
-          url,
-          lastMod: new Date().toISOString(),
-          changeFreq: 'weekly',
-          priority: 0.7, // Same as collections for SEO importance
-        });
-      });
-    });
+    }
   }
+
+  // Branch pages (/stores + one page per metaobject store_location) — local SEO landing pages
+  const storePages = [{ url: `${baseUrl}/stores`, lastMod: new Date().toISOString().slice(0, 10), changeFreq: 'monthly', priority: 0.7 }];
+  for (const st of data?.stores?.nodes ?? []) {
+    if (!st?.handle) continue;
+    storePages.push({ url: xmlEncode(`${baseUrl}/stores/${st.handle}`), lastMod: (st.updatedAt || new Date().toISOString()).slice(0, 10), changeFreq: 'monthly', priority: 0.7 });
+  }
+  brandCategories.push(...storePages);
 
   // Perbandingan index + individual pages from Firestore
   const perbandinganIndex = {
@@ -295,6 +278,9 @@ const SITEMAP_QUERY = `#graphql
         handle
         onlineStoreUrl
         title
+        vendor
+        productType
+        availableForSale
         featuredImage {
           url
           altText
@@ -318,6 +304,9 @@ const SITEMAP_QUERY = `#graphql
         onlineStoreUrl
       }
     }
+    stores: metaobjects(type: "store_location", first: 20) {
+      nodes { handle updatedAt }
+    }
   }
 `;
 
@@ -336,6 +325,9 @@ const SITEMAP_PRODUCTS_PAGE_QUERY = `#graphql
         handle
         onlineStoreUrl
         title
+        vendor
+        productType
+        availableForSale
         featuredImage {
           url
           altText

@@ -1,9 +1,17 @@
 import {json} from '@shopify/remix-oxygen';
-import {useLoaderData, useLocation} from '@remix-run/react';
+import {useLoaderData, useLocation, Link} from '@remix-run/react';
 import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
 
-export const meta = () => [
+export const meta = ({data}) => [
   {title: 'Lokasi Toko | Galaxy Camera'},
+  {
+    'script:ld+json': {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Cabang Galaxy Camera',
+      itemListElement: (data?.stores ?? []).map((st, i) => ({'@type': 'ListItem', position: i + 1, name: st.name, url: `https://www.galaxy.co.id/stores/${st.handle}`})),
+    },
+  },
   {name: 'description', content: 'Temukan toko Galaxy Camera terdekat dari lokasi Anda. Kunjungi kami untuk melihat koleksi kamera, drone, dan aksesoris fotografi terlengkap.'},
 ];
 
@@ -32,7 +40,7 @@ export async function loader({context}) {
 }
 
 // "Galaxy Camera - Tangerang" → "Tangerang" (hero jump chips)
-const shortName = (n) => String(n || '').replace(/^galaxy camera\s*[-–]\s*/i, '').trim() || n;
+const shortName = (n) => String(n || '').replace(/^galaxy camera\s*[-–]?\s*/i, '').trim() || n;
 
 function InfoRow({d, children}) {
   return (
@@ -116,7 +124,9 @@ export default function StoresPage() {
                 )}
 
                 <div className="p-4 sm:p-5">
-                  <h2 className="text-lg font-bold text-gray-900 leading-tight">{store.name}</h2>
+                  <h2 className="text-lg font-bold text-gray-900 leading-tight">
+                    <Link to={`/stores/${store.handle}`} prefetch="intent" className="no-underline text-gray-900 hover:underline">{store.name}</Link>
+                  </h2>
 
                   <div className="mt-3 space-y-2.5">
                     <InfoRow d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.48-.966 2.342-1.76C15.29 15.13 17 12.556 17 9A7 7 0 103 9c0 3.556 1.71 6.132 3.287 7.582.860.793 1.72 1.375 2.342 1.76.311.193.571.337.757.433a5.741 5.741 0 00.281.14l.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z">{store.address}</InfoRow>
@@ -128,6 +138,9 @@ export default function StoresPage() {
                     )}
                   </div>
 
+                  <Link to={`/stores/${store.handle}`} prefetch="intent" className="mt-3 inline-block text-xs font-semibold text-gray-600 hover:text-gray-900 no-underline">
+                    Detail cabang & unit demo →
+                  </Link>
                   <div className="mt-5 flex gap-2.5">
                     {store.mapsUrl && (
                       <a
