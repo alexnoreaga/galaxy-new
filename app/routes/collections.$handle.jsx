@@ -16,6 +16,7 @@ import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscount
 import {FreeOngkirBadge} from '~/components/FreeOngkirBadge';
 import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
 import {getSocialProof} from '~/lib/socialProof';
+import {PromoSEOContent} from '~/components/PromoSEOContent';
 
 export const handle = {
   breadcrumbType: 'collection',
@@ -677,10 +678,14 @@ export default function Collection() {
           )}
         </Pagination>
 
-        <CollectionSEOContent
-          collectionTitle={collection.title}
-          products={collection.products.nodes}
-        />
+        {isCuciGudang ? (
+          <PromoSEOContent kind="cuci" products={collection.products.nodes} more={!!collection.products.pageInfo?.hasNextPage} />
+        ) : (
+          <CollectionSEOContent
+            collectionTitle={collection.title}
+            products={collection.products.nodes}
+          />
+        )}
         </div>
 
       </div>
@@ -976,6 +981,7 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
     handle
     availableForSale
     title
+    vendor
     featuredImage {
       id
       altText

@@ -2,6 +2,7 @@ import { json } from '@shopify/remix-oxygen';
 import { useLoaderData, Link } from '@remix-run/react';
 import { useState, useEffect, useRef } from 'react';
 import { getAutomaticDiscounts, getActiveFlashProducts, readEnvVar } from '~/lib/autoDiscounts';
+import {PromoSEOContent} from '~/components/PromoSEOContent';
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -200,7 +201,8 @@ export async function loader({ context }) {
 // ── SEO ───────────────────────────────────────────────────────────────────────
 
 export const meta = ({ data }) => {
-  const products = data?.collection?.products?.nodes ?? [];
+  // loader returns the merged `products` list; the collection sub-tree is not what the page shows
+  const products = data?.products ?? data?.collection?.products?.nodes ?? [];
   const { maxDiscount, monthYear } = data ?? {};
   const count = products.length;
 
@@ -635,6 +637,8 @@ export default function FlashSale() {
             )}
           </>
         )}
+        {/* Editorial SEO block — built from the live list (count, brands, biggest deals, end date) + FAQ */}
+        <PromoSEOContent kind="flash" products={products} flashMap={autoFlashMap} endsAt={saleEndsAt} />
       </div>
     </div>
   );
@@ -649,6 +653,7 @@ const FLASH_EXTRA_PRODUCTS_QUERY = `#graphql
         id
         title
         handle
+        vendor
         featuredImage { url altText }
         variants(first: 10) {
           nodes {
@@ -673,6 +678,7 @@ const FLASH_SALE_QUERY = `#graphql
           id
           title
           handle
+          vendor
           featuredImage {
             url
             altText
