@@ -11,6 +11,7 @@ import {useLocation} from 'react-router-dom';
 import React, {useEffect, useState, useRef} from 'react';
 import {HitunganPersen} from '~/components/HitunganPersen';
 import {CollectionSEOContent} from '~/components/CollectionSEOContent';
+import {transitionToProduct, isPlainClick} from '~/lib/viewTransition';
 import {getAutomaticDiscounts, findProductAutoDiscount} from '~/lib/autoDiscounts';
 import {FreeOngkirBadge} from '~/components/FreeOngkirBadge';
 import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
@@ -506,6 +507,13 @@ function formatSingkat(n) {
 function ProductItem({product, loading, sold, review, festive = false}) {
   const variant = product.variants.nodes[0];
   const variantUrl = useVariantUrl(product.handle, variant.selectedOptions);
+  // View Transition: the tapped card's photo box morphs into the product page hero (see lib/viewTransition)
+  const heroRef = useRef(null);
+  const navigate = useNavigate();
+  const onCardClick = (e) => {
+    if (!isPlainClick(e)) return;
+    if (transitionToProduct(heroRef.current, () => navigate(variantUrl))) e.preventDefault();
+  };
 
   const hasDiscount =
     parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount) >
@@ -538,9 +546,10 @@ function ProductItem({product, loading, sold, review, festive = false}) {
       key={product.id}
       prefetch="intent"
       to={variantUrl}
+      onClick={onCardClick}
     >
       {/* Image — rounded on all four corners (it's the visible block now that cards are borderless) */}
-      <div className="relative overflow-hidden bg-gray-50 aspect-square rounded-xl">
+      <div ref={heroRef} className="relative overflow-hidden bg-gray-50 aspect-square rounded-xl">
         {festive && !isDiscontinued && !isOutOfStock && (
           <span className="absolute top-0 left-0 z-20 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] sm:text-[10px] font-black px-2 py-1 rounded-br-xl shadow tracking-wide">
             🔥 CUCI GUDANG

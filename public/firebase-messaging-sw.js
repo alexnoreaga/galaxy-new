@@ -13,6 +13,11 @@ const firebaseConfig = {
 // Take over immediately. This worker replaces the old caching worker (/service-worker.js) that
 // lived at the same scope, so activate fast and drop its stale caches (it served a cached "/").
 self.addEventListener('install', () => self.skipWaiting());
+// Badging API: a push arriving while the app is closed marks the home-screen icon. The page
+// overwrites it with the cart quantity as soon as the app opens (Header → AppBadgeSync).
+self.addEventListener('push', () => {
+  try { if (typeof self.navigator?.setAppBadge === 'function') self.navigator.setAppBadge(1).catch(() => {}); } catch (e) { /* ignore */ }
+});
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([

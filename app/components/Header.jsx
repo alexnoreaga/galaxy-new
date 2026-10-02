@@ -773,6 +773,20 @@ function WishlistBadge({onDark}) {
   );
 }
 
+// Badging API (installed PWA only): the app icon shows the cart quantity; cleared when the cart is
+// empty. Unsupported browsers simply lack navigator.setAppBadge. Keep it silent: badge writes can
+// reject (not installed / permission) and that must never surface.
+function AppBadgeSync({count}) {
+  useEffect(() => {
+    try {
+      if (typeof navigator === 'undefined' || typeof navigator.setAppBadge !== 'function') return;
+      const p = count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } catch { /* ignore */ }
+  }, [count]);
+  return null;
+}
+
 function CartBadge({count, onDark}) {
   const cls = onDark
     ? 'text-white hover:bg-white/10'
@@ -798,7 +812,12 @@ function CartToggle({cart, onDark}) {
   return (
     <Suspense fallback={<CartBadge count={0} onDark={onDark} />}>
       <Await resolve={cart}>
-        {(cart) => <CartBadge count={cart?.totalQuantity || 0} onDark={onDark} />}
+        {(cart) => (
+          <>
+            <CartBadge count={cart?.totalQuantity || 0} onDark={onDark} />
+            <AppBadgeSync count={cart?.totalQuantity || 0} />
+          </>
+        )}
       </Await>
     </Suspense>
   );

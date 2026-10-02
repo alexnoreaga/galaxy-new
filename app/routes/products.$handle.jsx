@@ -1154,7 +1154,8 @@ DP : 0
             w-auto + -mx-4 widens a block element past the 16px body gutter to the screen edges. */}
         <div
           className="relative w-auto sm:w-full -mx-4 sm:mx-0 bg-white rounded-none sm:rounded-xl overflow-hidden"
-          style={{ touchAction: 'pan-y' }}
+          data-vt-hero=""
+          style={{ touchAction: 'pan-y', viewTransitionName: 'product-hero' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
