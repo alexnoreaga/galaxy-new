@@ -3,6 +3,7 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { useState, useEffect, useRef } from 'react';
 import { getAutomaticDiscounts, getActiveFlashProducts, readEnvVar } from '~/lib/autoDiscounts';
 import {PromoSEOContent} from '~/components/PromoSEOContent';
+import {NewsletterForm} from '~/components/NewsletterForm';
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -637,6 +638,10 @@ export default function FlashSale() {
             )}
           </>
         )}
+        {/* Email opt-in: the next batch announced by email (feeds Shopify Email's audience) */}
+        <div className="mt-10 rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 max-w-3xl">
+          <NewsletterForm source="flash-sale" title="Dikabari flash sale berikutnya lewat email" subtitle="Setiap batch baru diumumkan sekali ke email, lengkap dengan produk dan diskonnya." />
+        </div>
         {/* Editorial SEO block — built from the live list (count, brands, biggest deals, end date) + FAQ */}
         <PromoSEOContent kind="flash" products={products} flashMap={autoFlashMap} endsAt={saleEndsAt} />
       </div>

@@ -3,6 +3,7 @@ import {FaInstagram, FaFacebookF, FaTiktok, FaYoutube, FaXTwitter, FaWhatsapp} f
 import {FooterColumn1} from '~/components/FooterColumn1';
 import {FooterColumn2} from '~/components/FooterColumn2';
 import {MastheadOrnament, resolveMastheadTheme} from '~/components/MastheadOrnament';
+import {NewsletterForm} from '~/components/NewsletterForm';
 
 const socials = [
   {href: 'https://www.instagram.com/galaxycamera99', icon: <FaInstagram />, label: 'Instagram'},
@@ -75,6 +76,13 @@ export function Footer({menu}) {
               <FaWhatsapp className="w-4 h-4" />
               Chat via WhatsApp
             </a>
+
+            <div>
+              <FooterHeading>Info Promo</FooterHeading>
+              <div className="mt-3">
+                <NewsletterForm source="footer" tone="dark" subtitle="Flash sale dan promo dikirim ke email, tidak tiap hari." compact />
+              </div>
+            </div>
 
             <div>
               <FooterHeading>Ikuti Kami</FooterHeading>

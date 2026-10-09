@@ -22,6 +22,8 @@ export const action = async ({request, context}) => {
   const passwordConfirm = form.has('passwordConfirm')
     ? String(form.get('passwordConfirm'))
     : null;
+  // promo opt-in checkbox → Shopify email marketing consent (Shopify Email audience)
+  const acceptsMarketing = form.get('acceptsMarketing') === 'on';
 
   const validPasswords =
     password && passwordConfirm && password === passwordConfirm;
@@ -38,7 +40,7 @@ export const action = async ({request, context}) => {
 
     const {customerCreate} = await storefront.mutate(CUSTOMER_CREATE_MUTATION, {
       variables: {
-        input: {email, password},
+        input: {email, password, acceptsMarketing},
       },
     });
 
@@ -166,6 +168,11 @@ export default function Register() {
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
               />
             </div>
+
+            <label className="flex items-start gap-2.5 cursor-pointer text-sm text-gray-700">
+              <input type="checkbox" name="acceptsMarketing" defaultChecked className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-gray-900" />
+              <span>Kirim info flash sale dan promo ke email saya. <span className="text-gray-400">Bisa berhenti kapan saja.</span></span>
+            </label>
 
             {error && (
               <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
