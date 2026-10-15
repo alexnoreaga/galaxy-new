@@ -1637,6 +1637,7 @@ INSTRUKSI:
 - Namamu GRISELA — sales Galaxy Camera yang ramah dan jago closing. Tujuanmu membantu customer sampai terjadi transaksi, bukan cuma menjawab pertanyaan
 - WAJIB: cek bahasa PESAN TERAKHIR customer. Jika ditulis dalam bahasa Inggris, SELURUH jawabanmu WAJIB dalam bahasa Inggris (jangan campur Indonesia). Default: bahasa Indonesia. Contoh: customer tulis "Can I buy a camera here?" → jawab full English: "Of course! We have two stores near Jakarta..."
 - Untuk turis/pengunjung dari luar negeri: tawarkan mampir ke toko kami (Tangerang & Depok, dekat Jakarta) — harga sudah termasuk PPN, garansi resmi Indonesia
+- PENGIRIMAN: semua pesanan website dikirim dari toko/gudang Galaxy Camera TANGERANG (Banten). Jika ditanya "dikirim dari mana" / "lokasi toko" / "asal barang": jawab langsung "dari Galaxy Camera Tangerang ka", lalu tanya kota/alamat customer supaya bisa kasih estimasi (Jabodetabek: instant courier/same-day untuk order sebelum 17.00; luar kota 1-3 hari kerja). Ongkir dihitung otomatis di halaman checkout sesuai alamat — JANGAN mengarang nominal ongkir. Customer Tangerang/Depok boleh ambil langsung di toko
 - Jika customer punya DEADLINE mendesak (butuh untuk acara/tanggal tertentu): jadilah solutif, JANGAN defeatis. Hitung jalur tercepat yang realistis: order sebelum jam 17.00 dikirim hari yang sama, Jabodetabek bisa instant courier tiba hari ini, luar kota 1-3 hari. Jika mepet, sarankan konfirmasi opsi ekspedisi TERCEPAT ke admin di 0821-1131-1131 — jangan biarkan customer menyerah sendiri
 - Jika customer sedang MARAH/komplain: empati dulu, minta maaf atas kendalanya, JANGAN jualan/pitch/tawarkan voucher, JANGAN akhiri dengan pertanyaan sales — fokus selesaikan masalahnya dan arahkan cepat ke admin
 - Jika customer tanya kamu siapa: perkenalkan diri singkat, contoh: "Aku Grisela, asisten Galaxy Camera 😊 siap bantu kaka pilih kamera yang pas!"
@@ -1721,10 +1722,19 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
   try {
     const result = await model.generateContent(fullPrompt);
     answer = cleanAnswer(result.response);
+    if (!answer) {
+      // Grounded gemini-2.5-flash sometimes returns a candidate with no text parts (the customer
+      // then saw nothing at all). Log why and retry once without Google Search before giving up.
+      const c = result.response?.candidates?.[0];
+      console.error('[api.ask] empty answer', JSON.stringify({ finishReason: c?.finishReason, parts: (c?.content?.parts ?? []).map((p) => Object.keys(p)), promptFeedback: result.response?.promptFeedback }));
+      const retry = await getGemini(context, { search: false }).generateContent(fullPrompt);
+      answer = cleanAnswer(retry.response);
+      if (!answer) console.error('[api.ask] empty answer after retry', JSON.stringify({ finishReason: retry.response?.candidates?.[0]?.finishReason }));
+    }
   } catch (e) {
     console.error('[api.ask] answer generation failed:', e?.message ?? e);
-    answer = 'Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊';
   }
+  if (!answer) answer = 'Maaf ka, ada gangguan teknis. Untuk info lebih lanjut, silakan hubungi admin kami di 0821-1131-1131 😊';
 
   // [PILIH: h1, h2, …] marker (recommendation branch) → the cards become Grisela's own picks,
   // in her order. Marker missing/invalid → fall back to the top-3 best sellers of the pool.
@@ -1889,6 +1899,13 @@ LEAD CALON PENGUNJUNG TOKO / MINAT PRODUK:
         answer += '\n\nUntuk penawaran lebih lanjut, hubungi admin kami di 0821-1131-1131 ya ka 😊';
       }
     }
+  }
+
+  // Marker stripping ([PILIH]/[VOUCHER]/[LEAD]/…) can leave nothing behind → still say something.
+  if (!answer.trim()) {
+    answer = (responseProducts || responseVouchers || marketplaceLinks || negoCode || browseLink)
+      ? 'Ini ya ka 👇'
+      : 'Maaf ka, aku belum bisa jawab yang itu. Boleh diulang dengan kalimat lain, atau langsung hubungi admin kami di 0821-1131-1131 😊';
   }
 
   // Save bubble answer to cache — only plain text answers without cards or errors

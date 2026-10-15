@@ -756,6 +756,8 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
         try { localStorage.setItem('grisela_blocked_until', String(Date.now() + 45 * 60 * 1000)); } catch {}
       }
       const parts = (data.answer ?? '').split('|||').map(s => s.trim()).filter(Boolean);
+      // Empty reply (old server build / stripped answer) → never leave the customer hanging
+      if (parts.length === 0) parts.push(data.products || data.vouchers || data.marketplaces || data.browse ? 'Ini ya ka 👇' : 'Maaf ka, aku belum bisa jawab yang itu. Boleh diulang dengan kalimat lain, atau langsung hubungi admin kami di 0821-1131-1131 😊');
       setMessages(prev => [
         ...prev,
         ...parts.map((text, idx) => ({
