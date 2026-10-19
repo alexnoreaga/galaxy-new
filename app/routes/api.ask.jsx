@@ -1,4 +1,5 @@
 import { json } from '@shopify/remix-oxygen';
+import { getPublicVouchers } from '~/lib/codeVouchers';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { storeKnowledge } from '~/lib/storeKnowledge';
 import { createNegoCode } from '~/lib/negoCode';
@@ -654,7 +655,7 @@ async function getReturningCustomerContext(sessionId) {
 
 async function getActiveVouchers(context) {
   try {
-    const data = await context.storefront.query(VOUCHERS_QUERY);
+    const data = await getPublicVouchers(context?.env); // Shopify Discounts — same list the site shows
     const now = new Date();
     return (data?.metaobjects?.edges ?? [])
       .map(edge => {

@@ -19,6 +19,7 @@ import { MiniFaq } from '../components/MiniFaq';
 import {useRef} from "react";
 import { useLayoutEffect, useState, useEffect } from 'react';
 import { getAutomaticDiscounts, getActiveFlashProducts, findProductAutoDiscount } from '~/lib/autoDiscounts';
+import { getPublicVouchers } from '~/lib/codeVouchers';
 import { FaCalendarDays, FaYoutube } from "react-icons/fa6";
 
 import { Carousel } from '~/components/Carousel';
@@ -260,7 +261,8 @@ export async function loader({context, request}) {
   });
 
   // VouchersSection has <Await> — defer vouchers
-  const vouchersPromise = storefront.query(GET_VOUCHERS, {variables: {first: 10}});
+  // Vouchers come from Shopify Discounts (Admin API, cached 5 min) — not the hand-typed metaobject
+  const vouchersPromise = getPublicVouchers(context.env).catch(() => ({ metaobjects: { edges: [], nodes: [] } }));
 
   // Admin quick-reply data — only the floating admin button uses this, so customers never wait on
   // it. Deferred, and short-circuited: anonymous visitors (no token) skip ALL of it; only a real
@@ -399,6 +401,65 @@ function CardMiniCountdown({ endsAt }) {
   );
 }
 
+// Shared card for the two rails. House rules: white card, one accent (red-600), type does the
+// work — no tints, rings, gradients or per-card countdowns. `tone` = 'dark' when the rail sits on
+// the charcoal flash band (card gets no border), 'light' on the white clearance rail (hairline).
+function RailCard({ it, tone = 'dark', showStrike = true }) {
+  return (
+    <Link
+      to={`/products/${it.handle}`}
+      prefetch="intent"
+      className={`flex-shrink-0 w-[8.5rem] sm:w-44 bg-white rounded-lg overflow-hidden no-underline group ${tone === 'light' ? 'border border-gray-200 hover:border-gray-400' : ''} transition-colors`}
+    >
+      <div className="relative bg-white" style={{ aspectRatio: '1/1' }}>
+        {it.pct > 0 && (
+          <span className="absolute top-2 left-2 z-10 bg-red-600 text-white font-bold text-[10px] sm:text-[11px] leading-none px-1.5 py-1 rounded">
+            -{it.pct}%
+          </span>
+        )}
+        {it.image ? (
+          <img
+            src={it.image}
+            alt={it.title}
+            loading="lazy"
+            className="w-full h-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-200 text-3xl">📷</div>
+        )}
+      </div>
+      <div className="px-2.5 pt-1 pb-2.5 border-t border-gray-100">
+        <p className="text-gray-800 text-[11px] sm:text-xs leading-snug line-clamp-2" style={{ minHeight: 30 }}>
+          {it.title}
+        </p>
+        <p className="mt-1 text-red-600 font-bold text-[13px] sm:text-sm leading-tight tabular-nums">
+          Rp{Math.round(it.price).toLocaleString('id-ID')}
+        </p>
+        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] leading-none text-gray-400 tabular-nums">
+          {showStrike && it.strikeAt > it.price && (
+            <span className="line-through">Rp{Math.round(it.strikeAt).toLocaleString('id-ID')}</span>
+          )}
+        </div>
+        {(it.review || it.sold > 0) && (
+          <div className="mt-1.5 flex items-center gap-1 text-[10px] text-gray-500 leading-none">
+            {it.review && (
+              <>
+                <span className="text-amber-400">★</span>
+                <span className="font-semibold text-gray-700">{it.review.avg}</span>
+                <span className="text-gray-400">({it.review.count})</span>
+              </>
+            )}
+            {it.review && it.sold > 0 && <span className="text-gray-300">·</span>}
+            {it.sold > 0 && <span>{it.sold} terjual</span>}
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+// CUCI GUDANG — calm clearance rail in the house card style (white, red accent bar), so the dark
+// flash band above stays the only loud element on the page.
 function CuciGudangHomeSection({ cuciGudang }) {
   return (
     <Suspense fallback={null}>
@@ -407,109 +468,24 @@ function CuciGudangHomeSection({ cuciGudang }) {
           if (!items || items.length === 0) return null;
           return (
             <div className="relative -mx-4 sm:mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-6 sm:mt-8">
-              <section
-                className="relative overflow-hidden rounded-none sm:rounded-xl"
-                style={{ background: 'linear-gradient(110deg, #6d28d9 0%, #a21caf 48%, #db2777 100%)' }}
-              >
-                {/* Diagonal stripes + shine */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 16px)' }}
-                />
-                <div
-                  className="absolute inset-y-0 w-28 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.22) 50%, transparent 80%)',
-                    animation: 'homeCuciShine 3s ease-in-out infinite',
-                  }}
-                />
-                <style>{`@keyframes homeCuciShine { 0% { left: -30%; } 60% { left: 115%; } 100% { left: 115%; } }`}</style>
-
-                {/* Header */}
-                <div className="relative px-3 sm:px-4 pt-2.5 pb-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                      <span className="text-lg sm:text-2xl animate-pulse flex-shrink-0">🔥</span>
-                      <div className="min-w-0">
-                        <h2 className="text-white font-black italic text-base sm:text-2xl tracking-wider leading-none drop-shadow-sm whitespace-nowrap">
-                          CUCI GUDANG
-                        </h2>
-                        <p className="text-white/90 text-[9px] sm:text-xs font-semibold leading-tight mt-0.5 whitespace-nowrap">
-                          Harga Miring · Stok Terbatas
-                        </p>
-                      </div>
+              <section className="relative rounded-none sm:rounded-xl bg-white border-y sm:border border-gray-200">
+                <div className="flex items-center justify-between gap-3 px-3 sm:px-4 pt-3 pb-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span aria-hidden="true" className="w-1 h-5 bg-red-600 rounded-full flex-shrink-0" />
+                    <div className="min-w-0">
+                      <h2 className="font-flash text-gray-900 text-xl sm:text-2xl tracking-wide leading-none m-0 whitespace-nowrap">Cuci Gudang</h2>
+                      <p className="text-gray-500 text-[11px] sm:text-xs leading-none mt-1 whitespace-nowrap">Harga miring · stok terbatas · habis ya habis</p>
                     </div>
-                    <Link to="/collections/cuci-gudang" className="text-white text-[11px] sm:text-xs font-bold whitespace-nowrap hover:underline no-underline flex-shrink-0">
-                      Lihat Semua →
-                    </Link>
                   </div>
+                  <Link to="/collections/cuci-gudang" className="text-red-600 hover:text-red-700 text-[11px] sm:text-xs font-semibold whitespace-nowrap no-underline flex-shrink-0">
+                    Lihat semua →
+                  </Link>
                 </div>
-
-                {/* Product rail */}
                 <div
-                  className="relative flex gap-2 sm:gap-2.5 overflow-x-auto px-3 sm:px-4 pb-3"
+                  className="relative flex gap-2 sm:gap-3 overflow-x-auto px-3 sm:px-4 pb-3 sm:pb-4"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                  {items.map(it => (
-                    <Link
-                      key={it.handle}
-                      to={`/products/${it.handle}`}
-                      prefetch="intent"
-                      className="flex-shrink-0 w-32 sm:w-40 bg-white rounded-lg overflow-hidden no-underline group"
-                      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.18)' }}
-                    >
-                      <div className="relative bg-gray-50" style={{ aspectRatio: '1/1' }}>
-                        {it.pct > 0 && (
-                          <div className="absolute top-1.5 left-1.5 z-10 bg-yellow-300 text-fuchsia-900 font-black text-[10px] px-1.5 py-0.5 rounded-sm leading-tight">
-                            -{it.pct}%
-                          </div>
-                        )}
-                        {it.image ? (
-                          <img
-                            src={it.image}
-                            alt={it.title}
-                            loading="lazy"
-                            className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-200 text-3xl">📷</div>
-                        )}
-                      </div>
-                      <div className="p-2">
-                        <p className="text-gray-800 text-[11px] leading-snug line-clamp-2 mb-1" style={{ minHeight: 28 }}>
-                          {it.title}
-                        </p>
-                        {(it.review || it.sold > 0) && (
-                          <div className="flex items-center gap-1 mb-1 text-[9px] text-gray-500 leading-none">
-                            {it.review && (
-                              <>
-                                <span className="text-amber-400 text-[10px]">★</span>
-                                <span className="font-bold text-gray-700">{it.review.avg}</span>
-                                <span className="text-gray-400">({it.review.count})</span>
-                              </>
-                            )}
-                            {it.review && it.sold > 0 && <span className="text-gray-300">·</span>}
-                            {it.sold > 0 && <span>{it.sold} terjual</span>}
-                          </div>
-                        )}
-                        <p className="font-black text-sm leading-tight" style={{ color: '#a21caf' }}>
-                          Rp{Math.round(it.price).toLocaleString('id-ID')}
-                        </p>
-                        {it.strikeAt > it.price && (
-                          <p className="text-[10px] text-gray-400 line-through leading-tight mt-0.5">
-                            Rp{Math.round(it.strikeAt).toLocaleString('id-ID')}
-                          </p>
-                        )}
-                        <div
-                          className="mt-1.5 -mx-2 -mb-2 px-2 py-1.5 flex items-center gap-1"
-                          style={{ background: 'linear-gradient(90deg, #faf5ff, #fdf2f8)', borderTop: '1px solid #f3e8ff' }}
-                        >
-                          <span style={{ fontSize: 9 }}>🔥</span>
-                          <span className="text-[9px] font-bold" style={{ color: '#a21caf' }}>Cuci Gudang</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                  {items.map(it => <RailCard key={it.handle} it={it} tone="light" />)}
                 </div>
               </section>
             </div>
@@ -520,6 +496,9 @@ function CuciGudangHomeSection({ cuciGudang }) {
   );
 }
 
+// FLASH SALE — charcoal band (same gray-900 as header/footer/product ticket), Bebas wordmark,
+// red bolt tile, ONE countdown in the header. Seasonal edition colour survives only as the thin
+// top stripe (ed.bg), never as the whole background.
 function FlashSaleHomeSection({ flashSale }) {
   // Monthly twin-date edition (8.8, 11.11, …) + seasonal skin — same engine as the product banner
   const location = useLocation();
@@ -531,49 +510,39 @@ function FlashSaleHomeSection({ flashSale }) {
           if (!items || items.length === 0) return null;
           return (
             <div className="relative -mx-4 sm:mx-auto sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl sm:px-0 mt-6 sm:mt-8">
-              <section
-                className="relative overflow-hidden rounded-none sm:rounded-xl"
-                style={{ background: ed.bg }}
-              >
-                {/* Fine diagonal weave — drifts very slowly; plus an occasional light catch */}
-                <div
-                  aria-hidden="true"
-                  className="gx-flash-weave absolute inset-0 pointer-events-none"
-                  style={{ opacity: 0.07, backgroundImage: 'repeating-linear-gradient(115deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)' }}
-                />
-                <div aria-hidden="true" className="gx-flash-gleam absolute inset-0 pointer-events-none" />
+              <section className="relative overflow-hidden rounded-none sm:rounded-xl bg-gray-900">
+                <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px]" style={{ background: ed.bg }} />
 
-                {/* Header — countdown drops to its own row on mobile */}
-                <div className="relative px-3 sm:px-4 pt-3 pb-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-white/12 ring-1 ring-white/20 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="w-[15px] h-[15px] sm:w-4 sm:h-4 text-white">
+                {/* Header */}
+                <div className="relative px-3 sm:px-4 pt-3.5 pb-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <span className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-md bg-red-600 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-white">
                           <path d="M13.5 2 4 13.2h5.6L8.9 22 19 10.6h-5.9L13.5 2z" />
                         </svg>
                       </span>
-                      <h2 className="text-white font-bold uppercase text-sm sm:text-lg tracking-[0.15em] leading-none whitespace-nowrap m-0">
-                        Flash Sale
-                      </h2>
-                      <span aria-hidden="true" className="flex-shrink-0 w-px h-3.5 bg-white/25" />
-                      <FlashEditionBadge ed={ed} />
-                      <span className="hidden lg:flex items-center"><FlashEditionName ed={ed} /></span>
+                      <h2 className="font-flash text-white text-2xl sm:text-3xl tracking-wide leading-none m-0 whitespace-nowrap">Flash Sale</h2>
+                      <span aria-hidden="true" className="flex-shrink-0 w-px h-5 bg-white/20" />
+                      <span className="font-flash text-red-500 text-2xl sm:text-3xl leading-none tabular-nums">{ed.edition}</span>
+                      {ed.name && <span className="hidden lg:inline text-gray-400 text-[10px] font-semibold uppercase tracking-[0.18em] whitespace-nowrap">{ed.name}</span>}
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
                       {saleEndsAt && (
-                        <div className="hidden sm:block">
+                        <div className="hidden sm:flex items-center gap-2">
+                          <span className="text-gray-400 text-[10px] font-semibold uppercase tracking-[0.18em] whitespace-nowrap">Berakhir dalam</span>
                           <HomeMiniCountdown endsAt={saleEndsAt} />
                         </div>
                       )}
-                      <Link to="/flash-sale" className="text-white text-[11px] sm:text-xs font-bold whitespace-nowrap hover:underline no-underline">
-                        Lihat Semua →
+                      <Link to="/flash-sale" className="text-white/90 hover:text-white text-[11px] sm:text-xs font-semibold whitespace-nowrap no-underline">
+                        Lihat semua →
                       </Link>
                     </div>
                   </div>
                   {saleEndsAt && (
-                    <div className="sm:hidden mt-1.5 flex items-center gap-1.5">
-                      <span aria-hidden="true" className="gx-flash-dot inline-block w-[5px] h-[5px] rounded-full bg-white/80" />
-                      <span className="text-white/85 font-bold uppercase tracking-wider" style={{ fontSize: 9 }}>Berakhir dalam</span>
+                    <div className="sm:hidden mt-2 flex items-center gap-2">
+                      <span aria-hidden="true" className="gx-flash-dot inline-block w-[5px] h-[5px] rounded-full bg-red-500" />
+                      <span className="text-gray-400 font-semibold uppercase tracking-[0.18em]" style={{ fontSize: 9 }}>Berakhir dalam</span>
                       <HomeMiniCountdown endsAt={saleEndsAt} />
                     </div>
                   )}
@@ -581,71 +550,10 @@ function FlashSaleHomeSection({ flashSale }) {
 
                 {/* Product rail */}
                 <div
-                  className="relative flex gap-2 sm:gap-2.5 overflow-x-auto px-3 sm:px-4 pb-3"
+                  className="relative flex gap-2 sm:gap-3 overflow-x-auto px-3 sm:px-4 pb-3 sm:pb-4"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                  {items.map(it => (
-                    <Link
-                      key={it.handle}
-                      to={`/products/${it.handle}`}
-                      prefetch="intent"
-                      className="flex-shrink-0 w-32 sm:w-40 bg-white rounded-lg overflow-hidden no-underline group"
-                      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.18)' }}
-                    >
-                      <div className="relative bg-gray-50" style={{ aspectRatio: '1/1' }}>
-                        {it.pct > 0 && (
-                          <div className="absolute top-1.5 left-1.5 z-10 bg-yellow-400 text-red-900 font-black text-[10px] px-1.5 py-0.5 rounded-sm leading-tight">
-                            -{it.pct}%
-                          </div>
-                        )}
-                        {it.image ? (
-                          <img
-                            src={it.image}
-                            alt={it.title}
-                            loading="lazy"
-                            className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-200 text-3xl">📷</div>
-                        )}
-                      </div>
-                      <div className="p-2">
-                        <p className="text-gray-800 text-[11px] leading-snug line-clamp-2 mb-1" style={{ minHeight: 28 }}>
-                          {it.title}
-                        </p>
-                        {(it.review || it.sold > 0) && (
-                          <div className="flex items-center gap-1 mb-1 text-[9px] text-gray-500 leading-none">
-                            {it.review && (
-                              <>
-                                <span className="text-amber-400 text-[10px]">★</span>
-                                <span className="font-bold text-gray-700">{it.review.avg}</span>
-                                <span className="text-gray-400">({it.review.count})</span>
-                              </>
-                            )}
-                            {it.review && it.sold > 0 && <span className="text-gray-300">·</span>}
-                            {it.sold > 0 && <span>{it.sold} terjual</span>}
-                          </div>
-                        )}
-                        <p className="font-black text-sm leading-tight" style={{ color: '#e53935' }}>
-                          Rp{Math.round(it.price).toLocaleString('id-ID')}
-                        </p>
-                        {it.strikeAt > it.price && (
-                          <p className="text-[10px] text-gray-400 line-through leading-tight mt-0.5">
-                            Rp{Math.round(it.strikeAt).toLocaleString('id-ID')}
-                          </p>
-                        )}
-                        {it.endsAt && (
-                          <div
-                            className="mt-1.5 -mx-2 -mb-2 px-2 py-1.5 flex items-center gap-1"
-                            style={{ background: 'linear-gradient(90deg, #fef2f2, #fff7ed)', borderTop: '1px solid #fee2e2' }}
-                          >
-                            <span style={{ fontSize: 9 }}>⚡</span>
-                            <CardMiniCountdown endsAt={it.endsAt} />
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
+                  {items.map(it => <RailCard key={it.handle} it={it} tone="dark" />)}
                 </div>
               </section>
             </div>
@@ -1812,7 +1720,7 @@ function VouchersSection({ vouchers }) {
                       </div>
                       <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] sm:text-[11px]'>
                         {voucher.minPurchase && (
-                          <span className='text-gray-500'>Min. {voucher.minPurchase}</span>
+                          <span className='text-gray-500'>Min. belanja {voucher.minPurchase}</span>
                         )}
                         {voucher.expiryDate && (
                           <span className='text-gray-400'>

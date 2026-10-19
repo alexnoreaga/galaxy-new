@@ -47,6 +47,7 @@ function parseDemoStores(raw) {
 }
 
 import { getAutomaticDiscounts, findProductAutoDiscount, findProductPwp } from '~/lib/autoDiscounts';
+import { getPublicVouchers } from '~/lib/codeVouchers';
 import { getSocialProof } from '~/lib/socialProof';
 import { getVariantCosts, buildHargaBest } from '~/lib/hargaBest';
 import { FaSquareWhatsapp, FaWhatsapp } from "react-icons/fa6";
@@ -559,9 +560,8 @@ export async function loader({params, context, request}) {
   const liveshopeePromise = context.storefront.query(METAOBJECT_LIVE_SHOPEE, {
     variables: { type: 'live_shopee', first: 4 },
   });
-  const discountVouchersPromise = context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
-    variables: { type: 'discount_voucher', first: 10 },
-  });
+  // Vouchers from Shopify Discounts (Admin API, cached 5 min) — same source as the homepage + Grisela
+  const discountVouchersPromise = getPublicVouchers(context.env).catch(() => ({ metaobjects: { edges: [], nodes: [] } }));
   const autoDiscountsPromise = getAutomaticDiscounts(context.env).catch(() => []);
 
   // ROUND 1 — critical data only (blocks first byte)

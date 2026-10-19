@@ -1,14 +1,11 @@
 import { json } from '@shopify/remix-oxygen';
 import { useLoaderData } from '@remix-run/react';
 import React, { useState } from 'react';
+import { getPublicVouchers } from '~/lib/codeVouchers';
 
 export async function loader({ context }) {
-  const discountVouchers = await context.storefront.query(METAOBJECT_DISCOUNT_VOUCHERS, {
-    variables: {
-      type: 'discount_voucher',
-      first: 50,
-    },
-  });
+  // Vouchers from Shopify Discounts (Admin API, cached 5 min) — not the hand-typed metaobject
+  const discountVouchers = await getPublicVouchers(context.env).catch(() => ({ metaobjects: { edges: [], nodes: [] } }));
 
   return json({
     discountVouchers,
