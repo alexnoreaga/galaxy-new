@@ -4,7 +4,8 @@
 
 export function FreeOngkirBadge({ size = 'sm', className = '' }) {
   const s = size === 'md'
-    ? { pad: 'pl-2 pr-2.5 py-1.5', icon: 'w-5 h-5', text: 'text-[13px]' }
+    // md is responsive too: the hero badge was too big on phones (owner, 2026-10-19)
+    ? { pad: 'pl-1.5 pr-2 py-1 sm:pl-2 sm:pr-2.5 sm:py-1.5', icon: 'w-3.5 h-3.5 sm:w-5 sm:h-5', text: 'text-[9px] sm:text-[13px]' }
     : {
         // sm is responsive: compact on mobile (cards are ~half the screen), fuller on sm+
         pad: 'pl-1 pr-1.5 py-[3px] sm:pl-1.5 sm:pr-2 sm:py-1',

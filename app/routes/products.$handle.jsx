@@ -15,7 +15,7 @@ import {ParseSpesifikasi} from '~/components/ParseSpesifikasi';
 import {LiveShopee} from '~/components/LiveShopee';
 import { Modal } from '~/components/Modal';
 import { WishlistButton } from '~/components/WishlistButton';
-import { FreeOngkirBadge } from '~/components/FreeOngkirBadge';
+import { ShippingRow } from '~/components/ShippingRow';
 import {AnalyticsPageType} from '@shopify/hydrogen';
 import { ProdukRelated } from '~/components/ProdukRelated';
 import { RecentlyViewed } from '~/components/RecentlyViewed';
@@ -1060,6 +1060,26 @@ DP : 0
 
 
 
+  // Cart circle on the mobile hero image — opens the cart drawer like the header icon.
+  function GalleryCartButton({ count }) {
+    return (
+      <a
+        href="#cart-aside"
+        aria-label="Keranjang"
+        className="relative flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        </svg>
+        {count > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold leading-none rounded-full min-w-[17px] h-[17px] flex items-center justify-center px-1 ring-2 ring-black/40">
+            {count > 99 ? '99+' : count}
+          </span>
+        )}
+      </a>
+    );
+  }
+
   const ImageGallery = ({ productData, selectedVariant, wishlistHandle, wishlistTitle, wishlistImage, wishlistPrice, wishlistEmail, onSecretCopy, youtubeRaw }) => {
     // Floating back/home (mobile): back only when this tab has in-site history, else go home.
     const navigateGallery = useNavigate();
@@ -1076,6 +1096,20 @@ DP : 0
     const [displayUrl, setDisplayUrl] = useState(selectedVariant || images[0]?.src);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [zoomOpen, setZoomOpen] = useState(false);
+    // Tokopedia-style top-right corner on mobile: share + cart over the hero image.
+    const [rootMatch] = useMatches();
+    const cartPromise = rootMatch?.data?.cart;
+    const [shareToast, setShareToast] = useState('');
+    const shareProduct = async () => {
+      const url = `${window.location.origin}${window.location.pathname}`;
+      const title = productData?.title || 'Galaxy Camera';
+      try {
+        if (navigator.share) { await navigator.share({ title, text: title, url }); return; }
+      } catch (e) { if (e?.name === 'AbortError') return; }
+      try { await navigator.clipboard.writeText(url); setShareToast('Link disalin'); }
+      catch { setShareToast('Tidak bisa menyalin link'); }
+      setTimeout(() => setShareToast(''), 1800);
+    };
     const [videoMode, setVideoMode] = useState(false);   // B&H style: photo is the hero; video opens via the "Lihat Video" button
     const [videoPlaying, setVideoPlaying] = useState(false);   // facade clicked → real iframe loaded
     const goToVideo = () => { setVideoMode(true); setVideoPlaying(false); };
@@ -1237,6 +1271,32 @@ DP : 0
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12 11.2 3.05a1.125 1.125 0 0 1 1.59 0L21.75 12M4.5 9.75V19.9c0 .62.5 1.1 1.125 1.1H9.75v-4.875c0-.62.5-1.125 1.125-1.125h2.25c.62 0 1.125.504 1.125 1.125V21h4.125c.62 0 1.125-.48 1.125-1.1V9.75" />
             </svg>
           </Link>
+          {/* Share + cart — MOBILE only, top-right of the hero (Tokopedia-style). Same black/40
+              circles as Back/Home. Share = native share sheet, clipboard fallback with a toast. */}
+          <div className="sm:hidden absolute top-3 right-3 z-20 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={shareProduct}
+              aria-label="Bagikan produk"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white active:scale-95 transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                {/* curved "forward" arrow (Tokopedia-style share) */}
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.5 5.5 20 11l-5.5 5.5" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20 11h-6.5C8.4 11 4.9 14.2 4 19" />
+              </svg>
+            </button>
+            <Suspense fallback={<GalleryCartButton count={0} />}>
+              <Await resolve={cartPromise} errorElement={<GalleryCartButton count={0} />}>
+                {(cart) => <GalleryCartButton count={cart?.totalQuantity || 0} />}
+              </Await>
+            </Suspense>
+          </div>
+          {shareToast && (
+            <div className="sm:hidden absolute top-14 right-3 z-20 rounded-full bg-gray-900/90 text-white text-[11px] font-semibold px-3 py-1.5 shadow-md">
+              {shareToast}
+            </div>
+          )}
 
           {/* "Lihat Foto" — MOBILE only, shown on the video slide so users can jump to the photos
               (needed because a playing iframe swallows swipe gestures). Sits on the video, not the photo. */}
@@ -1246,7 +1306,7 @@ DP : 0
               onClick={() => goTo(0)}
               aria-label="Lihat foto produk"
               style={{ background: 'rgba(17, 24, 39, 0.75)', backdropFilter: 'blur(4px)' }}
-              className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 inline-flex items-center gap-1 rounded-full text-white text-[11px] font-semibold px-3 py-1 active:scale-95 transition shadow-md"
+              className="md:hidden absolute top-[3.75rem] left-1/2 -translate-x-1/2 z-20 inline-flex items-center gap-1 rounded-full text-white text-[11px] font-semibold px-3 py-1 active:scale-95 transition shadow-md"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-3.5 h-3.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M4.5 19.5h15a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5h-15A1.5 1.5 0 0 0 3 6v12a1.5 1.5 0 0 0 1.5 1.5Z" />
@@ -1271,10 +1331,8 @@ DP : 0
           </button>
           )}
 
-          {/* Free Ongkir badge — products 3jt+ (hidden in video mode) */}
-          {!videoMode && parseFloat(wishlistPrice) >= 3000000 && (
-            <FreeOngkirBadge size="md" className="absolute bottom-2 left-2 z-10" />
-          )}
+          {/* The red FREE ONGKIR sticker used to sit here (bottom-left of the hero). Shipping info
+              now lives in the <ShippingRow/> under the trust chips, Tokopedia-style. */}
 
           {/* Prev / Next buttons — desktop only */}
           {images.length > 1 && (
@@ -1310,16 +1368,8 @@ DP : 0
             </div>
           )}
 
-          {/* Wishlist button — top right (desktop only; on mobile the heart sits next to the title) */}
-          <div className="hidden md:block absolute top-3 right-3 z-10 shadow-md rounded-full">
-            <WishlistButton
-              handle={wishlistHandle}
-              title={wishlistTitle}
-              image={wishlistImage}
-              price={wishlistPrice}
-              customerEmail={wishlistEmail}
-            />
-          </div>
+          {/* Desktop wishlist used to sit here (top-right pill); it now lives in the purchase card
+              with Chat + Share (Tokopedia-style), see "Chat · Wishlist · Share" below. */}
 
           {/* Lihat Video — B&H-style floating entry below the wishlist. Photo stays the hero;
               double-click secret-copy on the image body is unaffected (this is a small corner
@@ -1331,7 +1381,7 @@ DP : 0
               aria-label="Lihat video produk"
               // Inline background: the pill must ALWAYS be visible over white product photos
               style={{ background: 'rgba(17, 24, 39, 0.75)', backdropFilter: 'blur(4px)' }}
-              className="absolute top-3 md:top-14 right-3 z-10 inline-flex items-center gap-1.5 rounded-full hover:opacity-90 pl-1.5 pr-3 py-1 active:scale-95 transition shadow-md"
+              className="absolute top-[3.75rem] md:top-14 right-3 z-10 inline-flex items-center gap-1.5 rounded-full hover:opacity-90 pl-1.5 pr-3 py-1 active:scale-95 transition shadow-md"
             >
               <span className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
                 <svg viewBox="0 0 24 24" fill="white" className="w-3 h-3 ml-0.5" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
@@ -2035,6 +2085,18 @@ DP : 0
     const inCuciGudang = product?.collections?.nodes?.some(c => c.handle === 'cuci-gudang');
 
     const [root] = useMatches();
+    // Desktop purchase card: "Chat · Wishlist · Share" row (Tokopedia-style)
+    const [cardToast, setCardToast] = useState('');
+    const shareFromCard = async () => {
+      const url = `${window.location.origin}${window.location.pathname}`;
+      const title = product?.title || 'Galaxy Camera';
+      try {
+        if (navigator.share) { await navigator.share({ title, text: title, url }); return; }
+      } catch (e) { if (e?.name === 'AbortError') return; }
+      try { await navigator.clipboard.writeText(url); setCardToast('Link disalin'); }
+      catch { setCardToast('Tidak bisa menyalin link'); }
+      setTimeout(() => setCardToast(''), 1800);
+    };
     const cart = root.data?.cart;
 
   
@@ -2524,6 +2586,11 @@ DP : 0
 
             <div className='border-t border-gray-100' />
 
+            {/* Pengiriman — Tokopedia-style row (mobile + tablet; desktop has it in the purchase card) */}
+            <div className="lg:hidden">
+              <ShippingRow free={(Number(parseFloat(selectedVariant?.price?.amount)) || 0) >= 3000000} className="border-t-0" />
+            </div>
+
               {product?.metafields[12]?.value == "true" && (
                 <div className='relative rounded-2xl overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800/60 shadow-xl'>
                   <div className='absolute inset-0 bg-gradient-to-r from-red-500/10 via-transparent to-orange-500/10'></div>
@@ -2759,13 +2826,10 @@ DP : 0
                 </span>
               </div>
 
-              {/* Ships-from line — local trust + speed cue */}
-              <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-3.5 h-3.5 flex-shrink-0">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-6.375m0-11.25h4.125c.621 0 1.125.504 1.125 1.125v6.375" />
-                </svg>
-                Dikirim dari Galaxy Camera Tangerang
-              </p>
+              {/* Pengiriman — same row as mobile, compact */}
+              <div className="border-t border-gray-100 pt-1">
+                <ShippingRow compact free={(Number(parseFloat(selectedVariant?.price?.amount)) || 0) >= 3000000} />
+              </div>
 
               {/* Bonus Gratis — desktop home (middle column shows it below lg) */}
               {product.metafields[1] && (
@@ -2793,6 +2857,51 @@ DP : 0
                   ) : null}
                 </Await>
               </Suspense>
+
+              {/* Chat · Wishlist · Share — desktop only (mobile has the heart beside the title and
+                  share/cart on the hero). Chat opens Grisela, the store's 24-hour assistant. */}
+              <div className="relative hidden lg:flex items-center justify-center pt-2 border-t border-gray-100 text-xs font-semibold text-gray-700">
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('grisela:open', { detail: { source: 'purchase-card' } }))}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg hover:bg-gray-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                  </svg>
+                  Chat
+                </button>
+                <span className="w-px h-4 bg-gray-200" />
+                {/* the heart is the real control; clicking the label forwards to it */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) e.currentTarget.querySelector('button')?.click(); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.querySelector('button')?.click(); } }}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg hover:bg-gray-50 cursor-pointer"
+                >
+                  <WishlistButton
+                    variant="plain"
+                    handle={product.handle}
+                    title={product.title}
+                    image={selectedVariant?.image?.url || product.featuredImage?.url || ''}
+                    price={String(selectedVariant?.price?.amount || '')}
+                    customerEmail={custEmail?.customer?.email || null}
+                  />
+                  Wishlist
+                </div>
+                <span className="w-px h-4 bg-gray-200" />
+                <button type="button" onClick={shareFromCard} className="flex items-center gap-1.5 px-3 py-1 rounded-lg hover:bg-gray-50">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.5 5.5 20 11l-5.5 5.5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 11h-6.5C8.4 11 4.9 14.2 4 19" />
+                  </svg>
+                  Share
+                </button>
+                {cardToast && (
+                  <span className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-full bg-gray-900 text-white text-[11px] px-3 py-1 shadow-md whitespace-nowrap">{cardToast}</span>
+                )}
+              </div>
             </div>
           </div>
 
