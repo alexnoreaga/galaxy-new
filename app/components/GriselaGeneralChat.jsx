@@ -24,6 +24,31 @@ const QUICK_QUESTIONS = [
  * Standalone Grisela chat (no product context) — used by /bio and the
  * off-hours floating button. `source` is logged to chat_events.
  */
+// ── Persistence ────────────────────────────────────────────────────────────────
+// The general chat used to live only in React state; BottomNavbar (its host) is unmounted on
+// product pages and on reloads, so every return to the home page started a NEW conversation and
+// Grisela "forgot" everything ("yg tadi yg kedua" → "yang mana ya?"). Keep one thread per browser
+// for 7 days: messages + conversationId, so the dashboard also shows ONE conversation.
+const GENERAL_KEY = 'grisela_general_chat_v1';
+const GENERAL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const GENERAL_MAX_MSGS = 80;
+function loadGeneral() {
+  try {
+    const raw = localStorage.getItem(GENERAL_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d?.savedAt || Date.now() - d.savedAt > GENERAL_TTL_MS) { localStorage.removeItem(GENERAL_KEY); return null; }
+    return d;
+  } catch { return null; }
+}
+function saveGeneral(messages, conversationId) {
+  try {
+    if (!messages?.some((m) => m.role === 'user')) return; // skip a lone greeting
+    localStorage.setItem(GENERAL_KEY, JSON.stringify({ messages: messages.slice(-GENERAL_MAX_MSGS), conversationId, savedAt: Date.now() }));
+  } catch {}
+}
+function clearGeneral() { try { localStorage.removeItem(GENERAL_KEY); } catch {} }
+
 export function GriselaGeneralChat({ open, onClose, source = 'general', waMessage }) {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -38,6 +63,17 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
   const inFlightRef = useRef(false);
   const appliedIdxRef = useRef(-1); // highest server message index already shown
   const custPush = useCustomerPush(open, conversationId, staffMode);
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    const saved = loadGeneral();
+    if (saved?.messages?.length) {
+      setMessages(saved.messages);
+      if (saved.conversationId) setConversationId(saved.conversationId);
+    }
+  }, []);
+  useEffect(() => { saveGeneral(messages, conversationId); }, [messages, conversationId]);
   // Opened from a staff-reply push (/?chat=open&conv=…): adopt that conversation, history is restored by the first sync
   useEffect(() => {
     if (!open || conversationId) return;
@@ -192,11 +228,23 @@ export function GriselaGeneralChat({ open, onClose, source = 'general', waMessag
               </p>
             </div>
           </div>
+          <div className="flex items-center gap-1.5">
+            {messages.some((m) => m.role === 'user') && !staffMode && (
+              <button
+                type="button"
+                onClick={() => { if (!window.confirm('Mulai obrolan baru? Riwayat obrolan ini tidak ditampilkan lagi.')) return; clearGeneral(); setMessages([]); setConversationId(null); setStaffMode(null); setWaitingStaff(false); serverTotalRef.current = null; appliedIdxRef.current = -1; setMessages([{ role: 'ai', text: 'Oke ka, kita mulai dari awal 😊 Mau cari apa hari ini?' }]); }}
+                className="text-[11px] font-semibold text-gray-500 hover:text-gray-800 px-2 py-1 rounded-full hover:bg-gray-100 transition-colors"
+                title="Hapus riwayat & mulai obrolan baru"
+              >
+                Obrolan baru
+              </button>
+            )}
           <button onClick={onClose} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-gray-500">
               <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
             </svg>
           </button>
+          </div>
         </div>
 
         {/* Messages */}
