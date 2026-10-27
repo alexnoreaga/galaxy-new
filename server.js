@@ -3,6 +3,7 @@ import * as remixBuild from '@remix-run/dev/server-build';
 import {
   cartGetIdDefault,
   cartSetIdDefault,
+  cartCreateDefault,
   createCartHandler,
   createStorefrontClient,
   storefrontRedirect,
@@ -51,11 +52,28 @@ export default {
        * Create a cart handler that will be used to
        * create and update the cart in the session.
        */
+      const getCartId = cartGetIdDefault(request.headers);
       const cart = createCartHandler({
         storefront,
-        getCartId: cartGetIdDefault(request.headers),
+        getCartId,
         setCartId: cartSetIdDefault(),
         cartQueryFragment: CART_QUERY_FRAGMENT,
+        customMethods__unstable: {
+          // Shopify made `cartDiscountCodesUpdate(discountCodes:)` non-null ([String!]!) on every live API
+          // version, but Hydrogen 2023.7's built-in mutation still declares `$discountCodes: [String!]` →
+          // "Nullability mismatch" → every voucher apply on an existing cart was a 500 for customers.
+          updateDiscountCodes: async (discountCodes, optionalParams = {}) => {
+            const codes = [...new Set((discountCodes || []).filter(Boolean))];
+            const cartId = optionalParams.cartId || getCartId();
+            if (!cartId) {
+              return cartCreateDefault({storefront, getCartId})({discountCodes: codes}, optionalParams);
+            }
+            const {cartDiscountCodesUpdate} = await storefront.mutate(CART_DISCOUNT_CODES_UPDATE_MUTATION, {
+              variables: {cartId, discountCodes: codes, ...optionalParams},
+            });
+            return cartDiscountCodesUpdate;
+          },
+        },
       });
 
       /**
@@ -154,6 +172,25 @@ export class HydrogenSession {
 }
 
 // NOTE: https://shopify.dev/docs/api/storefront/latest/queries/cart
+// Same response shape as Hydrogen's default cart mutations (cart + errors: userErrors).
+const CART_DISCOUNT_CODES_UPDATE_MUTATION = `#graphql
+  mutation cartDiscountCodesUpdate(
+    $cartId: ID!
+    $discountCodes: [String!]!
+    $language: LanguageCode
+    $country: CountryCode
+  ) @inContext(country: $country, language: $language) {
+    cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
+      cart {
+        id
+        totalQuantity
+        discountCodes { code applicable }
+      }
+      errors: userErrors { message field code }
+    }
+  }
+`;
+
 const CART_QUERY_FRAGMENT = `#graphql
   fragment Money on MoneyV2 {
     currencyCode

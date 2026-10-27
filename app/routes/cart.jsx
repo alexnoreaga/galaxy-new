@@ -25,6 +25,7 @@ export async function action({request, context}) {
 
   let status = 200;
   let result;
+  let discountCodesInput = [];
 
   switch (action) {
     case CartForm.ACTIONS.LinesAdd:
@@ -47,7 +48,8 @@ export async function action({request, context}) {
       const discountCodes = formDiscountCode ? [formDiscountCode] : [];
 
       // Combine discount codes already applied on cart
-      discountCodes.push(...inputs.discountCodes);
+      discountCodes.push(...(inputs.discountCodes || []));
+      discountCodesInput = discountCodes;
 
       result = await cart.updateDiscountCodes(discountCodes);
       break;
@@ -63,9 +65,46 @@ export async function action({request, context}) {
       throw new Error(`${action} cart action is not defined`);
   }
 
+  if (!result?.cart) {
+    // The cookie points at a cart Shopify no longer has (checkout completed, or the cart expired):
+    // start a fresh cart with the same input instead of throwing a 500 at the customer.
+    console.warn('[cart] no cart returned for', action, JSON.stringify(result?.errors || []).slice(0, 200));
+    const fresh =
+      action === CartForm.ACTIONS.LinesAdd ? {lines: inputs.lines}
+      : action === CartForm.ACTIONS.DiscountCodesUpdate ? {discountCodes: discountCodesInput}
+      : {};
+    result = await cart.create(fresh).catch(() => null);
+  }
+  if (!result?.cart) {
+    return json(
+      {cart: null, errors: [{message: 'Keranjang tidak bisa diperbarui. Coba muat ulang halaman.'}]},
+      {status: 200},
+    );
+  }
+
+  if (!result?.cart) {
+    // The cookie points at a cart Shopify no longer has (checkout completed, or the cart expired):
+    // start a fresh cart with the same input instead of throwing a 500 at the customer.
+    console.warn('[cart] no cart returned for', action, JSON.stringify(result?.errors || []).slice(0, 200));
+    const fresh =
+      action === CartForm.ACTIONS.LinesAdd ? {lines: inputs.lines}
+      : action === CartForm.ACTIONS.DiscountCodesUpdate ? {discountCodes: discountCodesInput}
+      : {};
+    result = await cart.create(fresh).catch(() => null);
+  }
+  if (!result?.cart) {
+    return json(
+      {cart: null, errors: [{message: 'Keranjang tidak bisa diperbarui. Coba muat ulang halaman.'}]},
+      {status: 200},
+    );
+  }
+
   const cartId = result.cart.id;
   const headers = cart.setCartId(result.cart.id);
-  const {cart: cartResult, errors} = result;
+  const cartResult = result.cart;
+  // Shopify may answer a stale cart id with a fresh cart PLUS a "cart does not exist" userError —
+  // the new cookie above already fixes it, so don't show that message to the customer.
+  const errors = (result.errors || []).filter((e) => !(e?.field || []).includes('cartId'));
 
   const redirectTo = formData.get('redirectTo') ?? null;
   if (typeof redirectTo === 'string') {

@@ -1,5 +1,5 @@
 import {CartForm, Image, Money} from '@shopify/hydrogen';
-import {Link} from '@remix-run/react';
+import {Link, useFetchers} from '@remix-run/react';
 import {useState, useEffect} from 'react';
 import {useVariantUrl} from '~/utils';
 import {gaEvent, gaCartLineItem} from '~/lib/analytics';
@@ -363,9 +363,33 @@ function CartDiscounts({discountCodes}) {
     discountCodes
       ?.filter((discount) => discount.applicable)
       ?.map(({code}) => code) || [];
+  // Shopify keeps a rejected code on the cart with applicable:false — before this the customer saw
+  // nothing at all after pressing "Pakai", which read as "voucher error".
+  const rejected =
+    discountCodes
+      ?.filter((discount) => !discount.applicable)
+      ?.map(({code}) => code) || [];
+  const fetchers = useFetchers();
+  const discountFetcher = fetchers.find((f) => {
+    const raw = f.formData?.get('cartFormInput');
+    return typeof raw === 'string' && raw.includes('DiscountCodesUpdate');
+  });
+  const checking = discountFetcher && discountFetcher.state !== 'idle';
+  const serverError = discountFetcher?.data?.errors?.[0]?.message;
 
   return (
     <div className="flex flex-col gap-2">
+      {checking && (
+        <p className="text-xs text-gray-500">Memeriksa kode…</p>
+      )}
+      {!checking && serverError && (
+        <p className="text-xs text-red-600">{serverError}</p>
+      )}
+      {!checking && !serverError && rejected.length > 0 && (
+        <p className="text-xs text-red-600">
+          Kode <span className="font-semibold">{rejected.join(', ')}</span> tidak berlaku untuk keranjang ini. Cek minimum belanja, produk yang termasuk, atau masa berlakunya.
+        </p>
+      )}
       {codes.length > 0 && (
         <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
           <div className="flex items-center gap-2 text-sm text-green-700">
