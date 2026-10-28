@@ -75,8 +75,9 @@ function onNextNavigation(cb) {
     cb();
   };
   history.pushState = function (...args) {
+    const before = location.pathname + location.search;
     const r = orig.apply(this, args);
-    fire();
+    if (location.pathname + location.search !== before) fire(); // hash-only (modal open) is not a new page
     return r;
   };
   window.addEventListener('popstate', fire);

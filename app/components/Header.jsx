@@ -3,6 +3,7 @@ import {Suspense, useState, useEffect, useRef} from 'react';
 import {FaInstagram, FaTiktok, FaYoutube, FaXTwitter, FaWhatsapp, FaFacebookF} from 'react-icons/fa6';
 import {PredictiveSearchForm, PredictiveSearchResults} from '~/components/Search';
 import {useLocation, useNavigate, useNavigation} from '@remix-run/react';
+import {useBackToClose} from '~/lib/useBackToClose';
 import {FaRegCircleUser} from 'react-icons/fa6';
 import {WISHLIST_EVENT, readWishlistCount} from '~/components/WishlistButton';
 import {NearestStoreBar} from '~/components/NearestStoreBar';
@@ -635,6 +636,7 @@ function HeaderCtas({isLoggedIn, cart, onDark}) {
 
 function SearchToggleMobile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  useBackToClose(isModalOpen, () => setIsModalOpen(false), 'cari');
   const location = useLocation();
 
   useEffect(() => {

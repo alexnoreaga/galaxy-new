@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import {useBackToClose} from '~/lib/useBackToClose';
 
 // Blibli-style voucher UX: a compact teaser strip ("Pakai voucher biar hemat") that expands into a
 // grouped modal ("Lihat semua") listing every voucher. Galaxy vouchers are copy-able discount codes,
@@ -15,6 +16,7 @@ function TicketIcon({ className }) {
 export function VoucherInline({ voucherData }) {
   const [copied, setCopied] = useState(null);
   const [showAll, setShowAll] = useState(false);
+  useBackToClose(showAll, () => setShowAll(false), 'voucher');
 
   const vouchers = (voucherData?.metaobjects?.edges ?? [])
     .map(edge => {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from '@remix-run/react';
+import {useBackToClose} from '~/lib/useBackToClose';
 import {
   getSessionId,
   trackEvent,
@@ -50,6 +51,7 @@ function saveGeneral(messages, conversationId) {
 function clearGeneral() { try { localStorage.removeItem(GENERAL_KEY); } catch {} }
 
 export function GriselaGeneralChat({ open, onClose, source = 'general', waMessage }) {
+  useBackToClose(open, onClose, 'grisela'); // Android back closes the chat instead of leaving the page
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import {useBackToClose} from '~/lib/useBackToClose';
 
 export function getSessionId() {
   let id = localStorage.getItem('galaxy_session_id');
@@ -478,6 +479,7 @@ export function ProductAIChat({ product, selectedVariant, autoDiscount = null, h
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [open, setOpen] = useState(false);
+  useBackToClose(open, () => setOpen(false), 'tanya');
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);

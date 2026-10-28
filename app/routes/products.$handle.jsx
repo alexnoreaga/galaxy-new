@@ -57,6 +57,7 @@ import { FaBagShopping } from "react-icons/fa6";
 import { FaShareFromSquare } from "react-icons/fa6";
 import { FaLink } from "react-icons/fa6";
 import {Await, useMatches, useLocation} from '@remix-run/react';
+import {useBackToClose} from '~/lib/useBackToClose';
 import {Suspense} from 'react';
 import {resolveFlashEdition, FlashEditionBadge, FlashEditionName} from '~/components/MastheadOrnament';
 import {slugType as slugProductType, brandHandle as brandHandleOf} from '~/lib/catalogIndex';
@@ -1096,6 +1097,7 @@ DP : 0
     const [displayUrl, setDisplayUrl] = useState(selectedVariant || images[0]?.src);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [zoomOpen, setZoomOpen] = useState(false);
+    useBackToClose(zoomOpen, () => setZoomOpen(false), 'zoom');
     // Tokopedia-style top-right corner on mobile: share + cart over the hero image.
     const [rootMatch] = useMatches();
     const cartPromise = rootMatch?.data?.cart;
@@ -2110,6 +2112,8 @@ DP : 0
 
     const [bukaModalBalasCepat, setBukaModalBalasCepat] = useState(false)
     const [bukaModalBandingkan, setBukaModalBandingkan] = useState(false)
+    useBackToClose(bukaModalBalasCepat, () => setBukaModalBalasCepat(false), 'balas')
+    useBackToClose(bukaModalBandingkan, () => setBukaModalBandingkan(false), 'bandingkan')
 
     // Affiliate — read from localStorage (set by account.affiliate.jsx after approval)
     const [affiliateRef, setAffiliateRef] = useState(null);

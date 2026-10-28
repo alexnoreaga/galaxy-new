@@ -3,10 +3,7 @@ export function Aside({children, heading, id = 'aside'}) {
     <div aria-modal className="overlay" id={id} role="dialog">
       <button
         className="close-outside"
-        onClick={() => {
-          history.go(-1);
-          window.location.hash = '';
-        }}
+        onClick={() => history.go(-1)}
       />
       <aside>
         <header className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
