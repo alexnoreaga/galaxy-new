@@ -3830,14 +3830,25 @@ export const meta = ({data}) => {
   // OLD TITLE - Commented for future reference
   // const title = data?.product?.title + ' Harga Murah ' + indonesianMonth + ' ' +year
 
+  // Variant option values ("Sony / Nikon", "Black / Silver") go into the title + description so a
+  // search like "7artisans 35mm f1.4 mark iii for sony" matches — the base title alone never
+  // contained the mount; only the variant buttons did.
+  const variantValues = (data?.product?.options ?? [])
+    .filter((o) => o?.name && o.name !== 'Title' && (o.values?.length ?? 0) > 1)
+    .flatMap((o) => o.values)
+    .filter((v) => v && v !== 'Default Title')
+    .slice(0, 6)
+  const variantLabel = variantValues.length ? variantValues.join(' / ') : ''
+
   // ENHANCED TITLE - Better SEO with brand and urgency
-  const title = data?.product?.title + ' - Harga Terbaik ' + indonesianMonth + ' ' + year + ' | Galaxy Camera'
+  const title = data?.product?.title + (variantLabel ? ' ' + variantLabel : '') + ' - Harga Terbaik ' + indonesianMonth + ' ' + year + ' | Galaxy Camera'
 
   // OLD DESCRIPTION - Commented for future reference
   // const deskripsiBaru =  'Beli ' + data?.product?.title + ' Harga Murah ' + indonesianMonth + ' ' +year + ' Gratis Ongkir, Cicilan 0%.'
 
   // ENHANCED DESCRIPTION - More compelling with trust signals
-  const deskripsiBaru = '✓ Beli ' + data?.product?.title + ' Harga Terbaik ' + indonesianMonth + ' ' + year + 
+  const deskripsiBaru = '✓ Beli ' + data?.product?.title + ' Harga Terbaik ' + indonesianMonth + ' ' + year +
+    (variantLabel ? ' ✓ Tersedia varian ' + variantLabel : '') +
     ' ✓ Gratis Ongkir ✓ Cicilan 0% ✓ Garansi Resmi ✓ Bergaransi ✓ Terpercaya sejak 2012'
 
   // ENHANCED KEYWORDS - Long-tail and variations

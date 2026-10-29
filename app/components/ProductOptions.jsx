@@ -32,6 +32,14 @@ import {
       ? new URLSearchParams(navigation.location.search)
       : paramsWithDefaults;
   
+    // Visible, crawlable sentence naming every variant ("Tersedia untuk Mount Sony dan Nikon") — the
+    // buttons alone carry single words; a plain sentence next to the product title is what a query
+    // like "… for sony" matches against.
+    const variantSentence = options
+      .filter((o) => o?.name && o.name !== 'Title' && (o.values?.length ?? 0) > 1)
+      .map((o) => `${/^(varian|variant|title|tipe|type|pilihan)$/i.test(o.name) ? '' : o.name + ' '}${o.values.length === 2 ? o.values.join(' dan ') : o.values.slice(0, -1).join(', ') + ' dan ' + o.values[o.values.length - 1]}`)
+      .join(' · ');
+
     return (
       <div className="grid gap-3 mb-1.5">
         {options.map((option) => {
@@ -145,6 +153,11 @@ import {
             </div>
           );
         })}
+        {variantSentence && (
+          <p className="text-[11px] text-gray-500 -mt-1">
+            {product?.title ? `${product.title} tersedia untuk ${variantSentence}.` : `Tersedia untuk ${variantSentence}.`}
+          </p>
+        )}
       </div>
     );
   }
