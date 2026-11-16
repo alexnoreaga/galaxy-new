@@ -32,6 +32,22 @@ export function useBackToClose(open, onClose, key) {
     let closedByBack = false;
     const onPop = () => {
       if (window.location.hash === hash) return; // still on our entry (e.g. forward)
+      // Phone keyboard open (an input is focused and the visual viewport is shrunk by the IME)? Then
+      // this back press — the Android back GESTURE goes straight to the browser, not to the keyboard —
+      // should only dismiss the keyboard, like a native app. Blur the field and put our entry back so
+      // the modal stays; the next back press closes it.
+      const ae = document.activeElement;
+      const vv = window.visualViewport;
+      const typing = ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && window.matchMedia('(pointer: coarse)').matches;
+      const keyboardOpen = typing && (!vv || vv.height < window.innerHeight - 120);
+      if (keyboardOpen) {
+        ae.blur();
+        navigate(
+          {pathname: window.location.pathname, search: window.location.search, hash},
+          {preventScrollReset: true},
+        );
+        return;
+      }
       closedByBack = true;
       onCloseRef.current?.();
     };
