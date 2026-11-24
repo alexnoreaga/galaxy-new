@@ -238,17 +238,40 @@ function cleanAnswer(response) {
   return text.trim();
 }
 
+// gemini-2.5-flash is closed to new API keys since 2026-11 (404 "no longer available to new users").
+// 3.8 is Google's successor; 3.5 catches 3.8's 503 "high demand" spikes.
+const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash'];
+const RETRYABLE = /\b(404|429|503)\b|not found|no longer available|high demand|overloaded|resource.?exhausted/i;
+
 function getGemini(context, { search = false, temperature } = {}) {
   const apiKey =
     context?.env?.GEMINI_API_KEY ??
     (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set in environment');
   const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    ...(search ? { tools: [{ googleSearch: {} }] } : {}),
-    ...(temperature !== undefined ? { generationConfig: { temperature } } : {}),
-  });
+  const make = (model) =>
+    genAI.getGenerativeModel({
+      model,
+      ...(search ? { tools: [{ googleSearch: {} }] } : {}),
+      ...(temperature !== undefined ? { generationConfig: { temperature } } : {}),
+    });
+  // Same shape the call sites use (.generateContent), but walks GEMINI_MODELS on a retryable error.
+  return {
+    async generateContent(req) {
+      let lastErr;
+      for (const model of GEMINI_MODELS) {
+        try {
+          return await make(model).generateContent(req);
+        } catch (e) {
+          lastErr = e;
+          const msg = String(e?.message ?? e);
+          if (!RETRYABLE.test(msg)) throw e;
+          console.warn('[api.ask] gemini', model, 'failed → next model:', msg.slice(0, 140));
+        }
+      }
+      throw lastErr;
+    },
+  };
 }
 
 // ── GET — fetch (or generate) questions for a product ────────────────────────

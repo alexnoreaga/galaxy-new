@@ -1,4 +1,5 @@
 import { json } from '@shopify/remix-oxygen';
+import { geminiGenerate } from '~/lib/geminiFetch';
 
 export async function action({ request, context }) {
   if (request.method !== 'POST') {
@@ -79,17 +80,13 @@ Aturan ketat:
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+    const res = await geminiGenerate(
+      geminiApiKey,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
-        }),
-      }
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
+      },
+      { signal: controller.signal },
     );
     clearTimeout(timeout);
 

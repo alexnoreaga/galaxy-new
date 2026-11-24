@@ -1,4 +1,5 @@
 import { json } from '@shopify/remix-oxygen';
+import { geminiGenerate } from '~/lib/geminiFetch';
 
 export async function action({ request, context }) {
   if (request.method !== 'POST') {
@@ -50,18 +51,11 @@ ${productInfo}
 
 Output JSON:`;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.2 },
-        }),
-      }
-    );
+    const res = await geminiGenerate(geminiApiKey, {
+      contents: [{ parts: [{ text: prompt }] }],
+      tools: [{ google_search: {} }],
+      generationConfig: { temperature: 0.2 },
+    });
 
     if (!res.ok) {
       const errText = await res.text();
